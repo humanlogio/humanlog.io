@@ -45,6 +45,15 @@
   font-size: 4rem;
 }
 
+.titlecode {
+  background: #9e9c9c;
+  border-radius: 5px;
+  padding: 0.75rem;
+  font-size: 4rem;
+  font-family: Menlo, Monaco, Lucida Console, Liberation Mono, DejaVu Sans Mono,
+    Bitstream Vera Sans Mono, Courier New, monospace;
+}
+
 .title,
 .description {
   text-align: center;
