@@ -12,8 +12,6 @@ export default function Home() {
       <Head>
         <title>humanlog.io</title>
         <meta name="description" content="humanlog.io" />
-        <meta name="go-import" content="humanlog.io/api git https://github.com/humanlog-io/api" />
-        <meta name="go-source" content="humanlog.io https://github.com/humanlog-io/api https://github.com/humanlog-io/api/tree/master{/dir} https://github.com/humanlog-io/api/blob/master{/dir}/{file}#L{line}" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
 

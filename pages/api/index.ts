@@ -6,5 +6,5 @@ const log = logger();
 
 export default function handler(req: NextApiRequest, res: NextApiResponse) {
   log.info({ query: req.query });
-  res.status(200).json({ name: "John Doe" });
+  res.status(200).json({ query: req.query });
 }
