@@ -2,7 +2,7 @@
 # Based on Deno installer: Copyright 2019 the Deno authors. All rights reserved. MIT license.
 # TODO(everyone): Keep this script simple and easily auditable.
 
-set -e
+set -eu
 
 os=$(uname -s)
 arch=$(uname -m)

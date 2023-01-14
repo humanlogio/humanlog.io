@@ -2,14 +2,14 @@
 # Based on Deno installer: Copyright 2019 the Deno authors. All rights reserved. MIT license.
 # TODO(everyone): Keep this script simple and easily auditable.
 
-set -e
+set -eu
 
 os=$(uname -s)
 arch=$(uname -m)
 
 humanlog_uri=$(curl -s --data "{\"os\":\"${os}\",\"arch\":\"${arch}\"}" https://api.humanlog.io/api/releases/humanlog)
 if [ ! "$humanlog_uri" ]; then
-	echo "Error: Unable to find a humanlog release for $os/$arch - see github.com/humanlogio/humanlog/releases for all versions" 1>&2
+	echo "Error: Unable to find an humanlog release for $os/$arch - see github.com/humanlogio/humanlog/releases for all versions" 1>&2
 	exit 1
 fi
 
