@@ -1,0 +1,12 @@
+{
+  "typescript.format.semicolons": "insert",
+  "editor.formatOnSave": false,
+  "editor.tabSize": 2,
+  "editor.trimAutoWhitespace": true,
+  "json.format.enable": true,
+  "editor.renderWhitespace": "all",
+  "javascript.format.semicolons": "insert",
+  "typescript.suggest.completeFunctionCalls": true
+}
+
+
