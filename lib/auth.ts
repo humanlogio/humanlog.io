@@ -1,9 +1,14 @@
+import { createPromiseClient } from '@connectrpc/connect'
+import { createConnectTransport } from '@connectrpc/connect-web'
+import { AuthService } from "api/js/svc/auth/v1/service_connect";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import WorkOS, { User } from "@workos-inc/node";
+import { User } from "@workos-inc/node";
 import { jwtVerify } from "jose";
 
-export const workos = new WorkOS(process.env.WORKOS_API_KEY);
+// export const workos = new WorkOS(process.env.WORKOS_API_KEY);
+
+const authClient = createPromiseClient(AuthService, createConnectTransport({ baseUrl: process.env.HUMANLOG_API_URL! }));
 
 export function getClientId() {
   const clientId = process.env.WORKOS_CLIENT_ID;
@@ -22,12 +27,7 @@ export async function getAuthorizationUrl() {
     throw new Error("WORKOS_REDIRECT_URI is not set");
   }
 
-  const authorizationUrl = workos.userManagement.getAuthorizationUrl({
-    provider: "authkit",
-    clientId: getClientId(),
-    // The endpoint that WorkOS will redirect to after a user authenticates
-    redirectUri,
-  });
+  const authorizationUrl = await authClient.getAuthURL({});
 
   return authorizationUrl;
 }
