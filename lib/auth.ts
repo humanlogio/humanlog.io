@@ -8,7 +8,7 @@ import { jwtVerify } from "jose";
 
 // export const workos = new WorkOS(process.env.WORKOS_API_KEY);
 
-const authClient = createPromiseClient(AuthService, createConnectTransport({ baseUrl: process.env.HUMANLOG_API_URL! }));
+const authClient = createPromiseClient(AuthService, createConnectTransport({ baseUrl: process.env.HUMANLOG_API_URL || 'http://localhost:8080' }));
 
 export function getClientId() {
   const clientId = process.env.WORKOS_CLIENT_ID;
