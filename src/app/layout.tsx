@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
-import { JetBrains_Mono as Font } from "next/font/google"
+import { JetBrains_Mono as Font } from "next/font/google";
 import "./globals.css";
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/utils";
 
 const font = Font({
   subsets: ["latin"],
   variable: "--font-sans",
-})
+});
 
 export const metadata: Metadata = {
   title: "humanlog.io",
@@ -25,7 +25,9 @@ export default function RootLayout({
           "min-h-screen bg-background font-sans antialiased",
           font.variable
         )}
-      >{children}</body>
+      >
+        {children}
+      </body>
     </html>
   );
 }
