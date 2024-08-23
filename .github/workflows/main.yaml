@@ -1,0 +1,25 @@
+name: main
+
+on:
+  push:
+    branches: main
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  login:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Login to DigitalOcean Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: registry.digitalocean.com
+          username: ${{ secrets.DOCN_USERNAME }}
+          password: ${{ secrets.DOCN_REGISTRY_TOKEN }}
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          push: true
+          tags: humanlog/humanlogio:latest
