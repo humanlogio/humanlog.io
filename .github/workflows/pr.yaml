@@ -1,0 +1,14 @@
+name: build
+
+on:
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build container image
+        run: docker build -t registry.digitalocean.com/humanlog/humanlogio:$(echo $GITHUB_SHA | head -c7) .
