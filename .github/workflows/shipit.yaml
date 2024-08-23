@@ -1,10 +1,11 @@
-name: shipit
+name: 🚀 to prod
 
 on:
   workflow_dispatch:
 
 jobs:
-  build-and-push:
+  shipit:
+    name: "🚀 to prod"
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -15,17 +16,11 @@ jobs:
         with:
           token: ${{ secrets.DOCN_REGISTRY_TOKEN }}
 
-      - name: Build container image
-        run: docker build -t registry.digitalocean.com/humanlog/humanlogio:$(echo $GITHUB_SHA | head -c7) .
-
-      - name: Log in to DigitalOcean Container Registry with short-lived credentials
-        run: doctl registry login --expiry-seconds 1200
-
-      - name: Push image to DigitalOcean Container Registry
-        run: docker push registry.digitalocean.com/humanlog/humanlogio:$(echo $GITHUB_SHA | head -c7)
+      - name: Install helm
+        uses: azure/setup-helm@v4.2.0
 
       - name: Save DigitalOcean kubeconfig with short-lived credentials
-        run: doctl kubernetes cluster kubeconfig save --expiry-seconds 600 ${{ secrets.CLUSTER_NAME }}
+        run: doctl kubernetes cluster kubeconfig save --expiry-seconds 600 ${{ secrets.DOCN_K8S_CLUSTER_NAME }}
 
       - name: Deploy to DigitalOcean Kubernetes
         run: helm upgrade --install humanlogio ./deploy/app --namespace webapp  --values ./deploy/app/values.yaml --set "app.deployment.tag=$(echo $GITHUB_SHA | head -c7)"
