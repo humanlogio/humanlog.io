@@ -1,4 +1,4 @@
-name: main
+name: build-and-push
 
 on:
   push:
@@ -7,19 +7,22 @@ on:
   workflow_dispatch:
 
 jobs:
-  login:
+  build-and-push:
     runs-on: ubuntu-latest
     steps:
-      - name: Login to DigitalOcean Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: registry.digitalocean.com
-          username: ${{ secrets.DOCN_USERNAME }}
-          password: ${{ secrets.DOCN_REGISTRY_TOKEN }}
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Build and push
-        uses: docker/build-push-action@v6
+
+      - name: Install doctl
+        uses: digitalocean/action-doctl@v2
         with:
-          push: true
-          tags: humanlog/humanlogio:latest
+          token: ${{ secrets.DOCN_REGISTRY_TOKEN }}
+
+      - name: Build container image
+        run: docker build -t registry.digitalocean.com/humanlog/humanlogio:$(echo $GITHUB_SHA | head -c7) .
+
+      - name: Log in to DigitalOcean Container Registry with short-lived credentials
+        run: doctl registry login --expiry-seconds 1200
+
+      - name: Push image to DigitalOcean Container Registry
+        run: docker push registry.digitalocean.com/humanlog/humanlogio:$(echo $GITHUB_SHA | head -c7)
