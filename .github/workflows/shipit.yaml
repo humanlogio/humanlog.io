@@ -1,9 +1,7 @@
-name: build-and-push
+name: shipit
 
 on:
-  push:
-    branches:
-      - main
+  workflow_dispatch:
 
 jobs:
   build-and-push:
@@ -25,3 +23,9 @@ jobs:
 
       - name: Push image to DigitalOcean Container Registry
         run: docker push registry.digitalocean.com/humanlog/humanlogio:$(echo $GITHUB_SHA | head -c7)
+
+      - name: Save DigitalOcean kubeconfig with short-lived credentials
+        run: doctl kubernetes cluster kubeconfig save --expiry-seconds 600 ${{ secrets.CLUSTER_NAME }}
+
+      - name: Deploy to DigitalOcean Kubernetes
+        run: helm upgrade --install humanlogio ./deploy/app --namespace webapp  --values ./deploy/app/values.yaml --set "app.deployment.tag=$(echo $GITHUB_SHA | head -c7)"
