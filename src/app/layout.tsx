@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 
 const font = Font({
   subsets: ["latin"],
-  variable: "--font-sans",
+  variable: "--font-mono",
 });
 
 export const metadata: Metadata = {
@@ -22,7 +22,7 @@ export default function RootLayout({
     <html lang="en">
       <body
         className={cn(
-          "min-h-screen bg-background font-sans antialiased",
+          "min-h-screen bg-background font-mono antialiased",
           font.variable
         )}
       >
