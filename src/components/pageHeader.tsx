@@ -13,8 +13,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const PageHeader: React.FC = () => {
   return (
-    <div className="bg-darkBg">
-      <div className="px-4 py-3 w-full max-w-screen-xl mx-auto flex flex-row justify-between items-center gap-8">
+    <div className="bg-darkBg dark:bg-secondary-900">
+      <div className="mx-auto flex w-full max-w-screen-xl flex-row items-center justify-between gap-8 px-4 py-3">
         <div className="flex flex-row items-center gap-8">
           <Logo />
           <Select>
@@ -35,7 +35,7 @@ const PageHeader: React.FC = () => {
           </Select>
         </div>
         <div className="flex flex-row items-center gap-2">
-          <p className="text-white font-medium">username</p>
+          <p className="font-medium text-white">username</p>
           <Avatar>
             <AvatarImage src="https://i.pravatar.cc/64" />
             <AvatarFallback>SB</AvatarFallback>

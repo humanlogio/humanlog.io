@@ -67,7 +67,7 @@ const config = {
 
         // dark mode
         darkBg: "#0F172A",
-        darkText: "rgba(206, 212, 221, <alpha-value>)",
+        darkText: "rgba(255, 255, 255, <alpha-value>)",
         darkBorder: "#000",
         secondaryBlack: "#1b1b1b", // opposite of plain white, not used pitch black because borders and box-shadows are that color
       },
@@ -76,7 +76,7 @@ const config = {
       },
       boxShadow: {
         light: "4px 4px 0px 0px #000",
-        dark: "4px 4px 0px 0px #fff",
+        dark: "4px 4px 0px 0px #000",
       },
       translate: {
         boxShadowX: "4px",
