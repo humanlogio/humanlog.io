@@ -1,7 +1,7 @@
 import React from "react";
-import Image from "next/image";
-import Link from "next/link";
 import { SquareCode } from "lucide-react";
+
+import Logo from "@/components/logo";
 import {
   Select,
   SelectContent,
@@ -11,20 +11,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ModeToggle } from "@/components/mode-toggle";
 
 const PageHeader: React.FC = () => {
   return (
-    <div className="flex justify-center bg-darkBg px-4 py-3">
-      <div className="flex flex-row justify-between items-center gap-8 w-full max-w-screen-xl">
+    <div className="bg-darkBg dark:bg-secondary-900">
+      <div className="mx-auto flex w-full max-w-screen-xl flex-row items-center justify-between gap-8 px-4 py-3">
         <div className="flex flex-row items-center gap-8">
-          <Link href="/">
-            <Image
-              src="/images/humanlog-logo.png"
-              width={128}
-              height={32}
-              alt="Humanlog.io logo"
-            />
-          </Link>
+          <Logo />
           <Select>
             <SelectTrigger className="w-52">
               <div className="flex flex-row items-center gap-2">
@@ -42,12 +36,17 @@ const PageHeader: React.FC = () => {
             </SelectContent>
           </Select>
         </div>
-        <div className="flex flex-row items-center gap-2">
-          <p className="text-white font-medium">username</p>
-          <Avatar>
-            <AvatarImage src="https://i.pravatar.cc/64" />
-            <AvatarFallback>SB</AvatarFallback>
-          </Avatar>
+        <div className="flex flex-row items-center gap-6">
+          <div className="flex flex-row items-center gap-2">
+            <p className="font-medium text-white">username</p>
+            <Avatar>
+              <AvatarImage src="https://i.pravatar.cc/64" />
+              <AvatarFallback>SB</AvatarFallback>
+            </Avatar>
+          </div>
+          <div className="flex flex-row items-center gap-2">
+            <ModeToggle />
+          </div>
         </div>
       </div>
     </div>
