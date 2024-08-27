@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { JetBrains_Mono as FontMono } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
+import { ThemeProvider } from "@/components/theme-provider";
 
 const font = FontMono({
   subsets: ["latin"],
@@ -26,7 +27,14 @@ export default function RootLayout({
           font.variable,
         )}
       >
-        {children}
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          {children}
+        </ThemeProvider>
       </body>
     </html>
   );

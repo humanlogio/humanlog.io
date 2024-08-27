@@ -1,5 +1,6 @@
 import React from "react";
 import { SquareCode } from "lucide-react";
+
 import Logo from "@/components/logo";
 import {
   Select,
@@ -10,6 +11,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ModeToggle } from "@/components/mode-toggle";
 
 const PageHeader: React.FC = () => {
   return (
@@ -34,12 +36,17 @@ const PageHeader: React.FC = () => {
             </SelectContent>
           </Select>
         </div>
-        <div className="flex flex-row items-center gap-2">
-          <p className="font-medium text-white">username</p>
-          <Avatar>
-            <AvatarImage src="https://i.pravatar.cc/64" />
-            <AvatarFallback>SB</AvatarFallback>
-          </Avatar>
+        <div className="flex flex-row items-center gap-6">
+          <div className="flex flex-row items-center gap-2">
+            <p className="font-medium text-white">username</p>
+            <Avatar>
+              <AvatarImage src="https://i.pravatar.cc/64" />
+              <AvatarFallback>SB</AvatarFallback>
+            </Avatar>
+          </div>
+          <div className="flex flex-row items-center gap-2">
+            <ModeToggle />
+          </div>
         </div>
       </div>
     </div>

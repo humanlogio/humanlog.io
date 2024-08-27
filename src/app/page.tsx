@@ -1,4 +1,4 @@
-import PageHeader from "@/components/pageHeader";
+import PageHeader from "@/components/page-header";
 import { AutosizeTextarea } from "@/components/ui/autosize-textarea";
 import {
   ResizableHandle,
