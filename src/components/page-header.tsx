@@ -1,4 +1,6 @@
-import React from "react";
+"use client";
+
+import React, { useEffect, useState } from "react";
 import { SquareCode } from "lucide-react";
 
 import Logo from "@/components/logo";
@@ -12,8 +14,19 @@ import {
 } from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ModeToggle } from "@/components/mode-toggle";
+import { useApiClients } from "@/context/api-provider";
 
 const PageHeader: React.FC = () => {
+  const [user, setUser] = useState(null)
+  const apiClients = useApiClients();
+
+  useEffect(() => {
+    (async () => {
+      const res = await apiClients?.user.whoami();
+      setUser(res.user);
+    })();
+  }, [])
+
   return (
     <div className="bg-darkBg dark:bg-secondary-900">
       <div className="mx-auto flex w-full max-w-screen-xl flex-row items-center justify-between gap-8 px-4 py-3">

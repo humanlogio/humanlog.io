@@ -13,7 +13,7 @@ export type ApiClients = {
 
 export function ApiClientsProvider({ children }: { children: React.ReactNode }) {
     const apiClients = useMemo((): ApiClients => {
-        const transport = createConnectTransport({ baseUrl: process.env.API_BASE_URL || "https://api.humanlog.io" });
+        const transport = createConnectTransport({ baseUrl: "http://localhost:8080" });
         return {
             auth: createPromiseClient(AuthService, transport),
             user: createPromiseClient(UserService, transport),
