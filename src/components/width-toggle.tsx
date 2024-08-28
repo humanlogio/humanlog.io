@@ -1,3 +1,5 @@
+"use client";
+
 import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { Minimize2, Maximize2 } from "lucide-react";
@@ -14,7 +16,18 @@ export function WidthToggle({ isFullWidth, setIsFullWidth }: WidthToggleProps) {
       variant="noShadow"
       onClick={() => setIsFullWidth(!isFullWidth)}
     >
-      {isFullWidth ? <Minimize2 /> : <Maximize2 />}
+      {isFullWidth ? (
+        <Minimize2
+          size={16}
+          className="rotate-45 transition-all hover:scale-90"
+        />
+      ) : (
+        <Maximize2
+          className="rotate-45 transition-all hover:scale-110"
+          size={16}
+        />
+      )}
+      <span className="sr-only">Toggle full width</span>
     </Button>
   );
 }
