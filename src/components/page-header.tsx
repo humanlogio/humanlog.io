@@ -2,7 +2,6 @@
 
 import React, { useEffect, useState } from "react";
 import { SquareCode, User as UserIcon } from "lucide-react";
-
 import Logo from "@/components/logo";
 import {
   Select,
@@ -14,11 +13,20 @@ import {
 } from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ModeToggle } from "@/components/mode-toggle";
+import { WidthToggle } from "@/components/width-toggle";
 import { useApiClients } from "@/context/api-provider";
 import { User } from "api/js/types/v1/user_pb";
 import { md5 } from "js-md5";
 
-const PageHeader: React.FC = () => {
+interface PageHeaderProps {
+  isFullWidth: boolean;
+  setIsFullWidth: React.Dispatch<React.SetStateAction<boolean>>;
+}
+
+const PageHeader: React.FC<PageHeaderProps> = ({
+  isFullWidth,
+  setIsFullWidth,
+}) => {
   const [user, setUser] = useState<User | null>(null);
   const apiClients = useApiClients();
 
@@ -68,6 +76,10 @@ const PageHeader: React.FC = () => {
           </div>
           <div className="flex flex-row items-center gap-2">
             <ModeToggle />
+            <WidthToggle
+              isFullWidth={isFullWidth}
+              setIsFullWidth={setIsFullWidth}
+            />
           </div>
         </div>
       </div>
