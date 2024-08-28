@@ -12,9 +12,12 @@ import {
 import { Button } from "@/components/ui/button";
 
 import { cn } from "@/lib/utils";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 
 export default function Home() {
   const [isFullWidth, setIsFullWidth] = useState(false);
+  const [isPretty, setIsPretty] = useState(true);
 
   return (
     <main className="flex h-screen flex-col">
@@ -45,43 +48,68 @@ export default function Home() {
             <p>chart goes here</p>
           </div>
         </div>
-        <ResizablePanelGroup
-          direction="horizontal"
-          className="w-full flex-grow gap-1"
-        >
-          <ResizablePanel defaultSize={50}>
-            <div className="flex h-full flex-col rounded-base border-2 border-border bg-secondary-900">
-              <div className="flex flex-none flex-row items-center justify-between bg-secondary-100 px-4 py-2">
-                <div className="flex w-1/3 justify-start">
-                  <h4 className="font-bold text-white">Session</h4>
+        <div className="flex flex-grow flex-col gap-4">
+          <div className="flex flex-none flex-row items-center gap-2">
+            <Label
+              htmlFor="pretty"
+              className={cn("transition-colors duration-200", {
+                "text-gray-500": isPretty,
+              })}
+            >
+              Raw
+            </Label>
+            <Switch
+              id="pretty"
+              checked={isPretty}
+              onCheckedChange={setIsPretty}
+            />
+            <Label
+              htmlFor="pretty"
+              className={cn("transition-colors duration-200", {
+                "text-gray-500": !isPretty,
+              })}
+            >
+              Pretty
+            </Label>
+          </div>
+          <ResizablePanelGroup
+            direction="horizontal"
+            className="w-full flex-grow gap-1"
+          >
+            <ResizablePanel defaultSize={50}>
+              <div className="flex h-full flex-col overflow-hidden rounded-base border-2 border-border bg-secondary-900">
+                <div className="flex flex-none flex-row items-center justify-between bg-secondary-100 px-4 py-2">
+                  <div className="flex w-1/3 justify-start">
+                    <h4 className="font-bold text-white">Session</h4>
+                  </div>
+                  <div className="flex w-1/3 justify-center">
+                    <GripHorizontal />
+                  </div>
+                  <div className="flex w-1/3 justify-end">
+                    <Button size="icon" className="mb-1 h-8">
+                      <Search size={14} />
+                    </Button>
+                  </div>
                 </div>
-                <div className="flex w-1/3 justify-center">
-                  <GripHorizontal />
-                </div>
-                <div className="flex w-1/3 justify-end">
-                  <Button size="icon" className="mb-1 h-8">
-                    <Search size={14} />
-                  </Button>
-                </div>
-              </div>
-              <div className="flex flex-grow flex-col text-sm">
-                <div className="flex flex-row items-center">
-                  <div className="text-gray-500">1</div>
-                  <div className="text-white">
-                    [INFO] 2024-08-21 14:32:05 - User john_doe logged in from IP
-                    192.168.1.10
+                <div className="flex flex-grow flex-col text-sm">
+                  <div className="flex flex-row items-center">
+                    <div className="text-gray-500">1</div>
+                    <div className="text-white">
+                      [INFO] 2024-08-21 14:32:05 - User john_doe logged in from
+                      IP 192.168.1.10
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          </ResizablePanel>
-          <ResizableHandle withHandle />
-          <ResizablePanel defaultSize={50}>
-            <div className="flex h-full flex-col rounded-base border-2 border-border">
-              <span className="font-semibold">Session</span>
-            </div>
-          </ResizablePanel>
-        </ResizablePanelGroup>
+            </ResizablePanel>
+            <ResizableHandle withHandle />
+            <ResizablePanel defaultSize={50}>
+              <div className="flex h-full flex-col rounded-base border-2 border-border">
+                <span className="font-semibold">Session</span>
+              </div>
+            </ResizablePanel>
+          </ResizablePanelGroup>
+        </div>
       </div>
     </main>
   );
