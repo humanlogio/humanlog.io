@@ -1,3 +1,7 @@
+"use client";
+
+import { useState } from "react";
+import { GripHorizontal, Search, Share } from "lucide-react";
 import PageHeader from "@/components/page-header";
 import { AutosizeTextarea } from "@/components/ui/autosize-textarea";
 import {
@@ -6,22 +10,30 @@ import {
   ResizablePanelGroup,
 } from "@/components/ui/resizable";
 import { Button } from "@/components/ui/button";
-import { GripHorizontal, Search, Share } from "lucide-react";
+
+import { cn } from "@/lib/utils";
 
 export default function Home() {
+  const [isFullWidth, setIsFullWidth] = useState(false);
+
   return (
     <main className="flex h-screen flex-col">
-      <PageHeader />
-      <div className="mx-auto flex w-full max-w-screen-xl flex-grow flex-col gap-8 px-4 py-8">
+      <PageHeader isFullWidth={isFullWidth} setIsFullWidth={setIsFullWidth} />
+      <div
+        className={cn(
+          "mx-auto flex w-full flex-grow flex-col gap-8 px-4 py-8 transition-all duration-300",
+          isFullWidth ? "max-w-full" : "max-w-screen-xl",
+        )}
+      >
         <div className="grid flex-none grid-cols-2 gap-8">
           <div>
             <h1 className="text-2xl font-bold">
               Lorem ipsum dolor sit amet consectetur
             </h1>
-            <p className="mt-2 text-gray-500">
+            {/* <p className="mt-2 text-gray-500">
               Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
               eiusmod tempor incididunt ut labore et dolore magna aliqua.
-            </p>
+            </p> */}
             <div className="mt-4 flex flex-row gap-2">
               <AutosizeTextarea maxHeight={160} placeholder="Type to search" />
               <Button size="icon" className="h-8">
