@@ -15,11 +15,10 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ModeToggle } from "@/components/mode-toggle";
 import { WidthToggle } from "@/components/width-toggle";
 import { useApiClients } from "@/context/api-provider";
-import { createPromiseClient, Code, ConnectError } from "@connectrpc/connect";
+import { Code, ConnectError } from "@connectrpc/connect";
 import { User } from "api/js/types/v1/user_pb";
 import { md5 } from "js-md5";
 import { Button } from "./ui/button";
-import { redirect } from "next/navigation";
 import Link from "next/link";
 
 interface PageHeaderProps {
@@ -56,11 +55,12 @@ const PageHeader: React.FC<PageHeaderProps> = ({
   useEffect(() => {
     (async () => {
       try {
-        const res = await apiClients?.auth.getAuthURL({})
+        const returnToUrl = window.location.href;
+        const res = await apiClients?.auth.getAuthURL({ returnToUrl: returnToUrl });
         if (!res || !res.authUrl) {
           return;
         }
-        console.log("set the auth URL");
+        console.log("set the auth URL, returning to: " + returnToUrl);
         setAuthURL(res.authUrl);
       } catch (err) {
         console.log(err);
