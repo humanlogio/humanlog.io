@@ -15,8 +15,12 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ModeToggle } from "@/components/mode-toggle";
 import { WidthToggle } from "@/components/width-toggle";
 import { useApiClients } from "@/context/api-provider";
+import { createPromiseClient, Code, ConnectError } from "@connectrpc/connect";
 import { User } from "api/js/types/v1/user_pb";
 import { md5 } from "js-md5";
+import { Button } from "./ui/button";
+import { redirect } from "next/navigation";
+import Link from "next/link";
 
 interface PageHeaderProps {
   isFullWidth: boolean;
@@ -28,17 +32,63 @@ const PageHeader: React.FC<PageHeaderProps> = ({
   setIsFullWidth,
 }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [authURL, setAuthURL] = useState<string | null>(null);
   const apiClients = useApiClients();
 
   useEffect(() => {
     (async () => {
-      const res = await apiClients?.user.whoami({});
-      if (!res || !res.user) {
-        return;
+      try {
+        const res = await apiClients?.user.whoami({});
+        if (!res || !res.user) {
+          return;
+        }
+        setUser(res.user);
+      } catch (err) {
+        if (err instanceof ConnectError && err.code == Code.Unauthenticated) {
+          console.log("need to auth");
+        } else {
+          console.error(err);
+        }
       }
-      setUser(res.user);
     })();
   }, []);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await apiClients?.auth.getAuthURL({})
+        if (!res || !res.authUrl) {
+          return;
+        }
+        console.log("set the auth URL");
+        setAuthURL(res.authUrl);
+      } catch (err) {
+        console.log(err);
+      }
+    })();
+  })
+
+  let avatarBlock = <></>
+  if (user) {
+    avatarBlock = <><p className="font-medium text-white">
+      {user?.firstName || "username"}
+    </p>
+      <Avatar>
+        <AvatarImage src={gravatarURL(user?.email)} />
+        <AvatarFallback className="uppercase">
+          {user?.firstName?.slice(0, 2) || <UserIcon size={16} />}
+        </AvatarFallback>
+      </Avatar>
+    </>
+  } else if (authURL) {
+    avatarBlock = <>
+      <p className="font-medium text-white">
+        <Link href={authURL}>
+          <Button> Sign up</Button>
+        </Link>
+      </p >
+    </>
+  }
 
   return (
     <div className="bg-darkBg dark:bg-secondary-900">
@@ -64,15 +114,7 @@ const PageHeader: React.FC<PageHeaderProps> = ({
         </div>
         <div className="flex flex-row items-center gap-6">
           <div className="flex flex-row items-center gap-2">
-            <p className="font-medium text-white">
-              {user?.firstName || "username"}
-            </p>
-            <Avatar>
-              <AvatarImage src={gravatarURL(user?.email)} />
-              <AvatarFallback className="uppercase">
-                {user?.firstName?.slice(0, 2) || <UserIcon size={16} />}
-              </AvatarFallback>
-            </Avatar>
+            {avatarBlock}
           </div>
           <div className="flex flex-row items-center gap-2">
             <ModeToggle />
