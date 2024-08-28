@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { SquareCode } from "lucide-react";
+import { SquareCode, User as UserIcon } from "lucide-react";
 
 import Logo from "@/components/logo";
 import {
@@ -16,7 +16,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ModeToggle } from "@/components/mode-toggle";
 import { useApiClients } from "@/context/api-provider";
 import { User } from "api/js/types/v1/user_pb";
-import { md5 } from 'js-md5';
+import { md5 } from "js-md5";
 
 const PageHeader: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -26,11 +26,11 @@ const PageHeader: React.FC = () => {
     (async () => {
       const res = await apiClients?.user.whoami({});
       if (!res || !res.user) {
-        return
+        return;
       }
       setUser(res.user);
     })();
-  }, [])
+  }, []);
 
   return (
     <div className="bg-darkBg dark:bg-secondary-900">
@@ -40,7 +40,7 @@ const PageHeader: React.FC = () => {
           <Select>
             <SelectTrigger className="w-52">
               <div className="flex flex-row items-center gap-2">
-                <SquareCode size={20} />
+                <SquareCode size={16} />
                 <SelectValue placeholder="Select source" />
               </div>
             </SelectTrigger>
@@ -56,10 +56,14 @@ const PageHeader: React.FC = () => {
         </div>
         <div className="flex flex-row items-center gap-6">
           <div className="flex flex-row items-center gap-2">
-            <p className="font-medium text-white">{user?.firstName || "username"}</p>
+            <p className="font-medium text-white">
+              {user?.firstName || "username"}
+            </p>
             <Avatar>
               <AvatarImage src={gravatarURL(user?.email)} />
-              <AvatarFallback>SB</AvatarFallback>
+              <AvatarFallback className="uppercase">
+                {user?.firstName?.slice(0, 2) || <UserIcon size={16} />}
+              </AvatarFallback>
             </Avatar>
           </div>
           <div className="flex flex-row items-center gap-2">
@@ -72,7 +76,7 @@ const PageHeader: React.FC = () => {
 };
 
 export const gravatarURL = (email: string | undefined) => {
-  if (!email) return 'https://i.pravatar.cc/64';
+  if (!email) return undefined;
   return `https://www.gravatar.com/avatar/${md5(email)}`;
 };
 
