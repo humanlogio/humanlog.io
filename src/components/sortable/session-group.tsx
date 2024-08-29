@@ -67,7 +67,9 @@ const SessionGroup = ({ id, items = [] }: ContainerProps) => {
                     <div className="flex h-full flex-col overflow-hidden rounded-base border-2 border-border bg-secondary-900">
                       <div className="flex flex-none flex-row items-center justify-between bg-secondary-100 px-4 py-2">
                         <div className="flex w-1/3 justify-start">
-                          <h4 className="font-bold text-white">Session</h4>
+                          <h4 className="truncate font-bold text-white">
+                            Session
+                          </h4>
                         </div>
                         <div className="flex w-1/3 justify-center">
                           <DragHandle />
@@ -80,8 +82,10 @@ const SessionGroup = ({ id, items = [] }: ContainerProps) => {
                       </div>
                       <div className="flex flex-grow flex-col text-sm">
                         <div className="flex flex-row items-center">
-                          <div className="text-gray-500">1</div>
-                          <div className="text-white">{item}</div>
+                          <div className="w-[10%] truncate bg-secondary-600 p-2 text-slate-500">
+                            {index}00
+                          </div>
+                          <div className="w-[90%] p-2 text-white">{item}</div>
                         </div>
                       </div>
                     </div>
