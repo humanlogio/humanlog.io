@@ -1,5 +1,4 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-
 import {
   closestCenter,
   CollisionDetection,
@@ -15,10 +14,12 @@ import {
   useSensors,
 } from "@dnd-kit/core";
 import { arrayMove, sortableKeyboardCoordinates } from "@dnd-kit/sortable";
+
 import SessionGroup from "@/components/sortable/session-group";
 import { SortableOverlay } from "@/components/sortable/sortable-overlay";
 import { SortableItem } from "@/components/sortable/sortable-item";
 import { Timestamp } from "@bufbuild/protobuf";
+import SessionPanel from "@/components/sortable/session-panel";
 
 // Define a type for the session item
 export type LogEventGroup = {
@@ -334,9 +335,9 @@ const SessionContainer = () => {
       <SortableOverlay>
         {activeId && (
           <SortableItem id={activeId}>
-            <div className="relative h-full cursor-grabbing rounded-base border-2 border-border">
-              {activeId}
-            </div>
+            <SessionPanel
+              logEventGroup={items["root"].find((el) => el.id == activeId)}
+            />
           </SortableItem>
         )}
       </SortableOverlay>
