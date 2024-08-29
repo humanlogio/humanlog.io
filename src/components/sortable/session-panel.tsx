@@ -21,7 +21,7 @@ const SessionPanel = ({ logEventGroup }) => {
           </Button>
         </div>
       </div>
-      <div className="flex flex-grow flex-col text-sm">
+      <div className="flex flex-grow flex-col bg-gradient-to-r from-secondary-400 from-10% via-secondary-900 via-10% to-secondary-900 to-100% text-sm">
         {logEventGroup?.logs.map((log) => {
           return (
             <div key={log.id} className="flex flex-row items-center">
