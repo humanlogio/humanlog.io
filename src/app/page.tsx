@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import SessionContainer from "@/components/sortable/session-container";
 
 export default function Home() {
   const [isFullWidth, setIsFullWidth] = useState(false);
@@ -72,7 +73,8 @@ export default function Home() {
               Pretty
             </Label>
           </div>
-          <ResizablePanelGroup
+          <SessionContainer />
+          {/* <ResizablePanelGroup
             direction="horizontal"
             className="w-full flex-grow gap-1"
           >
@@ -108,7 +110,7 @@ export default function Home() {
                 <span className="font-semibold">Session</span>
               </div>
             </ResizablePanel>
-          </ResizablePanelGroup>
+          </ResizablePanelGroup> */}
         </div>
       </div>
     </main>
