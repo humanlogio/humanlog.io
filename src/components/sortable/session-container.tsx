@@ -221,7 +221,7 @@ const SessionContainer = () => {
       collisionDetection={collisionDetectionStrategy}
       sensors={sensors}
     >
-      <div style={{ display: "flex", flexDirection: "column", gap: "6[x" }}>
+      <div className="flex flex-grow flex-col">
         {Object.keys(items).map((key) => (
           <SessionGroup key={key} items={items[key]} id={key} />
         ))}

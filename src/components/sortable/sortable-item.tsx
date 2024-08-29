@@ -6,6 +6,7 @@ import type {
 } from "@dnd-kit/core";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { GripHorizontal } from "lucide-react";
 
 interface Props {
   id: UniqueIdentifier;
@@ -15,12 +16,14 @@ interface Context {
   attributes: Record<string, any>;
   listeners: DraggableSyntheticListeners;
   ref(node: HTMLElement | null): void;
+  isDragging: boolean;
 }
 
 const SortableItemContext = createContext<Context>({
   attributes: {},
   listeners: undefined,
   ref() {},
+  isDragging: false,
 });
 
 export const SortableItem = ({ children, id }: PropsWithChildren<Props>) => {
@@ -39,8 +42,9 @@ export const SortableItem = ({ children, id }: PropsWithChildren<Props>) => {
       attributes,
       listeners,
       ref: setActivatorNodeRef,
+      isDragging,
     }),
-    [attributes, listeners, setActivatorNodeRef],
+    [attributes, listeners, setActivatorNodeRef, isDragging],
   );
   const style: CSSProperties = {
     opacity: isDragging ? 0.4 : undefined,
@@ -58,20 +62,17 @@ export const SortableItem = ({ children, id }: PropsWithChildren<Props>) => {
 };
 
 export function DragHandle() {
-  const { attributes, listeners, ref } = useContext(SortableItemContext);
+  const { attributes, listeners, ref, isDragging } =
+    useContext(SortableItemContext);
 
   return (
-    <>
-      <div
-        style={{ position: "absolute", top: 0, right: 0, margin: "16px" }}
-        {...attributes}
-        {...listeners}
-        ref={ref}
-      >
-        <svg viewBox="0 0 20 20" width="12">
-          <path d="M7 2a2 2 0 1 0 .001 4.001A2 2 0 0 0 7 2zm0 6a2 2 0 1 0 .001 4.001A2 2 0 0 0 7 8zm0 6a2 2 0 1 0 .001 4.001A2 2 0 0 0 7 14zm6-8a2 2 0 1 0-.001-4.001A2 2 0 0 0 13 6zm0 2a2 2 0 1 0 .001 4.001A2 2 0 0 0 13 8zm0 6a2 2 0 1 0 .001 4.001A2 2 0 0 0 13 14z"></path>
-        </svg>
-      </div>
-    </>
+    <div
+      {...attributes}
+      {...listeners}
+      ref={ref}
+      className={isDragging ? "cursor-grabbing" : "cursor-grab"}
+    >
+      <GripHorizontal />
+    </div>
   );
 }
