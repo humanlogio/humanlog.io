@@ -25,7 +25,7 @@ const SessionPanel = ({ logEventGroup }) => {
         {logEventGroup?.logs.map((log) => {
           return (
             <div key={log.id} className="flex flex-row items-center">
-              <div className="w-[10%] truncate bg-secondary-500 p-2 text-slate-500">
+              <div className="w-[10%] truncate bg-secondary-400 p-2 text-slate-500">
                 {log.id}
               </div>
               <div className="w-[90%] p-2 text-white">{log.raw}</div>
