@@ -50,7 +50,7 @@ export default function Home() {
             <Label
               htmlFor="pretty"
               className={cn("transition-colors duration-200", {
-                "text-gray-500": isPretty,
+                "text-slate-500": isPretty,
               })}
             >
               Raw
@@ -63,7 +63,7 @@ export default function Home() {
             <Label
               htmlFor="pretty"
               className={cn("transition-colors duration-200", {
-                "text-gray-500": !isPretty,
+                "text-slate-500": !isPretty,
               })}
             >
               Pretty

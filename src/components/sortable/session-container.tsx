@@ -18,10 +18,91 @@ import { arrayMove, sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 import SessionGroup from "@/components/sortable/session-group";
 import { SortableOverlay } from "@/components/sortable/sortable-overlay";
 import { SortableItem } from "@/components/sortable/sortable-item";
+import { Timestamp } from "@bufbuild/protobuf";
+
+// Define a type for the session item
+type LogEventGroup = {
+  id: UniqueIdentifier; // "${machineId}-${sessionId}"
+  machineId: number;
+  sessionId: number;
+  logs: LogEvent[];
+};
+
+type LogEvent = {
+  id: number;
+  parseAt: Timestamp;
+  raw: string;
+  structured: {
+    timestamp: Timestamp;
+    lvl: string; // INFO/ERROR/...
+    msg: string;
+    kvs: KV[];
+  };
+};
+
+type KV = {
+  key: string;
+  value: string;
+};
 
 const SessionContainer = () => {
-  const [items, setItems] = useState<{ [x: string]: UniqueIdentifier[] }>({
-    root: ["unw", "dwd", "dsds"],
+  const [items, setItems] = useState<{ [key: string]: LogEventGroup[] }>({
+    root: [
+      {
+        id: "2-42",
+        machineId: 2,
+        sessionId: 42,
+        logs: [
+          {
+            id: 1,
+            parseAt: new Timestamp({ seconds: BigInt(1724914754) }),
+            raw: "hello world gtgtg",
+            structured: {
+              timestamp: new Timestamp({ seconds: BigInt(1724914754) }),
+              msg: "hello world",
+              lvl: "info",
+              kvs: [{ key: "key1", value: "value1" }],
+            },
+          },
+        ],
+      },
+      {
+        id: "2-43",
+        machineId: 2,
+        sessionId: 43,
+        logs: [
+          {
+            id: 1,
+            parseAt: new Timestamp({ seconds: BigInt(1724914754) }),
+            raw: "gg!!!",
+            structured: {
+              timestamp: new Timestamp({ seconds: BigInt(1724914754) }),
+              msg: "gg",
+              lvl: "info",
+              kvs: [{ key: "key1", value: "value1" }],
+            },
+          },
+        ],
+      },
+      {
+        id: "1-64",
+        machineId: 1,
+        sessionId: 64,
+        logs: [
+          {
+            id: 1,
+            parseAt: new Timestamp({ seconds: BigInt(1724914754) }),
+            raw: "salut le monde gtgtg",
+            structured: {
+              timestamp: new Timestamp({ seconds: BigInt(1724914754) }),
+              msg: "salut le monde",
+              lvl: "info",
+              kvs: [{ key: "key1", value: "value1" }],
+            },
+          },
+        ],
+      },
+    ],
   });
 
   const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null);
@@ -67,7 +148,7 @@ const SessionContainer = () => {
               droppableContainers: args.droppableContainers.filter(
                 (container) =>
                   container.id !== overId &&
-                  containerItems.includes(container.id),
+                  containerItems.find((el) => el.id === container.id),
               ),
             })[0]?.id;
           }
@@ -112,7 +193,9 @@ const SessionContainer = () => {
       return id;
     }
 
-    return Object.keys(items).find((key) => items[key].includes(id));
+    return Object.keys(items).find((key) =>
+      items[key].find((el) => el.id === id),
+    );
   };
 
   return (
@@ -144,8 +227,10 @@ const SessionContainer = () => {
           setItems((items) => {
             const activeItems = items[activeContainer];
             const overItems = items[overContainer];
-            const overIndex = overItems.indexOf(overId);
-            const activeIndex = activeItems.indexOf(active.id);
+            const overIndex = overItems.findIndex((el) => el.id === overId);
+            const activeIndex = activeItems.findIndex(
+              (el) => el.id === active.id,
+            );
 
             let newIndex: number;
 
@@ -169,7 +254,7 @@ const SessionContainer = () => {
             return {
               ...items,
               [activeContainer]: items[activeContainer].filter(
-                (item) => item !== active.id,
+                (item) => item.id !== active.id,
               ),
               [overContainer]: [
                 ...items[overContainer].slice(0, newIndex),
@@ -201,8 +286,12 @@ const SessionContainer = () => {
         const overContainer = findContainer(overId);
 
         if (overContainer) {
-          const activeIndex = items[activeContainer].indexOf(active.id);
-          const overIndex = items[overContainer].indexOf(overId);
+          const activeIndex = items[activeContainer].findIndex(
+            (el) => el.id === active.id,
+          );
+          const overIndex = items[overContainer].findIndex(
+            (el) => el.id === overId,
+          );
 
           if (activeIndex !== overIndex) {
             setItems((items) => ({
@@ -223,7 +312,11 @@ const SessionContainer = () => {
     >
       <div className="flex flex-grow flex-col">
         {Object.keys(items).map((key) => (
-          <SessionGroup key={key} items={items[key]} id={key} />
+          <SessionGroup
+            key={key}
+            items={items[key].map((el) => el.id)}
+            id={key}
+          />
         ))}
       </div>
       <SortableOverlay>
