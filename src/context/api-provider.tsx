@@ -1,3 +1,5 @@
+"use client";
+
 import React, { createContext, useContext, useMemo } from 'react';
 import { createPromiseClient, PromiseClient } from '@connectrpc/connect';
 import { Interceptor } from "@connectrpc/connect";
@@ -49,6 +51,9 @@ export function ApiClientsProvider({ children }: { children: React.ReactNode }) 
 }
 
 function getCookie(name: string): string | undefined {
+    if (typeof document === 'undefined') {
+        return undefined
+    }
     const value = `; ${document.cookie}`;
     const parts = value.split(`; ${name}=`);
     if (!parts || parts.length !== 2) {
