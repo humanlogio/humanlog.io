@@ -14,7 +14,8 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ModeToggle } from "@/components/mode-toggle";
 import { WidthToggle } from "@/components/width-toggle";
-import { useApiClients } from "@/context/api-provider";
+import { useApiClients } from "../context/api-provider";
+import { GetAuthURLRequest } from "api/js/svc/auth/v1/service_pb";
 import { Code, ConnectError } from "@connectrpc/connect";
 import { User } from "api/js/types/v1/user_pb";
 import { md5 } from "js-md5";
