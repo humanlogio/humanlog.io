@@ -16,14 +16,12 @@ interface Context {
   attributes: Record<string, any>;
   listeners: DraggableSyntheticListeners;
   ref(node: HTMLElement | null): void;
-  isDragging: boolean;
 }
 
 const SortableItemContext = createContext<Context>({
   attributes: {},
   listeners: undefined,
   ref() {},
-  isDragging: false,
 });
 
 export const SortableItem = ({ children, id }: PropsWithChildren<Props>) => {
@@ -42,9 +40,8 @@ export const SortableItem = ({ children, id }: PropsWithChildren<Props>) => {
       attributes,
       listeners,
       ref: setActivatorNodeRef,
-      isDragging,
     }),
-    [attributes, listeners, setActivatorNodeRef, isDragging],
+    [attributes, listeners, setActivatorNodeRef],
   );
   const style: CSSProperties = {
     opacity: isDragging ? 0.4 : undefined,
@@ -52,6 +49,7 @@ export const SortableItem = ({ children, id }: PropsWithChildren<Props>) => {
     transition,
     height: "100%",
   };
+
   return (
     <SortableItemContext.Provider value={context}>
       <div ref={setNodeRef} style={style}>
@@ -62,16 +60,10 @@ export const SortableItem = ({ children, id }: PropsWithChildren<Props>) => {
 };
 
 export function DragHandle() {
-  const { attributes, listeners, ref, isDragging } =
-    useContext(SortableItemContext);
+  const { attributes, listeners, ref } = useContext(SortableItemContext);
 
   return (
-    <div
-      {...attributes}
-      {...listeners}
-      ref={ref}
-      className={isDragging ? "cursor-grabbing" : "cursor-grab"}
-    >
+    <div {...attributes} {...listeners} ref={ref} className="cursor-grab">
       <GripHorizontal />
     </div>
   );
