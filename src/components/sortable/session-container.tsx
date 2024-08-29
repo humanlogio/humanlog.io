@@ -21,14 +21,14 @@ import { SortableItem } from "@/components/sortable/sortable-item";
 import { Timestamp } from "@bufbuild/protobuf";
 
 // Define a type for the session item
-type LogEventGroup = {
+export type LogEventGroup = {
   id: UniqueIdentifier; // "${machineId}-${sessionId}"
   machineId: number;
   sessionId: number;
   logs: LogEvent[];
 };
 
-type LogEvent = {
+export type LogEvent = {
   id: number;
   parseAt: Timestamp;
   raw: string;
@@ -40,7 +40,7 @@ type LogEvent = {
   };
 };
 
-type KV = {
+export type KV = {
   key: string;
   value: string;
 };
@@ -96,6 +96,17 @@ const SessionContainer = () => {
             structured: {
               timestamp: new Timestamp({ seconds: BigInt(1724914754) }),
               msg: "salut le monde",
+              lvl: "info",
+              kvs: [{ key: "key1", value: "value1" }],
+            },
+          },
+          {
+            id: 553,
+            parseAt: new Timestamp({ seconds: BigInt(1724914754) }),
+            raw: "much later this happened",
+            structured: {
+              timestamp: new Timestamp({ seconds: BigInt(1724914754) }),
+              msg: "much latter this happened",
               lvl: "info",
               kvs: [{ key: "key1", value: "value1" }],
             },
@@ -315,6 +326,7 @@ const SessionContainer = () => {
           <SessionGroup
             key={key}
             items={items[key].map((el) => el.id)}
+            lookupSession={(id) => items["root"].find((el) => el.id == id)}
             id={key}
           />
         ))}

@@ -1,6 +1,5 @@
 import { UniqueIdentifier, useDroppable } from "@dnd-kit/core";
 import { rectSortingStrategy, SortableContext } from "@dnd-kit/sortable";
-import { Search } from "lucide-react";
 import {
   ImperativePanelGroupHandle,
   Panel,
@@ -9,15 +8,17 @@ import {
 } from "react-resizable-panels";
 import { Fragment, useEffect, useRef } from "react";
 
-import { DragHandle, SortableItem } from "@/components/sortable/sortable-item";
-import { Button } from "@/components/ui/button";
+import { SortableItem } from "@/components/sortable/sortable-item";
+import { LogEventGroup } from "@/components/sortable/session-container";
+import SessionPanel from "@/components/sortable/session-panel";
 
 type ContainerProps = {
   id: string;
   items: UniqueIdentifier[];
+  lookupSession: (id: UniqueIdentifier) => LogEventGroup | undefined;
 };
 
-const SessionGroup = ({ id, items = [] }: ContainerProps) => {
+const SessionGroup = ({ id, items = [], lookupSession }: ContainerProps) => {
   const { setNodeRef } = useDroppable({
     id,
   });
@@ -56,6 +57,7 @@ const SessionGroup = ({ id, items = [] }: ContainerProps) => {
           style={{ overflow: "initial" }}
         >
           {items.map((item, index) => {
+            let logEventGroup = lookupSession(item);
             return (
               <Fragment key={item}>
                 <Panel
@@ -64,31 +66,7 @@ const SessionGroup = ({ id, items = [] }: ContainerProps) => {
                   style={{ overflow: "initial", minWidth: 0 }}
                 >
                   <SortableItem id={item}>
-                    <div className="flex h-full flex-col overflow-hidden rounded-base border-2 border-border bg-secondary-900">
-                      <div className="flex flex-none flex-row items-center justify-between bg-secondary-100 px-4 py-2">
-                        <div className="flex w-1/3 justify-start">
-                          <h4 className="truncate font-bold text-white">
-                            Session
-                          </h4>
-                        </div>
-                        <div className="flex w-1/3 justify-center">
-                          <DragHandle />
-                        </div>
-                        <div className="flex w-1/3 justify-end">
-                          <Button size="icon" className="mb-1 h-8">
-                            <Search size={14} />
-                          </Button>
-                        </div>
-                      </div>
-                      <div className="flex flex-grow flex-col text-sm">
-                        <div className="flex flex-row items-center">
-                          <div className="w-[10%] truncate bg-secondary-600 p-2 text-slate-500">
-                            {index}00
-                          </div>
-                          <div className="w-[90%] p-2 text-white">{item}</div>
-                        </div>
-                      </div>
-                    </div>
+                    <SessionPanel logEventGroup={logEventGroup} />
                   </SortableItem>
                 </Panel>
                 {index !== items.length - 1 && (
