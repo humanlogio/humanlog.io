@@ -229,13 +229,7 @@ const SessionContainer = () => {
       <SortableOverlay>
         {activeId && (
           <SortableItem id={activeId}>
-            <div
-              style={{
-                position: "relative",
-                border: "1px solid black",
-                height: "200px",
-              }}
-            >
+            <div className="relative h-full cursor-grabbing rounded-base border-2 border-border">
               {activeId}
             </div>
           </SortableItem>
