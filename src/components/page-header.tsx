@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { SquareCode, User as UserIcon } from "lucide-react";
+import { Loader, SquareCode, User as UserIcon } from "lucide-react";
 import Logo from "@/components/logo";
 import {
   Select,
@@ -57,7 +57,9 @@ const PageHeader: React.FC<PageHeaderProps> = ({
     (async () => {
       try {
         const returnToUrl = window.location.href;
-        const res = await apiClients?.auth.getAuthURL({ returnToUrl: returnToUrl });
+        const res = await apiClients?.auth.getAuthURL({
+          returnToUrl: returnToUrl,
+        });
         if (!res || !res.authUrl) {
           return;
         }
@@ -67,28 +69,29 @@ const PageHeader: React.FC<PageHeaderProps> = ({
         console.log(err);
       }
     })();
-  })
+  });
 
-  let avatarBlock = <></>
+  let avatarBlock = <Loader color="white" className="animate-spin" />;
   if (user) {
-    avatarBlock = <><p className="font-medium text-white">
-      {user?.firstName || "username"}
-    </p>
-      <Avatar>
-        <AvatarImage src={gravatarURL(user?.email)} />
-        <AvatarFallback className="uppercase">
-          {user?.firstName?.slice(0, 2) || <UserIcon size={16} />}
-        </AvatarFallback>
-      </Avatar>
-    </>
+    avatarBlock = (
+      <>
+        <p className="font-medium text-white">
+          {user?.firstName || "username"}
+        </p>
+        <Avatar>
+          <AvatarImage src={gravatarURL(user?.email)} />
+          <AvatarFallback className="uppercase">
+            {user?.firstName?.slice(0, 2) || <UserIcon size={16} />}
+          </AvatarFallback>
+        </Avatar>
+      </>
+    );
   } else if (authURL) {
-    avatarBlock = <>
-      <p className="font-medium text-white">
-        <Link href={authURL}>
-          <Button> Sign up</Button>
-        </Link>
-      </p >
-    </>
+    avatarBlock = (
+      <Link href={authURL}>
+        <Button> Sign up</Button>
+      </Link>
+    );
   }
 
   return (
@@ -114,9 +117,7 @@ const PageHeader: React.FC<PageHeaderProps> = ({
           </Select>
         </div>
         <div className="flex flex-row items-center gap-6">
-          <div className="flex flex-row items-center gap-2">
-            {avatarBlock}
-          </div>
+          <div className="flex flex-row items-center gap-2">{avatarBlock}</div>
           <div className="flex flex-row items-center gap-2">
             <ModeToggle />
             <WidthToggle
