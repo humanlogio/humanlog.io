@@ -1,5 +1,4 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-
 import {
   closestCenter,
   CollisionDetection,
@@ -15,20 +14,22 @@ import {
   useSensors,
 } from "@dnd-kit/core";
 import { arrayMove, sortableKeyboardCoordinates } from "@dnd-kit/sortable";
+
 import SessionGroup from "@/components/sortable/session-group";
 import { SortableOverlay } from "@/components/sortable/sortable-overlay";
 import { SortableItem } from "@/components/sortable/sortable-item";
 import { Timestamp } from "@bufbuild/protobuf";
+import SessionPanel from "@/components/sortable/session-panel";
 
 // Define a type for the session item
-type LogEventGroup = {
+export type LogEventGroup = {
   id: UniqueIdentifier; // "${machineId}-${sessionId}"
   machineId: number;
   sessionId: number;
   logs: LogEvent[];
 };
 
-type LogEvent = {
+export type LogEvent = {
   id: number;
   parseAt: Timestamp;
   raw: string;
@@ -40,7 +41,7 @@ type LogEvent = {
   };
 };
 
-type KV = {
+export type KV = {
   key: string;
   value: string;
 };
@@ -96,6 +97,17 @@ const SessionContainer = () => {
             structured: {
               timestamp: new Timestamp({ seconds: BigInt(1724914754) }),
               msg: "salut le monde",
+              lvl: "info",
+              kvs: [{ key: "key1", value: "value1" }],
+            },
+          },
+          {
+            id: 553,
+            parseAt: new Timestamp({ seconds: BigInt(1724914754) }),
+            raw: "much later this happened",
+            structured: {
+              timestamp: new Timestamp({ seconds: BigInt(1724914754) }),
+              msg: "much latter this happened",
               lvl: "info",
               kvs: [{ key: "key1", value: "value1" }],
             },
@@ -315,6 +327,7 @@ const SessionContainer = () => {
           <SessionGroup
             key={key}
             items={items[key].map((el) => el.id)}
+            lookupSession={(id) => items["root"].find((el) => el.id == id)}
             id={key}
           />
         ))}
@@ -322,9 +335,9 @@ const SessionContainer = () => {
       <SortableOverlay>
         {activeId && (
           <SortableItem id={activeId}>
-            <div className="relative h-full cursor-grabbing rounded-base border-2 border-border">
-              {activeId}
-            </div>
+            <SessionPanel
+              logEventGroup={items["root"].find((el) => el.id == activeId)}
+            />
           </SortableItem>
         )}
       </SortableOverlay>

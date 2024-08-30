@@ -26,7 +26,7 @@ export default function Home() {
         )}
       >
         <div className="grid flex-none grid-cols-2 gap-8">
-          <div>
+          <div className="col-span-2 md:col-span-1">
             <h1 className="text-2xl font-bold">
               Lorem ipsum dolor sit amet consectetur
             </h1>
@@ -41,7 +41,7 @@ export default function Home() {
               </Button>
             </div>
           </div>
-          <div>
+          <div className="col-span-2 md:col-span-1">
             <p>chart goes here</p>
           </div>
         </div>

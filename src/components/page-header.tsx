@@ -1,7 +1,24 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { SquareCode, User as UserIcon } from "lucide-react";
+import {
+  Loader,
+  SquareCode,
+  User as UserIcon,
+  Cloud,
+  CreditCard,
+  Github,
+  Keyboard,
+  LifeBuoy,
+  LogOut,
+  Mail,
+  MessageSquare,
+  Plus,
+  PlusCircle,
+  Settings,
+  UserPlus,
+  Users,
+} from "lucide-react";
 import Logo from "@/components/logo";
 import {
   Select,
@@ -11,6 +28,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuPortal,
+  DropdownMenuSeparator,
+  DropdownMenuShortcut,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ModeToggle } from "@/components/mode-toggle";
 import { WidthToggle } from "@/components/width-toggle";
@@ -57,7 +88,9 @@ const PageHeader: React.FC<PageHeaderProps> = ({
     (async () => {
       try {
         const returnToUrl = window.location.href;
-        const res = await apiClients?.auth.getAuthURL({ returnToUrl: returnToUrl });
+        const res = await apiClients?.auth.getAuthURL({
+          returnToUrl: returnToUrl,
+        });
         if (!res || !res.authUrl) {
           return;
         }
@@ -67,28 +100,40 @@ const PageHeader: React.FC<PageHeaderProps> = ({
         console.log(err);
       }
     })();
-  })
+  });
 
-  let avatarBlock = <></>
+  let avatarBlock = <Loader color="white" className="animate-spin" />;
   if (user) {
-    avatarBlock = <><p className="font-medium text-white">
-      {user?.firstName || "username"}
-    </p>
-      <Avatar>
-        <AvatarImage src={gravatarURL(user?.email)} />
-        <AvatarFallback className="uppercase">
-          {user?.firstName?.slice(0, 2) || <UserIcon size={16} />}
-        </AvatarFallback>
-      </Avatar>
-    </>
+    avatarBlock = (
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <div className="flex cursor-pointer flex-row items-center gap-2">
+            <p className="font-medium text-white">
+              {user?.firstName || "username"}
+            </p>
+            <Avatar>
+              <AvatarImage src={gravatarURL(user?.email)} />
+              <AvatarFallback className="uppercase">
+                {user?.firstName?.slice(0, 2) || <UserIcon size={16} />}
+              </AvatarFallback>
+            </Avatar>
+          </div>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent className="w-56">
+          <DropdownMenuItem>
+            <LogOut size={16} className="mr-2" />
+            <span>Log out</span>
+            <DropdownMenuShortcut>⇧⌘Q</DropdownMenuShortcut>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    );
   } else if (authURL) {
-    avatarBlock = <>
-      <p className="font-medium text-white">
-        <Link href={authURL}>
-          <Button> Sign up</Button>
-        </Link>
-      </p >
-    </>
+    avatarBlock = (
+      <Link href={authURL}>
+        <Button> Sign up</Button>
+      </Link>
+    );
   }
 
   return (
@@ -114,9 +159,7 @@ const PageHeader: React.FC<PageHeaderProps> = ({
           </Select>
         </div>
         <div className="flex flex-row items-center gap-6">
-          <div className="flex flex-row items-center gap-2">
-            {avatarBlock}
-          </div>
+          {avatarBlock}
           <div className="flex flex-row items-center gap-2">
             <ModeToggle />
             <WidthToggle
