@@ -2,8 +2,13 @@ import { Search } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { DragHandle } from "@/components/sortable/sortable-item";
+import { LogEventGroup } from "@/components/sortable/session-container";
 
-const SessionPanel = ({ logEventGroup }) => {
+type SessionPanelProps = {
+  logEventGroup: LogEventGroup | undefined
+}
+
+const SessionPanel = ({ logEventGroup }: SessionPanelProps) => {
   return (
     <div className="flex h-full flex-col overflow-hidden rounded-base border-2 border-border bg-secondary-900">
       <div className="flex flex-none flex-row items-center justify-between bg-secondary-100 px-4 py-2">
