@@ -12,7 +12,7 @@ const ApiClientContext = createContext<ApiClients | null>(null);
 
 const auther: (cookie: string) => Interceptor = (cookie: string) => {
     return (next) => async (req) => {
-        req.header.set("BrowserAuthorization", cookie);
+        req.header.set("Browser-Authorization", cookie);
         console.log(req.header);
         return await next(req);
     }
