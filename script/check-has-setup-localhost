@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+
+set -e
+
+eval "$(pkgx --shellcode)"
+root=$(git rev-parse --show-toplevel)
+
+dev_domain="humanlog.test"
+hostfile="/etc/hosts"
+certdir="${root}/certificates"
+cafile="${certdir}/rootCA.pem"
+certfile="${certdir}/${dev_domain}.pem"
+keyfile="${certdir}/${dev_domain}-key.pem"
+
+function log_remedy() {
+    echo "💥💥💥 TLS not setup, please run 'sudo script/setup-localhost' to continue 💥💥💥"
+    exit 1
+}
+
+function hostfile_has_dev_domain() {
+    grep < ${hostfile} "127.0.0.1 ${dev_domain}" > /dev/null
+}
+
+function main() {
+    if ! hostfile_has_dev_domain; then
+        log_remedy
+    fi
+    if [ ! -f ${cafile} ]; then
+        log_remedy
+    fi
+    if [ ! -f ${certfile} ]; then
+        log_remedy
+    fi
+    if [ ! -f ${keyfile} ]; then
+        log_remedy
+    fi
+}
+
+main
