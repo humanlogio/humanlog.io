@@ -1,0 +1,51 @@
+#!/usr/bin/env bash
+
+set -e
+
+eval "$(pkgx --shellcode)"
+root=$(git rev-parse --show-toplevel)
+
+dev_domain="humanlog.test"
+hostfile="/etc/hosts"
+certdir="${root}/certificates"
+cafile="${certdir}/rootCA.pem"
+certfile="${certdir}/${dev_domain}.pem"
+keyfile="${certdir}/${dev_domain}-key.pem"
+
+function require_being_root() {
+    if [[ $EUID -ne 0 ]]; then
+        echo "$0 is not running as root. Try using sudo."
+        exit 2
+    fi
+}
+
+function hostfile_has_dev_domain() {
+    grep < ${hostfile} "127.0.0.1 ${dev_domain}" > /dev/null
+}
+
+function install_dev_domain_in_hostfile() {
+    printf "\n127.0.0.1 ${dev_domain}" >> ${hostfile}
+}
+
+function generate_and_install_self_signed_tls() {
+    mkdir -p ${certdir}
+    mkcert -install
+    mkcert -cert-file ${certfile} -key-file ${keyfile} ${dev_domain} "*.${dev_domain}" localhost 127.0.0.1 ::1
+    cp "$(mkcert -CAROOT)/rootCA.pem" ${cafile}
+    chown -R $SUDO_USER ${certdir}
+}
+
+function main() {
+    env +mkcert
+    env +certutil
+    require_being_root
+    if ! hostfile_has_dev_domain; then
+        install_dev_domain_in_hostfile
+        echo "changed: added ${dev_domain} to ${hostfile}"
+    else
+        echo "skipped: ${hostfile} already has ${dev_domain}"
+    fi
+    generate_and_install_self_signed_tls
+}
+
+main

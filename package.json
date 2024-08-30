@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "./script/check-has-setup-localhost && next dev --hostname humanlog.test --experimental-https --experimental-https-ca certificates/rootCA.pem --experimental-https-cert certificates/humanlog.test.pem --experimental-https-key certificates/humanlog.test-key.pem",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
