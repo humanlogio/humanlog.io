@@ -47,6 +47,8 @@ import { ModeToggle } from "@/components/mode-toggle";
 import { WidthToggle } from "@/components/width-toggle";
 import { useApiClients } from "../context/api-provider";
 import { GetAuthURLRequest } from "api/js/svc/auth/v1/service_pb";
+import { PingResponse } from "api/js/svc/localhost/v1/service_pb";
+
 import { Code, ConnectError } from "@connectrpc/connect";
 import { User } from "api/js/types/v1/user_pb";
 import { md5 } from "js-md5";
@@ -58,12 +60,15 @@ interface PageHeaderProps {
   setIsFullWidth: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
+
+
 const PageHeader: React.FC<PageHeaderProps> = ({
   isFullWidth,
   setIsFullWidth,
 }) => {
   const [user, setUser] = useState<User | null>(null);
   const [authURL, setAuthURL] = useState<string | null>(null);
+  const [hasLocalhost, setHasLocalhost] = useState<PingResponse | null>(null);
   const apiClients = useApiClients();
 
   useEffect(() => {
@@ -87,10 +92,32 @@ const PageHeader: React.FC<PageHeaderProps> = ({
   useEffect(() => {
     (async () => {
       try {
-        const returnToUrl = window.location.href;
-        const res = await apiClients?.auth.getAuthURL({
-          returnToUrl: returnToUrl,
-        });
+        const res = await apiClients?.localhost.ping({});
+        if (!res) {
+          setHasLocalhost(null);
+          return;
+        }
+        setHasLocalhost(res)
+      } catch (err) {
+        if (err instanceof ConnectError && err.code == Code.Unauthenticated) {
+          console.log("need to auth");
+        } else {
+          console.error(err);
+        }
+      }
+    })();
+  }, []);
+
+  useEffect(() => {
+    (async () => {
+      const returnToUrl = window.location.href;
+      const req = new GetAuthURLRequest({ returnToUrl: returnToUrl })
+      if (hasLocalhost?.meta) {
+        req.claimAccountId = hasLocalhost?.meta.accountId
+        req.claimMachineId = hasLocalhost?.meta.machineId
+      }
+      try {
+        const res = await apiClients?.auth.getAuthURL(req);
         if (!res || !res.authUrl) {
           return;
         }
@@ -150,7 +177,7 @@ const PageHeader: React.FC<PageHeaderProps> = ({
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
-                <SelectItem value="localhost">localhost</SelectItem>
+                <SelectItem value="localhost">localhost {hasLocalhost ? "v" + hasLocalhost.clientVersion?.major + "." + hasLocalhost.clientVersion?.minor : "unavailable :( -> install it?"}</SelectItem>
                 <SelectItem value="staging">staging</SelectItem>
                 <SelectItem value="production">production</SelectItem>
                 <SelectItem value="add_new">+ Add new</SelectItem>
