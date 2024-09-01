@@ -6,7 +6,7 @@ import { Minimize2, Maximize2 } from "lucide-react";
 
 interface WidthToggleProps {
   isFullWidth: boolean;
-  setIsFullWidth: React.Dispatch<React.SetStateAction<boolean>>;
+  setIsFullWidth: (value: boolean | ((prevState: boolean) => boolean)) => void;
 }
 
 export function WidthToggle({ isFullWidth, setIsFullWidth }: WidthToggleProps) {
@@ -14,7 +14,7 @@ export function WidthToggle({ isFullWidth, setIsFullWidth }: WidthToggleProps) {
     <Button
       size="icon"
       variant="noShadow"
-      onClick={() => setIsFullWidth(!isFullWidth)}
+      onClick={() => setIsFullWidth((prev) => !prev)}
     >
       {isFullWidth ? (
         <Minimize2
