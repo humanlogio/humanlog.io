@@ -1,24 +1,8 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import {
-  Loader,
-  SquareCode,
-  User as UserIcon,
-  Cloud,
-  CreditCard,
-  Github,
-  Keyboard,
-  LifeBuoy,
-  LogOut,
-  Mail,
-  MessageSquare,
-  Plus,
-  PlusCircle,
-  Settings,
-  UserPlus,
-  Users,
-} from "lucide-react";
+import { usePathname } from "next/navigation";
+import { Loader, SquareCode, User as UserIcon, LogOut } from "lucide-react";
 import Logo from "@/components/logo";
 import {
   Select,
@@ -31,21 +15,15 @@ import {
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuGroup,
   DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuPortal,
-  DropdownMenuSeparator,
   DropdownMenuShortcut,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ModeToggle } from "@/components/mode-toggle";
 import { WidthToggle } from "@/components/width-toggle";
-import { useApiClients } from "../context/api-provider";
+import { useApiClients } from "@/context/api-provider";
+import { useFullWidth } from "@context/full-width-provider";
 import { GetAuthURLRequest } from "api/js/svc/auth/v1/service_pb";
 import { PingResponse } from "api/js/svc/localhost/v1/service_pb";
 
@@ -55,21 +33,13 @@ import { md5 } from "js-md5";
 import { Button } from "./ui/button";
 import Link from "next/link";
 
-interface PageHeaderProps {
-  isFullWidth: boolean;
-  setIsFullWidth: React.Dispatch<React.SetStateAction<boolean>>;
-}
-
-
-
-const PageHeader: React.FC<PageHeaderProps> = ({
-  isFullWidth,
-  setIsFullWidth,
-}) => {
+const PageHeader: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
   const [authURL, setAuthURL] = useState<string | null>(null);
   const [hasLocalhost, setHasLocalhost] = useState<PingResponse | null>(null);
   const apiClients = useApiClients();
+  const { isFullWidth, setIsFullWidth } = useFullWidth();
+  const pathname = usePathname();
 
   useEffect(() => {
     (async () => {
@@ -97,7 +67,7 @@ const PageHeader: React.FC<PageHeaderProps> = ({
           setHasLocalhost(null);
           return;
         }
-        setHasLocalhost(res)
+        setHasLocalhost(res);
       } catch (err) {
         if (err instanceof ConnectError && err.code == Code.Unauthenticated) {
           console.log("need to auth");
@@ -111,10 +81,10 @@ const PageHeader: React.FC<PageHeaderProps> = ({
   useEffect(() => {
     (async () => {
       const returnToUrl = window.location.href;
-      const req = new GetAuthURLRequest({ returnToUrl: returnToUrl })
+      const req = new GetAuthURLRequest({ returnToUrl: returnToUrl });
       if (hasLocalhost?.meta) {
-        req.claimAccountId = hasLocalhost?.meta.accountId
-        req.claimMachineId = hasLocalhost?.meta.machineId
+        req.claimAccountId = hasLocalhost?.meta.accountId;
+        req.claimMachineId = hasLocalhost?.meta.machineId;
       }
       try {
         const res = await apiClients?.auth.getAuthURL(req);
@@ -177,7 +147,15 @@ const PageHeader: React.FC<PageHeaderProps> = ({
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
-                <SelectItem value="localhost">localhost {hasLocalhost ? "v" + hasLocalhost.clientVersion?.major + "." + hasLocalhost.clientVersion?.minor : "unavailable :( -> install it?"}</SelectItem>
+                <SelectItem value="localhost">
+                  localhost{" "}
+                  {hasLocalhost
+                    ? "v" +
+                      hasLocalhost.clientVersion?.major +
+                      "." +
+                      hasLocalhost.clientVersion?.minor
+                    : "unavailable :( -> install it?"}
+                </SelectItem>
                 <SelectItem value="staging">staging</SelectItem>
                 <SelectItem value="production">production</SelectItem>
                 <SelectItem value="add_new">+ Add new</SelectItem>
@@ -189,10 +167,12 @@ const PageHeader: React.FC<PageHeaderProps> = ({
           {avatarBlock}
           <div className="flex flex-row items-center gap-2">
             <ModeToggle />
-            <WidthToggle
-              isFullWidth={isFullWidth}
-              setIsFullWidth={setIsFullWidth}
-            />
+            {pathname === "/" && (
+              <WidthToggle
+                isFullWidth={isFullWidth}
+                setIsFullWidth={setIsFullWidth}
+              />
+            )}
           </div>
         </div>
       </div>

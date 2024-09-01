@@ -3,22 +3,20 @@
 import { useState } from "react";
 import { Share } from "lucide-react";
 
-import PageHeader from "@/components/page-header";
 import { AutosizeTextarea } from "@/components/ui/autosize-textarea";
 import { Button } from "@/components/ui/button";
 import SessionContainer from "@/components/sortable/session-container";
-
+import { useFullWidth } from "@context/full-width-provider";
 import { cn } from "@/lib/utils";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 
 export default function Home() {
-  const [isFullWidth, setIsFullWidth] = useState(false);
   const [isPretty, setIsPretty] = useState(true);
+  const { isFullWidth } = useFullWidth();
 
   return (
-    <main className="flex h-screen flex-col">
-      <PageHeader isFullWidth={isFullWidth} setIsFullWidth={setIsFullWidth} />
+    <div className="flex h-screen flex-col">
       <div
         className={cn(
           "mx-auto flex w-full flex-grow flex-col gap-8 px-4 py-8 transition-all duration-300",
@@ -72,6 +70,6 @@ export default function Home() {
           <SessionContainer />
         </div>
       </div>
-    </main>
+    </div>
   );
 }

@@ -1,10 +1,13 @@
-"use client"
+"use client";
 
 import { JetBrains_Mono as FontMono } from "next/font/google";
+
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { ThemeProvider } from "@/components/theme-provider";
-import { ApiClientsProvider } from '@/context/api-provider';
+import { ApiClientsProvider } from "@/context/api-provider";
+import { FullWidthProvider } from "@context/full-width-provider";
+import PageHeader from "@components/page-header";
 
 const font = FontMono({
   subsets: ["latin"],
@@ -34,7 +37,12 @@ export default function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
-            {children}
+            <FullWidthProvider>
+              <header>
+                <PageHeader />
+              </header>
+              <main>{children}</main>
+            </FullWidthProvider>
           </ThemeProvider>
         </ApiClientsProvider>
       </body>
