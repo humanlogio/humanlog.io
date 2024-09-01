@@ -139,7 +139,7 @@ const PageHeader: React.FC = () => {
         <div className="flex flex-row items-center gap-8">
           <Logo />
           <Select>
-            <SelectTrigger className="w-52">
+            <SelectTrigger className="min-w-52">
               <div className="flex flex-row items-center gap-2">
                 <SquareCode size={16} />
                 <SelectValue placeholder="Select source" />
