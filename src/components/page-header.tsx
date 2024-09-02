@@ -19,6 +19,7 @@ import {
   DropdownMenuItem,
   DropdownMenuShortcut,
   DropdownMenuTrigger,
+
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ModeToggle } from '@/components/mode-toggle';
@@ -83,8 +84,13 @@ const PageHeader: React.FC = () => {
       const returnToUrl = window.location.href;
       const req = new GetAuthURLRequest({ returnToUrl: returnToUrl });
       if (hasLocalhost?.meta) {
-        req.claimAccountId = hasLocalhost?.meta.accountId;
-        req.claimMachineId = hasLocalhost?.meta.machineId;
+        req.localhost = new LocalhostViaBrowser({
+          claimAccountId: hasLocalhost.meta.accountId,
+          claimMachineId: hasLocalhost.meta.machineId,
+          architecture: hasLocalhost.architecture,
+          operatingSystem: hasLocalhost.operatingSystem,
+          usingVersion: hasLocalhost.clientVersion,
+        })
       }
       try {
         const res = await apiClients?.auth.getAuthURL(req);
