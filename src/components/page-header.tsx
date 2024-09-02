@@ -25,8 +25,8 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ModeToggle } from '@/components/mode-toggle';
 import { WidthToggle } from '@/components/width-toggle';
 import { useApiClients } from '@/context/api-provider';
-import { useFullWidth } from '@context/full-width-provider';
-import { GetAuthURLRequest } from 'api/js/svc/auth/v1/service_pb';
+import { useFullWidth } from '@/context/full-width-provider';
+import { GetAuthURLRequest, LocalhostViaBrowser } from 'api/js/svc/auth/v1/service_pb';
 import { PingResponse } from 'api/js/svc/localhost/v1/service_pb';
 
 import { Code, ConnectError } from '@connectrpc/connect';
@@ -157,9 +157,9 @@ const PageHeader: React.FC = () => {
                   localhost{' '}
                   {hasLocalhost
                     ? 'v' +
-                      hasLocalhost.clientVersion?.major +
-                      '.' +
-                      hasLocalhost.clientVersion?.minor
+                    hasLocalhost.clientVersion?.major +
+                    '.' +
+                    hasLocalhost.clientVersion?.minor
                     : 'unavailable :( -> install it?'}
                 </SelectItem>
                 <SelectItem value="staging">staging</SelectItem>
