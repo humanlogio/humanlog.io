@@ -6,11 +6,6 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import PricingPlan from '@/components/pricing-plan';
 
-const frequencies = [
-  { id: '1', value: '1', label: 'Monthly' },
-  { id: '2', value: '2', label: 'Annually' },
-];
-
 const tiers = [
   {
     name: 'Local Dev Ex',
