@@ -24,7 +24,7 @@ import { ModeToggle } from "@/components/mode-toggle";
 import { WidthToggle } from "@/components/width-toggle";
 import { useApiClients } from "@/context/api-provider";
 import { useFullWidth } from "@context/full-width-provider";
-import { GetAuthURLRequest } from "api/js/svc/auth/v1/service_pb";
+import { GetAuthURLRequest, LocalhostViaBrowser } from "api/js/svc/auth/v1/service_pb";
 import { PingResponse } from "api/js/svc/localhost/v1/service_pb";
 
 import { Code, ConnectError } from "@connectrpc/connect";
@@ -83,8 +83,13 @@ const PageHeader: React.FC = () => {
       const returnToUrl = window.location.href;
       const req = new GetAuthURLRequest({ returnToUrl: returnToUrl });
       if (hasLocalhost?.meta) {
-        req.claimAccountId = hasLocalhost?.meta.accountId;
-        req.claimMachineId = hasLocalhost?.meta.machineId;
+        req.localhost = new LocalhostViaBrowser({
+          claimAccountId: hasLocalhost.meta.accountId,
+          claimMachineId: hasLocalhost.meta.machineId,
+          architecture: hasLocalhost.architecture,
+          operatingSystem: hasLocalhost.operatingSystem,
+          usingVersion: hasLocalhost.clientVersion,
+        })
       }
       try {
         const res = await apiClients?.auth.getAuthURL(req);
@@ -151,9 +156,9 @@ const PageHeader: React.FC = () => {
                   localhost{" "}
                   {hasLocalhost
                     ? "v" +
-                      hasLocalhost.clientVersion?.major +
-                      "." +
-                      hasLocalhost.clientVersion?.minor
+                    hasLocalhost.clientVersion?.major +
+                    "." +
+                    hasLocalhost.clientVersion?.minor
                     : "unavailable :( -> install it?"}
                 </SelectItem>
                 <SelectItem value="staging">staging</SelectItem>
