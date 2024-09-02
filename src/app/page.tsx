@@ -1,25 +1,25 @@
-"use client";
+'use client'
 
-import { useState } from "react";
-import { Share } from "lucide-react";
+import { useState } from 'react'
+import { Share } from 'lucide-react'
 
-import { AutosizeTextarea } from "@/components/ui/autosize-textarea";
-import { Button } from "@/components/ui/button";
-import SessionContainer from "@/components/sortable/session-container";
-import { useFullWidth } from "@context/full-width-provider";
-import { cn } from "@/lib/utils";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
+import { AutosizeTextarea } from '@/components/ui/autosize-textarea'
+import { Button } from '@/components/ui/button'
+import SessionContainer from '@/components/sortable/session-container'
+import { useFullWidth } from '@context/full-width-provider'
+import { cn } from '@/lib/utils'
+import { Switch } from '@/components/ui/switch'
+import { Label } from '@/components/ui/label'
 
 export default function Home() {
-  const [isPretty, setIsPretty] = useState(true);
-  const { isFullWidth } = useFullWidth();
+  const [isPretty, setIsPretty] = useState(true)
+  const { isFullWidth } = useFullWidth()
 
   return (
     <div
       className={cn(
-        "mx-auto flex h-[calc(100dvh-56px)] w-full flex-grow flex-col gap-8 px-4 py-8 transition-all duration-300",
-        isFullWidth ? "max-w-full" : "max-w-screen-xl",
+        'mx-auto flex h-[calc(100dvh-56px)] w-full flex-grow flex-col gap-8 px-4 py-8 transition-all duration-300',
+        isFullWidth ? 'max-w-full' : 'max-w-screen-xl'
       )}
     >
       <div className="grid flex-none grid-cols-2 gap-8">
@@ -46,8 +46,8 @@ export default function Home() {
         <div className="flex flex-none flex-row items-center gap-2">
           <Label
             htmlFor="pretty"
-            className={cn("transition-colors duration-200", {
-              "text-slate-500": isPretty,
+            className={cn('transition-colors duration-200', {
+              'text-slate-500': isPretty,
             })}
           >
             Raw
@@ -59,8 +59,8 @@ export default function Home() {
           />
           <Label
             htmlFor="pretty"
-            className={cn("transition-colors duration-200", {
-              "text-slate-500": !isPretty,
+            className={cn('transition-colors duration-200', {
+              'text-slate-500': !isPretty,
             })}
           >
             Pretty
@@ -69,5 +69,5 @@ export default function Home() {
         <SessionContainer />
       </div>
     </div>
-  );
+  )
 }
