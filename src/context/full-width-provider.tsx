@@ -1,3 +1,5 @@
+'use client';
+
 import {
   createContext,
   useContext,
@@ -6,7 +8,7 @@ import {
   ReactNode,
   Dispatch,
   SetStateAction,
-} from "react";
+} from 'react';
 
 interface FullWidthContextType {
   isFullWidth: boolean;
@@ -14,14 +16,14 @@ interface FullWidthContextType {
 }
 
 const FullWidthContext = createContext<FullWidthContextType | undefined>(
-  undefined,
+  undefined
 );
 
 export function FullWidthProvider({ children }: { children: ReactNode }) {
   const [isFullWidth, setIsFullWidth] = useState<boolean>(() => {
     // Initialize state from localStorage, defaulting to false if not set
-    if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("isFullWidth");
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('isFullWidth');
       return saved !== null ? JSON.parse(saved) : false;
     }
     return false;
@@ -29,7 +31,7 @@ export function FullWidthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     // Save state to localStorage whenever it changes
-    localStorage.setItem("isFullWidth", JSON.stringify(isFullWidth));
+    localStorage.setItem('isFullWidth', JSON.stringify(isFullWidth));
   }, [isFullWidth]);
 
   return (
@@ -42,7 +44,7 @@ export function FullWidthProvider({ children }: { children: ReactNode }) {
 export function useFullWidth() {
   const context = useContext(FullWidthContext);
   if (context === undefined) {
-    throw new Error("useFullWidth must be used within a FullWidthProvider");
+    throw new Error('useFullWidth must be used within a FullWidthProvider');
   }
   return context;
 }
