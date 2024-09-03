@@ -19,14 +19,16 @@ import {
   DropdownMenuItem,
   DropdownMenuShortcut,
   DropdownMenuTrigger,
-
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ModeToggle } from '@/components/mode-toggle';
 import { WidthToggle } from '@/components/width-toggle';
 import { useApiClients } from '@/context/api-provider';
 import { useFullWidth } from '@/context/full-width-provider';
-import { GetAuthURLRequest, LocalhostViaBrowser } from 'api/js/svc/auth/v1/service_pb';
+import {
+  GetAuthURLRequest,
+  LocalhostViaBrowser,
+} from 'api/js/svc/auth/v1/service_pb';
 import { PingResponse } from 'api/js/svc/localhost/v1/service_pb';
 
 import { Code, ConnectError } from '@connectrpc/connect';
@@ -90,7 +92,7 @@ const PageHeader: React.FC = () => {
           architecture: hasLocalhost.architecture,
           operatingSystem: hasLocalhost.operatingSystem,
           usingVersion: hasLocalhost.clientVersion,
-        })
+        });
       }
       try {
         const res = await apiClients?.auth.getAuthURL(req);
@@ -134,13 +136,13 @@ const PageHeader: React.FC = () => {
   } else if (authURL) {
     avatarBlock = (
       <Link href={authURL}>
-        <Button> Sign up</Button>
+        <Button>Sign up</Button>
       </Link>
     );
   }
 
   return (
-    <div className="bg-darkBg dark:bg-secondary-900">
+    <div className="bg-darkBg dark:bg-slate-950">
       <div className="mx-auto flex w-full max-w-screen-xl flex-row items-center justify-between gap-8 px-4 py-3">
         <div className="flex flex-row items-center gap-8">
           <Logo />
@@ -157,9 +159,9 @@ const PageHeader: React.FC = () => {
                   localhost{' '}
                   {hasLocalhost
                     ? 'v' +
-                    hasLocalhost.clientVersion?.major +
-                    '.' +
-                    hasLocalhost.clientVersion?.minor
+                      hasLocalhost.clientVersion?.major +
+                      '.' +
+                      hasLocalhost.clientVersion?.minor
                     : 'unavailable :( -> install it?'}
                 </SelectItem>
                 <SelectItem value="staging">staging</SelectItem>
