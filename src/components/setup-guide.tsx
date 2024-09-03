@@ -23,9 +23,9 @@ const SetupGuide: React.FC = () => {
       </div>
       <div className="flex flex-row items-center gap-2">
         <span>Install</span>
-        <span className="rounded-base bg-slate-200 px-2 py-0.5 dark:bg-slate-950">
+        <code className="rounded-base bg-slate-200 px-2 py-0.5 dark:bg-slate-950">
           humanlog
-        </span>
+        </code>
       </div>
       <div
         onClick={() =>
@@ -34,9 +34,9 @@ const SetupGuide: React.FC = () => {
         tabIndex={1}
         className="flex w-full max-w-xl cursor-pointer flex-row items-center justify-between gap-4 rounded-base bg-slate-200 px-4 py-3 hover:bg-slate-300 focus:ring-4 focus:ring-slate-100 dark:bg-slate-950"
       >
-        <span className="truncate">
+        <code className="truncate">
           curl -L &quot;https://humanlog.io/install.sh&quot; | sh
-        </span>
+        </code>
         <Copy size={14} />
       </div>
       <p>and then use it!</p>
@@ -45,9 +45,9 @@ const SetupGuide: React.FC = () => {
         tabIndex={2}
         className="flex w-full max-w-xl cursor-pointer flex-row items-center justify-between gap-4 rounded-base bg-slate-200 px-4 py-3 hover:bg-slate-300 focus:ring-4 focus:ring-slate-100 dark:bg-slate-950"
       >
-        <span className="truncate">
+        <code className="truncate">
           {JSON.stringify("$ my_server 2>&1 | humanlog").slice(1, -1)}
-        </span>
+        </code>
         <Copy size={14} />
       </div>
     </div>
