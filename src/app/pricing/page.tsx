@@ -70,8 +70,8 @@ export default function Page() {
   const [isAnnually, setIsAnnually] = useState(true);
 
   return (
-    <div className="inset-0 flex w-full flex-col items-center justify-center bg-[linear-gradient(to_right,#80808033_1px,transparent_1px),linear-gradient(to_bottom,#80808033_1px,transparent_1px)] bg-[size:64px_64px]">
-      <div className="mx-auto flex min-h-[calc(100vh-56px)] w-full max-w-screen-xl flex-col items-center justify-center px-4 py-8">
+    <div className="flex min-h-[calc(100dvh-56px)] w-full flex-col items-center justify-center bg-[linear-gradient(to_right,#80808033_1px,transparent_1px),linear-gradient(to_bottom,#80808033_1px,transparent_1px)] bg-[size:64px_64px]">
+      <div className="mx-auto flex w-full max-w-screen-xl flex-col items-center justify-center px-4 py-8">
         <h1 className="text-center text-4xl font-bold">Pricing</h1>
         <div className="flex flex-none flex-row items-center gap-2 pt-8">
           <Label
