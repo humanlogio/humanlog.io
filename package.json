@@ -6,6 +6,7 @@
     "dev": "./script/check-has-setup-localhost && next dev --hostname humanlog.test --experimental-https --experimental-https-ca certificates/rootCA.pem --experimental-https-cert certificates/humanlog.test.pem --experimental-https-key certificates/humanlog.test-key.pem",
     "build": "next build",
     "start": "next start",
+    "fmt": "prettier --write src/",
     "lint": "next lint"
   },
   "dependencies": {
@@ -38,8 +39,11 @@
     "@types/react-dom": "^18",
     "eslint": "^8",
     "eslint-config-next": "14.2.6",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-prettier": "^5.2.1",
+    "lint-staged": "^15.2.10",
     "postcss": "^8",
-    "prettier": "^3.3.3",
+    "prettier": "3.3.3",
     "prettier-plugin-tailwindcss": "^0.6.6",
     "tailwindcss": "^3.4.1",
     "ts-loader": "^9.5.1",
