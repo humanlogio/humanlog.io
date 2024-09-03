@@ -1,6 +1,6 @@
-import { Check } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
+import { Check } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 export default function PricingPlan({
   features,
@@ -44,8 +44,8 @@ export default function PricingPlan({
         </ul>
       </div>
       <Button
-        size={featured ? 'lg' : 'default'}
-        className={cn('mt-12 w-full', featured && 'bg-success')}
+        size={featured ? "lg" : "default"}
+        className={cn("mt-12 w-full", featured && "bg-success")}
       >
         {cta}
       </Button>
