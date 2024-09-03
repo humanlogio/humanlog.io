@@ -1,12 +1,12 @@
-import React, { createContext, useContext, useMemo } from "react";
-import type { CSSProperties, PropsWithChildren } from "react";
+import React, { createContext, useContext, useMemo } from 'react';
+import type { CSSProperties, PropsWithChildren } from 'react';
 import type {
   DraggableSyntheticListeners,
   UniqueIdentifier,
-} from "@dnd-kit/core";
-import { useSortable } from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
-import { GripHorizontal } from "lucide-react";
+} from '@dnd-kit/core';
+import { useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import { GripHorizontal } from 'lucide-react';
 
 interface Props {
   id: UniqueIdentifier;
@@ -41,13 +41,13 @@ export const SortableItem = ({ children, id }: PropsWithChildren<Props>) => {
       listeners,
       ref: setActivatorNodeRef,
     }),
-    [attributes, listeners, setActivatorNodeRef],
+    [attributes, listeners, setActivatorNodeRef]
   );
   const style: CSSProperties = {
     opacity: isDragging ? 0.4 : undefined,
     transform: CSS.Translate.toString(transform),
     transition,
-    height: "100%",
+    height: '100%',
   };
 
   return (
@@ -64,7 +64,7 @@ export function DragHandle() {
 
   return (
     <div {...attributes} {...listeners} ref={ref} className="cursor-grab">
-      <GripHorizontal />
+      <GripHorizontal className="text-slate-500" />
     </div>
   );
 }
