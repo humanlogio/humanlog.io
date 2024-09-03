@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import { ThemeProvider } from "@/context/theme-provider";
 import { ApiClientsProvider } from "@/context/api-provider";
 import { FullWidthProvider } from "@context/full-width-provider";
+import { Toaster } from "@/components/ui/sonner";
 import PageHeader from "@components/page-header";
 
 export const metadata: Metadata = {
@@ -43,6 +44,7 @@ export default function RootLayout({
                 <PageHeader />
               </header>
               <main>{children}</main>
+              <Toaster expand={true} />
             </FullWidthProvider>
           </ThemeProvider>
         </ApiClientsProvider>
