@@ -1,3 +1,4 @@
+import { toast } from "sonner";
 import { Copy } from "lucide-react";
 
 const SetupGuide: React.FC = () => {
@@ -5,8 +6,7 @@ const SetupGuide: React.FC = () => {
     navigator.clipboard
       .writeText(text)
       .then(() => {
-        // Optionally, you can add some visual feedback here
-        console.log("Text copied to clipboard");
+        toast.success("Text copied to clipboard");
       })
       .catch((err) => {
         console.error("Failed to copy text: ", err);
