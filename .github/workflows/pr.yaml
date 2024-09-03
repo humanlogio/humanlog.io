@@ -10,5 +10,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Install
+        run: npm i
+
+      - name: Lint
+        run: npm run lint
+
       - name: Build container image
         run: docker build -t registry.digitalocean.com/humanlog/humanlogio:$(echo $GITHUB_SHA | head -c7) .

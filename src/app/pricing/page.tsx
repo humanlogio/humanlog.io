@@ -1,18 +1,18 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { cn } from '@/lib/utils';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
-import PricingPlan from '@/components/pricing-plan';
+import { useState } from "react";
+import { cn } from "@/lib/utils";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import PricingPlan from "@/components/pricing-plan";
 
 const tiers = [
   {
-    name: 'Local Dev Ex',
-    id: '0',
-    href: '/subscribe?plan=starter',
-    price: { '1': '$19', '2': '$14' },
-    discountPrice: { '1': '', '2': '$199' },
+    name: "Local Dev Ex",
+    id: "0",
+    href: "/subscribe?plan=starter",
+    price: { "1": "$19", "2": "$14" },
+    discountPrice: { "1": "", "2": "$199" },
     description: `Save and explore your local development logs.`,
     features: [
       `Single user`,
@@ -26,11 +26,11 @@ const tiers = [
     cta: `Get started`,
   },
   {
-    name: 'Hosted',
-    id: '1',
-    href: '/subscribe?plan=pro',
-    price: { '1': '$49', '2': '$38' },
-    discountPrice: { '1': '', '2': '$499' },
+    name: "Hosted",
+    id: "1",
+    href: "/subscribe?plan=pro",
+    price: { "1": "$49", "2": "$38" },
+    discountPrice: { "1": "", "2": "$499" },
     description: `When you grow, need more power and flexibility.`,
     features: [
       `All in the starter plan plus`,
@@ -46,11 +46,11 @@ const tiers = [
     cta: `Get started`,
   },
   {
-    name: 'Commercial Custom',
-    id: '2',
-    href: '/contact-us',
-    price: '',
-    discountPrice: { '1': '', '2': '' },
+    name: "Commercial Custom",
+    id: "2",
+    href: "/contact-us",
+    price: "",
+    discountPrice: { "1": "", "2": "" },
     description: `Custom plans for your needs.`,
     features: [
       `All in the pro plan plus`,
@@ -76,8 +76,8 @@ export default function Page() {
         <div className="flex flex-none flex-row items-center gap-2 pt-8">
           <Label
             htmlFor="annualy"
-            className={cn('transition-colors duration-200', {
-              'text-slate-500': isAnnually,
+            className={cn("transition-colors duration-200", {
+              "text-slate-500": isAnnually,
             })}
           >
             Billed Monthly
@@ -89,8 +89,8 @@ export default function Page() {
           />
           <Label
             htmlFor="annualy"
-            className={cn('transition-colors duration-200', {
-              'text-slate-500': !isAnnually,
+            className={cn("transition-colors duration-200", {
+              "text-slate-500": !isAnnually,
             })}
           >
             Billed Annually
@@ -102,7 +102,7 @@ export default function Page() {
               key={tier.id}
               name={tier.name}
               featured={tier.featured}
-              price={isAnnually ? tier.price['2'] : tier.price['1']}
+              price={isAnnually ? tier.price["2"] : tier.price["1"]}
               description={tier.description}
               features={tier.features}
               cta={tier.cta}
