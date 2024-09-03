@@ -1,16 +1,16 @@
-import { UniqueIdentifier, useDroppable } from '@dnd-kit/core';
-import { rectSortingStrategy, SortableContext } from '@dnd-kit/sortable';
+import { UniqueIdentifier, useDroppable } from "@dnd-kit/core";
+import { rectSortingStrategy, SortableContext } from "@dnd-kit/sortable";
 import {
   ImperativePanelGroupHandle,
   Panel,
   PanelGroup,
   PanelResizeHandle,
-} from 'react-resizable-panels';
-import { Fragment, useEffect, useRef } from 'react';
+} from "react-resizable-panels";
+import { Fragment, useEffect, useRef } from "react";
 
-import { SortableItem } from '@/components/sortable/sortable-item';
-import { LogEventGroup } from '@/components/sortable/session-container';
-import SessionPanel from '@/components/sortable/session-panel';
+import { SortableItem } from "@/components/sortable/sortable-item";
+import { LogEventGroup } from "@/components/sortable/session-container";
+import SessionPanel from "@/components/sortable/session-panel";
 
 type ContainerProps = {
   id: string;
@@ -54,7 +54,7 @@ const SessionGroup = ({ id, items = [], lookupSession }: ContainerProps) => {
           direction="horizontal"
           onLayout={onLayout}
           ref={panelGroupRef}
-          style={{ overflow: 'initial' }}
+          style={{ overflow: "initial" }}
         >
           {items.map((item, index) => {
             let logEventGroup = lookupSession(item);
@@ -63,7 +63,7 @@ const SessionGroup = ({ id, items = [], lookupSession }: ContainerProps) => {
                 <Panel
                   id={`${item}`}
                   order={index}
-                  style={{ overflow: 'initial', minWidth: 0 }}
+                  style={{ overflow: "initial", minWidth: 0 }}
                 >
                   <SortableItem id={item}>
                     <SessionPanel logEventGroup={logEventGroup} />

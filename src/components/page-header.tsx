@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import React, { useEffect, useState } from 'react';
-import { usePathname } from 'next/navigation';
-import Link from 'next/link';
-import { Loader, SquareCode, User as UserIcon, LogOut } from 'lucide-react';
-import Logo from '@/components/logo';
+import React, { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
+import Link from "next/link";
+import { Loader, SquareCode, User as UserIcon, LogOut } from "lucide-react";
+import Logo from "@/components/logo";
 import {
   Select,
   SelectContent,
@@ -12,29 +12,29 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from "@/components/ui/select";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuShortcut,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ModeToggle } from '@/components/mode-toggle';
-import { WidthToggle } from '@/components/width-toggle';
-import { useApiClients } from '@/context/api-provider';
-import { useFullWidth } from '@/context/full-width-provider';
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ModeToggle } from "@/components/mode-toggle";
+import { WidthToggle } from "@/components/width-toggle";
+import { useApiClients } from "@/context/api-provider";
+import { useFullWidth } from "@/context/full-width-provider";
 import {
   GetAuthURLRequest,
   LocalhostViaBrowser,
-} from 'api/js/svc/auth/v1/service_pb';
-import { PingResponse } from 'api/js/svc/localhost/v1/service_pb';
+} from "api/js/svc/auth/v1/service_pb";
+import { PingResponse } from "api/js/svc/localhost/v1/service_pb";
 
-import { Code, ConnectError } from '@connectrpc/connect';
-import { User } from 'api/js/types/v1/user_pb';
-import { md5 } from 'js-md5';
-import { Button } from './ui/button';
+import { Code, ConnectError } from "@connectrpc/connect";
+import { User } from "api/js/types/v1/user_pb";
+import { md5 } from "js-md5";
+import { Button } from "./ui/button";
 
 const PageHeader: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -54,13 +54,13 @@ const PageHeader: React.FC = () => {
         setUser(res.user);
       } catch (err) {
         if (err instanceof ConnectError && err.code == Code.Unauthenticated) {
-          console.log('need to auth');
+          console.log("need to auth");
         } else {
           console.error(err);
         }
       }
     })();
-  }, []);
+  }, [apiClients?.user]);
 
   useEffect(() => {
     (async () => {
@@ -73,13 +73,13 @@ const PageHeader: React.FC = () => {
         setHasLocalhost(res);
       } catch (err) {
         if (err instanceof ConnectError && err.code == Code.Unauthenticated) {
-          console.log('need to auth');
+          console.log("need to auth");
         } else {
           console.error(err);
         }
       }
     })();
-  }, []);
+  }, [apiClients?.localhost]);
 
   useEffect(() => {
     (async () => {
@@ -99,13 +99,22 @@ const PageHeader: React.FC = () => {
         if (!res || !res.authUrl) {
           return;
         }
-        console.log('set the auth URL, returning to: ' + returnToUrl);
+        console.log("set the auth URL, returning to: " + returnToUrl);
         setAuthURL(res.authUrl);
       } catch (err) {
         console.log(err);
       }
     })();
-  });
+  }, [
+    apiClients?.auth,
+    hasLocalhost,
+    hasLocalhost?.meta,
+    hasLocalhost?.meta?.accountId,
+    hasLocalhost?.meta?.machineId,
+    hasLocalhost?.architecture,
+    hasLocalhost?.operatingSystem,
+    hasLocalhost?.clientVersion,
+  ]);
 
   let avatarBlock = <Loader color="white" className="animate-spin" />;
   if (user) {
@@ -114,7 +123,7 @@ const PageHeader: React.FC = () => {
         <DropdownMenuTrigger asChild>
           <div className="flex cursor-pointer flex-row items-center gap-2">
             <p className="font-medium text-white">
-              {user?.firstName || 'username'}
+              {user?.firstName || "username"}
             </p>
             <Avatar>
               <AvatarImage src={gravatarURL(user?.email)} />
@@ -156,13 +165,13 @@ const PageHeader: React.FC = () => {
             <SelectContent>
               <SelectGroup>
                 <SelectItem value="localhost">
-                  localhost{' '}
+                  localhost{" "}
                   {hasLocalhost
-                    ? 'v' +
+                    ? "v" +
                       hasLocalhost.clientVersion?.major +
-                      '.' +
+                      "." +
                       hasLocalhost.clientVersion?.minor
-                    : 'unavailable :( -> install it?'}
+                    : "unavailable :( -> install it?"}
                 </SelectItem>
                 <SelectItem value="staging">staging</SelectItem>
                 <SelectItem value="production">production</SelectItem>
@@ -178,7 +187,7 @@ const PageHeader: React.FC = () => {
           {avatarBlock}
           <div className="flex flex-row items-center gap-2">
             <ModeToggle />
-            {pathname === '/' && (
+            {pathname === "/" && (
               <WidthToggle
                 isFullWidth={isFullWidth}
                 setIsFullWidth={setIsFullWidth}

@@ -1,8 +1,8 @@
-import { Search } from 'lucide-react';
+import { Search } from "lucide-react";
 
-import { Button } from '@/components/ui/button';
-import { DragHandle } from '@/components/sortable/sortable-item';
-import { LogEventGroup } from '@/components/sortable/session-container';
+import { Button } from "@/components/ui/button";
+import { DragHandle } from "@/components/sortable/sortable-item";
+import { LogEventGroup } from "@/components/sortable/session-container";
 
 type SessionPanelProps = {
   logEventGroup: LogEventGroup | undefined;
