@@ -322,7 +322,7 @@ const SessionContainer = () => {
       collisionDetection={collisionDetectionStrategy}
       sensors={sensors}
     >
-      <div className="flex flex-grow flex-col">
+      <div className="flex flex-grow flex-col overflow-hidden">
         {Object.keys(items).map((key) => (
           <SessionGroup
             key={key}

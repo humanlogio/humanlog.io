@@ -49,7 +49,7 @@ const SessionGroup = ({ id, items = [], lookupSession }: ContainerProps) => {
 
   return (
     <SortableContext id={id} items={items} strategy={rectSortingStrategy}>
-      <div ref={setNodeRef} className="flex flex-grow flex-col">
+      <div ref={setNodeRef} className="flex flex-grow flex-col overflow-hidden">
         <PanelGroup
           direction="horizontal"
           onLayout={onLayout}
@@ -63,7 +63,9 @@ const SessionGroup = ({ id, items = [], lookupSession }: ContainerProps) => {
                 <Panel
                   id={`${item}`}
                   order={index}
-                  style={{ overflow: "initial", minWidth: 0 }}
+                  style={{
+                    overflow: "initial",
+                  }}
                 >
                   <SortableItem id={item}>
                     <SessionPanel logEventGroup={logEventGroup} />

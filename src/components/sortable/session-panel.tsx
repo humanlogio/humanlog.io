@@ -26,7 +26,7 @@ const SessionPanel = ({ logEventGroup }: SessionPanelProps) => {
           </Button>
         </div>
       </div>
-      <div className="flex flex-grow flex-col bg-gradient-to-r from-slate-300 from-10% via-slate-200 via-10% to-slate-200 to-100% text-sm dark:from-slate-900 dark:via-slate-950 dark:to-slate-950">
+      <div className="flex flex-grow flex-col overflow-x-auto bg-gradient-to-r from-slate-300 from-10% via-slate-200 via-10% to-slate-200 to-100% text-sm dark:from-slate-900 dark:via-slate-950 dark:to-slate-950">
         {logEventGroup?.logs.map((log) => {
           return (
             <div
@@ -34,19 +34,14 @@ const SessionPanel = ({ logEventGroup }: SessionPanelProps) => {
               className="group flex flex-row items-start hover:bg-slate-400/20 hover:dark:bg-slate-700/20"
             >
               <div className="w-[10%] cursor-pointer p-2">
-                <div className="hidden p-0.5 group-hover:inline-block">
-                  <Share size={14} />
+                <div className="hidden group-hover:inline-block">
+                  <Share size={12} />
                 </div>
                 <code className="block truncate text-slate-500 group-hover:hidden">
                   {log.id}
                 </code>
               </div>
-              <code className="w-[90%] p-2">
-                {log.raw}
-                {log.raw}
-                {log.raw}
-                {log.raw}
-              </code>
+              <code className="w-[90%] p-2">{log.raw}</code>
             </div>
           );
         })}

@@ -28,8 +28,8 @@ export default function Home() {
       {!connected ? (
         <SetupGuide />
       ) : (
-        <div className="flex flex-grow flex-col gap-8">
-          <div className="grid flex-none grid-cols-2 gap-8">
+        <div className="flex flex-grow flex-col gap-8 overflow-hidden">
+          <div className="grid flex-none grid-cols-2 gap-8 overflow-hidden">
             <div className="col-span-2 md:col-span-1">
               <h1 className="text-2xl font-bold">
                 Lorem ipsum dolor sit amet consectetur
@@ -52,7 +52,7 @@ export default function Home() {
               <p>chart goes here</p>
             </div>
           </div>
-          <div className="flex flex-grow flex-col gap-4">
+          <div className="flex flex-grow flex-col gap-4 overflow-hidden">
             <div className="flex flex-none flex-row items-center gap-2">
               <Label
                 htmlFor="pretty"
