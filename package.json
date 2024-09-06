@@ -32,7 +32,8 @@
     "react-resizable-panels": "^2.1.1",
     "sonner": "^1.5.0",
     "tailwind-merge": "^2.5.2",
-    "tailwindcss-animate": "^1.0.7"
+    "tailwindcss-animate": "^1.0.7",
+    "victory": "^37.1.1"
   },
   "devDependencies": {
     "@types/node": "^20",
