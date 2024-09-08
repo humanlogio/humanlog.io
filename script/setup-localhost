@@ -5,7 +5,7 @@ set -e
 eval "$(pkgx --shellcode)"
 root=$(git rev-parse --show-toplevel)
 
-dev_domain="humanlog.test"
+dev_domain="app.humanlog.dev"
 hostfile="/etc/hosts"
 certdir="${root}/certificates"
 cafile="${certdir}/rootCA.pem"

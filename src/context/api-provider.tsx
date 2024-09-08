@@ -7,6 +7,7 @@ import { createConnectTransport } from "@connectrpc/connect-web";
 import { AuthService } from "api/js/svc/auth/v1/service_connect";
 import { UserService } from "api/js/svc/user/v1/service_connect";
 import { LocalhostService } from "api/js/svc/localhost/v1/service_connect";
+import { QueryService } from "api/js/svc/query/v1/service_connect";
 
 const ApiClientContext = createContext<ApiClients | null>(null);
 
@@ -22,6 +23,7 @@ export type ApiClients = {
   auth: PromiseClient<typeof AuthService>;
   user: PromiseClient<typeof UserService>;
   localhost: PromiseClient<typeof LocalhostService>;
+  query: PromiseClient<typeof QueryService>;
 };
 
 export function ApiClientsProvider({
@@ -38,11 +40,12 @@ export function ApiClientsProvider({
     }
 
     const apiTransport = createConnectTransport({
-      baseUrl: "http://localhost:8080", // TODO: use process.env.API_BASE_URL
+      baseUrl: "https://api.humanlog.dev", // TODO: use process.env.API_BASE_URL
       interceptors: interceptors,
     });
     const auth = createPromiseClient(AuthService, apiTransport);
     const user = createPromiseClient(UserService, apiTransport);
+    const query = createPromiseClient(QueryService, apiTransport);
 
     const localhostTransport = createConnectTransport({
       baseUrl: "http://localhost:32764",
@@ -52,6 +55,7 @@ export function ApiClientsProvider({
       auth: auth,
       user: user,
       localhost: localhost,
+      query: query,
     };
   }, []);
   return (
