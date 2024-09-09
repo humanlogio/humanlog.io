@@ -63,8 +63,10 @@ const SessionGroup = ({ id, items = [], lookupSession }: ContainerProps) => {
                 <Panel
                   id={`${item}`}
                   order={index}
+                  defaultSize={100 / items?.length}
                   style={{
                     overflow: "initial",
+                    minWidth: 0,
                   }}
                 >
                   <SortableItem id={item}>
