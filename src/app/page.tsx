@@ -1,7 +1,6 @@
 "use client";
 
-import React from "react";
-import { useState } from "react";
+import React, { useState } from "react";
 import { Share } from "lucide-react";
 import {
   VictoryBar,
@@ -82,17 +81,12 @@ export default function Home() {
   ];
 
   return (
-    <div
-      className={cn(
-        "mx-auto flex h-[calc(100dvh-56px)] w-full flex-col px-4 py-8 transition-all duration-300",
-        isFullWidth ? "max-w-full" : "max-w-screen-xl",
-      )}
-    >
+    <div className="flex h-[calc(100dvh-56px)] flex-col py-8">
       {!connected ? (
         <SetupGuide />
       ) : (
         <div className="flex flex-grow flex-col gap-4 overflow-y-hidden">
-          <div className="grid flex-none grid-cols-2 gap-8">
+          <div className="mx-auto grid w-full max-w-screen-xl flex-none grid-cols-2 gap-8 px-4">
             <div className="col-span-2 md:col-span-1">
               <h1 className="text-2xl font-bold">
                 Lorem ipsum dolor sit amet consectetur
@@ -100,7 +94,7 @@ export default function Home() {
               {/* <p className="mt-2 text-slate-500">
               Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
               eiusmod tempor incididunt ut labore et dolore magna aliqua.
-            </p> */}
+              </p> */}
               <div className="ml-[4px] mt-4 flex flex-row gap-2">
                 <AutosizeTextarea
                   maxHeight={160}
@@ -118,7 +112,7 @@ export default function Home() {
                   padding={{ top: 4, left: 24, right: 4, bottom: 16 }}
                   scale={{ x: "time", y: "linear" }}
                   containerComponent={
-                    <VictoryZoomContainer zoomDomain={{ x: [0, 100] }} />
+                    <VictoryZoomContainer zoomDimension="x" />
                   }
                 >
                   <VictoryAxis
@@ -126,14 +120,22 @@ export default function Home() {
                     fixLabelOverlap={true}
                     style={{
                       axis: { stroke: "black" },
-                      tickLabels: { fontSize: 10, padding: 4, fill: "black" },
+                      tickLabels: {
+                        fontSize: 10,
+                        padding: 4,
+                        fill: "var(--chart-ticklabels-color)",
+                      },
                     }}
                   />
                   <VictoryAxis
                     fixLabelOverlap={true}
                     style={{
                       axis: { stroke: "black" },
-                      tickLabels: { fontSize: 10, padding: 4, fill: "black" },
+                      tickLabels: {
+                        fontSize: 10,
+                        padding: 4,
+                        fill: "var(--chart-ticklabels-color)",
+                      },
                     }}
                   />
                   <VictoryBar
@@ -150,7 +152,12 @@ export default function Home() {
               </div>
             </div>
           </div>
-          <div className="flex flex-grow flex-col gap-4 overflow-hidden">
+          <div
+            className={cn(
+              "mx-auto flex w-full flex-grow flex-col gap-4 overflow-hidden px-4 transition-all duration-300",
+              isFullWidth ? "max-w-full" : "max-w-screen-xl",
+            )}
+          >
             <div className="flex flex-none flex-row items-center gap-2">
               <Label
                 htmlFor="pretty"
