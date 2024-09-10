@@ -145,7 +145,7 @@ const PageHeader: React.FC = () => {
   } else if (authURL) {
     avatarBlock = (
       <Link href={authURL}>
-        <Button>Sign up</Button>
+        <Button variant="neutral">Sign up</Button>
       </Link>
     );
   }
