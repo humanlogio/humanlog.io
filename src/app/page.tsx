@@ -92,7 +92,7 @@ export default function Home() {
         <SetupGuide />
       ) : (
         <div className="flex flex-grow flex-col gap-4 overflow-y-hidden">
-          <div className="grid flex-none grid-cols-2 gap-8 overflow-y-hidden">
+          <div className="grid flex-none grid-cols-2 gap-8">
             <div className="col-span-2 md:col-span-1">
               <h1 className="text-2xl font-bold">
                 Lorem ipsum dolor sit amet consectetur
@@ -101,7 +101,7 @@ export default function Home() {
               Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
               eiusmod tempor incididunt ut labore et dolore magna aliqua.
             </p> */}
-              <div className="mt-4 flex flex-row gap-2">
+              <div className="ml-[4px] mt-4 flex flex-row gap-2">
                 <AutosizeTextarea
                   maxHeight={160}
                   placeholder="Type to search"
