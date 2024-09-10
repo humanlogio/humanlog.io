@@ -14,7 +14,7 @@ const SetupGuide: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-grow flex-col items-center justify-center gap-8">
+    <div className="mx-auto flex w-full max-w-screen-xl flex-grow flex-col items-center justify-center gap-8 px-4">
       <div>
         <h1 className="text-center text-4xl font-bold">Get Started</h1>
         <p className="mt-4 text-center text-slate-500">
