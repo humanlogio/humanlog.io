@@ -40,7 +40,7 @@ export function ApiClientsProvider({
     }
 
     const apiTransport = createConnectTransport({
-      baseUrl: "https://api.humanlog.dev", // TODO: use process.env.API_BASE_URL
+      baseUrl: "https://api-tunnel.humanlog.dev", // TODO: use process.env.API_BASE_URL
       interceptors: interceptors,
     });
     const auth = createPromiseClient(AuthService, apiTransport);
