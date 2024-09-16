@@ -72,8 +72,8 @@ const PageHeader: React.FC = () => {
         }
         setHasLocalhost(res);
       } catch (err) {
-        if (err instanceof ConnectError && err.code == Code.Unauthenticated) {
-          console.log("need to auth");
+        if (err instanceof ConnectError && err.code == Code.Unknown) {
+          console.log("localhost isn't running humanlog");
         } else {
           console.error(err);
         }
@@ -168,9 +168,9 @@ const PageHeader: React.FC = () => {
                   localhost{" "}
                   {hasLocalhost
                     ? "v" +
-                      hasLocalhost.clientVersion?.major +
-                      "." +
-                      hasLocalhost.clientVersion?.minor
+                    hasLocalhost.clientVersion?.major +
+                    "." +
+                    hasLocalhost.clientVersion?.minor
                     : "unavailable :( -> install it?"}
                 </SelectItem>
                 <SelectItem value="staging">staging</SelectItem>

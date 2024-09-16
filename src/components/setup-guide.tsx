@@ -46,7 +46,7 @@ const SetupGuide: React.FC = () => {
         className="flex w-full max-w-xl cursor-pointer flex-row items-center justify-between gap-4 rounded-base bg-slate-200 px-4 py-3 hover:bg-slate-300 focus:ring-4 focus:ring-slate-100 dark:bg-slate-950"
       >
         <code className="truncate">
-          {JSON.stringify("$ my_server 2>&1 | humanlog").slice(1, -1)}
+          {JSON.stringify("my_server 2>&1 | humanlog").slice(1, -1)}
         </code>
         <Copy size={14} />
       </div>
