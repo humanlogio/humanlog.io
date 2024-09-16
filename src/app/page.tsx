@@ -2,13 +2,6 @@
 
 import React, { useState } from "react";
 import { Share } from "lucide-react";
-import {
-  VictoryBar,
-  VictoryChart,
-  VictoryAxis,
-  VictoryZoomContainer,
-} from "victory";
-
 import { AutosizeTextarea } from "@/components/ui/autosize-textarea";
 import { Button } from "@/components/ui/button";
 import SessionContainer from "@/components/sortable/session-container";
@@ -17,6 +10,7 @@ import { cn } from "@/lib/utils";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import SetupGuide from "@components/setup-guide";
+import Graph from "@components/ui/graph";
 
 export default function Home() {
   const [isPretty, setIsPretty] = useState(true);
@@ -106,50 +100,7 @@ export default function Home() {
               </div>
             </div>
             <div className="col-span-2 md:col-span-1">
-              <div>
-                <VictoryChart
-                  height={88}
-                  padding={{ top: 4, left: 24, right: 4, bottom: 16 }}
-                  scale={{ x: "time", y: "linear" }}
-                  containerComponent={
-                    <VictoryZoomContainer zoomDimension="x" />
-                  }
-                >
-                  <VictoryAxis
-                    dependentAxis
-                    fixLabelOverlap={true}
-                    style={{
-                      axis: { stroke: "black" },
-                      tickLabels: {
-                        fontSize: 10,
-                        padding: 4,
-                        fill: "var(--chart-ticklabels-color)",
-                      },
-                    }}
-                  />
-                  <VictoryAxis
-                    fixLabelOverlap={true}
-                    style={{
-                      axis: { stroke: "black" },
-                      tickLabels: {
-                        fontSize: 10,
-                        padding: 4,
-                        fill: "var(--chart-ticklabels-color)",
-                      },
-                    }}
-                  />
-                  <VictoryBar
-                    style={{
-                      data: {
-                        fill: "rgba(136, 170, 238, 1)",
-                        stroke: "black",
-                        strokeWidth: "1",
-                      },
-                    }}
-                    data={sessionLogs}
-                  />
-                </VictoryChart>
-              </div>
+              <Graph />
             </div>
           </div>
           <div
