@@ -22,7 +22,7 @@ export default function Home() {
   const [isPretty, setIsPretty] = useState(true);
   const { isFullWidth } = useFullWidth();
 
-  const connected = false;
+  const connected = true;
 
   // Simulated localhost session logs data
   const sessionLogs = [
