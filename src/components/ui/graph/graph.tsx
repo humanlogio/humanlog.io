@@ -24,6 +24,10 @@ const Graph = (props: { onZoom: (zoom: ZoomType) => void }) => {
   const [data, setData] = useState(generateRandomData(50));
   const [zoom, setZoom] = useState<ZoomType | null>(null);
   const [activeAnimations, setActiveAnimations] = useState(true);
+  const [dateFromValue, setDateTo] = useState(
+    new Date(new Date().valueOf() - 1000 * 60 * 60 * 24 * 30),
+  );
+  const [dateToValue, setDateFrom] = useState(new Date());
 
   const maxValue = data.length - 1;
   const { startIndex, endIndex } = {
@@ -95,7 +99,12 @@ const Graph = (props: { onZoom: (zoom: ZoomType) => void }) => {
         </BarChart>
       </ResponsiveContainer>
 
-      <DateRangePicker />
+      <DateRangePicker
+        dateFrom={dateFromValue}
+        dateTo={dateToValue}
+        setDateFrom={setDateFrom}
+        setDateTo={setDateTo}
+      />
     </Scroller>
   );
 };
