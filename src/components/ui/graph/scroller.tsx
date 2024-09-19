@@ -19,7 +19,7 @@ const Scroller = (props: {
   data: DataPoint[];
   zoom: ZoomType | null;
   onProcessed: (data: DataPoint[], zoom: ZoomType, animate: boolean) => void;
-  children: ReactElement;
+  children: ReactElement[];
 }) => {
   const { data, zoom, onProcessed, children } = props;
   const [deltaAccumulatorY, setDeltaAccumulatorY] = useState(0);
@@ -198,7 +198,11 @@ const Scroller = (props: {
     };
   }, [handleKeyPress, handleWheelScrolling]);
 
-  return <div ref={graphRef}>{children}</div>;
+  return (
+    <div ref={graphRef} className="h-64 w-full">
+      {children}
+    </div>
+  );
 };
 
 export default Scroller;
