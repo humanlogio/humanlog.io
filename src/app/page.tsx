@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import SetupGuide from "@components/setup-guide";
-import Graph from "@components/ui/graph";
+import Graph from "@components/ui/graph/graph";
 
 export default function Home() {
   const [isPretty, setIsPretty] = useState(true);
