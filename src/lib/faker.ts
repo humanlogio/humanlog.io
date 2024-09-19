@@ -1,4 +1,4 @@
-type DataPoint = {
+export type DataPoint = {
   name: string;
   dayNumber: number;
   date: Date;
@@ -9,6 +9,7 @@ type DataPoint = {
 
 export const generateRandomData = (count: number): DataPoint[] => {
   const data: DataPoint[] = [];
+  count = Math.floor(count)
 
   for (let i = 0; i < count; i++) {
     const minute = 60000;
