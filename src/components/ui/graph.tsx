@@ -36,7 +36,7 @@ const onZoom = (zoom: ZoomType) => {
 };
 
 const Graph = () => {
-  const [data, setData] = useState(generateRandomData(100));
+  const [data, setData] = useState(generateRandomData(20));
   const [zoom, setZoom] = useState<ZoomType | null>(null);
   const [deltaAccumulatorY, setDeltaAccumulatorY] = useState(0);
   const [deltaAccumulatorX, setDeltaAccumulatorX] = useState(0);
@@ -213,56 +213,57 @@ const Graph = () => {
   );
 
   return (
-    <BarChart
-      width={500}
-      height={300}
-      data={data}
-      margin={{
-        top: 5,
-        right: 30,
-        left: 20,
-        bottom: 5,
-      }}
-    >
-      <CartesianGrid strokeDasharray="3 3" />
-      <XAxis dataKey="name" />
-      <YAxis />
-      <Tooltip />
-      <Legend />
-      <Bar
-        type="monotone"
-        dataKey="pv"
-        stroke="#8884d8"
-        fill="#8884d8"
-        // activeDot={{ r: 8 }}
-        isAnimationActive={activeAnimations}
-      />
-      <Bar
-        type="monotone"
-        dataKey="uv"
-        stroke="#82ca9d"
-        fill="#82ca9d"
-        isAnimationActive={activeAnimations}
-      />
-      <Brush
-        stroke={"rgba(24, 106, 188, 0.6)"}
-        height={30}
-        dataKey={"date"}
-        type="number"
-        travellerWidth={15}
-        gap={data.length / 100}
-        tickFormatter={(value) =>
-          new Date(value).toLocaleDateString("en-US", {
-            day: "2-digit",
-            month: "2-digit",
-            year: "2-digit",
-          })
-        }
-        onChange={handleBrushChange}
-        startIndex={startIndex}
-        endIndex={endIndex}
-      />
-    </BarChart>
+    <div ref={graphRef}>
+      <BarChart
+        width={500}
+        height={300}
+        data={data}
+        margin={{
+          top: 5,
+          right: 30,
+          left: 20,
+          bottom: 5,
+        }}
+      >
+        <CartesianGrid strokeDasharray="3 3" />
+        <XAxis dataKey="name" />
+        <YAxis />
+        <Tooltip />
+        <Legend />
+        <Bar
+          type="monotone"
+          dataKey="pv"
+          stroke="#8884d8"
+          fill="#8884d8"
+          isAnimationActive={activeAnimations}
+        />
+        <Bar
+          type="monotone"
+          dataKey="uv"
+          stroke="#82ca9d"
+          fill="#82ca9d"
+          isAnimationActive={activeAnimations}
+        />
+        <Brush
+          stroke={"rgba(24, 106, 188, 0.6)"}
+          height={30}
+          dataKey={"date"}
+          type="number"
+          travellerWidth={15}
+          gap={data.length / 100}
+          tickFormatter={(value) =>
+            new Date(value).toLocaleDateString("en-US", {
+              day: "2-digit",
+              month: "2-digit",
+              year: "2-digit",
+            })
+          }
+          onChange={handleBrushChange}
+          startIndex={startIndex}
+          endIndex={endIndex}
+        />
+      </BarChart>
+    </div>
   );
 };
 
