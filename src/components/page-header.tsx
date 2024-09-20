@@ -72,8 +72,8 @@ const PageHeader: React.FC = () => {
         }
         setHasLocalhost(res);
       } catch (err) {
-        if (err instanceof ConnectError && err.code == Code.Unauthenticated) {
-          console.log("need to auth");
+        if (err instanceof ConnectError && err.code == Code.Unknown) {
+          console.log("localhost isn't running humanlog");
         } else {
           console.error(err);
         }
@@ -167,10 +167,7 @@ const PageHeader: React.FC = () => {
                 <SelectItem value="localhost">
                   localhost{" "}
                   {hasLocalhost
-                    ? "v" +
-                      hasLocalhost.clientVersion?.major +
-                      "." +
-                      hasLocalhost.clientVersion?.minor
+                    ? localhostVersion(hasLocalhost)
                     : "unavailable :( -> install it?"}
                 </SelectItem>
                 <SelectItem value="staging">staging</SelectItem>
@@ -198,6 +195,11 @@ const PageHeader: React.FC = () => {
       </div>
     </div>
   );
+};
+
+const localhostVersion = (res: PingResponse) => {
+  const v = res.clientVersion!;
+  return "v" + v.major + "." + v.minor + "." + v.patch;
 };
 
 export const gravatarURL = (email: string | undefined) => {
