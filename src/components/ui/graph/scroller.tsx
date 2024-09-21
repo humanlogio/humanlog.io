@@ -24,7 +24,7 @@ const Scroller = (props: {
   const { data, zoom, onProcessed, children } = props;
   const [deltaAccumulatorY, setDeltaAccumulatorY] = useState(0);
   const [deltaAccumulatorX, setDeltaAccumulatorX] = useState(0);
-  const graphRef = useRef<HTMLElement>(null);
+  const graphRef = useRef<HTMLDivElement>(null);
 
   const [minValue, maxValue] = [0, data.length - 1];
   const { startIndex, endIndex } = {

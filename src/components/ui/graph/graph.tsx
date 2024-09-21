@@ -19,7 +19,7 @@ export type ZoomType = {
   endIndex?: number;
 };
 
-const Graph = (props: { onZoom: (zoom: ZoomType) => void }) => {
+const Graph = (props: { onZoom?: (zoom: ZoomType) => void } = {}) => {
   const { onZoom } = props;
   const [data, setData] = useState(generateRandomData(50));
   const [zoom, setZoom] = useState<ZoomType | null>(null);
