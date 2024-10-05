@@ -63,15 +63,17 @@ export function ApiClientsProvider({
       baseUrl: "http://localhost:32764",
     });
     const localhost = createPromiseClient(LocalhostService, localhostTransport);
+
     return {
-      auth: auth,
-      account: account,
-      org: org,
-      user: user,
-      localhost: localhost,
-      query: query,
+      auth,
+      account,
+      org,
+      user,
+      localhost,
+      query,
     };
   }, []);
+
   return (
     <ApiClientContext.Provider value={apiClients}>
       {children}
@@ -89,6 +91,7 @@ function getCookie(name: string): string | undefined {
     return undefined;
   }
   const last = parts.pop()!;
+
   return last.split(";").shift();
 }
 
