@@ -15,6 +15,7 @@ export function WidthToggle({ isFullWidth, setIsFullWidth }: WidthToggleProps) {
       size="icon"
       variant="noShadow"
       onClick={() => setIsFullWidth((prev) => !prev)}
+      title="Toggle full width"
     >
       {isFullWidth ? (
         <Minimize2
