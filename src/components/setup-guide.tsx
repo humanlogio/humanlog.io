@@ -13,6 +13,8 @@ const SetupGuide: React.FC = () => {
       });
   };
 
+  const installScript = `curl -L "https://humanlog${process.env.NODE_ENV === "development" ? ".dev" : ".io"}/install.sh" | sh`;
+
   return (
     <div className="mx-auto flex w-full max-w-screen-xl flex-grow flex-col items-center justify-center gap-8 px-4">
       <div>
@@ -28,15 +30,11 @@ const SetupGuide: React.FC = () => {
         </code>
       </div>
       <div
-        onClick={() =>
-          copyToClipboard('curl -L "https://humanlog.io/install.sh" | sh')
-        }
+        onClick={() => copyToClipboard(installScript)}
         tabIndex={1}
         className="flex w-full max-w-xl cursor-pointer flex-row items-center justify-between gap-4 rounded-base bg-slate-200 px-4 py-3 hover:bg-slate-300 focus:ring-4 focus:ring-slate-100 dark:bg-slate-950"
       >
-        <code className="truncate">
-          curl -L &quot;https://humanlog.io/install.sh&quot; | sh
-        </code>
+        <code className="truncate">{installScript}</code>
         <Copy size={14} />
       </div>
       <p>and then use it!</p>
