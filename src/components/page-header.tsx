@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { usePathname } from "next/navigation";
+import { redirect, usePathname } from "next/navigation";
 import Link from "next/link";
 import { Loader, SquareCode, User as UserIcon, LogOut } from "lucide-react";
 import Logo from "@/components/logo";
@@ -30,19 +30,22 @@ import {
   LocalhostViaBrowser,
 } from "api/js/svc/auth/v1/service_pb";
 import { PingResponse } from "api/js/svc/localhost/v1/service_pb";
-
 import { Code, ConnectError } from "@connectrpc/connect";
 import { User } from "api/js/types/v1/user_pb";
 import { md5 } from "js-md5";
+import { useAllAccounts } from "@context/listAccounts";
 import { Button } from "./ui/button";
 
 const PageHeader: React.FC = () => {
+  const [activeAccount, setActiveAccount] = useState("france");
   const [user, setUser] = useState<User | null>(null);
   const [authURL, setAuthURL] = useState<string | null>(null);
-  const [hasLocalhost, setHasLocalhost] = useState<PingResponse | null>(null);
   const apiClients = useApiClients();
   const { isFullWidth, setIsFullWidth } = useFullWidth();
   const pathname = usePathname();
+  const { hasLocalhost, listAccounts } = useAllAccounts();
+  const localhostValue = "localhost";
+  const addNewValue = "add_new";
 
   useEffect(() => {
     (async () => {
@@ -61,25 +64,6 @@ const PageHeader: React.FC = () => {
       }
     })();
   }, [apiClients?.user]);
-
-  useEffect(() => {
-    (async () => {
-      try {
-        const res = await apiClients?.localhost.ping({});
-        if (!res) {
-          setHasLocalhost(null);
-          return;
-        }
-        setHasLocalhost(res);
-      } catch (err) {
-        if (err instanceof ConnectError && err.code == Code.Unknown) {
-          console.log("localhost isn't running humanlog");
-        } else {
-          console.error(err);
-        }
-      }
-    })();
-  }, [apiClients?.localhost]);
 
   useEffect(() => {
     (async () => {
@@ -115,6 +99,19 @@ const PageHeader: React.FC = () => {
     hasLocalhost?.operatingSystem,
     hasLocalhost?.clientVersion,
   ]);
+
+  useEffect(() => {
+    console.log(activeAccount);
+    if (activeAccount === localhostValue) {
+      console.log(hasLocalhost);
+      if (!hasLocalhost) {
+        redirect("install");
+      }
+    } else if (activeAccount === addNewValue) {
+    } else {
+      console.log("opening account", activeAccount);
+    }
+  }, [activeAccount]);
 
   let avatarBlock = <Loader color="white" className="animate-spin" />;
   if (user) {
@@ -155,7 +152,7 @@ const PageHeader: React.FC = () => {
       <div className="mx-auto flex w-full max-w-screen-xl flex-row items-center justify-between gap-8 px-4 py-3">
         <div className="flex flex-row items-center gap-8">
           <Logo />
-          <Select>
+          <Select onValueChange={setActiveAccount}>
             <SelectTrigger className="min-w-52">
               <div className="flex flex-row items-center gap-2">
                 <SquareCode size={16} />
@@ -164,15 +161,20 @@ const PageHeader: React.FC = () => {
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
-                <SelectItem value="localhost">
+                <SelectItem value={localhostValue}>
                   localhost{" "}
                   {hasLocalhost
                     ? localhostVersion(hasLocalhost)
                     : "unavailable :( -> install it?"}
                 </SelectItem>
-                <SelectItem value="staging">staging</SelectItem>
-                <SelectItem value="production">production</SelectItem>
-                <SelectItem value="add_new">+ Add new</SelectItem>
+              </SelectGroup>
+              <SelectGroup>
+                {listAccounts.map((item) => (
+                  <SelectItem value={item.account?.name ?? ""}>
+                    {item.account?.name}
+                  </SelectItem>
+                ))}
+                <SelectItem value={addNewValue}>+ Add new</SelectItem>
               </SelectGroup>
             </SelectContent>
           </Select>
