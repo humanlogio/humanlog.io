@@ -101,9 +101,7 @@ const PageHeader: React.FC = () => {
   ]);
 
   useEffect(() => {
-    console.log(activeAccount);
     if (activeAccount === localhostValue) {
-      console.log(hasLocalhost);
       if (!hasLocalhost) {
         redirect("install");
       }
@@ -111,7 +109,7 @@ const PageHeader: React.FC = () => {
     } else {
       console.log("opening account", activeAccount);
     }
-  }, [activeAccount]);
+  }, [activeAccount, hasLocalhost]);
 
   let avatarBlock = <Loader color="white" className="animate-spin" />;
   if (user) {
@@ -170,7 +168,10 @@ const PageHeader: React.FC = () => {
               </SelectGroup>
               <SelectGroup>
                 {listAccounts.map((item) => (
-                  <SelectItem value={item.account?.name ?? ""}>
+                  <SelectItem
+                    value={item.account?.name ?? ""}
+                    key={item.account?.name ?? ""}
+                  >
                     {item.account?.name}
                   </SelectItem>
                 ))}

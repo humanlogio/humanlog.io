@@ -85,7 +85,7 @@ const Scroller = (props: {
 
       onProcessed(newData, updatedZoom, animate);
     },
-    [data],
+    [data, maxValue, onProcessed],
   );
 
   const handleWheelScrolling = useCallback(
@@ -170,7 +170,15 @@ const Scroller = (props: {
       setDeltaAccumulatorX(accumulatedDeltaX);
       setDeltaAccumulatorY(accumulatedDeltaY);
     },
-    [zoom, data, deltaAccumulatorX, deltaAccumulatorY, handleBrushChange],
+    [
+      deltaAccumulatorX,
+      deltaAccumulatorY,
+      startIndex,
+      endIndex,
+      minValue,
+      maxValue,
+      handleBrushChange,
+    ],
   );
 
   const handleKeyPress = useCallback(
