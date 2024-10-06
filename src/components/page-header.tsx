@@ -155,27 +155,29 @@ const PageHeader: React.FC = () => {
       <div className="mx-auto flex w-full max-w-screen-xl flex-row items-center justify-between gap-8 px-4 py-3">
         <div className="flex flex-row items-center gap-8">
           <Logo />
-          <Select>
-            <SelectTrigger className="min-w-52">
-              <div className="flex flex-row items-center gap-2">
-                <SquareCode size={16} />
-                <SelectValue placeholder="Select source" />
-              </div>
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectItem value="localhost">
-                  localhost{" "}
-                  {hasLocalhost
-                    ? localhostVersion(hasLocalhost)
-                    : "unavailable :( -> install it?"}
-                </SelectItem>
-                <SelectItem value="staging">staging</SelectItem>
-                <SelectItem value="production">production</SelectItem>
-                <SelectItem value="add_new">+ Add new</SelectItem>
-              </SelectGroup>
-            </SelectContent>
-          </Select>
+          <div title="Account Selector">
+            <Select>
+              <SelectTrigger className="min-w-52">
+                <div className="flex flex-row items-center gap-2">
+                  <SquareCode size={16} />
+                  <SelectValue placeholder="Select source" />
+                </div>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectItem value="localhost">
+                    localhost{" "}
+                    {hasLocalhost
+                      ? localhostVersion(hasLocalhost)
+                      : "unavailable :( -> install it?"}
+                  </SelectItem>
+                  <SelectItem value="staging">staging</SelectItem>
+                  <SelectItem value="production">production</SelectItem>
+                  <SelectItem value="add_new">+ Add new</SelectItem>
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
         <div className="flex flex-row items-center gap-6">
           <Link href="/pricing" className="text-white hover:underline">

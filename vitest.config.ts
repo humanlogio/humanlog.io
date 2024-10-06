@@ -5,12 +5,14 @@ import react from "@vitejs/plugin-react";
 export default defineConfig({
   plugins: [react()],
   test: {
-    dir: 'tests/unit',
+    dir: "tests/unit",
     environment: "jsdom",
+    setupFiles: "tests/setup/setup-unit.ts",
+    globals: true,
   },
   resolve: {
     alias: {
-      '@': '/src/',
+      "@": "/src/",
     },
   },
 });

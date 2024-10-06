@@ -1,10 +1,6 @@
-import { ReactNode } from 'react';
-import Layout  from '../../src/app/layout'; 
+import { ReactNode } from "react";
+import Layout from "../../src/app/layout";
 
 export const TestWrapper = ({ children }: { children: ReactNode }) => {
-  return (
-    <Layout>
-      {children}
-    </Layout>
-  );
+  return <Layout>{children}</Layout>;
 };
