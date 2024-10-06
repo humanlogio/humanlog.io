@@ -8,7 +8,7 @@ const baseURL = `https://app.humanlog.dev:${PORT}`;
 // Reference: https://playwright.dev/docs/test-configuration
 export default defineConfig({
   timeout: 30 * 1000,
-  testDir: path.join(__dirname, "e2e"),
+  testDir: path.join(__dirname, "tests/e2e"),
   retries: 2,
   outputDir: "test-results/",
 
