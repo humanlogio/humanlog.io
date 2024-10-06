@@ -16,5 +16,11 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      - name: Run unit tests
+        run: npm run test:unit
+
+      - name: Run e2e tests
+        run: npm run test:e2e
+
       - name: Build container image
         run: docker build -t registry.digitalocean.com/humanlog/humanlogio:$(echo $GITHUB_SHA | head -c7) .
