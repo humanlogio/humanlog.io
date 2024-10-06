@@ -5,9 +5,9 @@ import "./globals.css";
 import { cn } from "@/lib/utils";
 import { ThemeProvider } from "@/context/theme-provider";
 import { ApiClientsProvider } from "@/context/api-provider";
-import { FullWidthProvider } from "@context/full-width-provider";
+import { FullWidthProvider } from "@/context/full-width-provider";
 import { Toaster } from "@/components/ui/sonner";
-import PageHeader from "@components/page-header";
+import PageHeader from "@/components/page-header";
 
 export const metadata: Metadata = {
   title: "humanlog.io",
