@@ -1,4 +1,8 @@
-#!/bin/sh
+export async function GET(request: Request) {
+  return new Response(installScript);
+}
+
+const installScript = `#!/bin/sh
 # Based on Deno installer: Copyright 2019 the Deno authors. All rights reserved. MIT license.
 # TODO(everyone): Keep this script simple and easily auditable.
 
@@ -7,13 +11,13 @@ set -e
 os=$(uname -s)
 arch=$(uname -m)
 
-humanlog_uri=$(curl -s --data "{\"os\":\"${os}\",\"arch\":\"${arch}\"}" https://api.humanlog.io/api/releases/humanlog)
+humanlog_uri=$(curl -s --data "{\"os\":\"\${os}\",\"arch\":\"\${arch}\"}" ${process.env.NEXT_PUBLIC_API_BASE_URL}/api/releases/humanlog)
 if [ ! "$humanlog_uri" ]; then
 	echo "Error: Unable to find an humanlog release for $os/$arch - see github.com/humanlogio/humanlog/releases for all versions" 1>&2
 	exit 1
 fi
 
-humanlog_install="${HUMANLOG_INSTALL:-$HOME/.humanlog}"
+humanlog_install="\${HUMANLOG_INSTALL:-$HOME/.humanlog}"
 
 bin_dir="$humanlog_install/bin"
 exe="$bin_dir/humanlog"
@@ -29,6 +33,8 @@ tar xzf "$exe.tar.gz"
 chmod +x "$exe"
 rm "$exe.tar.gz"
 
+\${exe} onboard
+
 echo "humanlog was installed successfully to $exe"
 if command -v humanlog >/dev/null; then
 	echo "Run 'humanlog --help' to get started"
@@ -42,3 +48,4 @@ else
 	echo "  export PATH=\"\$HUMANLOG_INSTALL/bin:\$PATH\""
 	echo "Run '$exe --help' to get started"
 fi
+`;
