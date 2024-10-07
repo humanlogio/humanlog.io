@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
 import { fireEvent, render, screen, within } from "@testing-library/react";
-import Home from "../../src/app/page";
+import Home from "@/app/page";
 import { TestWrapper } from "./layout-wrapper";
 
 test("pages render", () => {
