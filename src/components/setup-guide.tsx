@@ -13,7 +13,9 @@ const SetupGuide: React.FC = () => {
       });
   };
 
-  const installScript = `curl -L "https://humanlog${process.env.NODE_ENV === "development" ? ".dev" : ".io"}/install.sh" | sh`;
+  const baseURL = process.env.NEXT_PUBLIC_SELF_BASE_URL;
+
+  const installScript = `curl -L "${baseURL || "https://humanlog.io"}/install.sh" | sh`;
 
   return (
     <div className="mx-auto flex w-full max-w-screen-xl flex-grow flex-col items-center justify-center gap-8 px-4">
