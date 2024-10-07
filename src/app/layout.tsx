@@ -8,6 +8,7 @@ import { ApiClientsProvider } from "@/context/api-provider";
 import { FullWidthProvider } from "@context/full-width-provider";
 import { Toaster } from "@/components/ui/sonner";
 import PageHeader from "@components/page-header";
+import { ListAccountsProvider } from "@context/listAccounts";
 
 export const metadata: Metadata = {
   title: "humanlog.io",
@@ -40,11 +41,13 @@ export default function RootLayout({
             disableTransitionOnChange
           >
             <FullWidthProvider>
-              <header>
-                <PageHeader />
-              </header>
-              <main>{children}</main>
-              <Toaster expand={true} />
+              <ListAccountsProvider>
+                <header>
+                  <PageHeader />
+                </header>
+                <main>{children}</main>
+                <Toaster expand={true} />
+              </ListAccountsProvider>
             </FullWidthProvider>
           </ThemeProvider>
         </ApiClientsProvider>

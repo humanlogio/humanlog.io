@@ -11,16 +11,16 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import SetupGuide from "@components/setup-guide";
 import Graph from "@components/ui/graph/graph";
+import { useAllAccounts } from "@context/listAccounts";
 
 export default function Home() {
   const [isPretty, setIsPretty] = useState(true);
   const { isFullWidth } = useFullWidth();
-
-  const connected = true;
+  const { hasLocalhost, listAccounts } = useAllAccounts();
 
   return (
     <div className="flex h-[calc(100dvh-56px)] flex-col py-8">
-      {!connected ? (
+      {!hasLocalhost && !listAccounts.length ? (
         <SetupGuide />
       ) : (
         <div className="flex flex-grow flex-col gap-4 overflow-y-hidden">
@@ -29,10 +29,10 @@ export default function Home() {
               <h1 className="text-2xl font-bold">
                 Lorem ipsum dolor sit amet consectetur
               </h1>
-              {/* <p className="mt-2 text-slate-500">
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-              eiusmod tempor incididunt ut labore et dolore magna aliqua.
-              </p> */}
+              <p className="mt-2 text-slate-500">
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+                eiusmod tempor incididunt ut labore et dolore magna aliqua.
+              </p>
               <div className="ml-[4px] mt-4 flex flex-row gap-2">
                 <AutosizeTextarea
                   maxHeight={160}
