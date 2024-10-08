@@ -16,16 +16,11 @@ jobs:
       - name: Lint
         run: npm run lint
 
-      - name: Install Firefox and Chrome/Chromium
+      - name: Install certs and test browser
         run: |
-          sudo apt-get update
-          sudo apt-get install firefox chromium-browser
-
-      - name: Install certs
-        run: sudo script/setup-localhost
-
-      - name: Install test browser
-        run: npx playwright install --with-deps
+          npx playwright install --with-deps
+          sudo script/setup-localhost
+          sudo update-ca-certificates
 
       - name: Run unit tests
         run: npm run test:unit
