@@ -9,18 +9,19 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: pkgxdev/setup@v1
+      - uses: browser-actions/setup-chromium@v1
+      - uses: browser-actions/setup-firefox@v1
 
       - name: Install deps
         run: npm ci
-
-      - name: Install playwright browsers
-        run: npx playwright install --with-deps
 
       - name: Lint
         run: npm run lint
 
       - name: Prepare testing
-        run: sudo script/setup-localhost
+        run: |
+          sudo script/setup-localhost
+          npx playwright install --with-deps
 
       - name: Run unit tests
         run: npm run test:unit
