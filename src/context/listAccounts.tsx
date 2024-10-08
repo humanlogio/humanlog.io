@@ -7,6 +7,7 @@ import { PingResponse } from "api/js/svc/localhost/v1/service_pb";
 import { ListAccountResponse_ListItem } from "api/js/svc/organization/v1/service_pb";
 import { User } from "api/js/types/v1/user_pb";
 import { Organization } from "api/js/types/v1/organization_pb";
+import { Cursor } from "api/js/types/v1/cursor_pb";
 
 type AllAccounts = {
   user: User | null;
@@ -33,6 +34,8 @@ export function ListAccountsProvider({
     ListAccountResponse_ListItem[]
   >([]);
 
+  const [accountPage, setAccountPage] = useState<Cursor>(new Cursor());
+
   useEffect(() => {
     (async () => {
       try {
@@ -55,7 +58,11 @@ export function ListAccountsProvider({
   useEffect(() => {
     (async () => {
       try {
-        const res = await apiClients?.org.listAccount({});
+        const res = await apiClients?.org.listAccount({
+          organizationId: currentOrg?.id,
+          cursor: accountPage,
+          limit: 10,
+        });
         if (!res || !res.items) {
           return;
         }
@@ -68,7 +75,7 @@ export function ListAccountsProvider({
         }
       }
     })();
-  }, [apiClients?.org]);
+  }, [apiClients?.org, currentOrg]);
 
   useEffect(() => {
     (async () => {
