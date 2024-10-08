@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { Code, ConnectError } from "@connectrpc/connect";
-import { useApiClients } from "@context/api-provider";
+import { useApiClients } from "@/context/api-provider";
 import { PingResponse } from "api/js/svc/localhost/v1/service_pb";
 import { ListAccountResponse_ListItem } from "api/js/svc/organization/v1/service_pb";
 
