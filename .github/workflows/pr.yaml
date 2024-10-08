@@ -20,6 +20,7 @@ jobs:
         run: npm run test:unit
 
       - name: Run e2e tests
+        uses: pkgxdev/setup@v1
         run: npm run test:e2e
 
       - name: Build container image
