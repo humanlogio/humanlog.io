@@ -10,6 +10,7 @@ import { OrganizationService } from "api/js/svc/organization/v1/service_connect"
 import { UserService } from "api/js/svc/user/v1/service_connect";
 import { LocalhostService } from "api/js/svc/localhost/v1/service_connect";
 import { QueryService } from "api/js/svc/query/v1/service_connect";
+import { unstable_noStore as noStore } from "next/cache";
 
 const ApiClientContext = createContext<ApiClients | null>(null);
 
@@ -41,6 +42,7 @@ export function ApiClientsProvider({
 }: {
   children: React.ReactNode;
 }) {
+  noStore();
   const apiClients = useMemo((): ApiClients => {
     const cookie = getCookie("hlog_session");
 
@@ -50,7 +52,8 @@ export function ApiClientsProvider({
     }
 
     const apiTransport = createConnectTransport({
-      baseUrl: "https://api.humanlog.dev", // TODO: use process.env.API_BASE_URL
+      baseUrl:
+        process.env.NEXT_PUBLIC_API_BASE_URL ?? "https://api.humanlog.dev",
       interceptors: interceptors,
     });
     const auth = createPromiseClient(AuthService, apiTransport);
@@ -63,15 +66,17 @@ export function ApiClientsProvider({
       baseUrl: "http://localhost:32764",
     });
     const localhost = createPromiseClient(LocalhostService, localhostTransport);
+
     return {
-      auth: auth,
-      account: account,
-      org: org,
-      user: user,
-      localhost: localhost,
-      query: query,
+      auth,
+      account,
+      org,
+      user,
+      localhost,
+      query,
     };
   }, []);
+
   return (
     <ApiClientContext.Provider value={apiClients}>
       {children}
@@ -89,6 +94,7 @@ function getCookie(name: string): string | undefined {
     return undefined;
   }
   const last = parts.pop()!;
+
   return last.split(";").shift();
 }
 

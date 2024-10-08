@@ -16,7 +16,9 @@ const Logo: React.FC = () => {
         >
           log
         </Button>
-        <span className="text-[16px] text-white">.io</span>
+        <span className="text-[16px] text-white">
+          {process.env.NODE_ENV === "development" ? ".dev" : ".io"}
+        </span>
       </div>
     </Link>
   );

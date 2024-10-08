@@ -10,7 +10,7 @@ const DatePicker = (props: {
 }) => {
   const { styles, includeTime, date, maxDate, setDate } = props;
   const className =
-    "inline-block flex-1 rounded-md border-gray-300 text-sm focus:border-blue-500 focus:ring-blue-500" +
+    "inline-block flex-1 rounded-md border-gray-300 text-sm focus:border-blue-500 focus:ring-blue-500 dark:border-darkBorder dark:bg-darkBg dark:text-darkText" +
     styles;
 
   return (

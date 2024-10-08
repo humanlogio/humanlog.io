@@ -1,7 +1,9 @@
+import { unstable_noStore as noStore } from "next/cache";
 import { toast } from "sonner";
 import { Copy } from "lucide-react";
 
 const SetupGuide: React.FC = () => {
+  noStore();
   const copyToClipboard = (text: string) => {
     navigator.clipboard
       .writeText(text)
@@ -12,6 +14,10 @@ const SetupGuide: React.FC = () => {
         console.error("Failed to copy text: ", err);
       });
   };
+
+  const baseURL = process.env.NEXT_PUBLIC_SELF_BASE_URL;
+
+  const installScript = `curl -L "${baseURL || "https://humanlog.io"}/install.sh" | sh`;
 
   return (
     <div className="mx-auto flex w-full max-w-screen-xl flex-grow flex-col items-center justify-center gap-8 px-4">
@@ -28,15 +34,11 @@ const SetupGuide: React.FC = () => {
         </code>
       </div>
       <div
-        onClick={() =>
-          copyToClipboard('curl -L "https://humanlog.io/install.sh" | sh')
-        }
+        onClick={() => copyToClipboard(installScript)}
         tabIndex={1}
         className="flex w-full max-w-xl cursor-pointer flex-row items-center justify-between gap-4 rounded-base bg-slate-200 px-4 py-3 hover:bg-slate-300 focus:ring-4 focus:ring-slate-100 dark:bg-slate-950"
       >
-        <code className="truncate">
-          curl -L &quot;https://humanlog.io/install.sh&quot; | sh
-        </code>
+        <code className="truncate">{installScript}</code>
         <Copy size={14} />
       </div>
       <p>and then use it!</p>
