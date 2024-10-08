@@ -10,6 +10,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Setup pkgx
+        uses: pkgxdev/setup@v1
+
       - name: Install
         run: npm i
 
@@ -20,7 +23,6 @@ jobs:
         run: npm run test:unit
 
       - name: Run e2e tests
-        uses: pkgxdev/setup@v1
         run: npm run test:e2e
 
       - name: Build container image
