@@ -32,6 +32,7 @@ import {
 import { PingResponse } from "api/js/svc/localhost/v1/service_pb";
 import { Code, ConnectError } from "@connectrpc/connect";
 import { User } from "api/js/types/v1/user_pb";
+import { Organization } from "api/js/types/v1/organization_pb";
 import { md5 } from "js-md5";
 import { useAllAccounts } from "@context/listAccounts";
 import { Button } from "./ui/button";
@@ -39,6 +40,7 @@ import { Button } from "./ui/button";
 const PageHeader: React.FC = () => {
   const [activeAccount, setActiveAccount] = useState("france");
   const [user, setUser] = useState<User | null>(null);
+  const [currentOrg, setCurrentOrg] = useState<Organization | null>(null);
   const [authURL, setAuthURL] = useState<string | null>(null);
   const apiClients = useApiClients();
   const { isFullWidth, setIsFullWidth } = useFullWidth();
@@ -51,10 +53,11 @@ const PageHeader: React.FC = () => {
     (async () => {
       try {
         const res = await apiClients?.user.whoami({});
-        if (!res || !res.user) {
+        if (!res || !res.user || !res.currentOrganization) {
           return;
         }
         setUser(res.user);
+        setCurrentOrg(res.currentOrganization);
       } catch (err) {
         if (err instanceof ConnectError && err.code == Code.Unauthenticated) {
           console.log("need to auth");
