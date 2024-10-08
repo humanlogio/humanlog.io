@@ -9,8 +9,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: pkgxdev/setup@v1
-      - uses: browser-actions/setup-chromium@v1
-      - uses: browser-actions/setup-firefox@v1
 
       - name: Install deps
         run: npm ci
@@ -18,10 +16,16 @@ jobs:
       - name: Lint
         run: npm run lint
 
-      - name: Prepare testing
+      - name: Install Firefox and Chrome/Chromium
         run: |
-          sudo script/setup-localhost
-          npx playwright install --with-deps
+          sudo apt-get update
+          sudo apt-get install firefox chromium-browser
+
+      - name: Install certs
+        run: sudo script/setup-localhost
+
+      - name: Install test browser
+        run: npx playwright install --with-deps
 
       - name: Run unit tests
         run: npm run test:unit
