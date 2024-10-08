@@ -10,11 +10,17 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Setup pkgx
+        uses: pkgxdev/setup@v1
+
       - name: Install
         run: npm i
 
       - name: Lint
         run: npm run lint
+
+      - name: Prepare testing
+        run: sudo script/setup-localhost
 
       - name: Run unit tests
         run: npm run test:unit
