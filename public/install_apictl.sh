@@ -6,6 +6,7 @@ set -e
 
 os=$(uname -s)
 arch=$(uname -m)
+releasechannel="${HUMANLOG_CHANNEL:-main}"
 
 apictl_uri=$(curl -s --data "{\"os\":\"${os}\",\"arch\":\"${arch}\"}" https://api.humanlog.io/api/releases/apictl)
 if [ ! "$apictl_uri" ]; then
