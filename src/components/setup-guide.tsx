@@ -2,8 +2,10 @@ import { unstable_noStore as noStore } from "next/cache";
 import { toast } from "sonner";
 import { Copy } from "lucide-react";
 
+noStore();
+const baseURL = process.env.NEXT_PUBLIC_SELF_BASE_URL;
+
 const SetupGuide: React.FC = () => {
-  noStore();
   const copyToClipboard = (text: string) => {
     navigator.clipboard
       .writeText(text)
@@ -15,9 +17,7 @@ const SetupGuide: React.FC = () => {
       });
   };
 
-  const baseURL = process.env.NEXT_PUBLIC_SELF_BASE_URL;
-
-  const installScript = `curl -L "${baseURL || "https://humanlog.io"}/install.sh" | sh`;
+  const installScript = `curl -sSL "${baseURL || "https://humanlog.io"}/install.sh" | sh`;
 
   return (
     <div className="mx-auto flex w-full max-w-screen-xl flex-grow flex-col items-center justify-center gap-8 px-4">
@@ -43,12 +43,12 @@ const SetupGuide: React.FC = () => {
       </div>
       <p>and then use it!</p>
       <div
-        onClick={() => copyToClipboard("$ my_server 2>&1 | humanlog")}
+        onClick={() => copyToClipboard("my_server 2>&1 | humanlog")}
         tabIndex={2}
         className="flex w-full max-w-xl cursor-pointer flex-row items-center justify-between gap-4 rounded-base bg-slate-200 px-4 py-3 hover:bg-slate-300 focus:ring-4 focus:ring-slate-100 dark:bg-slate-950"
       >
         <code className="truncate">
-          {JSON.stringify("my_server 2>&1 | humanlog").slice(1, -1)}
+          {JSON.stringify("$ my_server 2>&1 | humanlog").slice(1, -1)}
         </code>
         <Copy size={14} />
       </div>

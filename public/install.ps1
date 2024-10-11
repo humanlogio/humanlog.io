@@ -36,7 +36,7 @@ try {
 catch {
   $StatusCode = $_.Exception.Response.StatusCode.value__
   if ($StatusCode -eq 404) {
-    Write-Error "Unable to find a humanlog release on GitHub for version:$Version - see github.com/superhumanlog/humanlog/releases for all versions"
+    Write-Error "Unable to find a humanlog release on GitHub for version:$Version - see github.com/humanlogio/humanlog/releases for all versions"
   } else {
     $Request = $_.Exception
     Write-Error "Error while fetching releases: $Request"
