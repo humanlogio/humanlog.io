@@ -18,9 +18,11 @@ export default function Home() {
   const { isFullWidth } = useFullWidth();
   const { hasLocalhost, listAccounts } = useAllAccounts();
 
+  const signupOnly = process.env.NEXT_PUBLIC_SIGNUP_ONLY === "true";
+
   return (
     <div className="flex h-[calc(100dvh-56px)] flex-col py-8">
-      {!hasLocalhost && !listAccounts.length ? (
+      {signupOnly || (!hasLocalhost && !listAccounts.length) ? (
         <SetupGuide />
       ) : (
         <div className="flex flex-grow flex-col gap-4 overflow-y-hidden">

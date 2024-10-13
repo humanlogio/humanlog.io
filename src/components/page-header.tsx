@@ -127,6 +127,40 @@ const PageHeader: React.FC = () => {
     return <Loader color="white" className="animate-spin" />;
   };
 
+  const signupOnly = process.env.NEXT_PUBLIC_SIGNUP_ONLY === "true";
+
+  const sourceSelector = (
+    <Select onValueChange={setActiveAccount}>
+      <SelectTrigger className="min-w-52">
+        <div className="flex flex-row items-center gap-2">
+          <SquareCode size={16} />
+          <SelectValue placeholder="Select source" />
+        </div>
+      </SelectTrigger>
+      <SelectContent>
+        <SelectGroup>
+          <SelectItem value={localhostValue}>
+            localhost{" "}
+            {hasLocalhost
+              ? localhostVersion(hasLocalhost)
+              : "unavailable :( -> install it?"}
+          </SelectItem>
+        </SelectGroup>
+        <SelectGroup>
+          {listAccounts.map((item) => (
+            <SelectItem
+              value={item.account?.name ?? ""}
+              key={item.account?.name ?? ""}
+            >
+              {item.account?.name}
+            </SelectItem>
+          ))}
+          <SelectItem value={addNewValue}>+ Add new</SelectItem>
+        </SelectGroup>
+      </SelectContent>
+    </Select>
+  );
+
   return (
     <div className="bg-darkBg dark:bg-slate-950">
       <div className="mx-auto flex w-full max-w-screen-xl flex-row items-center justify-between gap-8 px-4 py-3">
@@ -163,11 +197,14 @@ const PageHeader: React.FC = () => {
               </SelectContent>
             </Select>
           </div>
+          {!signupOnly && sourceSelector}
         </div>
         <div className="flex flex-row items-center gap-6">
-          <Link href="/pricing" className="text-white hover:underline">
-            Pricing
-          </Link>
+          {!signupOnly && (
+            <Link href="/pricing" className="text-white hover:underline">
+              Pricing
+            </Link>
+          )}
           {renderAvatarBlock(user)}
           <div className="flex flex-row items-center gap-2">
             <ModeToggle />
