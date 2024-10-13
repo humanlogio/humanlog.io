@@ -24,6 +24,13 @@ export default defineConfig({
   use: {
     baseURL,
     trace: "retry-with-trace",
+    launchOptions: {
+      args: ["--no-sandbox"],
+      env: {
+        ...process.env,
+        NODE_EXTRA_CA_CERTS: "/etc/ssl/certs/ca-certificates.crt",
+      },
+    },
   },
 
   projects: [

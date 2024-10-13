@@ -16,10 +16,11 @@ jobs:
       - name: Lint
         run: npm run lint
 
-      - name: Install certs and test browser
+      - name: Install test browsers and certs
         run: |
           npx playwright install --with-deps
-          sudo script/setup-localhost
+          sudo mkdir -p /usr/local/share/ca-certificates/humanlog
+          sudo cp ./certificates/rootCA.pem /usr/local/share/ca-certificates/humanlog/
           sudo update-ca-certificates
 
       - name: Run unit tests
