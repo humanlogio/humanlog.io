@@ -16,6 +16,9 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      - name: Check if localhost is set up
+        run: script/check-has-setup-localhost || script/setup-localhost
+
       - name: Install test browsers and certs
         run: |
           npx playwright install --with-deps
