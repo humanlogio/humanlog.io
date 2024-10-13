@@ -36,6 +36,7 @@ import { useAllAccounts } from "@/context/listAccounts";
 import { Button } from "./ui/button";
 
 const PageHeader: React.FC = () => {
+  const signupOnly = process.env.NEXT_PUBLIC_SIGNUP_ONLY === "true";
   const [activeAccount, setActiveAccount] = useState("france");
   const [authURL, setAuthURL] = useState<string | null>(null);
   const apiClients = useApiClients();
@@ -127,38 +128,38 @@ const PageHeader: React.FC = () => {
     return <Loader color="white" className="animate-spin" />;
   };
 
-  const signupOnly = process.env.NEXT_PUBLIC_SIGNUP_ONLY === "true";
-
-  const sourceSelector = (
-    <Select onValueChange={setActiveAccount}>
-      <SelectTrigger className="min-w-52">
-        <div className="flex flex-row items-center gap-2">
-          <SquareCode size={16} />
-          <SelectValue placeholder="Select source" />
-        </div>
-      </SelectTrigger>
-      <SelectContent>
-        <SelectGroup>
-          <SelectItem value={localhostValue}>
-            localhost{" "}
-            {hasLocalhost
-              ? localhostVersion(hasLocalhost)
-              : "unavailable :( -> install it?"}
-          </SelectItem>
-        </SelectGroup>
-        <SelectGroup>
-          {listAccounts.map((item) => (
-            <SelectItem
-              value={item.account?.name ?? ""}
-              key={item.account?.name ?? ""}
-            >
-              {item.account?.name}
+  const renderSourceSelectorBlock = () => (
+    <div title="Account Selector">
+      <Select onValueChange={setActiveAccount}>
+        <SelectTrigger className="min-w-52">
+          <div className="flex flex-row items-center gap-2">
+            <SquareCode size={16} />
+            <SelectValue placeholder="Select source" />
+          </div>
+        </SelectTrigger>
+        <SelectContent>
+          <SelectGroup>
+            <SelectItem value={localhostValue}>
+              localhost{" "}
+              {hasLocalhost
+                ? localhostVersion(hasLocalhost)
+                : "unavailable :( -> install it?"}
             </SelectItem>
-          ))}
-          <SelectItem value={addNewValue}>+ Add new</SelectItem>
-        </SelectGroup>
-      </SelectContent>
-    </Select>
+          </SelectGroup>
+          <SelectGroup>
+            {listAccounts.map((item) => (
+              <SelectItem
+                value={item.account?.name ?? ""}
+                key={item.account?.name ?? ""}
+              >
+                {item.account?.name}
+              </SelectItem>
+            ))}
+            <SelectItem value={addNewValue}>+ Add new</SelectItem>
+          </SelectGroup>
+        </SelectContent>
+      </Select>
+    </div>
   );
 
   return (
@@ -166,38 +167,7 @@ const PageHeader: React.FC = () => {
       <div className="mx-auto flex w-full max-w-screen-xl flex-row items-center justify-between gap-8 px-4 py-3">
         <div className="flex flex-row items-center gap-8">
           <Logo />
-          <div title="Account Selector">
-            <Select onValueChange={setActiveAccount}>
-              <SelectTrigger className="min-w-52">
-                <div className="flex flex-row items-center gap-2">
-                  <SquareCode size={16} />
-                  <SelectValue placeholder="Select source" />
-                </div>
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  <SelectItem value={localhostValue}>
-                    localhost{" "}
-                    {hasLocalhost
-                      ? localhostVersion(hasLocalhost)
-                      : "unavailable :( -> install it?"}
-                  </SelectItem>
-                </SelectGroup>
-                <SelectGroup>
-                  {listAccounts.map((item) => (
-                    <SelectItem
-                      value={item.account?.name ?? ""}
-                      key={item.account?.name ?? ""}
-                    >
-                      {item.account?.name}
-                    </SelectItem>
-                  ))}
-                  <SelectItem value={addNewValue}>+ Add new</SelectItem>
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-          </div>
-          {!signupOnly && sourceSelector}
+          {!signupOnly && renderSourceSelectorBlock()}
         </div>
         <div className="flex flex-row items-center gap-6">
           {!signupOnly && (
