@@ -12,6 +12,7 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
+  ignoreHTTPSErrors: true,
 
   webServer: {
     command: `npm run dev`,
@@ -24,8 +25,10 @@ export default defineConfig({
   use: {
     baseURL,
     trace: "retry-with-trace",
+    ignoreHTTPSErrors: true,
     launchOptions: {
       args: ["--no-sandbox"],
+      ignoreHTTPSErrors: true,
       env: {
         ...process.env,
         NODE_EXTRA_CA_CERTS: "/etc/ssl/certs/ca-certificates.crt",
