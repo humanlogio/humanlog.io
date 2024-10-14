@@ -1,5 +1,5 @@
-import { DataPoint, generateRandomData } from "@/lib/faker";
 import { useCallback, useState } from "react";
+import { DataPoint, generateRandomData } from "@/lib/faker";
 import {
   XAxis,
   YAxis,
