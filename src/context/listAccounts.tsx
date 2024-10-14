@@ -58,6 +58,7 @@ export function ListAccountsProvider({
   useEffect(() => {
     (async () => {
       try {
+        setListAccounts([]);
         const res = await apiClients?.org.listAccount({
           organizationId: currentOrg?.id,
           cursor: accountPage,
@@ -75,7 +76,7 @@ export function ListAccountsProvider({
         }
       }
     })();
-  }, [apiClients?.org, currentOrg]);
+  }, [apiClients?.org, currentOrg, accountPage]);
 
   useEffect(() => {
     (async () => {
