@@ -1,12 +1,6 @@
 "use client";
 
-import React, {
-  createContext,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import React, { createContext, useContext, useMemo, useState } from "react";
 import { createPromiseClient, PromiseClient } from "@connectrpc/connect";
 import { Interceptor } from "@connectrpc/connect";
 import { createConnectTransport } from "@connectrpc/connect-web";
@@ -89,20 +83,13 @@ export function ApiClientsProvider({
       localhost,
       query,
     };
-  }, []);
-
-  useEffect(() => {
-    console.log("opening account", activeAccount);
   }, [activeAccount]);
 
   return (
     <ApiClientContext.Provider
       value={{ apiClients, activeAccount, setActiveAccount }}
     >
-      <div>
-        <p>{activeAccount}</p>
-        <div>{children}</div>
-      </div>
+      {children}
     </ApiClientContext.Provider>
   );
 }
