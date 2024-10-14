@@ -5,7 +5,10 @@ import { Button } from "@/components/ui/button";
 const Logo: React.FC = () => {
   return (
     <Link href="/">
-      <div className="flex flex-row items-center gap-1">
+      <div
+        className="flex flex-row items-center gap-1"
+        title="humanlog.io home link"
+      >
         <span className="text-[16px] text-white">human</span>
         <Button
           size="sm"
