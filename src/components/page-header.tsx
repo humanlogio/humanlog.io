@@ -37,9 +37,8 @@ import { Button } from "./ui/button";
 
 const PageHeader: React.FC = () => {
   const signupOnly = process.env.NEXT_PUBLIC_SIGNUP_ONLY === "true";
-  const [activeAccount, setActiveAccount] = useState("france");
   const [authURL, setAuthURL] = useState<string | null>(null);
-  const apiClients = useApiClients();
+  const { apiClients, activeAccount, setActiveAccount } = useApiClients();
   const { isFullWidth, setIsFullWidth } = useFullWidth();
   const pathname = usePathname();
   const { user, hasLocalhost, listAccounts } = useAllAccounts();
@@ -87,8 +86,7 @@ const PageHeader: React.FC = () => {
         redirect("install");
       }
     } else if (activeAccount === addNewValue) {
-    } else {
-      console.log("opening account", activeAccount);
+      redirect("pricing");
     }
   }, [activeAccount, hasLocalhost]);
 
