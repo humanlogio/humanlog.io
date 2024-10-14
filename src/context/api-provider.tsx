@@ -12,10 +12,21 @@ import { LocalhostService } from "api/js/svc/localhost/v1/service_connect";
 import { QueryService } from "api/js/svc/query/v1/service_connect";
 import { unstable_noStore as noStore } from "next/cache";
 
+type AccountId = bigint | undefined;
+
 type ApiProviderType = {
   apiClients: ApiClients | null;
-  activeAccount: string;
-  setActiveAccount: React.Dispatch<React.SetStateAction<string>>;
+  activeAccount: AccountId;
+  setActiveAccount: React.Dispatch<React.SetStateAction<AccountId>>;
+};
+
+type ApiClients = {
+  auth: PromiseClient<typeof AuthService>;
+  account: PromiseClient<typeof AccountService>;
+  org: PromiseClient<typeof OrganizationService>;
+  user: PromiseClient<typeof UserService>;
+  localhost: PromiseClient<typeof LocalhostService>;
+  query: PromiseClient<typeof QueryService>;
 };
 
 const ApiClientContext = createContext<ApiProviderType | null>(null);
@@ -34,27 +45,18 @@ const auther: (cookie: string) => Interceptor = (cookie: string) => {
   };
 };
 
-export type ApiClients = {
-  auth: PromiseClient<typeof AuthService>;
-  account: PromiseClient<typeof AccountService>;
-  org: PromiseClient<typeof OrganizationService>;
-  user: PromiseClient<typeof UserService>;
-  localhost: PromiseClient<typeof LocalhostService>;
-  query: PromiseClient<typeof QueryService>;
-};
-
 export function ApiClientsProvider({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const [activeAccount, setActiveAccount] = useState<string>("");
   noStore();
+  const [activeAccount, setActiveAccount] = useState<AccountId>();
 
   const apiClients = useMemo((): ApiClients => {
     const cookie = getCookie("hlog_session");
 
-    let interceptors: Interceptor[] | undefined = [];
+    let interceptors: Interceptor[] = [];
     if (cookie) {
       interceptors = interceptors.concat(auther(cookie));
     }
@@ -83,7 +85,7 @@ export function ApiClientsProvider({
       localhost,
       query,
     };
-  }, [activeAccount]);
+  }, []);
 
   return (
     <ApiClientContext.Provider
