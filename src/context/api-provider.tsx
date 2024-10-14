@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useMemo } from "react";
+import React, { createContext, useContext, useMemo, useState } from "react";
 import { createPromiseClient, PromiseClient } from "@connectrpc/connect";
 import { Interceptor } from "@connectrpc/connect";
 import { createConnectTransport } from "@connectrpc/connect-web";
@@ -12,7 +12,24 @@ import { LocalhostService } from "api/js/svc/localhost/v1/service_connect";
 import { QueryService } from "api/js/svc/query/v1/service_connect";
 import { unstable_noStore as noStore } from "next/cache";
 
-const ApiClientContext = createContext<ApiClients | null>(null);
+type AccountId = bigint | undefined;
+
+type ApiProviderType = {
+  apiClients: ApiClients | null;
+  activeAccount: AccountId;
+  setActiveAccount: React.Dispatch<React.SetStateAction<AccountId>>;
+};
+
+type ApiClients = {
+  auth: PromiseClient<typeof AuthService>;
+  account: PromiseClient<typeof AccountService>;
+  org: PromiseClient<typeof OrganizationService>;
+  user: PromiseClient<typeof UserService>;
+  localhost: PromiseClient<typeof LocalhostService>;
+  query: PromiseClient<typeof QueryService>;
+};
+
+const ApiClientContext = createContext<ApiProviderType | null>(null);
 
 const auther: (cookie: string) => Interceptor = (cookie: string) => {
   return (next) => async (req) => {
@@ -28,25 +45,18 @@ const auther: (cookie: string) => Interceptor = (cookie: string) => {
   };
 };
 
-export type ApiClients = {
-  auth: PromiseClient<typeof AuthService>;
-  account: PromiseClient<typeof AccountService>;
-  org: PromiseClient<typeof OrganizationService>;
-  user: PromiseClient<typeof UserService>;
-  localhost: PromiseClient<typeof LocalhostService>;
-  query: PromiseClient<typeof QueryService>;
-};
-
 export function ApiClientsProvider({
   children,
 }: {
   children: React.ReactNode;
 }) {
   noStore();
+  const [activeAccount, setActiveAccount] = useState<AccountId>();
+
   const apiClients = useMemo((): ApiClients => {
     const cookie = getCookie("hlog_session");
 
-    let interceptors: Interceptor[] | undefined = [];
+    let interceptors: Interceptor[] = [];
     if (cookie) {
       interceptors = interceptors.concat(auther(cookie));
     }
@@ -78,7 +88,9 @@ export function ApiClientsProvider({
   }, []);
 
   return (
-    <ApiClientContext.Provider value={apiClients}>
+    <ApiClientContext.Provider
+      value={{ apiClients, activeAccount, setActiveAccount }}
+    >
       {children}
     </ApiClientContext.Provider>
   );
@@ -98,6 +110,6 @@ function getCookie(name: string): string | undefined {
   return last.split(";").shift();
 }
 
-export function useApiClients(): ApiClients {
+export function useApiClients(): ApiProviderType {
   return useContext(ApiClientContext)!;
 }
