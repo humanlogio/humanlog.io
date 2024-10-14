@@ -1,6 +1,12 @@
 "use client";
 
-import React, { createContext, useContext, useMemo } from "react";
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { createPromiseClient, PromiseClient } from "@connectrpc/connect";
 import { Interceptor } from "@connectrpc/connect";
 import { createConnectTransport } from "@connectrpc/connect-web";
@@ -12,7 +18,13 @@ import { LocalhostService } from "api/js/svc/localhost/v1/service_connect";
 import { QueryService } from "api/js/svc/query/v1/service_connect";
 import { unstable_noStore as noStore } from "next/cache";
 
-const ApiClientContext = createContext<ApiClients | null>(null);
+type ProviderType = {
+  apiClients: ApiClients | null;
+  activeAccount: string;
+  setActiveAccount: React.Dispatch<React.SetStateAction<string>>;
+};
+
+const ApiClientContext = createContext<ProviderType | null>(null);
 
 const auther: (cookie: string) => Interceptor = (cookie: string) => {
   return (next) => async (req) => {
@@ -42,7 +54,9 @@ export function ApiClientsProvider({
 }: {
   children: React.ReactNode;
 }) {
+  const [activeAccount, setActiveAccount] = useState<string>("");
   noStore();
+
   const apiClients = useMemo((): ApiClients => {
     const cookie = getCookie("hlog_session");
 
@@ -77,9 +91,18 @@ export function ApiClientsProvider({
     };
   }, []);
 
+  useEffect(() => {
+    console.log("opening account", activeAccount);
+  }, [activeAccount]);
+
   return (
-    <ApiClientContext.Provider value={apiClients}>
-      {children}
+    <ApiClientContext.Provider
+      value={{ apiClients, activeAccount, setActiveAccount }}
+    >
+      <div>
+        <p>{activeAccount}</p>
+        <div>{children}</div>
+      </div>
     </ApiClientContext.Provider>
   );
 }
@@ -98,6 +121,6 @@ function getCookie(name: string): string | undefined {
   return last.split(";").shift();
 }
 
-export function useApiClients(): ApiClients {
+export function useApiClients(): ProviderType {
   return useContext(ApiClientContext)!;
 }

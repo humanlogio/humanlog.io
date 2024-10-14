@@ -26,7 +26,7 @@ export function ListAccountsProvider({
 }: {
   children: React.ReactNode;
 }) {
-  const apiClients = useApiClients();
+  const { apiClients } = useApiClients();
   const [hasLocalhost, setHasLocalhost] = useState<PingResponse | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [currentOrg, setCurrentOrg] = useState<Organization | null>(null);
