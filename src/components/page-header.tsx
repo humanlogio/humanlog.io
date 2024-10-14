@@ -30,43 +30,21 @@ import {
   LocalhostViaBrowser,
 } from "api/js/svc/auth/v1/service_pb";
 import { PingResponse } from "api/js/svc/localhost/v1/service_pb";
-import { Code, ConnectError } from "@connectrpc/connect";
 import { User } from "api/js/types/v1/user_pb";
-import { Organization } from "api/js/types/v1/organization_pb";
 import { md5 } from "js-md5";
 import { useAllAccounts } from "@/context/listAccounts";
 import { Button } from "./ui/button";
 
 const PageHeader: React.FC = () => {
+  const signupOnly = process.env.NEXT_PUBLIC_SIGNUP_ONLY === "true";
   const [activeAccount, setActiveAccount] = useState("france");
-  const [user, setUser] = useState<User | null>(null);
-  const [currentOrg, setCurrentOrg] = useState<Organization | null>(null);
   const [authURL, setAuthURL] = useState<string | null>(null);
   const apiClients = useApiClients();
   const { isFullWidth, setIsFullWidth } = useFullWidth();
   const pathname = usePathname();
-  const { hasLocalhost, listAccounts } = useAllAccounts();
+  const { user, hasLocalhost, listAccounts } = useAllAccounts();
   const localhostValue = "localhost";
   const addNewValue = "add_new";
-
-  useEffect(() => {
-    (async () => {
-      try {
-        const res = await apiClients?.user.whoami({});
-        if (!res || !res.user || !res.currentOrganization) {
-          return;
-        }
-        setUser(res.user);
-        setCurrentOrg(res.currentOrganization);
-      } catch (err) {
-        if (err instanceof ConnectError && err.code == Code.Unauthenticated) {
-          console.log("need to auth");
-        } else {
-          console.error(err);
-        }
-      }
-    })();
-  }, [apiClients?.user]);
 
   useEffect(() => {
     (async () => {
@@ -114,72 +92,74 @@ const PageHeader: React.FC = () => {
     }
   }, [activeAccount, hasLocalhost]);
 
-  let avatarBlock = <Loader color="white" className="animate-spin" />;
-  if (user) {
-    avatarBlock = (
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <div className="flex cursor-pointer flex-row items-center gap-2">
-            <p className="font-medium text-white">
-              {user?.firstName || "username"}
-            </p>
-            <Avatar>
-              <AvatarImage src={gravatarURL(user?.email)} />
-              <AvatarFallback className="uppercase">
-                {user?.firstName?.slice(0, 2) || <UserIcon size={16} />}
-              </AvatarFallback>
-            </Avatar>
+  const renderAvatarBlock = (user: User | null) => {
+    if (user) {
+      return (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <div className="flex cursor-pointer flex-row items-center gap-2">
+              <p className="font-medium text-white">
+                {user?.firstName || "username"}
+              </p>
+              <Avatar>
+                <AvatarImage src={gravatarURL(user?.email)} />
+                <AvatarFallback className="uppercase">
+                  {user?.firstName?.slice(0, 2) || <UserIcon size={16} />}
+                </AvatarFallback>
+              </Avatar>
+            </div>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="w-56">
+            <DropdownMenuItem>
+              <LogOut size={16} className="mr-2" />
+              <span>Log out</span>
+              <DropdownMenuShortcut>⇧⌘Q</DropdownMenuShortcut>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      );
+    } else if (authURL) {
+      return (
+        <Link href={authURL}>
+          <Button variant="neutral">Sign up</Button>
+        </Link>
+      );
+    }
+    return <Loader color="white" className="animate-spin" />;
+  };
+
+  const renderSourceSelectorBlock = () => (
+    <div title="Account Selector">
+      <Select onValueChange={setActiveAccount}>
+        <SelectTrigger className="min-w-52">
+          <div className="flex flex-row items-center gap-2">
+            <SquareCode size={16} />
+            <SelectValue placeholder="Select source" />
           </div>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent className="w-56">
-          <DropdownMenuItem>
-            <LogOut size={16} className="mr-2" />
-            <span>Log out</span>
-            <DropdownMenuShortcut>⇧⌘Q</DropdownMenuShortcut>
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    );
-  } else if (authURL) {
-    avatarBlock = (
-      <Link href={authURL}>
-        <Button variant="neutral">Sign up</Button>
-      </Link>
-    );
-  }
-
-  const signupOnly = process.env.NEXT_PUBLIC_SIGNUP_ONLY === "true";
-
-  const sourceSelector = (
-    <Select onValueChange={setActiveAccount}>
-      <SelectTrigger className="min-w-52">
-        <div className="flex flex-row items-center gap-2">
-          <SquareCode size={16} />
-          <SelectValue placeholder="Select source" />
-        </div>
-      </SelectTrigger>
-      <SelectContent>
-        <SelectGroup>
-          <SelectItem value={localhostValue}>
-            localhost{" "}
-            {hasLocalhost
-              ? localhostVersion(hasLocalhost)
-              : "unavailable :( -> install it?"}
-          </SelectItem>
-        </SelectGroup>
-        <SelectGroup>
-          {listAccounts.map((item) => (
-            <SelectItem
-              value={item.account?.name ?? ""}
-              key={item.account?.name ?? ""}
-            >
-              {item.account?.name}
+        </SelectTrigger>
+        <SelectContent>
+          <SelectGroup>
+            <SelectItem value={localhostValue}>
+              localhost{" "}
+              {hasLocalhost
+                ? localhostVersion(hasLocalhost)
+                : "unavailable :( -> install it?"}
             </SelectItem>
-          ))}
-          <SelectItem value={addNewValue}>+ Add new</SelectItem>
-        </SelectGroup>
-      </SelectContent>
-    </Select>
+          </SelectGroup>
+          <SelectGroup>
+            {listAccounts.map((item) => (
+              <SelectItem
+                value={item.account?.name ?? ""}
+                key={item.account?.name ?? ""}
+              >
+                {item.account?.name}
+              </SelectItem>
+            ))}
+            <SelectItem value={addNewValue}>+ Add new</SelectItem>
+          </SelectGroup>
+        </SelectContent>
+      </Select>
+    </div>
   );
 
   return (
@@ -187,7 +167,7 @@ const PageHeader: React.FC = () => {
       <div className="mx-auto flex w-full max-w-screen-xl flex-row items-center justify-between gap-8 px-4 py-3">
         <div className="flex flex-row items-center gap-8">
           <Logo />
-          {!signupOnly && sourceSelector}
+          {!signupOnly && renderSourceSelectorBlock()}
         </div>
         <div className="flex flex-row items-center gap-6">
           {!signupOnly && (
@@ -195,7 +175,7 @@ const PageHeader: React.FC = () => {
               Pricing
             </Link>
           )}
-          {avatarBlock}
+          {renderAvatarBlock(user)}
           <div className="flex flex-row items-center gap-2">
             <ModeToggle />
             {pathname === "/" && (
