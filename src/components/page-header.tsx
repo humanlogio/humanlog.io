@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { redirect, usePathname } from "next/navigation";
 import Link from "next/link";
 import { Loader, SquareCode, User as UserIcon, LogOut } from "lucide-react";
@@ -37,9 +37,8 @@ import { Button } from "./ui/button";
 
 const PageHeader: React.FC = () => {
   const signupOnly = process.env.NEXT_PUBLIC_SIGNUP_ONLY === "true";
-  const [activeAccount, setActiveAccount] = useState("france");
   const [authURL, setAuthURL] = useState<string | null>(null);
-  const apiClients = useApiClients();
+  const { apiClients, activeAccount, setActiveAccount } = useApiClients();
   const { isFullWidth, setIsFullWidth } = useFullWidth();
   const pathname = usePathname();
   const { user, hasLocalhost, listAccounts } = useAllAccounts();
@@ -81,16 +80,26 @@ const PageHeader: React.FC = () => {
     hasLocalhost?.clientVersion,
   ]);
 
-  useEffect(() => {
-    if (activeAccount === localhostValue) {
-      if (!hasLocalhost) {
-        redirect("install");
+  const updateSelection = useCallback(
+    (selectValue: string) => {
+      if (selectValue === localhostValue) {
+        setActiveAccount(undefined);
+        if (!hasLocalhost) {
+          redirect("install");
+        }
+      } else if (selectValue === addNewValue) {
+        redirect("pricing");
+      } else {
+        try {
+          setActiveAccount(BigInt(selectValue));
+        } catch (e) {
+          console.error("Error attempting to parse account ID:", selectValue);
+          console.error(e);
+        }
       }
-    } else if (activeAccount === addNewValue) {
-    } else {
-      console.log("opening account", activeAccount);
-    }
-  }, [activeAccount, hasLocalhost]);
+    },
+    [hasLocalhost, setActiveAccount],
+  );
 
   const renderAvatarBlock = (user: User | null) => {
     if (user) {
@@ -130,7 +139,7 @@ const PageHeader: React.FC = () => {
 
   const renderSourceSelectorBlock = () => (
     <div title="Account Selector">
-      <Select onValueChange={setActiveAccount}>
+      <Select value={activeAccount?.toString()} onValueChange={updateSelection}>
         <SelectTrigger className="min-w-52">
           <div className="flex flex-row items-center gap-2">
             <SquareCode size={16} />
@@ -147,14 +156,18 @@ const PageHeader: React.FC = () => {
             </SelectItem>
           </SelectGroup>
           <SelectGroup>
-            {listAccounts.map((item) => (
-              <SelectItem
-                value={item.account?.name ?? ""}
-                key={item.account?.name ?? ""}
-              >
-                {item.account?.name}
-              </SelectItem>
-            ))}
+            {listAccounts.map((item) =>
+              item.account?.id ? (
+                <SelectItem
+                  value={`${item.account.id}`}
+                  key={`${item.account.name}-${item.account.id}`}
+                >
+                  {item.account?.name}
+                </SelectItem>
+              ) : (
+                <></>
+              ),
+            )}
             <SelectItem value={addNewValue}>+ Add new</SelectItem>
           </SelectGroup>
         </SelectContent>
