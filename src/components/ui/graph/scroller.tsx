@@ -1,4 +1,4 @@
-import { DataPoint, generateRandomData } from "@lib/faker";
+import { DataPoint, generateRandomData } from "@/lib/faker";
 import { ReactElement, useCallback, useEffect, useRef, useState } from "react";
 import { ZoomType } from "./graph";
 

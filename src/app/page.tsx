@@ -5,13 +5,13 @@ import { Share } from "lucide-react";
 import { AutosizeTextarea } from "@/components/ui/autosize-textarea";
 import { Button } from "@/components/ui/button";
 import SessionContainer from "@/components/sortable/session-container";
-import { useFullWidth } from "@context/full-width-provider";
+import { useFullWidth } from "@/context/full-width-provider";
 import { cn } from "@/lib/utils";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import SetupGuide from "@components/setup-guide";
-import Graph from "@components/ui/graph/graph";
-import { useAllAccounts } from "@context/listAccounts";
+import SetupGuide from "@/components/setup-guide";
+import Graph from "@/components/ui/graph/graph";
+import { useAllAccounts } from "@/context/listAccounts";
 
 export default function Home() {
   const [isPretty, setIsPretty] = useState(true);

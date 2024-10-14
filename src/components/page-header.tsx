@@ -34,7 +34,7 @@ import { Code, ConnectError } from "@connectrpc/connect";
 import { User } from "api/js/types/v1/user_pb";
 import { Organization } from "api/js/types/v1/organization_pb";
 import { md5 } from "js-md5";
-import { useAllAccounts } from "@context/listAccounts";
+import { useAllAccounts } from "@/context/listAccounts";
 import { Button } from "./ui/button";
 
 const PageHeader: React.FC = () => {

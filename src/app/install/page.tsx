@@ -1,6 +1,6 @@
 "use client";
 
-import SetupGuide from "@components/setup-guide";
+import SetupGuide from "@/components/setup-guide";
 
 export default function Page() {
   return (
