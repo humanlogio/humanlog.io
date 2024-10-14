@@ -26,7 +26,7 @@ export function ListAccountsProvider({
 }: {
   children: React.ReactNode;
 }) {
-  const { apiClients } = useApiClients();
+  const { apiClients, setActiveAccount } = useApiClients();
   const [hasLocalhost, setHasLocalhost] = useState<PingResponse | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [currentOrg, setCurrentOrg] = useState<Organization | null>(null);
@@ -58,13 +58,14 @@ export function ListAccountsProvider({
   useEffect(() => {
     (async () => {
       try {
-        setListAccounts([]);
         const res = await apiClients?.org.listAccount({
           organizationId: currentOrg?.id,
           cursor: accountPage,
           limit: 10,
         });
         if (!res || !res.items) {
+          setListAccounts([]);
+          setActiveAccount(undefined);
           return;
         }
         setListAccounts(res.items);
