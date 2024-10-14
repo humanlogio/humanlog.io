@@ -18,13 +18,13 @@ import { LocalhostService } from "api/js/svc/localhost/v1/service_connect";
 import { QueryService } from "api/js/svc/query/v1/service_connect";
 import { unstable_noStore as noStore } from "next/cache";
 
-type ProviderType = {
+type ApiProviderType = {
   apiClients: ApiClients | null;
   activeAccount: string;
   setActiveAccount: React.Dispatch<React.SetStateAction<string>>;
 };
 
-const ApiClientContext = createContext<ProviderType | null>(null);
+const ApiClientContext = createContext<ApiProviderType | null>(null);
 
 const auther: (cookie: string) => Interceptor = (cookie: string) => {
   return (next) => async (req) => {
@@ -121,6 +121,6 @@ function getCookie(name: string): string | undefined {
   return last.split(";").shift();
 }
 
-export function useApiClients(): ProviderType {
+export function useApiClients(): ApiProviderType {
   return useContext(ApiClientContext)!;
 }
