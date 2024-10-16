@@ -3,21 +3,16 @@ import { unstable_noStore as noStore } from "next/cache";
 export async function GET(request: Request) {
   noStore();
 
-  return new Response(installScript);
-}
+  const apiBaseURL = URL.parse(process.env.NEXT_PUBLIC_API_BASE_URL!)!;
+  const releaseApiURL = URL.parse("/api/releases/apictl", apiBaseURL!);
 
-noStore();
+  const selfBaseURL = URL.parse(process.env.NEXT_PUBLIC_SELF_BASE_URL!)!;
+  const logPrefix =
+    (selfBaseURL.port
+      ? selfBaseURL.hostname + ":" + selfBaseURL.port
+      : selfBaseURL.hostname) + "/install_apictl.sh";
 
-const apiBaseURL = URL.parse(process.env.NEXT_PUBLIC_API_BASE_URL!)!;
-const releaseApiURL = URL.parse("/api/releases/apictl", apiBaseURL!);
-
-const selfBaseURL = URL.parse(process.env.NEXT_PUBLIC_SELF_BASE_URL!)!;
-const logPrefix =
-  (selfBaseURL.port
-    ? selfBaseURL.hostname + ":" + selfBaseURL.port
-    : selfBaseURL.hostname) + "/install_apictl.sh";
-
-const installScript = `#!/bin/sh
+  const installScript = `#!/bin/sh
 # Based on Deno installer: Copyright 2019 the Deno authors. All rights reserved. MIT license.
 # TODO(everyone): Keep this script simple and easily auditable.
 
@@ -83,3 +78,6 @@ else
 	loginfo "Run '$exe --help' to get started"
 fi
 `;
+
+  return new Response(installScript);
+}
