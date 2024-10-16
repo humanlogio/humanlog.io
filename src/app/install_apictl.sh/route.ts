@@ -37,10 +37,12 @@ function logerror() {
 	echo "\${LIGHTRED}${logPrefix}\${NC}: \$@"
 }
 
-loginfo "looking up latest release from \${channel} channel for \${os} on \${arch}"
-curl --silent --show-error --fail-with-body --data "{\\"os\\":\\"\${os}\\",\\"arch\\":\\"\${arch}\\",\\"channel\\":\\"\${channel}\\"}" ${releaseApiURL} > /tmp/apictl_url 2> /tmp/curl_error || { logerror "$(cat /tmp/apictl_url) \($(cat /tmp/curl_error)\)" ; exit 1; }
+url_file=/tmp/apictl_uri
 
-apictl_uri=$(cat /tmp/apictl_uri)
+loginfo "looking up latest release from \${channel} channel for \${os} on \${arch}"
+curl --silent --show-error --fail-with-body --data "{\\"os\\":\\"\${os}\\",\\"arch\\":\\"\${arch}\\",\\"channel\\":\\"\${channel}\\"}" ${releaseApiURL} > \${url_file} 2> /tmp/curl_error || { logerror "$(cat \${url_file}) \($(cat /tmp/curl_error)\)" ; exit 1; }
+
+apictl_uri=$(cat \${url_file})
 if [ ! "$apictl_uri" ]; then
 	logerror "unable to find an apictl release for $os/$arch - see github.com/humanlogio/apictl/releases for all versions" 1>&2
 	exit 1
