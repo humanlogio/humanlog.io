@@ -1,11 +1,8 @@
-import { unstable_noStore as noStore } from "next/cache";
+import { useRouter } from "next/router";
 import { toast } from "sonner";
 import { Copy } from "lucide-react";
 
 const SetupGuide: React.FC = () => {
-  noStore();
-  const baseURL = process.env.NEXT_PUBLIC_SELF_BASE_URL;
-
   const copyToClipboard = (text: string) => {
     navigator.clipboard
       .writeText(text)
@@ -17,7 +14,11 @@ const SetupGuide: React.FC = () => {
       });
   };
 
-  const installScript = `curl -sSL "${baseURL}/install.sh" | sh`;
+  const origin =
+    typeof window !== "undefined" && window.location.origin
+      ? window.location.origin
+      : "https://humanlog.io";
+  const installScript = `curl -sSL "${origin}/install.sh" | sh`;
 
   return (
     <div className="mx-auto flex w-full max-w-screen-xl flex-grow flex-col items-center justify-center gap-8 px-4">
