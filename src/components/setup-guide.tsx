@@ -2,7 +2,6 @@ import { unstable_noStore as noStore } from "next/cache";
 import { toast } from "sonner";
 import { Copy } from "lucide-react";
 
-
 const SetupGuide: React.FC = () => {
   noStore();
   const baseURL = process.env.NEXT_PUBLIC_SELF_BASE_URL;
