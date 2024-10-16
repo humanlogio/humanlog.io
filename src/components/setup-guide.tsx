@@ -1,4 +1,3 @@
-import { useRouter } from "next/router";
 import { toast } from "sonner";
 import { Copy } from "lucide-react";
 
