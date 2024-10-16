@@ -12,11 +12,15 @@ FROM base AS builder
 WORKDIR /usr/src/app
 COPY --from=deps /usr/src/app/node_modules ./node_modules
 COPY . .
+ARG git_hash
+ENV GIT_HASH=$git_hash
 RUN npm run build
 
 # server
 FROM base AS server
 WORKDIR /usr/src/app
+ARG git_hash
+ENV GIT_HASH=$git_hash
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 RUN addgroup --system --gid 1001 nodejs
