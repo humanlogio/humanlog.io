@@ -1,6 +1,5 @@
 import { ReactElement, useCallback, useEffect, useRef, useState } from "react";
-import { DataPoint, generateRandomData } from "@/lib/faker";
-import { ZoomType } from "./graph";
+import { DataPoint, ZoomType } from "./graph";
 
 type WheelEvent = {
   preventDefault: () => void;
@@ -18,7 +17,7 @@ type KeyEvent = {
 const Scroller = (props: {
   data: DataPoint[];
   zoom: ZoomType | null;
-  onProcessed: (data: DataPoint[], zoom: ZoomType, animate: boolean) => void;
+  onProcessed: (zoom: ZoomType, animate: boolean) => void;
   children: ReactElement[];
 }) => {
   const { data, zoom, onProcessed, children } = props;
@@ -55,7 +54,7 @@ const Scroller = (props: {
         maxValue < 400 &&
         Math.abs(startIndex - endIndex) > maxValue * (1 - requeryDataChange)
       ) {
-        newData = generateRandomData(maxValue * graphGrowthRate);
+        // newData = generateRandomData(maxValue * graphGrowthRate);
       } else if (
         direction === "in" &&
         maxValue > 20 &&
@@ -63,7 +62,7 @@ const Scroller = (props: {
       ) {
         updatedZoom.startIndex = 0;
         updatedZoom.endIndex = maxValue / graphGrowthRate - 1;
-        newData = generateRandomData(maxValue / graphGrowthRate);
+        // newData = generateRandomData(maxValue / graphGrowthRate);
       }
 
       updatedZoom.startIndex = Math.floor(updatedZoom.startIndex as number);
@@ -83,7 +82,7 @@ const Scroller = (props: {
         animate = true;
       }
 
-      onProcessed(newData, updatedZoom, animate);
+      onProcessed(updatedZoom, animate);
     },
     [data, maxValue, onProcessed],
   );

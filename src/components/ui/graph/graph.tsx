@@ -1,5 +1,4 @@
 import { useCallback, useState } from "react";
-import { DataPoint, generateRandomData } from "@/lib/faker";
 import {
   XAxis,
   YAxis,
@@ -19,15 +18,48 @@ export type ZoomType = {
   endIndex?: number;
 };
 
-const Graph = (props: { onZoom?: (zoom: ZoomType) => void } = {}) => {
-  const { onZoom } = props;
-  const [data, setData] = useState(generateRandomData(50));
+export type DataPoint = {
+  dayNumber: number;
+  name: string;
+  date: Date;
+  amt: bigint;
+  uv?: number;
+  pv?: number;
+};
+
+const Graph = (
+  props: { data?: DataPoint[] | null; onZoom?: (zoom: ZoomType) => void } = {},
+) => {
+  const { data, onZoom } = props;
   const [zoom, setZoom] = useState<ZoomType | null>(null);
   const [activeAnimations, setActiveAnimations] = useState(true);
   const [dateFromValue, setDateTo] = useState(
     new Date(new Date().valueOf() - 1000 * 60 * 60 * 24 * 30),
   );
   const [dateToValue, setDateFrom] = useState(new Date());
+
+  if (!data) {
+    return (
+      <div className="space-y-8">
+        <div className="h-full w-full">
+          <p className="mt-1 rounded-md border bg-slate-800 p-4 text-sm font-medium leading-tight text-slate-200">
+            No event list data was loaded for that time frame.
+            <br />
+            <br />
+            Try expanding the date range. If still no data is coming through,
+            please check that the bucket is configured correctly.
+          </p>
+        </div>
+
+        <DateRangePicker
+          dateFrom={dateFromValue}
+          dateTo={dateToValue}
+          setDateFrom={setDateFrom}
+          setDateTo={setDateTo}
+        />
+      </div>
+    );
+  }
 
   const maxValue = data.length - 1;
   const { startIndex, endIndex } = {
@@ -36,8 +68,7 @@ const Graph = (props: { onZoom?: (zoom: ZoomType) => void } = {}) => {
   } as { startIndex: number; endIndex: number };
 
   const updateGraph = useCallback(
-    (data: DataPoint[], zoom: ZoomType, animate: boolean) => {
-      setData(data);
+    (zoom: ZoomType, animate: boolean) => {
       setZoom(zoom);
       setActiveAnimations(animate);
       if (typeof onZoom === "function") onZoom(zoom);
@@ -92,7 +123,7 @@ const Graph = (props: { onZoom?: (zoom: ZoomType) => void } = {}) => {
                 year: "2-digit",
               })
             }
-            // onChange={handleBrushChange}
+            onChange={(zoom) => updateGraph(zoom, activeAnimations)}
             startIndex={startIndex}
             endIndex={endIndex}
           />
