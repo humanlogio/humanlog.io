@@ -4,14 +4,10 @@ import { renderInstallScript } from "@/lib/install_script";
 export async function GET(request: Request) {
   noStore();
   const project = "apictl";
-  const installPath = "/install_apictl.sh";
+
   const apiBaseURL = URL.parse(process.env.NEXT_PUBLIC_API_BASE_URL!)!;
-  const selfBaseURL = URL.parse(process.env.NEXT_PUBLIC_SELF_BASE_URL!)!;
-  const installScript = renderInstallScript(
-    project,
-    installPath,
-    apiBaseURL,
-    selfBaseURL,
-  );
+  const reqURL = URL.parse(request.url)!;
+  const logPrefix = reqURL.host + reqURL.pathname;
+  const installScript = renderInstallScript(project, logPrefix, apiBaseURL);
   return new Response(installScript);
 }

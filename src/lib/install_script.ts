@@ -1,15 +1,9 @@
 export const renderInstallScript = (
   project: string,
-  installPath: string,
+  logPrefix: string,
   apiBaseURL: URL,
-  selfBaseURL: URL,
 ): string => {
   const releaseApiURL = URL.parse(`/api/releases/${project}`, apiBaseURL!);
-
-  const logPrefix =
-    (selfBaseURL.port
-      ? selfBaseURL.hostname + ":" + selfBaseURL.port
-      : selfBaseURL.hostname) + installPath;
 
   return `#!/bin/sh
 # Based on Deno installer: Copyright 2019 the Deno authors. All rights reserved. MIT license.
