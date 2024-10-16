@@ -6,6 +6,8 @@ export async function GET(request: Request) {
   return new Response(installScript);
 }
 
+noStore();
+
 const apiBaseURL = URL.parse(process.env.NEXT_PUBLIC_API_BASE_URL!)!;
 const releaseApiURL = URL.parse("/api/releases/apictl", apiBaseURL!);
 
