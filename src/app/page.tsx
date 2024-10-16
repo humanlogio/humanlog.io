@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Share } from "lucide-react";
 import { AutosizeTextarea } from "@/components/ui/autosize-textarea";
 import { Button } from "@/components/ui/button";
@@ -10,19 +10,67 @@ import { cn } from "@/lib/utils";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import SetupGuide from "@/components/setup-guide";
-import Graph from "@/components/ui/graph/graph";
+import Graph, { DataPoint, ZoomType } from "@/components/ui/graph/graph";
 import { useAllAccounts } from "@/context/listAccounts";
+import { useApiClients } from "@/context/api-provider";
+import { SummarizeEventsResponse_Bucket } from "api/js/svc/query/v1/service_pb";
+import { Timestamp } from "@bufbuild/protobuf";
 
 export default function Home() {
+  const signupOnly = process.env.NEXT_PUBLIC_SIGNUP_ONLY === "true";
   const [isPretty, setIsPretty] = useState(true);
   const { isFullWidth } = useFullWidth();
   const { hasLocalhost, listAccounts } = useAllAccounts();
+  const [eventsList, setEvents] = useState<DataPoint[] | null>(null);
+  const [startDate, setStartDate] = useState<Date>(new Date());
+  const [endDate, setEndDate] = useState<Date | null>(null);
+  const { apiClients, activeAccount } = useApiClients();
 
-  const signupOnly = process.env.NEXT_PUBLIC_SIGNUP_ONLY === "true";
+  const updateTimeFrame = (zoom: ZoomType) => {
+    // this is where we turn the zoom index into start and end date
+  };
+
+  const convertTsToDate = (date: Timestamp): Date => {
+    return new Date();
+  };
+
+  const convertDateToTimestamp = (date: Date): Timestamp => {
+    return new Timestamp();
+  };
+
+  const convertToGraphDataPoints = (
+    buckets: SummarizeEventsResponse_Bucket[],
+  ) => {
+    return buckets
+      .filter((data) => data?.ts)
+      .map((data, i) => ({
+        dayNumber: i,
+        name: convertTsToDate(data.ts!).toLocaleDateString("en-US", {
+          day: "2-digit",
+          month: "2-digit",
+          year: "2-digit",
+        }),
+        date: convertTsToDate(data.ts!),
+        amt: data.eventCount,
+      }));
+  };
+
+  useEffect(() => {
+    (async () => {
+      const events = await apiClients?.query.summarizeEvents({
+        accountId: activeAccount,
+        from: convertDateToTimestamp(startDate),
+        to: (endDate && convertDateToTimestamp(endDate)) || undefined,
+      });
+      if (events) {
+        setEvents(convertToGraphDataPoints(events.buckets));
+      }
+    })();
+  }, [apiClients?.query, activeAccount, startDate, endDate]);
 
   return (
     <div className="flex h-[calc(100dvh-56px)] flex-col py-8">
-      {signupOnly || (!hasLocalhost && !listAccounts.length) ? (
+      {false && (signupOnly || (!hasLocalhost && !listAccounts.length)) ? (
         <SetupGuide />
       ) : (
         <div className="flex flex-grow flex-col gap-4 overflow-y-hidden">
@@ -46,7 +94,7 @@ export default function Home() {
               </div>
             </div>
             <div className="col-span-2 md:col-span-1">
-              <Graph />
+              <Graph data={eventsList} onZoom={updateTimeFrame} />
             </div>
           </div>
           <div
