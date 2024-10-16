@@ -1,0 +1,49 @@
+name: main(build-and-push)
+
+on:
+  workflow_dispatch:
+    inputs:
+      sha:
+        description: "sha to build, push and deploy"
+        type: string
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.sha }}
+
+      - name: Set outputs
+        id: vars
+        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+
+      - name: Check outputs
+        run: echo "will set ${{github.event.inputs.sha || steps.vars.outputs.sha_short}} (default ${{steps.vars.outputs.sha_short}})"
+
+      - name: Install doctl
+        uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DOCN_REGISTRY_TOKEN }}
+
+      - name: Build container image
+        run: docker build --build-arg git_hash=${{steps.vars.outputs.sha_short}} -t registry.digitalocean.com/humanlog/humanlogio:${{github.event.inputs.sha || steps.vars.outputs.sha_short}} .
+
+      - name: Log in to DigitalOcean Container Registry with short-lived credentials
+        run: doctl registry login --expiry-seconds 1200
+
+      - name: Push image to DigitalOcean Container Registry
+        run: docker push registry.digitalocean.com/humanlog/humanlogio:${{github.event.inputs.sha || steps.vars.outputs.sha_short}}
+
+      - name: Trigger `deploy/set_humanlogio_tag`
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.TRIGGER_EVENT_GITHUB_PAT }}
+          repository: humanlogio/deploy
+          event-type: set_humanlogio_tag
+          client-payload: '{"deploy_tag": "${{github.event.inputs.sha || steps.vars.outputs.sha_short}}", "env": "dev"}'
