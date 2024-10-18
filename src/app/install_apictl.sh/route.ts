@@ -6,7 +6,8 @@ export async function GET(request: Request) {
 
   const apiBaseURL = URL.parse(getAPIURL())!;
   const selfBaseURL = URL.parse(getSelfURL())!;
-  const logPrefix = selfBaseURL.host + selfBaseURL.pathname;
+  const reqURL = URL.parse(request.url)!;
+  const logPrefix = selfBaseURL.host + reqURL.pathname;
   const installScript = renderInstallScript(
     project,
     logPrefix,
