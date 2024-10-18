@@ -2,6 +2,7 @@ export const renderInstallScript = (
   project: string,
   logPrefix: string,
   apiBaseURL: URL,
+  channel: string,
 ): string => {
   const releaseApiURL = URL.parse(`/api/releases/${project}`, apiBaseURL!);
 
@@ -16,7 +17,7 @@ fi
 
 os=$(uname -s)
 arch=$(uname -m)
-channel="\${HUMANLOG_CHANNEL:-main}"
+channel="\${HUMANLOG_CHANNEL:-${channel}}"
 project="${project}"
 
 function loginfo() {
