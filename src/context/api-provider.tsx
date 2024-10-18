@@ -10,7 +10,7 @@ import { OrganizationService } from "api/js/svc/organization/v1/service_connect"
 import { UserService } from "api/js/svc/user/v1/service_connect";
 import { LocalhostService } from "api/js/svc/localhost/v1/service_connect";
 import { QueryService } from "api/js/svc/query/v1/service_connect";
-import { getAPIURL } from "@/lib/urls";
+import { getAPIURL } from "@/lib/envs";
 
 type AccountId = bigint | undefined;
 

@@ -1,6 +1,6 @@
 import { toast } from "sonner";
 import { Copy } from "lucide-react";
-import { getSelfURL } from "@/lib/urls";
+import { getSelfURL } from "@/lib/envs";
 
 const SetupGuide: React.FC = () => {
   const copyToClipboard = (text: string) => {
