@@ -10,7 +10,7 @@ import { OrganizationService } from "api/js/svc/organization/v1/service_connect"
 import { UserService } from "api/js/svc/user/v1/service_connect";
 import { LocalhostService } from "api/js/svc/localhost/v1/service_connect";
 import { QueryService } from "api/js/svc/query/v1/service_connect";
-import { unstable_noStore as noStore } from "next/cache";
+import { getAPIURL } from "@/lib/urls";
 
 type AccountId = bigint | undefined;
 
@@ -50,7 +50,6 @@ export function ApiClientsProvider({
 }: {
   children: React.ReactNode;
 }) {
-  noStore();
   const [activeAccount, setActiveAccount] = useState<AccountId>();
 
   const apiClients = useMemo((): ApiClients => {
@@ -62,8 +61,7 @@ export function ApiClientsProvider({
     }
 
     const apiTransport = createConnectTransport({
-      baseUrl:
-        process.env.NEXT_PUBLIC_API_BASE_URL ?? "https://api.humanlog.dev",
+      baseUrl: getAPIURL(),
       interceptors: interceptors,
     });
     const auth = createPromiseClient(AuthService, apiTransport);
