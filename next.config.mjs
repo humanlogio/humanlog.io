@@ -6,9 +6,6 @@ const nextConfig = {
     output: 'standalone',
     transpilePackages: ['api'],
     pageExtensions: ['js', 'jsx', 'mdx', 'ts', 'tsx'],
-    generateBuildId: async () => {
-        return process.env.GIT_HASH
-    },
 };
 
 const withMDX = createMDX({
