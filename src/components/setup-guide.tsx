@@ -1,5 +1,6 @@
 import { toast } from "sonner";
 import { Copy } from "lucide-react";
+import { getSelfURL } from "@/lib/urls";
 
 const SetupGuide: React.FC = () => {
   const copyToClipboard = (text: string) => {
@@ -13,10 +14,7 @@ const SetupGuide: React.FC = () => {
       });
   };
 
-  const origin =
-    typeof window !== "undefined" && window.location.origin
-      ? window.location.origin
-      : "https://humanlog.io";
+  const origin = getSelfURL();
   const installScript = `curl -sSL "${origin}/install.sh" | sh`;
 
   return (
