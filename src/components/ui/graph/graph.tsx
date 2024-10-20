@@ -22,27 +22,36 @@ export type DataPoint = {
   dayNumber: number;
   name: string;
   date: Date;
-  amt: bigint;
-  uv?: number;
+  amt: number;
   pv?: number;
 };
 
-const Graph = (
-  props: { data?: DataPoint[] | null; onZoom?: (zoom: ZoomType) => void } = {},
-) => {
-  const { data, onZoom } = props;
+const Graph = (props: {
+  data?: DataPoint[] | null;
+  startDate: Date;
+  endDate: Date | null;
+  setStartDate: (date: Date) => void;
+  setEndDate: (date: Date) => void;
+  onZoom?: (zoom: ZoomType) => void;
+}) => {
+  const { data, startDate, endDate, setStartDate, setEndDate, onZoom } = props;
   const [zoom, setZoom] = useState<ZoomType | null>(null);
   const [activeAnimations, setActiveAnimations] = useState(true);
-  const [dateFromValue, setDateTo] = useState(
-    new Date(new Date().valueOf() - 1000 * 60 * 60 * 24 * 30),
+
+  const updateGraph = useCallback(
+    (zoom: ZoomType, animate: boolean) => {
+      setZoom(zoom);
+      setActiveAnimations(animate);
+      if (typeof onZoom === "function") onZoom(zoom);
+    },
+    [onZoom],
   );
-  const [dateToValue, setDateFrom] = useState(new Date());
 
   if (!data) {
     return (
       <div className="space-y-8">
         <div className="h-full w-full">
-          <p className="mt-1 rounded-md border bg-slate-800 p-4 text-sm font-medium leading-tight text-slate-200">
+          <p className="mt-1 rounded-md border bg-slate-200 p-4 text-sm font-medium leading-tight text-slate-800 dark:bg-slate-800 dark:text-slate-200">
             No event list data was loaded for that time frame.
             <br />
             <br />
@@ -52,10 +61,10 @@ const Graph = (
         </div>
 
         <DateRangePicker
-          dateFrom={dateFromValue}
-          dateTo={dateToValue}
-          setDateFrom={setDateFrom}
-          setDateTo={setDateTo}
+          dateFrom={startDate}
+          dateTo={endDate}
+          setDateFrom={setStartDate}
+          setDateTo={setEndDate}
         />
       </div>
     );
@@ -66,15 +75,6 @@ const Graph = (
     startIndex: zoom?.startIndex ?? maxValue - 20,
     endIndex: zoom?.endIndex ?? maxValue,
   } as { startIndex: number; endIndex: number };
-
-  const updateGraph = useCallback(
-    (zoom: ZoomType, animate: boolean) => {
-      setZoom(zoom);
-      setActiveAnimations(animate);
-      if (typeof onZoom === "function") onZoom(zoom);
-    },
-    [onZoom],
-  );
 
   return (
     <Scroller data={data} zoom={zoom} onProcessed={updateGraph}>
@@ -97,16 +97,10 @@ const Graph = (
           <Legend />
           <Bar
             type="monotone"
-            dataKey="pv"
-            stroke="#8884d8"
-            fill="#8884d8"
-            isAnimationActive={activeAnimations}
-          />
-          <Bar
-            type="monotone"
-            dataKey="uv"
-            stroke="#82ca9d"
-            fill="#82ca9d"
+            dataKey="amt"
+            name="Log Amount"
+            stroke="rgba(136, 170, 238, var(--tw-bg-opacity))"
+            fill="rgba(136, 170, 238, var(--tw-bg-opacity))"
             isAnimationActive={activeAnimations}
           />
           <Brush
@@ -131,10 +125,10 @@ const Graph = (
       </ResponsiveContainer>
 
       <DateRangePicker
-        dateFrom={dateFromValue}
-        dateTo={dateToValue}
-        setDateFrom={setDateFrom}
-        setDateTo={setDateTo}
+        dateFrom={startDate}
+        dateTo={endDate}
+        setDateFrom={setStartDate}
+        setDateTo={setEndDate}
       />
     </Scroller>
   );

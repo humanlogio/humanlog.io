@@ -1,8 +1,8 @@
 import DatePicker from "./datePicker";
 
 const DateRangePicker = (props: {
-  dateFrom?: Date;
-  dateTo?: Date;
+  dateFrom: Date;
+  dateTo: Date | null;
   setDateFrom: (date: Date) => void;
   setDateTo: (date: Date) => void;
 }) => {
@@ -13,8 +13,19 @@ const DateRangePicker = (props: {
       <div className="relative w-full">
         <DatePicker
           styles="block w-full rounded-md border border-slate-300 py-1.5 px-2.5 text-xs text-slate-900 ring-2 focus:border-blue-500 focus:ring-blue-500 lg:p-2.5 lg:text-sm"
-          includeTime={false}
+          includeTime={true}
           date={dateFrom}
+          maxDate={
+            new Date(
+              new Date(
+                Math.min(
+                  dateTo?.getTime() ?? new Date().getTime(),
+                  new Date().getTime(),
+                ),
+              ).getTime() -
+                60 * 60 * 1000,
+            )
+          } // sub one hour
           setDate={setDateFrom}
         />
       </div>
@@ -24,8 +35,9 @@ const DateRangePicker = (props: {
       <div className="relative w-full">
         <DatePicker
           styles="block w-full rounded-md border border-slate-300 py-1.5 px-2.5 text-xs text-slate-900 ring-2 focus:border-blue-500 focus:ring-blue-500 lg:p-2.5 lg:text-sm"
-          includeTime={false}
+          includeTime={true}
           date={dateTo}
+          minDate={new Date(dateFrom.getTime() + 60 * 60 * 1000)} // add one hour
           setDate={setDateTo}
         />
       </div>
