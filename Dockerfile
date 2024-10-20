@@ -13,14 +13,26 @@ WORKDIR /usr/src/app
 COPY --from=deps /usr/src/app/node_modules ./node_modules
 COPY . .
 ARG git_hash
+ARG api_url
+ARG self_url
+ARG default_release_channel
 ENV GIT_HASH=$git_hash
+ENV NEXT_PUBLIC_API_BASE_URL=$api_url
+ENV NEXT_PUBLIC_SELF_BASE_URL=$self_url
+ENV NEXT_PUBLIC_DEFAULT_RELEASE_CHANNEL=$default_release_channel
 RUN npm run build
 
 # server
 FROM base AS server
 WORKDIR /usr/src/app
 ARG git_hash
+ARG api_url
+ARG self_url
+ARG default_release_channel
 ENV GIT_HASH=$git_hash
+ENV NEXT_PUBLIC_API_BASE_URL=$api_url
+ENV NEXT_PUBLIC_SELF_BASE_URL=$self_url
+ENV NEXT_PUBLIC_DEFAULT_RELEASE_CHANNEL=$default_release_channel
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 RUN addgroup --system --gid 1001 nodejs
