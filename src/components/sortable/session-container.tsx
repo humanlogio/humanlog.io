@@ -23,13 +23,14 @@ import SessionPanel from "@/components/sortable/session-panel";
 
 // Define a type for the session item
 export type LogEventGroup = {
-  id?: UniqueIdentifier; // "${machineId}-${sessionId}"
+  id?: UniqueIdentifier;
   machineId: bigint;
   sessionId: bigint;
   logs: LogEvent[];
 };
 
 export type LogEvent = {
+  id?: UniqueIdentifier;
   raw: Uint8Array;
   structured?: {
     timestamp?: Timestamp;
@@ -58,6 +59,10 @@ const SessionContainer = (props: { session: LogEventGroup[] | null }) => {
         ...(items["root"] ?? []),
         ...props.session.map((session) => ({
           ...session,
+          logs: session.logs.map((log, index) => ({
+            ...log,
+            id: log.id ?? index,
+          })),
           id: session.id ?? `${session.machineId}-${session.sessionId}`,
         })),
       ],
