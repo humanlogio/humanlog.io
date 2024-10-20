@@ -23,18 +23,16 @@ import SessionPanel from "@/components/sortable/session-panel";
 
 // Define a type for the session item
 export type LogEventGroup = {
-  id: UniqueIdentifier; // "${machineId}-${sessionId}"
-  machineId: number;
-  sessionId: number;
+  id?: UniqueIdentifier; // "${machineId}-${sessionId}"
+  machineId: bigint;
+  sessionId: bigint;
   logs: LogEvent[];
 };
 
 export type LogEvent = {
-  id: number;
-  parseAt: Timestamp;
-  raw: string;
-  structured: {
-    timestamp: Timestamp;
+  raw: Uint8Array;
+  structured?: {
+    timestamp?: Timestamp;
     lvl: string; // INFO/ERROR/...
     msg: string;
     kvs: KV[];
@@ -46,76 +44,25 @@ export type KV = {
   value: string;
 };
 
-const SessionContainer = () => {
-  const [items, setItems] = useState<{ [key: string]: LogEventGroup[] }>({
-    root: [
-      {
-        id: "2-42",
-        machineId: 2,
-        sessionId: 42,
-        logs: [
-          {
-            id: 1,
-            parseAt: new Timestamp({ seconds: BigInt(1724914754) }),
-            raw: "hello world gtgtg",
-            structured: {
-              timestamp: new Timestamp({ seconds: BigInt(1724914754) }),
-              msg: "hello world",
-              lvl: "info",
-              kvs: [{ key: "key1", value: "value1" }],
-            },
-          },
-        ],
-      },
-      {
-        id: "2-43",
-        machineId: 2,
-        sessionId: 43,
-        logs: [
-          {
-            id: 1,
-            parseAt: new Timestamp({ seconds: BigInt(1724914754) }),
-            raw: "gg!!!",
-            structured: {
-              timestamp: new Timestamp({ seconds: BigInt(1724914754) }),
-              msg: "gg",
-              lvl: "info",
-              kvs: [{ key: "key1", value: "value1" }],
-            },
-          },
-        ],
-      },
-      {
-        id: "1-64",
-        machineId: 1,
-        sessionId: 64,
-        logs: [
-          {
-            id: 1,
-            parseAt: new Timestamp({ seconds: BigInt(1724914754) }),
-            raw: "salut le monde gtgtg",
-            structured: {
-              timestamp: new Timestamp({ seconds: BigInt(1724914754) }),
-              msg: "salut le monde",
-              lvl: "info",
-              kvs: [{ key: "key1", value: "value1" }],
-            },
-          },
-          {
-            id: 553,
-            parseAt: new Timestamp({ seconds: BigInt(1724914754) }),
-            raw: "much later this happened",
-            structured: {
-              timestamp: new Timestamp({ seconds: BigInt(1724914754) }),
-              msg: "much latter this happened",
-              lvl: "info",
-              kvs: [{ key: "key1", value: "value1" }],
-            },
-          },
-        ],
-      },
-    ],
-  });
+const SessionContainer = (props: { session: LogEventGroup[] | null }) => {
+  const [items, setItems] = useState<{
+    [key: string]: (LogEventGroup & { id: UniqueIdentifier })[];
+  }>({});
+
+  useEffect(() => {
+    if (!props.session) {
+      return;
+    }
+    setItems({
+      root: [
+        ...(items["root"] ?? []),
+        ...props.session.map((session) => ({
+          ...session,
+          id: session.id ?? `${session.machineId}-${session.sessionId}`,
+        })),
+      ],
+    });
+  }, [items, props.session]);
 
   const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null);
   const lastOverId = useRef<UniqueIdentifier | null>(null);
@@ -184,6 +131,7 @@ const SessionContainer = () => {
     },
     [activeId, items],
   );
+
   const onDragCancel = () => {
     if (items) {
       // Reset items to their original state in case items have been
@@ -323,14 +271,26 @@ const SessionContainer = () => {
       sensors={sensors}
     >
       <div className="flex flex-grow flex-col overflow-hidden">
-        {Object.keys(items).map((key) => (
-          <SessionGroup
-            key={key}
-            items={items[key].map((el) => el.id)}
-            lookupSession={(id) => items["root"].find((el) => el.id == id)}
-            id={key}
-          />
-        ))}
+        {!Object.keys(items).length ? (
+          <div className="m-auto h-full w-full max-w-3xl">
+            <p className="mt-1 rounded-md border bg-slate-200 p-4 text-sm font-medium leading-tight text-slate-800 dark:bg-slate-800 dark:text-slate-200">
+              No event list data was loaded for that query.
+              <br />
+              <br />
+              Try adjusting your query or time range. If still no data is coming
+              through, please check that the log source is configured correctly.
+            </p>
+          </div>
+        ) : (
+          Object.keys(items).map((key) => (
+            <SessionGroup
+              key={key}
+              items={items[key].map((el) => el.id)}
+              lookupSession={(id) => items["root"].find((el) => el.id == id)}
+              id={key}
+            />
+          ))
+        )}
       </div>
       <SortableOverlay>
         {activeId && (

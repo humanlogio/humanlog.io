@@ -15,6 +15,7 @@ import { useAllAccounts } from "@/context/listAccounts";
 import { useApiClients } from "@/context/api-provider";
 import { SummarizeEventsResponse_Bucket } from "api/js/svc/query/v1/service_pb";
 import { Timestamp } from "@bufbuild/protobuf";
+import { LogEventGroup } from "api/js/types/v1/logevent_pb";
 
 export default function Home() {
   const signupOnly = process.env.NEXT_PUBLIC_SIGNUP_ONLY === "true";
@@ -32,6 +33,8 @@ export default function Home() {
   const [zoom, setZoom] = useState<{ startIndex?: number; endIndex?: number }>(
     {},
   );
+  const [session, setSession] = useState<LogEventGroup[] | null>(null);
+  const [queryString, setQueryString] = useState<string>("");
 
   const updateTimeFrame = useCallback((zoom: ZoomType) => {
     // this is where we turn the zoom index into start and end date
@@ -90,18 +93,43 @@ export default function Home() {
     [startDate, endDate],
   );
 
-  const convertToGraphDataPoints = (
-    buckets: SummarizeEventsResponse_Bucket[],
-  ) => {
-    return buckets
-      .filter((data) => data?.ts)
-      .map((data, i) => ({
-        dayNumber: i,
-        name: formatToDateString(data?.ts ?? Timestamp.fromDate(new Date())),
-        date: data.ts!.toDate(),
-        amt: Number(data.eventCount),
-      }));
-  };
+  const convertToGraphDataPoints = useCallback(
+    (buckets: SummarizeEventsResponse_Bucket[]) => {
+      return buckets
+        .filter((data) => data?.ts)
+        .map((data, i) => ({
+          dayNumber: i,
+          name: formatToDateString(data?.ts ?? Timestamp.fromDate(new Date())),
+          date: data.ts!.toDate(),
+          amt: Number(data.eventCount),
+        }));
+    },
+    [formatToDateString],
+  );
+
+  const createNewSession = useCallback(() => {
+    queryString &&
+      (async () => {
+        try {
+          const results = apiClients?.query.watchQuery({
+            accountId: activeAccount,
+            query: {
+              from: Timestamp.fromDate(startDate),
+              to: (endDate && Timestamp.fromDate(endDate)) || undefined,
+            },
+          });
+          setQueryString("");
+          if (!results) {
+            return;
+          }
+          for await (const result of results) {
+            setSession(result.events);
+          }
+        } catch (e) {
+          console.log("it crahsed", e);
+        }
+      })();
+  }, [activeAccount, apiClients?.query, endDate, startDate, queryString]);
 
   useEffect(() => {
     (async () => {
@@ -119,7 +147,14 @@ export default function Home() {
         console.log("it crahsed", e);
       }
     })();
-  }, [apiClients?.query, activeAccount, bucketCount, startDate, endDate]);
+  }, [
+    apiClients?.query,
+    activeAccount,
+    bucketCount,
+    startDate,
+    endDate,
+    convertToGraphDataPoints,
+  ]);
 
   return (
     <div className="flex h-[calc(100dvh-56px)] flex-col py-8">
@@ -152,8 +187,16 @@ export default function Home() {
                 <AutosizeTextarea
                   maxHeight={160}
                   placeholder="Type to search"
+                  value={queryString}
+                  onChange={(event) => setQueryString(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" && !event.shiftKey) {
+                      event.preventDefault();
+                      createNewSession();
+                    }
+                  }}
                 />
-                <Button size="icon" className="h-8">
+                <Button size="icon" className="h-8" onClick={createNewSession}>
                   <Share size={14} />
                 </Button>
               </div>
@@ -198,7 +241,7 @@ export default function Home() {
                 Pretty
               </Label>
             </div>
-            <SessionContainer />
+            <SessionContainer session={session} />
           </div>
         </div>
       )}
