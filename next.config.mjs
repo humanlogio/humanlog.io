@@ -1,10 +1,19 @@
+import createMDX from '@next/mdx';
+import remarkGfm from 'remark-gfm';
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
     output: 'standalone',
     transpilePackages: ['api'],
-    generateBuildId: async () => {
-        return process.env.GIT_HASH
-    },
+    pageExtensions: ['js', 'jsx', 'mdx', 'ts', 'tsx'],
 };
 
-export default nextConfig;
+const withMDX = createMDX({
+  // Add markdown plugins here, as desired
+  options: {
+    remarkPlugins: [remarkGfm],
+    rehypePlugins: [],
+  },
+})
+
+export default withMDX(nextConfig);
