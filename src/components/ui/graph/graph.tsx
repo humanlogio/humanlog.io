@@ -56,7 +56,7 @@ const Graph = (props: {
             <br />
             <br />
             Try expanding the date range. If still no data is coming through,
-            please check that the bucket is configured correctly.
+            please check that the log source is configured correctly.
           </p>
         </div>
 
