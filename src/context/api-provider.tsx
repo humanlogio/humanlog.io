@@ -61,31 +61,28 @@ export function ApiClientsProvider({
       interceptors = interceptors.concat(auther(cookie));
     }
 
-    const apiTransport = createConnectTransport({
-      baseUrl:
-        process.env.NEXT_PUBLIC_API_BASE_URL ?? "https://api.humanlog.dev",
-      interceptors: interceptors,
-    });
-    const auth = createPromiseClient(AuthService, apiTransport);
-    const account = createPromiseClient(AccountService, apiTransport);
-    const org = createPromiseClient(OrganizationService, apiTransport);
-    const user = createPromiseClient(UserService, apiTransport);
-    const query = createPromiseClient(QueryService, apiTransport);
-
     const localhostTransport = createConnectTransport({
       baseUrl: "http://localhost:32764",
     });
     const localhost = createPromiseClient(LocalhostService, localhostTransport);
 
+    const activeTrasnport = !activeAccount
+      ? localhostTransport
+      : createConnectTransport({
+          baseUrl:
+            process.env.NEXT_PUBLIC_API_BASE_URL ?? "https://api.humanlog.dev",
+          interceptors: interceptors,
+        });
+
     return {
-      auth,
-      account,
-      org,
-      user,
       localhost,
-      query,
+      auth: createPromiseClient(AuthService, activeTrasnport),
+      account: createPromiseClient(AccountService, activeTrasnport),
+      org: createPromiseClient(OrganizationService, activeTrasnport),
+      user: createPromiseClient(UserService, activeTrasnport),
+      query: createPromiseClient(QueryService, activeTrasnport),
     };
-  }, []);
+  }, [activeAccount]);
 
   return (
     <ApiClientContext.Provider

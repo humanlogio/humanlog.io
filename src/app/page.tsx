@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { Share } from "lucide-react";
 import { AutosizeTextarea } from "@/components/ui/autosize-textarea";
 import { Button } from "@/components/ui/button";
@@ -21,22 +21,74 @@ export default function Home() {
   const [isPretty, setIsPretty] = useState(true);
   const { isFullWidth } = useFullWidth();
   const { hasLocalhost, listAccounts } = useAllAccounts();
-  const [eventsList, setEvents] = useState<DataPoint[] | null>(null);
-  const [startDate, setStartDate] = useState<Date>(new Date());
-  const [endDate, setEndDate] = useState<Date | null>(null);
   const { apiClients, activeAccount } = useApiClients();
+  const [eventsList, setEvents] = useState<DataPoint[] | null>(null);
+  const [bucketCount, setBucketCount] = useState<number>(100);
+  const [startDate, setStartDate] = useState<Date>(
+    // starting from one week ago
+    new Date(new Date().valueOf() - 1000 * 60 * 60 * 24 * 7),
+  );
+  const [endDate, setEndDate] = useState<Date | null>(null);
+  const [zoom, setZoom] = useState<{ startIndex?: number; endIndex?: number }>(
+    {},
+  );
 
-  const updateTimeFrame = (zoom: ZoomType) => {
+  const updateTimeFrame = useCallback((zoom: ZoomType) => {
     // this is where we turn the zoom index into start and end date
-  };
+    // setStartDate()
+    // setEndDate()
+    setZoom(zoom);
+  }, []);
 
-  const convertTsToDate = (date: Timestamp): Date => {
-    return new Date();
-  };
-
-  const convertDateToTimestamp = (date: Date): Timestamp => {
-    return new Timestamp();
-  };
+  const formatToDateString = useCallback(
+    (time: Timestamp) => {
+      const diff = Math.abs(
+        startDate.getTime() - (endDate ?? new Date()).getTime(),
+      );
+      if (diff > 1000 * 60 * 60 * 24 * 30 * 12 * 2) {
+        // years
+        return time.toDate().toLocaleDateString("en-US", {
+          year: "numeric",
+        });
+      }
+      if (diff > 1000 * 60 * 60 * 24 * 30 * 2) {
+        // months
+        return time.toDate().toLocaleDateString("en-US", {
+          month: "short",
+          year: "2-digit",
+        });
+      }
+      if (diff > 1000 * 60 * 60 * 24 * 7) {
+        // days
+        return time.toDate().toLocaleDateString("en-US", {
+          day: "2-digit",
+        });
+      }
+      if (diff > 1000 * 60 * 60 * 24 * 2) {
+        // weekday
+        return time.toDate().toLocaleDateString("en-US", {
+          weekday: "short",
+          dayPeriod: "short",
+        });
+      }
+      if (diff > 1000 * 60 * 60 * 2) {
+        // hours
+        return time.toDate().toLocaleTimeString("en-US", {
+          hourCycle: "h24",
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+      }
+      // minutes
+      return time.toDate().toLocaleTimeString("en-US", {
+        hourCycle: "h24",
+        minute: "2-digit",
+        second: "2-digit",
+        fractionalSecondDigits: 3,
+      });
+    },
+    [startDate, endDate],
+  );
 
   const convertToGraphDataPoints = (
     buckets: SummarizeEventsResponse_Bucket[],
@@ -45,32 +97,33 @@ export default function Home() {
       .filter((data) => data?.ts)
       .map((data, i) => ({
         dayNumber: i,
-        name: convertTsToDate(data.ts!).toLocaleDateString("en-US", {
-          day: "2-digit",
-          month: "2-digit",
-          year: "2-digit",
-        }),
-        date: convertTsToDate(data.ts!),
-        amt: data.eventCount,
+        name: formatToDateString(data?.ts ?? Timestamp.fromDate(new Date())),
+        date: data.ts!.toDate(),
+        amt: Number(data.eventCount),
       }));
   };
 
   useEffect(() => {
     (async () => {
-      const events = await apiClients?.query.summarizeEvents({
-        accountId: activeAccount,
-        from: convertDateToTimestamp(startDate),
-        to: (endDate && convertDateToTimestamp(endDate)) || undefined,
-      });
-      if (events) {
-        setEvents(convertToGraphDataPoints(events.buckets));
+      try {
+        const events = await apiClients?.query.summarizeEvents({
+          accountId: activeAccount,
+          from: Timestamp.fromDate(startDate),
+          to: (endDate && Timestamp.fromDate(endDate)) || undefined,
+          bucketCount,
+        });
+        if (events) {
+          setEvents(convertToGraphDataPoints(events.buckets));
+        }
+      } catch (e) {
+        console.log("it crahsed", e);
       }
     })();
-  }, [apiClients?.query, activeAccount, startDate, endDate]);
+  }, [apiClients?.query, activeAccount, bucketCount, startDate, endDate]);
 
   return (
     <div className="flex h-[calc(100dvh-56px)] flex-col py-8">
-      {false && (signupOnly || (!hasLocalhost && !listAccounts.length)) ? (
+      {signupOnly || (!hasLocalhost && !listAccounts.length) ? (
         <SetupGuide />
       ) : (
         <div className="flex flex-grow flex-col gap-4 overflow-y-hidden">
@@ -80,9 +133,21 @@ export default function Home() {
                 Lorem ipsum dolor sit amet consectetur
               </h1>
               <p className="mt-2 text-slate-500">
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-                eiusmod tempor incididunt ut labore et dolore magna aliqua.
+                start: {startDate.toLocaleDateString()}
               </p>
+              <p className="mt-2 text-slate-500">
+                end: {endDate?.toLocaleDateString() ?? "stream"}
+              </p>
+              <p className="mt-2 text-slate-500">
+                zoom: {zoom.startIndex ?? "x"},{zoom.endIndex ?? "x"}
+              </p>
+              <input
+                type="number"
+                onChange={(event) =>
+                  setBucketCount(parseInt(event.target.value))
+                }
+                value={bucketCount}
+              />
               <div className="ml-[4px] mt-4 flex flex-row gap-2">
                 <AutosizeTextarea
                   maxHeight={160}
@@ -94,7 +159,14 @@ export default function Home() {
               </div>
             </div>
             <div className="col-span-2 md:col-span-1">
-              <Graph data={eventsList} onZoom={updateTimeFrame} />
+              <Graph
+                data={eventsList}
+                startDate={startDate}
+                endDate={endDate}
+                setStartDate={setStartDate}
+                setEndDate={setEndDate}
+                onZoom={updateTimeFrame}
+              />
             </div>
           </div>
           <div
