@@ -77,7 +77,7 @@ export function ListAccountsProvider({
         }
       }
     })();
-  }, [apiClients?.org, currentOrg, accountPage]);
+  }, [apiClients?.org, currentOrg, accountPage, setActiveAccount]);
 
   useEffect(() => {
     (async () => {
