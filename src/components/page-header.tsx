@@ -31,7 +31,7 @@ import {
 } from "api/js/svc/auth/v1/service_pb";
 import { PingResponse } from "api/js/svc/localhost/v1/service_pb";
 import { User } from "api/js/types/v1/user_pb";
-import { md5 } from "js-md5";
+import { gravatarURL } from "@/lib/utils";
 import { useAllAccounts } from "@/context/listAccounts";
 import { Button } from "./ui/button";
 
@@ -207,11 +207,6 @@ const PageHeader: React.FC = () => {
 const localhostVersion = (res: PingResponse) => {
   const v = res.clientVersion!;
   return "v" + v.major + "." + v.minor + "." + v.patch;
-};
-
-export const gravatarURL = (email: string | undefined) => {
-  if (!email) return undefined;
-  return `https://www.gravatar.com/avatar/${md5(email)}`;
 };
 
 export default PageHeader;
