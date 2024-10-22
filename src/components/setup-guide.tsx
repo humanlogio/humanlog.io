@@ -3,8 +3,6 @@ import { getSelfURL } from "@/lib/envs";
 import { copyToClipboard } from "@/lib/clipboard";
 
 const SetupGuide: React.FC = () => {
-
-
   const origin = getSelfURL();
   const installScript = `curl -sSL "${origin}/install.sh" | sh`;
 
