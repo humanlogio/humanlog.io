@@ -1,19 +1,8 @@
-import { toast } from "sonner";
 import { Copy } from "lucide-react";
 import { getSelfURL } from "@/lib/envs";
+import { copyToClipboard } from "@/lib/clipboard";
 
 const SetupGuide: React.FC = () => {
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard
-      .writeText(text)
-      .then(() => {
-        toast.success("Text copied to clipboard");
-      })
-      .catch((err) => {
-        console.error("Failed to copy text: ", err);
-      });
-  };
-
   const origin = getSelfURL();
   const installScript = `curl -sSL "${origin}/install.sh" | sh`;
 
