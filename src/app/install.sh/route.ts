@@ -13,6 +13,7 @@ export async function GET(request: Request) {
     logPrefix,
     apiBaseURL,
     getReleaseChannel(),
+    true,
   );
   return new Response(installScript);
 }
