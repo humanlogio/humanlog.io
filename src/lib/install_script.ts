@@ -3,6 +3,7 @@ export const renderInstallScript = (
   logPrefix: string,
   apiBaseURL: URL,
   channel: string,
+  hasOnboarding: boolean,
 ): string => {
   const releaseApiURL = URL.parse(`/api/releases/${project}`, apiBaseURL!);
 
@@ -72,6 +73,8 @@ cd "\${bin_dir}"
 tar xzf "\${exe}.tar.gz"
 chmod +x "\${exe}"
 rm "\${exe}.tar.gz"
+
+${hasOnboarding ? "${exe} onboarding" : ""}
 
 loginfo "\${project} was successfully installed to \${exe}"
 if command -v \${project} >/dev/null; then
