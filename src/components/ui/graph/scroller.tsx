@@ -120,14 +120,14 @@ const Scroller = (props: {
 
       if (accumulatedDeltaX >= panThreshold) {
         handleBrushChange({
-          startIndex: Math.min(maxValue, startIndex + gap),
+          startIndex: Math.min(maxValue - gap, startIndex + gap),
           endIndex: Math.min(maxValue, endIndex + gap),
         });
         accumulatedDeltaX = 0;
       } else if (accumulatedDeltaX <= -panThreshold) {
         handleBrushChange({
           startIndex: Math.max(minValue, startIndex - gap),
-          endIndex: Math.max(minValue, endIndex - gap),
+          endIndex: Math.max(minValue + gap, endIndex - gap),
         });
         accumulatedDeltaX = 0;
       }
