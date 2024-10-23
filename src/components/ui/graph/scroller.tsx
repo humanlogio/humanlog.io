@@ -88,8 +88,8 @@ const Scroller = (props: {
     (event: WheelEvent | KeyEvent, zoomIn?: boolean) => {
       event.preventDefault();
 
-      const zoomThreshold = 5;
-      const panThreshold = 5;
+      const zoomThreshold = 145;
+      const panThreshold = 100;
       const gap = Math.ceil(0.1 * Math.abs(startIndex - endIndex));
 
       const processGap = (percentage: number, gap: number): number =>
