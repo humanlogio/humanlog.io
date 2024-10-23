@@ -16,20 +16,17 @@ type KeyEvent = {
 
 const Scroller = (props: {
   data: DataPoint[];
-  zoom: ZoomType | null;
-  onProcessed: (zoom: ZoomType, animate: boolean) => void;
+  minValue: number;
+  maxValue: number;
+  startIndex: number;
+  endIndex: number;
   children: ReactElement[];
+  onProcessed: (zoom: ZoomType, animate: boolean) => void;
 }) => {
-  const { data, zoom, onProcessed, children } = props;
+  const { data, minValue, maxValue, startIndex, endIndex, children } = props;
   const [deltaAccumulatorY, setDeltaAccumulatorY] = useState(0);
   const [deltaAccumulatorX, setDeltaAccumulatorX] = useState(0);
   const graphRef = useRef<HTMLDivElement>(null);
-
-  const [minValue, maxValue] = [0, data.length - 1];
-  const { startIndex, endIndex } = {
-    startIndex: zoom?.startIndex ?? maxValue - 20,
-    endIndex: zoom?.endIndex ?? maxValue,
-  } as { startIndex: number; endIndex: number };
 
   const requeryDataChange = 0.35;
   const graphGrowthRate = 1.5;
@@ -82,9 +79,9 @@ const Scroller = (props: {
         animate = true;
       }
 
-      onProcessed(updatedZoom, animate);
+      props.onProcessed(updatedZoom, animate);
     },
-    [data, maxValue, onProcessed],
+    [data, maxValue, props.onProcessed],
   );
 
   const handleWheelScrolling = useCallback(

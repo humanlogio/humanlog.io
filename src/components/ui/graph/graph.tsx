@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   XAxis,
   YAxis,
@@ -47,6 +47,12 @@ const Graph = (props: {
     [onZoom],
   );
 
+  useEffect(() => {
+    setZoom({
+      startIndex: Math.floor((data?.length ?? 0) / 2),
+    });
+  }, [data]);
+
   if (!data) {
     return (
       <div className="space-y-8">
@@ -70,14 +76,21 @@ const Graph = (props: {
     );
   }
 
-  const maxValue = data.length - 1;
+  const [minValue, maxValue] = [0, data.length - 1];
   const { startIndex, endIndex } = {
-    startIndex: zoom?.startIndex ?? maxValue - 20,
-    endIndex: zoom?.endIndex ?? maxValue,
+    startIndex: Math.max(zoom?.startIndex ?? minValue, minValue),
+    endIndex: Math.min(zoom?.endIndex ?? maxValue, maxValue),
   } as { startIndex: number; endIndex: number };
 
   return (
-    <Scroller data={data} zoom={zoom} onProcessed={updateGraph}>
+    <Scroller
+      data={data}
+      minValue={minValue}
+      maxValue={maxValue}
+      startIndex={startIndex}
+      endIndex={endIndex}
+      onProcessed={updateGraph}
+    >
       <ResponsiveContainer>
         <BarChart
           width={500}
@@ -91,9 +104,26 @@ const Graph = (props: {
           }}
         >
           <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="name" />
+          <XAxis
+            dataKey="date"
+            tickFormatter={(value) =>
+              new Date(value).toLocaleDateString("en-US", {
+                day: "2-digit",
+                month: "2-digit",
+                year: "2-digit",
+              })
+            }
+          />
           <YAxis />
-          <Tooltip />
+          <Tooltip
+            labelFormatter={(value) =>
+              new Date(value).toLocaleDateString("en-US", {
+                day: "2-digit",
+                month: "2-digit",
+                year: "2-digit",
+              })
+            }
+          />
           <Legend />
           <Bar
             type="monotone"

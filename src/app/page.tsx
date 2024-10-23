@@ -99,13 +99,19 @@ export default function Home() {
         .filter((data) => data?.ts)
         .map((data, i) => ({
           dayNumber: i,
-          name: formatToDateString(data?.ts ?? Timestamp.fromDate(new Date())),
+          name: formatToDateString(data?.ts ?? convertToTimestamp(new Date())),
           date: data.ts!.toDate(),
           amt: Number(data.eventCount),
         }));
     },
     [formatToDateString],
   );
+
+  const convertToTimestamp = (date: Date) =>
+    new Timestamp({
+      seconds: BigInt(Math.floor(date.getTime() / 1000)),
+      nanos: (date.getTime() % 1000) * 1e6,
+    });
 
   const createNewSession = useCallback(() => {
     queryString &&
@@ -114,8 +120,8 @@ export default function Home() {
           const results = apiClients?.query.watchQuery({
             accountId: activeAccount,
             query: {
-              from: Timestamp.fromDate(startDate),
-              to: (endDate && Timestamp.fromDate(endDate)) || undefined,
+              from: convertToTimestamp(startDate),
+              to: (endDate && convertToTimestamp(endDate)) || undefined,
             },
           });
           setQueryString("");
@@ -123,8 +129,20 @@ export default function Home() {
             return;
           }
           for await (const result of results) {
+            console.log("doing loggin", queryString, result.events);
+            if (!result.events.length) {
+              continue;
+            }
             setSession(result.events);
           }
+          console.log("outside of await", results, {
+            query: {
+              startDate,
+              endDate,
+              from: convertToTimestamp(startDate),
+              to: (endDate && convertToTimestamp(endDate)) || undefined,
+            },
+          });
         } catch (e) {
           console.log("it crahsed", e);
         }
@@ -136,8 +154,8 @@ export default function Home() {
       try {
         const events = await apiClients?.query.summarizeEvents({
           accountId: activeAccount,
-          from: Timestamp.fromDate(startDate),
-          to: (endDate && Timestamp.fromDate(endDate)) || undefined,
+          from: convertToTimestamp(startDate),
+          to: (endDate && convertToTimestamp(endDate)) || undefined,
           bucketCount,
         });
         if (events) {
