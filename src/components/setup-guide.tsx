@@ -4,7 +4,7 @@ import { copyToClipboard } from "@/lib/clipboard";
 
 const SetupGuide: React.FC = () => {
   const origin = getSelfURL();
-  const installScript = `curl -sSL "${origin}/install.sh" | sh`;
+  const installScript = `curl -sSL "${origin}/install.sh" | bash`;
 
   return (
     <div className="mx-auto flex w-full max-w-screen-xl flex-grow flex-col items-center justify-center gap-8 px-4">
