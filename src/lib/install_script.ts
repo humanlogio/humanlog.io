@@ -7,6 +7,14 @@ export const renderInstallScript = (
 ): string => {
   const releaseApiURL = URL.parse(`/api/releases/${project}`, apiBaseURL!);
 
+  let onboardingBlock = "";
+  if (hasOnboarding) {
+    onboardingBlock = `
+if [[ -z "\${NONINTERACTIVE-}" ]]; then
+	\${exe} onboarding
+fi`;
+  }
+
   return `#!/bin/bash
 # TODO(everyone): Keep this script simple and easily auditable.
 
@@ -131,10 +139,7 @@ cd "\${bin_dir}"
 tar xzf "\${exe}.tar.gz"
 chmod +x "\${exe}"
 rm "\${exe}.tar.gz"
-
-if [[ -z "\${NONINTERACTIVE-}" ]]; then
-	${hasOnboarding ? "${exe} onboarding" : ""}
-fi
+${onboardingBlock}
 
 loginfo "\${project} was successfully installed to \${exe}"
 if command -v \${project} >/dev/null; then
