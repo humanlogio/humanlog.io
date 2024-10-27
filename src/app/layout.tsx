@@ -9,6 +9,7 @@ import { FullWidthProvider } from "@/context/full-width-provider";
 import { Toaster } from "@/components/ui/sonner";
 import PageHeader from "@/components/page-header";
 import { ListAccountsProvider } from "@/context/listAccounts";
+import PageFooter from "@/components/page-footer";
 
 export const metadata: Metadata = {
   title: "humanlog.io",
@@ -42,10 +43,9 @@ export default function RootLayout({
           >
             <FullWidthProvider>
               <ListAccountsProvider>
-                <header>
-                  <PageHeader />
-                </header>
-                <main>{children}</main>
+                <PageHeader />
+                {children}
+                <PageFooter />
                 <Toaster expand={true} />
               </ListAccountsProvider>
             </FullWidthProvider>

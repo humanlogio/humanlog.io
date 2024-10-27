@@ -176,7 +176,7 @@ const PageHeader: React.FC = () => {
   );
 
   return (
-    <div className="bg-darkBg dark:bg-slate-950">
+    <header className="bg-darkBg dark:bg-slate-950">
       <div className="mx-auto flex w-full max-w-screen-xl flex-row items-center justify-between gap-8 px-4 py-3">
         <div className="flex flex-row items-center gap-8">
           <Logo />
@@ -200,7 +200,7 @@ const PageHeader: React.FC = () => {
           </div>
         </div>
       </div>
-    </div>
+    </header>
   );
 };
 
