@@ -114,7 +114,7 @@ project="${project}"
 url_file=/tmp/project_uri
 
 loginfo "looking up latest release from \${channel} channel for \${os} on \${arch}"
-curl --silent --show-error --fail-with-body --data "{\\"os\\":\\"\${os}\\",\\"arch\\":\\"\${arch}\\",\\"channel\\":\\"\${channel}\\"}" ${releaseApiURL} > \${url_file} 2> /tmp/curl_error || { logerror "$(cat \${url_file}) \($(cat /tmp/curl_error)\)" ; exit 1; }
+curl --silent --show-error --data "{\\"os\\":\\"\${os}\\",\\"arch\\":\\"\${arch}\\",\\"channel\\":\\"\${channel}\\"}" ${releaseApiURL} > \${url_file} 2> /tmp/curl_error || { logerror "$(cat \${url_file}) \($(cat /tmp/curl_error)\)" ; exit 1; }
 
 project_uri=$(cat \${url_file})
 if [ ! "\${project_uri}" ]; then
