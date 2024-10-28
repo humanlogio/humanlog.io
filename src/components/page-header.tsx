@@ -3,7 +3,13 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { redirect, usePathname } from "next/navigation";
 import Link from "next/link";
-import { Loader, SquareCode, User as UserIcon, LogOut } from "lucide-react";
+import {
+  Loader,
+  SquareCode,
+  User as UserIcon,
+  LogOut,
+  Menu,
+} from "lucide-react";
 import Logo from "@/components/logo";
 import {
   Select,
@@ -20,6 +26,16 @@ import {
   DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ModeToggle } from "@/components/mode-toggle";
 import { WidthToggle } from "@/components/width-toggle";
@@ -107,7 +123,7 @@ const PageHeader: React.FC = () => {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <div className="flex cursor-pointer flex-row items-center gap-2">
-              <p className="font-medium text-white">
+              <p className="font-medium text-white md:order-2">
                 {user?.firstName || "username"}
               </p>
               <Avatar>
@@ -134,7 +150,7 @@ const PageHeader: React.FC = () => {
         </Link>
       );
     }
-    return <Loader color="white" className="animate-spin" />;
+    return <Loader className="animate-spin md:text-white" />;
   };
 
   const renderSourceSelectorBlock = () => (
@@ -176,31 +192,58 @@ const PageHeader: React.FC = () => {
   );
 
   return (
-    <div className="bg-darkBg dark:bg-slate-950">
+    <header className="bg-darkBg dark:bg-slate-950">
       <div className="mx-auto flex w-full max-w-screen-xl flex-row items-center justify-between gap-8 px-4 py-3">
-        <div className="flex flex-row items-center gap-8">
-          <Logo />
-          {!signupOnly && renderSourceSelectorBlock()}
-        </div>
-        <div className="flex flex-row items-center gap-6">
-          {!signupOnly && (
-            <Link href="/pricing" className="text-white hover:underline">
-              Pricing
-            </Link>
-          )}
-          {renderAvatarBlock(user)}
-          <div className="flex flex-row items-center gap-2">
-            <ModeToggle />
-            {pathname === "/" && (
-              <WidthToggle
-                isFullWidth={isFullWidth}
-                setIsFullWidth={setIsFullWidth}
-              />
+        <div className="hidden w-full flex-row items-center justify-between gap-8 md:flex">
+          <div className="flex flex-row items-center gap-8">
+            <Logo />
+            {!signupOnly && renderSourceSelectorBlock()}
+          </div>
+          <div className="flex flex-row items-center gap-6">
+            {!signupOnly && (
+              <Link href="/pricing" className="text-white hover:underline">
+                Pricing
+              </Link>
             )}
+            {renderAvatarBlock(user)}
+            <div className="flex flex-row items-center gap-2">
+              <ModeToggle />
+              {pathname === "/" && (
+                <WidthToggle
+                  isFullWidth={isFullWidth}
+                  setIsFullWidth={setIsFullWidth}
+                />
+              )}
+            </div>
           </div>
         </div>
+        <div className="md:hidden">
+          <Logo />
+        </div>
+        <Sheet>
+          <SheetTrigger asChild>
+            <Button size="icon" variant="neutral" className="md:hidden">
+              <Menu />
+            </Button>
+          </SheetTrigger>
+          <SheetContent className="flex flex-col items-start">
+            <SheetHeader>
+              <SheetTitle>Menu</SheetTitle>
+            </SheetHeader>
+            <div className="mt-8 flex grow flex-col gap-8">
+              {!signupOnly && renderSourceSelectorBlock()}
+              {renderAvatarBlock(user)}
+              {!signupOnly && (
+                <Link href="/pricing" className="hover:underline md:text-white">
+                  Pricing
+                </Link>
+              )}
+            </div>
+            <ModeToggle />
+          </SheetContent>
+        </Sheet>
       </div>
-    </div>
+    </header>
   );
 };
 
