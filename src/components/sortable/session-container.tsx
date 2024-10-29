@@ -46,28 +46,24 @@ export type KV = {
 };
 
 const SessionContainer = (props: { session: LogEventGroup[] | null }) => {
+  const { session } = props;
   const [items, setItems] = useState<{
     [key: string]: (LogEventGroup & { id: UniqueIdentifier })[];
   }>({});
 
   useEffect(() => {
-    if (!props.session) {
-      return;
-    }
     setItems({
-      root: [
-        ...(items["root"] ?? []),
-        ...props.session.map((session) => ({
+      root:
+        session?.map((session) => ({
           ...session,
           logs: session.logs.map((log, index) => ({
             ...log,
             id: log.id ?? index,
           })),
           id: session.id ?? `${session.machineId}-${session.sessionId}`,
-        })),
-      ],
+        })) ?? [],
     });
-  }, [items, props.session]);
+  }, [session]);
 
   const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null);
   const lastOverId = useRef<UniqueIdentifier | null>(null);
