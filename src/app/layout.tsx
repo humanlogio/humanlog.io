@@ -21,6 +21,41 @@ const font = FontMono({
   variable: "--font-mono",
 });
 
+const iconSocialLinks = [
+  {
+    href: "https://github.com/humanlogio",
+    icon: "/icons/github-mark-white.svg",
+    alt: "GitHub",
+  },
+];
+
+const footerLinks = [
+  {
+    href: "/download",
+    text: "Download the App",
+  },
+  {
+    href: "/about",
+    text: "About",
+  },
+  {
+    href: "/contact",
+    text: "Contact Us",
+  },
+  {
+    href: "/support",
+    text: "Support",
+  },
+  {
+    href: "/privacy",
+    text: "Privacy Policy",
+  },
+  {
+    href: "https://humanlog.io/",
+    text: "More by Humanlog",
+  },
+];
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -45,7 +80,14 @@ export default function RootLayout({
               <ListAccountsProvider>
                 <PageHeader />
                 {children}
-                <PageFooter />
+                {false ? (
+                  <></>
+                ) : (
+                  <PageFooter
+                    iconSocialLinks={iconSocialLinks}
+                    footerLinks={footerLinks}
+                  />
+                )}
                 <Toaster expand={true} />
               </ListAccountsProvider>
             </FullWidthProvider>

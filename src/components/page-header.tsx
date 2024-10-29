@@ -28,10 +28,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import {
   Sheet,
-  SheetClose,
   SheetContent,
-  SheetDescription,
-  SheetFooter,
   SheetHeader,
   SheetTitle,
   SheetTrigger,
@@ -199,6 +196,7 @@ const PageHeader: React.FC = () => {
             <Logo />
             {!signupOnly && renderSourceSelectorBlock()}
           </div>
+
           <div className="flex flex-row items-center gap-6">
             {!signupOnly && (
               <Link href="/pricing" className="text-white hover:underline">
