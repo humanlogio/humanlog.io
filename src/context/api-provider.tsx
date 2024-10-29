@@ -1,7 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useMemo, useState } from "react";
-import { createPromiseClient, PromiseClient } from "@connectrpc/connect";
+import { createClient, Client } from "@connectrpc/connect";
 import { Interceptor } from "@connectrpc/connect";
 import { createConnectTransport } from "@connectrpc/connect-web";
 import { AuthService } from "api/js/svc/auth/v1/service_connect";
@@ -21,12 +21,12 @@ type ApiProviderType = {
 };
 
 type ApiClients = {
-  auth: PromiseClient<typeof AuthService>;
-  account: PromiseClient<typeof AccountService>;
-  org: PromiseClient<typeof OrganizationService>;
-  user: PromiseClient<typeof UserService>;
-  localhost: PromiseClient<typeof LocalhostService>;
-  query: PromiseClient<typeof QueryService>;
+  auth: Client<typeof AuthService>;
+  account: Client<typeof AccountService>;
+  org: Client<typeof OrganizationService>;
+  user: Client<typeof UserService>;
+  localhost: Client<typeof LocalhostService>;
+  query: Client<typeof QueryService>;
 };
 
 const ApiClientContext = createContext<ApiProviderType | null>(null);
@@ -63,22 +63,21 @@ export function ApiClientsProvider({
     const localhostTransport = createConnectTransport({
       baseUrl: "http://localhost:32764",
     });
-    const localhost = createPromiseClient(LocalhostService, localhostTransport);
+    const localhost = createClient(LocalhostService, localhostTransport);
+    const apiTransport = createConnectTransport({
+      baseUrl: getAPIURL(),
+      interceptors: interceptors,
+    });
 
-    const activeTrasnport = !activeAccount
-      ? localhostTransport
-      : createConnectTransport({
-          baseUrl: getAPIURL(),
-          interceptors: interceptors,
-        });
+    const activeTrasnport = !activeAccount ? localhostTransport : apiTransport;
 
     return {
       localhost,
-      auth: createPromiseClient(AuthService, activeTrasnport),
-      account: createPromiseClient(AccountService, activeTrasnport),
-      org: createPromiseClient(OrganizationService, activeTrasnport),
-      user: createPromiseClient(UserService, activeTrasnport),
-      query: createPromiseClient(QueryService, activeTrasnport),
+      auth: createClient(AuthService, apiTransport),
+      account: createClient(AccountService, apiTransport),
+      org: createClient(OrganizationService, apiTransport),
+      user: createClient(UserService, apiTransport),
+      query: createClient(QueryService, activeTrasnport),
     };
   }, [activeAccount]);
 
