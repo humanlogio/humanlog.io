@@ -39,12 +39,6 @@ then
   abort "Bash is required to interpret this script."
 fi
 
-# Check if script is run in POSIX mode
-if [[ -n "\${POSIXLY_CORRECT+1}" ]]
-then
-  abort 'Bash must not run in POSIX mode. Please unset POSIXLY_CORRECT and try again.'
-fi
-
 # Check if script is run with force-interactive mode in CI
 if [[ -n "\${CI-}" && -n "\${INTERACTIVE-}" ]]
 then
