@@ -124,25 +124,15 @@ export default function Home() {
               to: (endDate && convertToTimestamp(endDate)) || undefined,
             },
           });
-          setQueryString("");
           if (!results) {
             return;
           }
           for await (const result of results) {
-            console.log("doing loggin", queryString, result.events);
             if (!result.events.length) {
               continue;
             }
             setSession(result.events);
           }
-          console.log("outside of await", results, {
-            query: {
-              startDate,
-              endDate,
-              from: convertToTimestamp(startDate),
-              to: (endDate && convertToTimestamp(endDate)) || undefined,
-            },
-          });
         } catch (e) {
           console.log("it crahsed", e);
         }
