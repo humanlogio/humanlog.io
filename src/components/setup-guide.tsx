@@ -1,21 +1,10 @@
-import { toast } from "sonner";
 import { Copy } from "lucide-react";
 import { getSelfURL } from "@/lib/envs";
+import { copyToClipboard } from "@/lib/clipboard";
 
 const SetupGuide: React.FC = () => {
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard
-      .writeText(text)
-      .then(() => {
-        toast.success("Text copied to clipboard");
-      })
-      .catch((err) => {
-        console.error("Failed to copy text: ", err);
-      });
-  };
-
   const origin = getSelfURL();
-  const installScript = `curl -sSL "${origin}/install.sh" | sh`;
+  const installScript = `curl -sSL "${origin}/install.sh" | bash`;
 
   return (
     <div className="mx-auto flex w-full max-w-screen-xl flex-grow flex-col items-center justify-center gap-8 px-4">
@@ -34,7 +23,7 @@ const SetupGuide: React.FC = () => {
       <div
         onClick={() => copyToClipboard(installScript)}
         tabIndex={1}
-        className="flex w-full max-w-xl cursor-pointer flex-row items-center justify-between gap-4 rounded-base bg-slate-200 px-4 py-3 hover:bg-slate-300 focus:ring-4 focus:ring-slate-100 dark:bg-slate-950"
+        className="flex w-full max-w-2xl cursor-pointer flex-row items-center justify-between gap-4 rounded-base bg-slate-200 px-4 py-3 hover:bg-slate-300 focus:ring-4 focus:ring-slate-100 dark:bg-slate-950"
       >
         <code className="truncate">{installScript}</code>
         <Copy size={14} />
@@ -43,7 +32,7 @@ const SetupGuide: React.FC = () => {
       <div
         onClick={() => copyToClipboard("my_server 2>&1 | humanlog")}
         tabIndex={2}
-        className="flex w-full max-w-xl cursor-pointer flex-row items-center justify-between gap-4 rounded-base bg-slate-200 px-4 py-3 hover:bg-slate-300 focus:ring-4 focus:ring-slate-100 dark:bg-slate-950"
+        className="flex w-full max-w-2xl cursor-pointer flex-row items-center justify-between gap-4 rounded-base bg-slate-200 px-4 py-3 hover:bg-slate-300 focus:ring-4 focus:ring-slate-100 dark:bg-slate-950"
       >
         <code className="truncate">
           {JSON.stringify("$ my_server 2>&1 | humanlog").slice(1, -1)}

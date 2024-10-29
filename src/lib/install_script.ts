@@ -3,34 +3,90 @@ export const renderInstallScript = (
   logPrefix: string,
   apiBaseURL: URL,
   channel: string,
+  hasOnboarding: boolean,
 ): string => {
   const releaseApiURL = URL.parse(`/api/releases/${project}`, apiBaseURL!);
 
-  return `#!/bin/sh
-# Based on Deno installer: Copyright 2019 the Deno authors. All rights reserved. MIT license.
+  let onboardingBlock = "";
+  if (hasOnboarding) {
+    onboardingBlock = `
+if [[ -z "\${NONINTERACTIVE-}" ]]; then
+	\${exe} onboarding
+fi`;
+  }
+
+  return `#!/bin/bash
 # TODO(everyone): Keep this script simple and easily auditable.
+
+# inspired by the Deno installer
+# inspired by the Homebrew installer
 
 if [ -n "\$HUMANLOG_DEBUG" ]; then
 	PS4='[$(basename \${BASH_SOURCE[0]:-inherited}):\${LINENO}:\${FUNCNAME[0]:-main}] '
 	set -x
 fi
 
-os=$(uname -s)
-arch=$(uname -m)
-channel="\${HUMANLOG_CHANNEL:-${channel}}"
-project="${project}"
+abort() {
+  printf "%s\n" "$@" >&2
+  exit 1
+}
+
+# Fail fast with a concise message when not using bash
+# Single brackets are needed here for POSIX compatibility
+# shellcheck disable=SC2292
+if [ -z "\${BASH_VERSION:-}" ]
+then
+  abort "Bash is required to interpret this script."
+fi
+
+# Check if script is run with force-interactive mode in CI
+if [[ -n "\${CI-}" && -n "\${INTERACTIVE-}" ]]
+then
+  abort "Cannot run force-interactive mode in CI."
+fi
+
+if [[ -n "\${INTERACTIVE-}" && -n "\${NONINTERACTIVE-}" ]]
+then
+  abort 'Both "INTERACTIVE" and "NONINTERACTIVE" are set. Please unset at least one variable and try again.'
+fi
+
+# string formatters
+if [[ -t 1 ]]
+then
+  tty_escape() { printf "\\033[%sm" "$1"; }
+else
+  tty_escape() { :; }
+fi
+tty_mkbold() { tty_escape "1;$1"; }
+tty_lightgreen="$(tty_mkbold 32)"
+tty_lightred="$(tty_mkbold 31)"
+tty_reset="$(tty_escape 0)"
 
 function loginfo() {
-	LIGHTGREEN='\\033[1;32m'
-	NC='\\033[0m'
-	echo "\${LIGHTGREEN}${logPrefix}\${NC}: \$@"
+	echo "\${tty_lightgreen}${logPrefix}\${tty_reset}: \$@"
 }
 
 function logerror() {
-	LIGHTRED='\\033[1;31m'
-	NC='\\033[0m'
-	echo "\${LIGHTRED}${logPrefix}\${NC}: \$@"
+	echo "\${tty_lightred}${logPrefix}\${tty_reset}: \$@"
 }
+
+# shellcheck disable=SC2016
+if [[ -z "\${NONINTERACTIVE-}" ]]
+then
+  if [[ -n "\${CI-}" ]]
+  then
+    logerror 'Running in non-interactive mode because "CI" is set.'
+    NONINTERACTIVE=1
+  elif [[ ! -t 0 ]]
+  then
+    if [[ ! -z "\${INTERACTIVE-}" ]]
+    then
+      logerror 'Running in interactive mode despite "stdin" not being a TTY because "INTERACTIVE" is set.'
+    fi
+  fi
+else
+  loginfo 'Running in non-interactive mode because "NONINTERACTIVE" is set.'
+fi
 
 function check_file_has_content() {
 	local filename=\${1}
@@ -44,10 +100,15 @@ function append_content_to_file() {
 	echo \${content} >> \${filename}
 }
 
+os=$(uname -s)
+arch=$(uname -m)
+channel="\${HUMANLOG_CHANNEL:-${channel}}"
+project="${project}"
+
 url_file=/tmp/project_uri
 
 loginfo "looking up latest release from \${channel} channel for \${os} on \${arch}"
-curl --silent --show-error --fail-with-body --data "{\\"os\\":\\"\${os}\\",\\"arch\\":\\"\${arch}\\",\\"channel\\":\\"\${channel}\\"}" ${releaseApiURL} > \${url_file} 2> /tmp/curl_error || { logerror "$(cat \${url_file}) \($(cat /tmp/curl_error)\)" ; exit 1; }
+curl --silent --show-error --data "{\\"os\\":\\"\${os}\\",\\"arch\\":\\"\${arch}\\",\\"channel\\":\\"\${channel}\\"}" ${releaseApiURL} > \${url_file} 2> /tmp/curl_error || { logerror "$(cat \${url_file}) \($(cat /tmp/curl_error)\)" ; exit 1; }
 
 project_uri=$(cat \${url_file})
 if [ ! "\${project_uri}" ]; then
@@ -72,6 +133,7 @@ cd "\${bin_dir}"
 tar xzf "\${exe}.tar.gz"
 chmod +x "\${exe}"
 rm "\${exe}.tar.gz"
+${onboardingBlock}
 
 loginfo "\${project} was successfully installed to \${exe}"
 if command -v \${project} >/dev/null; then

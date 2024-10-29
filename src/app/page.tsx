@@ -175,7 +175,7 @@ export default function Home() {
   ]);
 
   return (
-    <div className="flex h-[calc(100dvh-56px)] flex-col py-8">
+    <main className="flex h-[calc(100dvh-56px)] flex-col py-8">
       {signupOnly || (!hasLocalhost && !listAccounts.length) ? (
         <SetupGuide />
       ) : (
@@ -263,6 +263,6 @@ export default function Home() {
           </div>
         </div>
       )}
-    </div>
+    </main>
   );
 }
