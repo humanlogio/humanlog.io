@@ -9,6 +9,7 @@ import { gravatarURL } from "@/lib/utils";
 import { useAllAccounts } from "@/context/listAccounts";
 import { Button } from "./ui/button";
 import { useState } from "react";
+import Image from "next/image";
 
 const PageFooter = (props: {
   iconSocialLinks: { href: string; icon: string; alt: string }[];
@@ -61,11 +62,12 @@ const PageFooter = (props: {
               {Object.values(iconSocialLinks).map((link) => (
                 <a
                   className="contents"
+                  key={link.href}
                   href={link.href}
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  <img
+                  <Image
                     className="col-start-3 w-6 justify-self-end"
                     src={link.icon}
                     alt={link.alt}
@@ -79,6 +81,7 @@ const PageFooter = (props: {
             {Object.values(footerLinks).map((link) => (
               <a
                 className="text-main transition-colors hover:text-slate-100"
+                key={link.href}
                 href={link.href}
                 target="_blank"
                 rel="noopener noreferrer"

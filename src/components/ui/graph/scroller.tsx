@@ -23,7 +23,15 @@ const Scroller = (props: {
   children: ReactElement[];
   onProcessed: (zoom: ZoomType, animate: boolean) => void;
 }) => {
-  const { data, minValue, maxValue, startIndex, endIndex, children } = props;
+  const {
+    data,
+    minValue,
+    maxValue,
+    startIndex,
+    endIndex,
+    children,
+    onProcessed,
+  } = props;
   const [deltaAccumulatorY, setDeltaAccumulatorY] = useState(0);
   const [deltaAccumulatorX, setDeltaAccumulatorX] = useState(0);
   const graphRef = useRef<HTMLDivElement>(null);
@@ -79,9 +87,9 @@ const Scroller = (props: {
         animate = true;
       }
 
-      props.onProcessed(updatedZoom, animate);
+      onProcessed(updatedZoom, animate);
     },
-    [data, maxValue, props.onProcessed],
+    [data, maxValue, onProcessed],
   );
 
   const handleWheelScrolling = useCallback(

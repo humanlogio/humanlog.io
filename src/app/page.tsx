@@ -36,13 +36,16 @@ export default function Home() {
   const [session, setSession] = useState<LogEventGroup[] | null>(null);
   const [queryString, setQueryString] = useState<string>("");
 
-  const updateTimeFrame = useCallback((zoom: ZoomType) => {
-    // this is where we turn the zoom index into start and end date
-    // setStartDate()
-    // setEndDate()
-    console.log({ eventsList });
-    setZoom(zoom);
-  }, []);
+  const updateTimeFrame = useCallback(
+    (zoom: ZoomType) => {
+      // this is where we turn the zoom index into start and end date
+      // setStartDate()
+      // setEndDate()
+      console.log({ eventsList });
+      setZoom(zoom);
+    },
+    [eventsList],
+  );
 
   const formatToDateString = useCallback(
     (time: Timestamp) => {
