@@ -35,11 +35,11 @@ const auther: (cookie: string) => Interceptor = (cookie: string) => {
   return (next) => async (req) => {
     req.header.set("Browser-Authorization", cookie);
     const res = await next(req);
-    console.log("res", res);
+    // console.log("res", res);
     res.header.get("content-type");
     const cookies = res.header.getSetCookie();
     if (cookies.length > 1) {
-      console.log(cookies);
+      // console.log(cookies);
     }
     return res;
   };
