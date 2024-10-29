@@ -117,22 +117,29 @@ export default function Home() {
     queryString &&
       (async () => {
         try {
-          const results = apiClients?.query.watchQuery({
+          const stream = apiClients?.query.watchQuery({
             accountId: activeAccount,
             query: {
               from: convertToTimestamp(startDate),
               to: (endDate && convertToTimestamp(endDate)) || undefined,
             },
           });
-          if (!results) {
+          console.log("query sent, stream=", stream)
+          if (!stream) {
             return;
           }
-          for await (const result of results) {
-            if (!result.events.length) {
+          console.log("awaiting responses from stream")
+          for await (const response of stream) {
+            console.log("got response: log group event count=", response.events.length)
+            for (const leg of response.events) {
+              console.log(`log group event (m=${leg.machineId},s=${leg.sessionId}): log count=`, leg.logs.length)
+            }
+            if (!response.events.length) {
               continue;
             }
-            setSession(result.events);
+            setSession(response.events);
           }
+          console.log("done awaiting results")
         } catch (e) {
           console.log("it crahsed", e);
         }
