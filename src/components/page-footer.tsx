@@ -22,7 +22,7 @@ const PageFooter = (props: {
   const renderAvatarBlock = (user: User | null) => {
     if (user) {
       return (
-        <div className="flex cursor-pointer flex-row items-center gap-2">
+        <div className="flex w-full cursor-pointer flex-row items-center justify-center gap-2">
           <p className="font-medium text-white md:order-2">
             {user?.firstName || "username"}
           </p>
@@ -71,6 +71,8 @@ const PageFooter = (props: {
                     className="col-start-3 w-6 justify-self-end"
                     src={link.icon}
                     alt={link.alt}
+                    width={21}
+                    height={21}
                   />
                 </a>
               ))}
