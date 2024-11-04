@@ -49,14 +49,7 @@ const PageFooter = (props: {
       <div className="container">
         <div className="grid grid-cols-1 justify-items-center gap-6 text-center md:grid-cols-12 lg:gap-0">
           <div className="flex flex-col justify-between gap-7 pb-1 md:col-span-3 md:justify-self-start">
-            <a
-              className="contents"
-              href="/"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <Logo small />
-            </a>
+            <Logo small />
 
             <div className="flex items-center justify-center gap-4 md:justify-between">
               {Object.values(iconSocialLinks).map((link) => (

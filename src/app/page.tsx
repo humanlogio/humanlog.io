@@ -128,28 +128,21 @@ export default function Home() {
               to: (endDate && convertToTimestamp(endDate)) || undefined,
             },
           });
-          console.log("query sent, stream=", stream);
           if (!stream) {
             return;
           }
-          console.log("awaiting responses from stream");
           for await (const response of stream) {
-            console.log(
-              "got response: log group event count=",
-              response.events.length,
-            );
             for (const leg of response.events) {
-              console.log(
-                `log group event (m=${leg.machineId},s=${leg.sessionId}): log count=`,
-                leg.logs.length,
-              );
+              if (leg.logs.length > 100) {
+                leg.logs.length = 100; // TEMP to fix page locks
+                // TODO: replace with real paginator
+              }
             }
             if (!response.events.length) {
               continue;
             }
             setSession(response.events);
           }
-          console.log("done awaiting results");
         } catch (e) {
           console.log("it crahsed", e);
         }

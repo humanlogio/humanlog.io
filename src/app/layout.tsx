@@ -43,11 +43,11 @@ const footerLinks = [
     text: "Contact Us",
   },
   {
-    href: "/support",
-    text: "Support",
+    href: "/legal/siteterms",
+    text: "Terms of Service",
   },
   {
-    href: "/privacy",
+    href: "/legal/privacy",
     text: "Privacy Policy",
   },
   {
@@ -62,7 +62,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body
         className={cn(
           "min-h-screen bg-bg font-mono text-text antialiased dark:bg-darkBg dark:text-darkText",
@@ -80,9 +80,7 @@ export default function RootLayout({
               <ListAccountsProvider>
                 <PageHeader />
                 {children}
-                {false ? (
-                  <></>
-                ) : (
+                {true && ( // todo
                   <PageFooter
                     iconSocialLinks={iconSocialLinks}
                     footerLinks={footerLinks}
