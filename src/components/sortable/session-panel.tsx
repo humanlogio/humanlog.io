@@ -41,7 +41,31 @@ const SessionPanel = ({ logEventGroup }: SessionPanelProps) => {
                   {log.id}
                 </code>
               </div>
-              <code className="w-[90%] p-2">{log.raw}</code>
+
+              <div className="flex w-full flex-1 flex-col">
+                <div className="flex w-full flex-row gap-4 px-4 py-2">
+                  {log.structured?.lvl && (
+                    <code>
+                      [
+                      <span className="text-red-500">{log.structured.lvl}</span>
+                      ]
+                    </code>
+                  )}
+
+                  <code>
+                    {log.structured?.msg ?? (
+                      <span className="text-slate-400">[no message]</span>
+                    )}
+                  </code>
+                </div>
+
+                {log.structured?.kvs.map((kv) => (
+                  <code className="pl-16">
+                    <span className="text-green-400">{kv.key}</span>=
+                    <span className="text-red-400">{kv.value}</span>
+                  </code>
+                ))}
+              </div>
             </div>
           );
         })}
