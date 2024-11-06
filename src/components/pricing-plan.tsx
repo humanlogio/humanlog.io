@@ -30,8 +30,8 @@ export default function PricingPlan({
         </div>
         <p className="mb-3 mt-2 text-slate-500">{description}</p>
         <div>
-          <span className="text-3xl font-bold">{price}</span>
-          <span>/month</span>
+          <span className="text-3xl font-bold">{price || "Custom"}</span>
+          {price && <span>/month</span>}
         </div>
         <ul className="mt-8 flex flex-col gap-2">
           {features.map((item) => {

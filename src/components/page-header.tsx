@@ -16,6 +16,7 @@ import {
   SelectContent,
   SelectGroup,
   SelectItem,
+  SelectSeparator,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
@@ -123,15 +124,15 @@ const PageHeader: React.FC = () => {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <div className="flex cursor-pointer flex-row items-center gap-2">
-              <p className="font-medium text-white md:order-2">
-                {user?.firstName || "username"}
-              </p>
               <Avatar>
                 <AvatarImage src={gravatarURL(user?.email)} />
                 <AvatarFallback className="uppercase">
                   {user?.firstName?.slice(0, 2) || <UserIcon size={16} />}
                 </AvatarFallback>
               </Avatar>
+              <p className="font-medium text-text md:order-1 md:text-white">
+                {user?.firstName || "username"}
+              </p>
             </div>
           </DropdownMenuTrigger>
           <DropdownMenuContent className="w-56">
@@ -146,7 +147,9 @@ const PageHeader: React.FC = () => {
     } else if (authURL) {
       return (
         <Link href={authURL}>
-          <Button variant="neutral">Sign up</Button>
+          <Button variant="noShadowNeutral" className="w-full">
+            Sign up
+          </Button>
         </Link>
       );
     }
@@ -154,9 +157,9 @@ const PageHeader: React.FC = () => {
   };
 
   const renderSourceSelectorBlock = () => (
-    <div title="Account Selector">
+    <div title="Account Selector" className="w-full md:min-w-52">
       <Select value={activeAccount?.toString()} onValueChange={updateSelection}>
-        <SelectTrigger className="min-w-52">
+        <SelectTrigger className="w-full">
           <div className="flex flex-row items-center gap-2">
             <SquareCode size={16} />
             <SelectValue placeholder="Select source" />
@@ -184,6 +187,7 @@ const PageHeader: React.FC = () => {
                 <></>
               ),
             )}
+            <SelectSeparator />
             <SelectItem value={addNewValue}>+ Add new</SelectItem>
           </SelectGroup>
         </SelectContent>
@@ -230,7 +234,7 @@ const PageHeader: React.FC = () => {
             <SheetHeader>
               <SheetTitle>Menu</SheetTitle>
             </SheetHeader>
-            <div className="mt-8 flex grow flex-col gap-8">
+            <div className="mt-4 flex w-full grow flex-col gap-8">
               {!signupOnly && renderSourceSelectorBlock()}
               {renderAvatarBlock(user)}
               {!signupOnly && (
