@@ -45,25 +45,43 @@ export type KV = {
   value: string;
 };
 
-const SessionContainer = (props: { session: LogEventGroup[] | null }) => {
-  const { session } = props;
+const SessionContainer = (props: { sessions: LogEventGroup[] | null }) => {
+  const { sessions } = props;
   const [items, setItems] = useState<{
     [key: string]: (LogEventGroup & { id: UniqueIdentifier })[];
   }>({});
 
   useEffect(() => {
+    if (!sessions) {
+      return;
+    }
+
+    const current = items["root"] ?? [];
+
     setItems({
-      root:
-        session?.map((session) => ({
-          ...session,
-          logs: session.logs.map((log, index) => ({
-            ...log,
-            id: log.id ?? index,
-          })),
-          id: session.id ?? `${session.machineId}-${session.sessionId}`,
-        })) ?? [],
+      root: current.concat(
+        sessions
+          .map((newItem) => {
+            const newId = `${newItem.machineId}-${newItem.sessionId}`;
+            const match = current.find((existing) => existing.id === newId);
+            if (match) {
+              const max = 10; // temp max before pagination
+              match.logs = [...newItem.logs, ...match.logs];
+              match.logs.length =
+                match.logs.length > max ? max : match.logs.length;
+              return null as unknown as LogEventGroup & {
+                id: UniqueIdentifier;
+              };
+            }
+            return {
+              ...newItem,
+              id: newItem.id ?? newId,
+            };
+          })
+          .filter((newItem) => newItem),
+      ),
     });
-  }, [session]);
+  }, [sessions]);
 
   const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null);
   const lastOverId = useRef<UniqueIdentifier | null>(null);
