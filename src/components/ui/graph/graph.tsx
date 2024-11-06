@@ -1,5 +1,4 @@
-import { DataPoint, generateRandomData } from "@/lib/faker";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   XAxis,
   YAxis,
@@ -19,25 +18,28 @@ export type ZoomType = {
   endIndex?: number;
 };
 
-const Graph = (props: { onZoom?: (zoom: ZoomType) => void } = {}) => {
-  const { onZoom } = props;
-  const [data, setData] = useState(generateRandomData(50));
+export type DataPoint = {
+  dayNumber: number;
+  name: string;
+  date: Date;
+  amt: number;
+  pv?: number;
+};
+
+const Graph = (props: {
+  data?: DataPoint[] | null;
+  startDate: Date;
+  endDate: Date | null;
+  setStartDate: (date: Date) => void;
+  setEndDate: (date: Date) => void;
+  onZoom?: (zoom: ZoomType) => void;
+}) => {
+  const { data, startDate, endDate, setStartDate, setEndDate, onZoom } = props;
   const [zoom, setZoom] = useState<ZoomType | null>(null);
   const [activeAnimations, setActiveAnimations] = useState(true);
-  const [dateFromValue, setDateTo] = useState(
-    new Date(new Date().valueOf() - 1000 * 60 * 60 * 24 * 30),
-  );
-  const [dateToValue, setDateFrom] = useState(new Date());
-
-  const maxValue = data.length - 1;
-  const { startIndex, endIndex } = {
-    startIndex: zoom?.startIndex ?? maxValue - 20,
-    endIndex: zoom?.endIndex ?? maxValue,
-  } as { startIndex: number; endIndex: number };
 
   const updateGraph = useCallback(
-    (data: DataPoint[], zoom: ZoomType, animate: boolean) => {
-      setData(data);
+    (zoom: ZoomType, animate: boolean) => {
       setZoom(zoom);
       setActiveAnimations(animate);
       if (typeof onZoom === "function") onZoom(zoom);
@@ -45,8 +47,50 @@ const Graph = (props: { onZoom?: (zoom: ZoomType) => void } = {}) => {
     [onZoom],
   );
 
+  useEffect(() => {
+    setZoom({
+      startIndex: Math.floor((data?.length ?? 0) / 2),
+    });
+  }, [data]);
+
+  if (!data) {
+    return (
+      <div className="space-y-8">
+        <div className="h-full w-full">
+          <p className="mt-1 rounded-md border bg-slate-200 p-4 text-sm font-medium leading-tight text-slate-800 dark:bg-slate-800 dark:text-slate-200">
+            No event list data was loaded for that time frame.
+            <br />
+            <br />
+            Try expanding the date range. If still no data is coming through,
+            please check that the log source is configured correctly.
+          </p>
+        </div>
+
+        <DateRangePicker
+          dateFrom={startDate}
+          dateTo={endDate}
+          setDateFrom={setStartDate}
+          setDateTo={setEndDate}
+        />
+      </div>
+    );
+  }
+
+  const [minValue, maxValue] = [0, data.length - 1];
+  const { startIndex, endIndex } = {
+    startIndex: Math.max(zoom?.startIndex ?? minValue, minValue),
+    endIndex: Math.min(zoom?.endIndex ?? maxValue, maxValue),
+  } as { startIndex: number; endIndex: number };
+
   return (
-    <Scroller data={data} zoom={zoom} onProcessed={updateGraph}>
+    <Scroller
+      data={data}
+      minValue={minValue}
+      maxValue={maxValue}
+      startIndex={startIndex}
+      endIndex={endIndex}
+      onProcessed={updateGraph}
+    >
       <ResponsiveContainer>
         <BarChart
           width={500}
@@ -60,22 +104,33 @@ const Graph = (props: { onZoom?: (zoom: ZoomType) => void } = {}) => {
           }}
         >
           <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="name" />
+          <XAxis
+            dataKey="date"
+            tickFormatter={(value) =>
+              new Date(value).toLocaleDateString("en-US", {
+                day: "2-digit",
+                month: "2-digit",
+                year: "2-digit",
+              })
+            }
+          />
           <YAxis />
-          <Tooltip />
+          <Tooltip
+            labelFormatter={(value) =>
+              new Date(value).toLocaleDateString("en-US", {
+                day: "2-digit",
+                month: "2-digit",
+                year: "2-digit",
+              })
+            }
+          />
           <Legend />
           <Bar
             type="monotone"
-            dataKey="pv"
-            stroke="#8884d8"
-            fill="#8884d8"
-            isAnimationActive={activeAnimations}
-          />
-          <Bar
-            type="monotone"
-            dataKey="uv"
-            stroke="#82ca9d"
-            fill="#82ca9d"
+            dataKey="amt"
+            name="Log Amount"
+            stroke="rgba(136, 170, 238, var(--tw-bg-opacity))"
+            fill="rgba(136, 170, 238, var(--tw-bg-opacity))"
             isAnimationActive={activeAnimations}
           />
           <Brush
@@ -92,7 +147,7 @@ const Graph = (props: { onZoom?: (zoom: ZoomType) => void } = {}) => {
                 year: "2-digit",
               })
             }
-            // onChange={handleBrushChange}
+            onChange={(zoom) => updateGraph(zoom, activeAnimations)}
             startIndex={startIndex}
             endIndex={endIndex}
           />
@@ -100,10 +155,10 @@ const Graph = (props: { onZoom?: (zoom: ZoomType) => void } = {}) => {
       </ResponsiveContainer>
 
       <DateRangePicker
-        dateFrom={dateFromValue}
-        dateTo={dateToValue}
-        setDateFrom={setDateFrom}
-        setDateTo={setDateTo}
+        dateFrom={startDate}
+        dateTo={endDate}
+        setDateFrom={setStartDate}
+        setDateTo={setEndDate}
       />
     </Scroller>
   );

@@ -1,6 +1,5 @@
-import { DataPoint, generateRandomData } from "@/lib/faker";
 import { ReactElement, useCallback, useEffect, useRef, useState } from "react";
-import { ZoomType } from "./graph";
+import { DataPoint, ZoomType } from "./graph";
 
 type WheelEvent = {
   preventDefault: () => void;
@@ -17,20 +16,25 @@ type KeyEvent = {
 
 const Scroller = (props: {
   data: DataPoint[];
-  zoom: ZoomType | null;
-  onProcessed: (data: DataPoint[], zoom: ZoomType, animate: boolean) => void;
+  minValue: number;
+  maxValue: number;
+  startIndex: number;
+  endIndex: number;
   children: ReactElement[];
+  onProcessed: (zoom: ZoomType, animate: boolean) => void;
 }) => {
-  const { data, zoom, onProcessed, children } = props;
+  const {
+    data,
+    minValue,
+    maxValue,
+    startIndex,
+    endIndex,
+    children,
+    onProcessed,
+  } = props;
   const [deltaAccumulatorY, setDeltaAccumulatorY] = useState(0);
   const [deltaAccumulatorX, setDeltaAccumulatorX] = useState(0);
   const graphRef = useRef<HTMLDivElement>(null);
-
-  const [minValue, maxValue] = [0, data.length - 1];
-  const { startIndex, endIndex } = {
-    startIndex: zoom?.startIndex ?? maxValue - 20,
-    endIndex: zoom?.endIndex ?? maxValue,
-  } as { startIndex: number; endIndex: number };
 
   const requeryDataChange = 0.35;
   const graphGrowthRate = 1.5;
@@ -55,7 +59,7 @@ const Scroller = (props: {
         maxValue < 400 &&
         Math.abs(startIndex - endIndex) > maxValue * (1 - requeryDataChange)
       ) {
-        newData = generateRandomData(maxValue * graphGrowthRate);
+        // newData = generateRandomData(maxValue * graphGrowthRate);
       } else if (
         direction === "in" &&
         maxValue > 20 &&
@@ -63,7 +67,7 @@ const Scroller = (props: {
       ) {
         updatedZoom.startIndex = 0;
         updatedZoom.endIndex = maxValue / graphGrowthRate - 1;
-        newData = generateRandomData(maxValue / graphGrowthRate);
+        // newData = generateRandomData(maxValue / graphGrowthRate);
       }
 
       updatedZoom.startIndex = Math.floor(updatedZoom.startIndex as number);
@@ -83,7 +87,7 @@ const Scroller = (props: {
         animate = true;
       }
 
-      onProcessed(newData, updatedZoom, animate);
+      onProcessed(updatedZoom, animate);
     },
     [data, maxValue, onProcessed],
   );
@@ -92,8 +96,8 @@ const Scroller = (props: {
     (event: WheelEvent | KeyEvent, zoomIn?: boolean) => {
       event.preventDefault();
 
-      const zoomThreshold = 5;
-      const panThreshold = 5;
+      const zoomThreshold = 145;
+      const panThreshold = 100;
       const gap = Math.ceil(0.1 * Math.abs(startIndex - endIndex));
 
       const processGap = (percentage: number, gap: number): number =>
@@ -124,14 +128,14 @@ const Scroller = (props: {
 
       if (accumulatedDeltaX >= panThreshold) {
         handleBrushChange({
-          startIndex: Math.min(maxValue, startIndex + gap),
+          startIndex: Math.min(maxValue - gap, startIndex + gap),
           endIndex: Math.min(maxValue, endIndex + gap),
         });
         accumulatedDeltaX = 0;
       } else if (accumulatedDeltaX <= -panThreshold) {
         handleBrushChange({
           startIndex: Math.max(minValue, startIndex - gap),
-          endIndex: Math.max(minValue, endIndex - gap),
+          endIndex: Math.max(minValue + gap, endIndex - gap),
         });
         accumulatedDeltaX = 0;
       }

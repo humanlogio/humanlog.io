@@ -1,7 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useMemo, useState } from "react";
-import { createPromiseClient, PromiseClient } from "@connectrpc/connect";
+import { createClient, Client } from "@connectrpc/connect";
 import { Interceptor } from "@connectrpc/connect";
 import { createConnectTransport } from "@connectrpc/connect-web";
 import { AuthService } from "api/js/svc/auth/v1/service_connect";
@@ -21,12 +21,12 @@ type ApiProviderType = {
 };
 
 type ApiClients = {
-  auth: PromiseClient<typeof AuthService>;
-  account: PromiseClient<typeof AccountService>;
-  org: PromiseClient<typeof OrganizationService>;
-  user: PromiseClient<typeof UserService>;
-  localhost: PromiseClient<typeof LocalhostService>;
-  query: PromiseClient<typeof QueryService>;
+  auth: Client<typeof AuthService>;
+  account: Client<typeof AccountService>;
+  org: Client<typeof OrganizationService>;
+  user: Client<typeof UserService>;
+  localhost: Client<typeof LocalhostService>;
+  query: Client<typeof QueryService>;
 };
 
 const ApiClientContext = createContext<ApiProviderType | null>(null);
@@ -35,11 +35,11 @@ const auther: (cookie: string) => Interceptor = (cookie: string) => {
   return (next) => async (req) => {
     req.header.set("Browser-Authorization", cookie);
     const res = await next(req);
-    console.log("res", res);
+    // console.log("res", res);
     res.header.get("content-type");
     const cookies = res.header.getSetCookie();
     if (cookies.length > 1) {
-      console.log(cookies);
+      // console.log(cookies);
     }
     return res;
   };
@@ -60,30 +60,26 @@ export function ApiClientsProvider({
       interceptors = interceptors.concat(auther(cookie));
     }
 
+    const localhostTransport = createConnectTransport({
+      baseUrl: "http://localhost:32764",
+    });
+    const localhost = createClient(LocalhostService, localhostTransport);
     const apiTransport = createConnectTransport({
       baseUrl: getAPIURL(),
       interceptors: interceptors,
     });
-    const auth = createPromiseClient(AuthService, apiTransport);
-    const account = createPromiseClient(AccountService, apiTransport);
-    const org = createPromiseClient(OrganizationService, apiTransport);
-    const user = createPromiseClient(UserService, apiTransport);
-    const query = createPromiseClient(QueryService, apiTransport);
 
-    const localhostTransport = createConnectTransport({
-      baseUrl: "http://localhost:32764",
-    });
-    const localhost = createPromiseClient(LocalhostService, localhostTransport);
+    const activeTrasnport = !activeAccount ? localhostTransport : apiTransport;
 
     return {
-      auth,
-      account,
-      org,
-      user,
       localhost,
-      query,
+      auth: createClient(AuthService, apiTransport),
+      account: createClient(AccountService, apiTransport),
+      org: createClient(OrganizationService, apiTransport),
+      user: createClient(UserService, apiTransport),
+      query: createClient(QueryService, activeTrasnport),
     };
-  }, []);
+  }, [activeAccount]);
 
   return (
     <ApiClientContext.Provider
