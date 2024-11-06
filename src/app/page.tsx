@@ -33,7 +33,7 @@ export default function Home() {
   const [zoom, setZoom] = useState<{ startIndex?: number; endIndex?: number }>(
     {},
   );
-  const [session, setSession] = useState<LogEventGroup[] | null>(null);
+  const [sessions, setSessions] = useState<LogEventGroup[] | null>(null);
   const [queryString, setQueryString] = useState<string>("");
 
   const updateTimeFrame = useCallback(
@@ -132,16 +132,10 @@ export default function Home() {
             return;
           }
           for await (const response of stream) {
-            for (const leg of response.events) {
-              if (leg.logs.length > 100) {
-                leg.logs.length = 100; // TEMP to fix page locks
-                // TODO: replace with real paginator
-              }
-            }
             if (!response.events.length) {
               continue;
             }
-            setSession(response.events);
+            setSessions(response.events);
           }
         } catch (e) {
           console.log("it crahsed", e);
@@ -259,7 +253,7 @@ export default function Home() {
                 Pretty
               </Label>
             </div>
-            <SessionContainer session={session} />
+            <SessionContainer sessions={sessions} />
           </div>
         </div>
       )}
