@@ -41,7 +41,6 @@ export default function Home() {
       // this is where we turn the zoom index into start and end date
       // setStartDate()
       // setEndDate()
-      console.log({ eventsList });
       setZoom(zoom);
     },
     [eventsList],

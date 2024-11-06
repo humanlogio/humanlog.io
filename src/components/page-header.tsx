@@ -76,7 +76,6 @@ const PageHeader: React.FC = () => {
         if (!res || !res.authUrl) {
           return;
         }
-        console.log("set the auth URL, returning to: " + returnToUrl);
         setAuthURL(res.authUrl);
       } catch (err) {
         console.log(err);
