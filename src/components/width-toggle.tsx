@@ -16,15 +16,16 @@ export function WidthToggle({ isFullWidth, setIsFullWidth }: WidthToggleProps) {
       variant="noShadow"
       onClick={() => setIsFullWidth((prev) => !prev)}
       title="Toggle full width"
+      className="group"
     >
       {isFullWidth ? (
         <Minimize2
           size={16}
-          className="rotate-45 transition-all hover:scale-90"
+          className="rotate-45 transition-all group-hover:scale-90"
         />
       ) : (
         <Maximize2
-          className="rotate-45 transition-all hover:scale-110"
+          className="rotate-45 transition-all group-hover:scale-110"
           size={16}
         />
       )}

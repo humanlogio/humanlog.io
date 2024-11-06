@@ -35,12 +35,7 @@ export default function RootLayout({
         )}
       >
         <ApiClientsProvider>
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="system"
-            enableSystem
-            disableTransitionOnChange
-          >
+          <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
             <FullWidthProvider>
               <ListAccountsProvider>
                 <PageHeader />
