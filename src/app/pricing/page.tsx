@@ -1,71 +1,12 @@
 "use client";
 
 import { useState } from "react";
+
 import { cn } from "@/lib/utils";
+import { tiers } from "@/lib/pricingDataFake";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import PricingPlan from "@/components/pricing-plan";
-
-const tiers = [
-  {
-    name: "LocalDev",
-    id: "0",
-    href: "/subscribe?plan=localdev",
-    price: { "1": "$19", "2": "$14" },
-    discountPrice: { "1": "", "2": "$199" },
-    description: `Save and explore your local development logs.`,
-    features: [
-      `Single user`,
-      `Single machine`,
-      `500 GiB of history included`,
-      `30 days retention`,
-    ],
-    featured: false,
-    highlighted: false,
-    soldOut: false,
-    cta: `Get started`,
-  },
-  {
-    name: "Team",
-    id: "1",
-    href: "/subscribe?plan=team",
-    price: { "1": "$49", "2": "$38" },
-    discountPrice: { "1": "", "2": "$499" },
-    description: `When you grow, need more power and flexibility.`,
-    features: [
-      `All in LocalDev, plus`,
-      `Teams`,
-      `Any number of machines`,
-      `1 TiB of history included`,
-      `100 days retention`,
-    ],
-    featured: true,
-    highlighted: false,
-    soldOut: false,
-    cta: `Get started`,
-  },
-  {
-    name: "Enterprise Custom",
-    id: "2",
-    href: "/contact-us",
-    price: "",
-    discountPrice: { "1": "Custom", "2": "Custom" },
-    description: `Custom plans for your needs.`,
-    features: [
-      `All in Teams, plus`,
-      `Single Sign-on`,
-      `Custom history`,
-      `Custom environments`,
-      `Bring your own bucket`,
-      `Bring your own cloud`,
-      `Priority support`,
-    ],
-    featured: false,
-    highlighted: false,
-    soldOut: false,
-    cta: `Contact us`,
-  },
-];
 
 export default function Page() {
   const [isAnnually, setIsAnnually] = useState(true);
