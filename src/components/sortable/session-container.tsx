@@ -81,7 +81,7 @@ const SessionContainer = (props: { sessions: LogEventGroup[] | null }) => {
           .filter((newItem) => newItem),
       ),
     });
-  }, [sessions]);
+  }, [items, sessions]);
 
   const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null);
   const lastOverId = useRef<UniqueIdentifier | null>(null);
