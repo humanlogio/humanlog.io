@@ -16,6 +16,7 @@ import { useApiClients } from "@/context/api-provider";
 import { SummarizeEventsResponse_Bucket } from "api/js/svc/query/v1/service_pb";
 import { Timestamp } from "@bufbuild/protobuf";
 import { LogEventGroup } from "api/js/types/v1/logevent_pb";
+import DateRangePicker from "@/components/ui/graph/dateRangePicker";
 
 export default function Home() {
   const signupOnly = process.env.NEXT_PUBLIC_SIGNUP_ONLY === "true";
@@ -27,7 +28,8 @@ export default function Home() {
   const [bucketCount, setBucketCount] = useState<number>(100);
   const [startDate, setStartDate] = useState<Date>(
     // starting from one week ago
-    new Date(new Date().valueOf() - 1000 * 60 * 60 * 24 * 7),
+    // new Date(new Date().valueOf() - 1000 * 60 * 60 * 24 * 7),
+    new Date(new Date().valueOf() - 1000 * 60 * 60),
   );
   const [endDate, setEndDate] = useState<Date | null>(null);
   const [zoom, setZoom] = useState<{ startIndex?: number; endIndex?: number }>(
@@ -35,16 +37,6 @@ export default function Home() {
   );
   const [sessions, setSessions] = useState<LogEventGroup[] | null>(null);
   const [queryString, setQueryString] = useState<string>("");
-
-  const updateTimeFrame = useCallback(
-    (zoom: ZoomType) => {
-      // this is where we turn the zoom index into start and end date
-      // setStartDate()
-      // setEndDate()
-      setZoom(zoom);
-    },
-    [eventsList],
-  );
 
   const formatToDateString = useCallback(
     (time: Timestamp) => {
@@ -142,7 +134,7 @@ export default function Home() {
       })();
   }, [activeAccount, apiClients?.query, endDate, startDate, queryString]);
 
-  useEffect(() => {
+  const updateEvents = useCallback(() => {
     (async () => {
       try {
         const events = await apiClients?.query.summarizeEvents({
@@ -167,6 +159,34 @@ export default function Home() {
     convertToGraphDataPoints,
   ]);
 
+  const updateTimeFrame = useCallback(
+    (zoom: ZoomType) => {
+      if (!eventsList) {
+        return;
+      }
+      setZoom(zoom);
+
+      if (zoom.startIndex && eventsList[Math.floor(zoom.startIndex)].date) {
+        setStartDate(eventsList[Math.floor(zoom.startIndex)].date);
+      }
+
+      if (zoom.endIndex && eventsList[Math.floor(zoom.endIndex)].date) {
+        setEndDate(eventsList[Math.floor(zoom.endIndex)].date);
+      }
+
+      if (zoom.startIndex && zoom.startIndex < 5) {
+        updateEvents();
+      }
+    },
+    [eventsList, updateEvents],
+  );
+
+  useEffect(() => {
+    if (!eventsList) {
+      updateEvents();
+    }
+  }, [eventsList]);
+
   return (
     <main className="flex h-[calc(100dvh-56px)] flex-col py-8">
       {signupOnly || (!hasLocalhost && !listAccounts.length) ? (
@@ -179,10 +199,14 @@ export default function Home() {
                 Lorem ipsum dolor sit amet consectetur
               </h1>
               <p className="mt-2 text-slate-500">
-                start: {startDate.toLocaleDateString()}
+                start:
+                {startDate.toLocaleDateString()}-
+                {startDate.toLocaleTimeString()}
               </p>
               <p className="mt-2 text-slate-500">
-                end: {endDate?.toLocaleDateString() ?? "stream"}
+                end:
+                {endDate?.toLocaleDateString() ?? ""}-
+                {endDate?.toLocaleTimeString() ?? "stream"}
               </p>
               <p className="mt-2 text-slate-500">
                 zoom: {zoom.startIndex ?? "x"},{zoom.endIndex ?? "x"}
@@ -212,14 +236,14 @@ export default function Home() {
                 </Button>
               </div>
             </div>
-            <div className="col-span-2 md:col-span-1">
-              <Graph
-                data={eventsList}
-                startDate={startDate}
-                endDate={endDate}
-                setStartDate={setStartDate}
-                setEndDate={setEndDate}
-                onZoom={updateTimeFrame}
+            <div className="col-span-2 space-y-8 md:col-span-1">
+              <Graph data={eventsList} onZoom={updateTimeFrame} />
+
+              <DateRangePicker
+                dateFrom={startDate}
+                dateTo={endDate}
+                setDateFrom={setStartDate}
+                setDateTo={setEndDate}
               />
             </div>
           </div>
