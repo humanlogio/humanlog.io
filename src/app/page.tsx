@@ -1,10 +1,12 @@
 "use client";
 
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Share } from "lucide-react";
 import { AutosizeTextarea } from "@/components/ui/autosize-textarea";
 import { Button } from "@/components/ui/button";
-import SessionContainer from "@/components/sortable/session-container";
+import SessionContainer, {
+  LogEventGroup,
+} from "@/components/sortable/session-container";
 import { useFullWidth } from "@/context/full-width-provider";
 import { cn } from "@/lib/utils";
 import { Switch } from "@/components/ui/switch";
@@ -15,7 +17,6 @@ import { useAllAccounts } from "@/context/listAccounts";
 import { useApiClients } from "@/context/api-provider";
 import { SummarizeEventsResponse_Bucket } from "api/js/svc/query/v1/service_pb";
 import { Timestamp } from "@bufbuild/protobuf";
-import { LogEventGroup } from "api/js/types/v1/logevent_pb";
 import DateRangePicker from "@/components/ui/graph/dateRangePicker";
 
 export default function Home() {
@@ -108,9 +109,18 @@ export default function Home() {
       nanos: (date.getTime() % 1000) * 1e6,
     });
 
+  const abortControllerRef = useRef<AbortController>();
   const createNewSession = useCallback(() => {
     queryString &&
       (async () => {
+        if (abortControllerRef.current) {
+          abortControllerRef.current.abort();
+        }
+
+        const controller = new AbortController();
+        abortControllerRef.current = controller;
+        const { signal } = controller;
+
         try {
           const stream = apiClients?.query.watchQuery({
             accountId: activeAccount,
@@ -123,13 +133,31 @@ export default function Home() {
             return;
           }
           for await (const response of stream) {
+            if (signal.aborted) {
+              break;
+            }
             if (!response.events.length) {
               continue;
             }
-            setSessions(response.events);
+            setSessions(
+              response.events.map((event) => {
+                return {
+                  ...event,
+                  isStreaming: !endDate,
+                };
+              }),
+            );
           }
+
+          return () => {
+            controller.abort();
+          };
         } catch (e) {
-          console.log("it crahsed", e);
+          if (signal.aborted) {
+            console.log("Stream aborted");
+          } else {
+            console.error("Fetch error:", e);
+          }
         }
       })();
   }, [activeAccount, apiClients?.query, endDate, startDate, queryString]);
@@ -159,24 +187,30 @@ export default function Home() {
     convertToGraphDataPoints,
   ]);
 
+  const debounceRef = useRef<NodeJS.Timeout | null>(null);
   const updateTimeFrame = useCallback(
     (zoom: ZoomType) => {
-      if (!eventsList) {
-        return;
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
       }
-      setZoom(zoom);
+      debounceRef.current = setTimeout(() => {
+        if (!eventsList) {
+          return;
+        }
+        setZoom(zoom);
 
-      if (zoom.startIndex && eventsList[Math.floor(zoom.startIndex)].date) {
-        setStartDate(eventsList[Math.floor(zoom.startIndex)].date);
-      }
+        if (zoom.startIndex && eventsList[Math.floor(zoom.startIndex)].date) {
+          setStartDate(eventsList[Math.floor(zoom.startIndex)].date);
+        }
 
-      if (zoom.endIndex && eventsList[Math.floor(zoom.endIndex)].date) {
-        setEndDate(eventsList[Math.floor(zoom.endIndex)].date);
-      }
+        if (zoom.endIndex && eventsList[Math.floor(zoom.endIndex)].date) {
+          setEndDate(eventsList[Math.floor(zoom.endIndex)].date);
+        }
 
-      if (zoom.startIndex && zoom.startIndex < 5) {
-        updateEvents();
-      }
+        if (zoom.startIndex && zoom.startIndex < 5) {
+          updateEvents();
+        }
+      }, 400);
     },
     [eventsList, updateEvents],
   );
