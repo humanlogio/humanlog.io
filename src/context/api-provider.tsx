@@ -10,6 +10,7 @@ import { OrganizationService } from "api/js/svc/organization/v1/service_connect"
 import { UserService } from "api/js/svc/user/v1/service_connect";
 import { LocalhostService } from "api/js/svc/localhost/v1/service_connect";
 import { QueryService } from "api/js/svc/query/v1/service_connect";
+import { ProductService } from "api/js/svc/product/v1/service_connect";
 import { getAPIURL } from "@/lib/envs";
 
 type AccountId = bigint | undefined;
@@ -22,6 +23,7 @@ type ApiProviderType = {
 
 type ApiClients = {
   auth: Client<typeof AuthService>;
+  product: Client<typeof ProductService>;
   account: Client<typeof AccountService>;
   org: Client<typeof OrganizationService>;
   user: Client<typeof UserService>;
@@ -74,6 +76,7 @@ export function ApiClientsProvider({
     return {
       localhost,
       auth: createClient(AuthService, apiTransport),
+      product: createClient(ProductService, apiTransport),
       account: createClient(AccountService, apiTransport),
       org: createClient(OrganizationService, apiTransport),
       user: createClient(UserService, apiTransport),
