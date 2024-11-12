@@ -66,7 +66,7 @@ const SessionContainer = (props: { sessions: LogEventGroup[] | null }) => {
             const newId = `${newItem.machineId}-${newItem.sessionId}`;
             const match = current.find((existing) => existing.id === newId);
             if (match) {
-              const max = 10; // temp max before pagination
+              const max = 1000; // temp max before pagination, TODO: remove
               match.logs = newItem.isStreaming
                 ? [...newItem.logs, ...match.logs]
                 : newItem.logs;

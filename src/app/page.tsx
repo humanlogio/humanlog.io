@@ -30,7 +30,7 @@ export default function Home() {
   const [startDate, setStartDate] = useState<Date>(
     // starting from one week ago
     // new Date(new Date().valueOf() - 1000 * 60 * 60 * 24 * 7),
-    new Date(new Date().valueOf() - 1000 * 60 * 60),
+    new Date(new Date().valueOf() - 1000 * 60 * 60), // used for test seed data, TODO: remove
   );
   const [endDate, setEndDate] = useState<Date | null>(null);
   const [zoom, setZoom] = useState<{ startIndex?: number; endIndex?: number }>(
