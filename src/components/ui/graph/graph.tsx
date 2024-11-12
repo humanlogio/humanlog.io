@@ -42,13 +42,6 @@ const Graph = (props: {
     [onZoom],
   );
 
-  useEffect(() => {
-    console.log("seeting new data", data?.length);
-    setZoom({
-      startIndex: Math.floor((data?.length ?? 0) / 2),
-    });
-  }, [data]);
-
   if (!data) {
     return (
       <div className="h-full w-full">
@@ -103,6 +96,8 @@ const Graph = (props: {
           />
           <YAxis />
           <Tooltip
+            wrapperClassName="dark:bg-bg bg-darkBg"
+            labelClassName="dark:text-text text-darkText"
             labelFormatter={(value) =>
               new Date(value).toLocaleDateString("en-US", {
                 day: "2-digit",
