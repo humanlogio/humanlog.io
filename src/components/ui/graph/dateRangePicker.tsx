@@ -8,12 +8,19 @@ const DateRangePicker = (props: {
 }) => {
   const { dateFrom, dateTo, setDateFrom, setDateTo } = props;
 
+  const sameDate =
+    (dateTo &&
+      dateFrom.getFullYear() === dateTo.getFullYear() &&
+      dateFrom.getMonth() === dateTo.getMonth() &&
+      dateFrom.getDate() === dateTo.getDate()) ||
+    false;
+
   return (
     <div className="mx-auto flex w-max items-center rounded-[0.425rem] border bg-slate-200 dark:border-darkBorder dark:bg-darkBg dark:text-darkText">
       <div className="relative w-full">
         <DatePicker
           styles="block w-full rounded-md border border-slate-300 py-1.5 px-2.5 text-xs ring-2 focus:border-blue-500 focus:ring-blue-500 lg:p-2.5 lg:text-sm"
-          includeTime={true}
+          hideDate={sameDate}
           date={dateFrom}
           maxDate={
             new Date(
@@ -22,8 +29,7 @@ const DateRangePicker = (props: {
                   dateTo?.getTime() ?? new Date().getTime(),
                   new Date().getTime(),
                 ),
-              ).getTime() -
-                60 * 60 * 1000,
+              ).getTime() - 1000,
             )
           } // sub one hour
           setDate={setDateFrom}
@@ -35,9 +41,9 @@ const DateRangePicker = (props: {
       <div className="relative w-full">
         <DatePicker
           styles="block w-full rounded-md border border-slate-300 py-1.5 px-2.5 text-xs ring-2 focus:border-blue-500 focus:ring-blue-500 lg:p-2.5 lg:text-sm"
-          includeTime={true}
+          hideDate={sameDate}
           date={dateTo}
-          minDate={new Date(dateFrom.getTime() + 60 * 60 * 1000)} // add one hour
+          minDate={new Date(dateFrom.getTime() + 1000)} // add one hour
           setDate={setDateTo}
         />
       </div>
