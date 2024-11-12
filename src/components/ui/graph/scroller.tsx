@@ -36,10 +36,14 @@ const Scroller = (props: {
   const [deltaAccumulatorX, setDeltaAccumulatorX] = useState(0);
   const graphRef = useRef<HTMLDivElement>(null);
 
+  const maxAnimationSize = 20;
   const zoomThreshold = 15;
   const panThreshold = 10;
-  const gap = Math.ceil(0.1 * Math.abs(startIndex - endIndex));
-  const maxAnimationSize = 20;
+  const rangeMinWidth = 10;
+  const gap = Math.min(
+    Math.ceil(0.05 * Math.abs(startIndex - endIndex)),
+    rangeMinWidth,
+  );
 
   const handleBrushChange = useCallback(
     (updatedZoom: ZoomType, direction?: string) => {
@@ -104,14 +108,14 @@ const Scroller = (props: {
 
       if (accumulatedDeltaX >= panThreshold) {
         handleBrushChange({
-          startIndex: Math.min(maxValue - gap, startIndex + gap),
-          endIndex: Math.min(maxValue, endIndex + gap),
+          startIndex: Math.min(startIndex + gap, maxValue - rangeMinWidth),
+          endIndex: Math.min(endIndex + gap, maxValue),
         });
         accumulatedDeltaX = 0;
       } else if (accumulatedDeltaX <= -panThreshold) {
         handleBrushChange({
-          startIndex: Math.max(minValue, startIndex - gap),
-          endIndex: Math.max(minValue + gap, endIndex - gap),
+          startIndex: Math.max(startIndex - gap, minValue),
+          endIndex: Math.max(endIndex - gap, minValue + rangeMinWidth),
         });
         accumulatedDeltaX = 0;
       }
@@ -120,26 +124,23 @@ const Scroller = (props: {
         handleBrushChange(
           {
             startIndex: Math.max(
-              minValue,
               startIndex - processGap(zoomFactor, gap),
+              minValue,
             ),
             endIndex: Math.min(
-              maxValue,
               endIndex + processGap(1 - zoomFactor, gap),
+              maxValue,
             ),
           },
           "out",
         );
         accumulatedDeltaY = 0;
       } else if (accumulatedDeltaY <= -zoomThreshold) {
-        if (Math.abs(startIndex - endIndex) > gap * 1.5) {
+        if (Math.abs(startIndex - endIndex) > rangeMinWidth) {
           handleBrushChange(
             {
-              startIndex: Math.min(
-                maxValue - 1,
-                startIndex + processGap(zoomFactor, gap),
-              ),
-              endIndex: Math.max(1, endIndex - processGap(1 - zoomFactor, gap)),
+              startIndex: startIndex + processGap(zoomFactor, gap),
+              endIndex: endIndex - processGap(1 - zoomFactor, gap),
             },
             "in",
           );
