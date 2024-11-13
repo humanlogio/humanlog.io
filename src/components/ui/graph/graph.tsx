@@ -11,7 +11,6 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import Scroller from "./scroller";
-import DateRangePicker from "./dateRangePicker";
 
 export type ZoomType = {
   startIndex?: number;
@@ -28,13 +27,9 @@ export type DataPoint = {
 
 const Graph = (props: {
   data?: DataPoint[] | null;
-  startDate: Date;
-  endDate: Date | null;
-  setStartDate: (date: Date) => void;
-  setEndDate: (date: Date) => void;
   onZoom?: (zoom: ZoomType) => void;
 }) => {
-  const { data, startDate, endDate, setStartDate, setEndDate, onZoom } = props;
+  const { data, onZoom } = props;
   const [zoom, setZoom] = useState<ZoomType | null>(null);
   const [activeAnimations, setActiveAnimations] = useState(true);
 
@@ -47,31 +42,16 @@ const Graph = (props: {
     [onZoom],
   );
 
-  useEffect(() => {
-    setZoom({
-      startIndex: Math.floor((data?.length ?? 0) / 2),
-    });
-  }, [data]);
-
   if (!data) {
     return (
-      <div className="space-y-8">
-        <div className="h-full w-full">
-          <p className="mt-1 rounded-md border bg-slate-200 p-4 text-sm font-medium leading-tight text-slate-800 dark:bg-slate-800 dark:text-slate-200">
-            No event list data was loaded for that time frame.
-            <br />
-            <br />
-            Try expanding the date range. If still no data is coming through,
-            please check that the log source is configured correctly.
-          </p>
-        </div>
-
-        <DateRangePicker
-          dateFrom={startDate}
-          dateTo={endDate}
-          setDateFrom={setStartDate}
-          setDateTo={setEndDate}
-        />
+      <div className="h-full w-full">
+        <p className="mt-1 rounded-md border bg-slate-200 p-4 text-sm font-medium leading-tight text-slate-800 dark:bg-slate-800 dark:text-slate-200">
+          No event list data was loaded for that time frame.
+          <br />
+          <br />
+          Try expanding the date range. If still no data is coming through,
+          please check that the log source is configured correctly.
+        </p>
       </div>
     );
   }
@@ -116,6 +96,8 @@ const Graph = (props: {
           />
           <YAxis />
           <Tooltip
+            wrapperClassName="dark:bg-bg bg-darkBg"
+            labelClassName="dark:text-text text-darkText"
             labelFormatter={(value) =>
               new Date(value).toLocaleDateString("en-US", {
                 day: "2-digit",
@@ -153,13 +135,6 @@ const Graph = (props: {
           />
         </BarChart>
       </ResponsiveContainer>
-
-      <DateRangePicker
-        dateFrom={startDate}
-        dateTo={endDate}
-        setDateFrom={setStartDate}
-        setDateTo={setEndDate}
-      />
     </Scroller>
   );
 };
