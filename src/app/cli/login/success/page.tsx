@@ -1,7 +1,7 @@
 "use client";
 
 import { Copy } from "lucide-react";
-import { copyToClipboard } from "@/lib/clipboard";
+import { copyToClipboard } from "@/lib/utils/clipboard";
 import { useAllAccounts } from "@/context/listAccounts";
 
 export default function Page() {
