@@ -9,6 +9,7 @@ import { Building, Check } from "lucide-react";
 import { useQuery } from "@connectrpc/connect-query";
 import { listProduct } from "api/js/svc/product/v1/service-ProductService_connectquery";
 
+import { NewOrgModal } from "../organizations/NewOrgModal";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -60,6 +61,7 @@ export function EnvironmentCreationForm({
   orgId,
 }: EnvironmentCreationFormProps) {
   const router = useRouter();
+  const [isNewOrgModalOpen, setIsNewOrgModalOpen] = useState(false);
   const [isBilledMonthly, setIsBilledMonthly] = useState(true);
   const [selectedPlan, setSelectedPlan] = useState<string>("");
 
@@ -81,6 +83,20 @@ export function EnvironmentCreationForm({
       plan: "",
     },
   });
+
+  const handleOrganizationChange = (value: string) => {
+    if (value === "createNew") {
+      setIsNewOrgModalOpen(true);
+      return;
+    }
+    form.setValue("organization", value);
+  };
+
+  const handleOrgCreated = (newOrgName: string) => {
+    // Here you might want to refresh the list of organizations
+    // and select the newly created one
+    form.setValue("organization", newOrgName);
+  };
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
@@ -112,7 +128,7 @@ export function EnvironmentCreationForm({
               <FormItem>
                 <FormLabel>Organization</FormLabel>
                 <Select
-                  onValueChange={field.onChange}
+                  onValueChange={handleOrganizationChange}
                   defaultValue={field.value}
                 >
                   <FormControl>
@@ -290,6 +306,13 @@ export function EnvironmentCreationForm({
             </div>
           </div>
         </div>
+
+        {/* Modals */}
+        <NewOrgModal
+          open={isNewOrgModalOpen}
+          onOpenChange={setIsNewOrgModalOpen}
+          onOrgCreated={handleOrgCreated}
+        />
       </form>
     </Form>
   );
