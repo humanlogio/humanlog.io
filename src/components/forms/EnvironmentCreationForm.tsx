@@ -73,8 +73,6 @@ export function EnvironmentCreationForm({
     return { product: el.product!, prices: el.prices };
   });
 
-  console.log("products", products);
-
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
