@@ -124,7 +124,7 @@ export default function Home() {
 
         try {
           const stream = apiClients?.query.watchQuery({
-            accountId: activeAccount,
+            environmentId: activeAccount,
             query: {
               from: convertToTimestamp(startDate),
               to: (endDate && convertToTimestamp(endDate)) || undefined,
@@ -170,7 +170,7 @@ export default function Home() {
           (endDate ?? new Date()).getTime() - startDate.getTime(),
         );
         const events = await apiClients?.query.summarizeEvents({
-          accountId: activeAccount,
+          environmentId: activeAccount,
           from: convertToTimestamp(
             new Date(startDate.getTime() + Math.floor(timeGap / 2)),
           ),

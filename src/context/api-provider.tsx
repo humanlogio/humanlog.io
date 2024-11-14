@@ -5,7 +5,7 @@ import { createClient, Client } from "@connectrpc/connect";
 import { Interceptor } from "@connectrpc/connect";
 import { createConnectTransport } from "@connectrpc/connect-web";
 import { AuthService } from "api/js/svc/auth/v1/service_connect";
-import { AccountService } from "api/js/svc/account/v1/service_connect";
+import { EnvironmentService } from "api/js/svc/environment/v1/service_connect";
 import { OrganizationService } from "api/js/svc/organization/v1/service_connect";
 import { UserService } from "api/js/svc/user/v1/service_connect";
 import { LocalhostService } from "api/js/svc/localhost/v1/service_connect";
@@ -13,18 +13,18 @@ import { QueryService } from "api/js/svc/query/v1/service_connect";
 import { ProductService } from "api/js/svc/product/v1/service_connect";
 import { getAPIURL } from "@/lib/envs";
 
-type AccountId = bigint | undefined;
+type EnvironmentId = bigint | undefined;
 
 type ApiProviderType = {
   apiClients: ApiClients | null;
-  activeAccount: AccountId;
-  setActiveAccount: React.Dispatch<React.SetStateAction<AccountId>>;
+  activeEnvironment: EnvironmentId;
+  setActiveEnvironment: React.Dispatch<React.SetStateAction<EnvironmentId>>;
 };
 
 type ApiClients = {
   auth: Client<typeof AuthService>;
   product: Client<typeof ProductService>;
-  account: Client<typeof AccountService>;
+  environment: Client<typeof EnvironmentService>;
   org: Client<typeof OrganizationService>;
   user: Client<typeof UserService>;
   localhost: Client<typeof LocalhostService>;
@@ -52,7 +52,7 @@ export function ApiClientsProvider({
 }: {
   children: React.ReactNode;
 }) {
-  const [activeAccount, setActiveAccount] = useState<AccountId>();
+  const [activeEnvironment, setActiveEnvironment] = useState<EnvironmentId>();
 
   const apiClients = useMemo((): ApiClients => {
     const cookie = getCookie("hlog_session");
@@ -71,22 +71,22 @@ export function ApiClientsProvider({
       interceptors: interceptors,
     });
 
-    const activeTrasnport = !activeAccount ? localhostTransport : apiTransport;
+    const activeTransport = !activeEnvironment ? localhostTransport : apiTransport;
 
     return {
       localhost,
       auth: createClient(AuthService, apiTransport),
       product: createClient(ProductService, apiTransport),
-      account: createClient(AccountService, apiTransport),
+      environment: createClient(EnvironmentService, apiTransport),
       org: createClient(OrganizationService, apiTransport),
       user: createClient(UserService, apiTransport),
-      query: createClient(QueryService, activeTrasnport),
+      query: createClient(QueryService, activeTransport),
     };
-  }, [activeAccount]);
+  }, [activeEnvironment]);
 
   return (
     <ApiClientContext.Provider
-      value={{ apiClients, activeAccount, setActiveAccount }}
+      value={{ apiClients, activeEnvironment, setActiveEnvironment }}
     >
       {children}
     </ApiClientContext.Provider>

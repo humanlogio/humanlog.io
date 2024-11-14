@@ -34,7 +34,7 @@ export function ListAccountsProvider({
     ListAccountResponse_ListItem[]
   >([]);
 
-  const [accountPage, setAccountPage] = useState<Cursor>(new Cursor());
+  const [environmentPage, setAccountPage] = useState<Cursor>(new Cursor());
 
   useEffect(() => {
     (async () => {
@@ -60,7 +60,7 @@ export function ListAccountsProvider({
       try {
         const res = await apiClients?.org.listAccount({
           organizationId: currentOrg?.id,
-          cursor: accountPage,
+          cursor: environmentPage,
           limit: 10,
         });
         if (!res || !res.items) {
@@ -77,7 +77,7 @@ export function ListAccountsProvider({
         }
       }
     })();
-  }, [apiClients?.org, currentOrg, accountPage, setActiveAccount]);
+  }, [apiClients?.org, currentOrg, environmentPage, setActiveAccount]);
 
   useEffect(() => {
     (async () => {

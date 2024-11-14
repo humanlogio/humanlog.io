@@ -65,7 +65,7 @@ const PageHeader: React.FC = () => {
       const req = new GetAuthURLRequest({ returnToUrl: returnToUrl });
       if (hasLocalhost?.meta) {
         req.localhost = new LocalhostViaBrowser({
-          claimAccountId: hasLocalhost.meta.accountId,
+          claimAccountId: hasLocalhost.meta.environmentId,
           claimMachineId: hasLocalhost.meta.machineId,
           architecture: hasLocalhost.architecture,
           operatingSystem: hasLocalhost.operatingSystem,
@@ -86,7 +86,7 @@ const PageHeader: React.FC = () => {
     apiClients?.auth,
     hasLocalhost,
     hasLocalhost?.meta,
-    hasLocalhost?.meta?.accountId,
+    hasLocalhost?.meta?.environmentId,
     hasLocalhost?.meta?.machineId,
     hasLocalhost?.architecture,
     hasLocalhost?.operatingSystem,
@@ -106,7 +106,7 @@ const PageHeader: React.FC = () => {
         try {
           setActiveAccount(BigInt(selectValue));
         } catch (e) {
-          console.error("Error attempting to parse account ID:", selectValue);
+          console.error("Error attempting to parse environment ID:", selectValue);
           console.error(e);
         }
       }
@@ -172,12 +172,12 @@ const PageHeader: React.FC = () => {
           </SelectGroup>
           <SelectGroup>
             {listAccounts.map((item) =>
-              item.account?.id ? (
+              item.environment?.id ? (
                 <SelectItem
-                  value={`${item.account.id}`}
-                  key={`${item.account.name}-${item.account.id}`}
+                  value={`${item.environment.id}`}
+                  key={`${item.environment.name}-${item.environment.id}`}
                 >
-                  {item.account?.name}
+                  {item.environment?.name}
                 </SelectItem>
               ) : (
                 <></>
