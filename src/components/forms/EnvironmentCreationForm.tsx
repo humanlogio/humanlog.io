@@ -208,18 +208,26 @@ export function EnvironmentCreationForm({
               <FormItem>
                 <FormControl>
                   <div className="mt-2 grid grid-cols-1 gap-4 md:grid-cols-3">
-                    {tiers.map((tier) => {
-                      const isSelected = selectedPlan === tier.id;
+                    {products?.map((product) => {
+                      const monthly = product.prices.find(
+                        (p) => p.lookupKey === "localdev_pro_monthly",
+                      );
+                      const yearly = product.prices.find(
+                        (p) => p.lookupKey === "localdev_pro_yearly",
+                      );
+
+                      const isSelected =
+                        selectedPlan === product.product.stripeId;
                       const price = isBilledMonthly
-                        ? tier.price["1"]
-                        : tier.price["2"];
+                        ? monthly?.unitAmount
+                        : yearly?.unitAmount;
 
                       return (
                         <div
-                          key={tier.id}
+                          key={product.product.stripeId}
                           onClick={() => {
-                            setSelectedPlan(tier.id);
-                            field.onChange(tier.id);
+                            setSelectedPlan(product.product.stripeId);
+                            field.onChange(product.product.stripeId);
                           }}
                           className={cn(
                             "cursor-pointer rounded-md border-2 border-border p-6 shadow-light hover:translate-x-boxShadowX hover:translate-y-boxShadowY hover:shadow-none dark:shadow-dark dark:hover:shadow-none",
@@ -229,7 +237,7 @@ export function EnvironmentCreationForm({
                         >
                           <div className="flex flex-row items-center justify-between gap-6">
                             <div className="rounded-base bg-slate-200 px-2 py-0.5 font-bold dark:bg-slate-950">
-                              {tier.name}
+                              {product.product.name}
                             </div>
                             <h5 className="font-bold">
                               <span
@@ -237,7 +245,9 @@ export function EnvironmentCreationForm({
                                   isSelected ? "text-white" : "text-success"
                                 }
                               >
-                                {price || "Custom"}
+                                {price
+                                  ? `$${(Number(price) / 100).toFixed(2)}`
+                                  : "Custom"}
                               </span>
                               {price && "/month"}
                             </h5>
@@ -248,18 +258,20 @@ export function EnvironmentCreationForm({
                               isSelected && "text-white",
                             )}
                           >
-                            {tier.description}
+                            {product.product.description}
                           </p>
                           <ul className="mt-4 flex flex-col gap-2">
-                            {tier.features.map((feature, index) => (
-                              <li
-                                key={index}
-                                className="flex items-center gap-3"
-                              >
-                                <Check className="shrink-0" size={18} />{" "}
-                                {feature}
-                              </li>
-                            ))}
+                            {product.product.marketingFeatures.map(
+                              (feature, index) => (
+                                <li
+                                  key={index}
+                                  className="flex items-center gap-3"
+                                >
+                                  <Check className="shrink-0" size={18} />{" "}
+                                  {feature.name}
+                                </li>
+                              ),
+                            )}
                           </ul>
                         </div>
                       );
