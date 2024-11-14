@@ -12,13 +12,13 @@ export default function Page() {
   let content;
   if (!user) {
     content = (
-      <div className="mx-auto flex w-full max-w-screen-xl flex-grow flex-col items-center justify-center gap-8 px-4">
+      <div className="container flex flex-grow flex-col items-center justify-center gap-8">
         <h1 className="text-center text-4xl font-bold">You need to login.</h1>
       </div>
     );
   } else {
     content = (
-      <div className="mx-auto flex w-full max-w-screen-xl flex-grow flex-col items-center justify-center gap-8 px-4">
+      <div className="container flex flex-grow flex-col items-center justify-center gap-8">
         <div>
           <h1 className="text-center text-4xl font-bold">
             Hi {user.firstName!}!
