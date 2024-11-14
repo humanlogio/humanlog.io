@@ -61,7 +61,13 @@ const PageFooter = () => {
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                <Image src={link.icon} alt={link.alt} width={24} height={24} />
+                <Image
+                  className="transition-transform hover:scale-110"
+                  src={link.icon}
+                  alt={link.alt}
+                  width={24}
+                  height={24}
+                />
               </a>
             ))}
           </div>
