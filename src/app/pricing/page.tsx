@@ -12,7 +12,7 @@ export default function Page() {
   const [isAnnually, setIsAnnually] = useState(true);
 
   return (
-    <div className="flex min-h-[calc(100dvh-56px)] w-full flex-col items-center justify-center bg-[linear-gradient(to_right,#80808033_1px,transparent_1px),linear-gradient(to_bottom,#80808033_1px,transparent_1px)] bg-[size:64px_64px]">
+    <div className="container-h-full flex w-full flex-col items-center justify-center bg-[linear-gradient(to_right,#80808033_1px,transparent_1px),linear-gradient(to_bottom,#80808033_1px,transparent_1px)] bg-[size:64px_64px]">
       <div className="container flex flex-col items-center justify-center py-8">
         <h1 className="text-center text-4xl font-bold">Pricing</h1>
         <div className="flex flex-none flex-row items-center gap-2 pt-8">
