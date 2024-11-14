@@ -6,7 +6,7 @@ import { Loader, User as UserIcon } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { User } from "api/js/types/v1/user_pb";
 import { gravatarURL } from "@/lib/utils";
-import { useAllAccounts } from "@/context/listAccounts";
+import { useAllEnvironments } from "@/context/listEnvironments";
 import { Button } from "./ui/button";
 import { useState } from "react";
 import Image from "next/image";
@@ -36,7 +36,7 @@ const footerLinks = [
 
 const PageFooter = () => {
   const [authURL, setAuthURL] = useState<string | null>(null);
-  const { user } = useAllAccounts();
+  const { user } = useAllEnvironments();
 
   const renderAvatarBlock = (user: User | null) => {
     if (user) {
