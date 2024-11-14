@@ -32,7 +32,6 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
-import { tiers } from "@/lib/pricingDataFake";
 import { Product as APIProduct } from "api/js/types/v1/product_pb";
 import { Price as APIPrice } from "api/js/types/v1/price_pb";
 
@@ -62,7 +61,7 @@ export function EnvironmentCreationForm({
 }: EnvironmentCreationFormProps) {
   const router = useRouter();
   const [isNewOrgModalOpen, setIsNewOrgModalOpen] = useState(false);
-  const [isBilledMonthly, setIsBilledMonthly] = useState(true);
+  const [isBilledYearly, setIsBilledYearly] = useState(true);
   const [selectedPlan, setSelectedPlan] = useState<string>("");
 
   // fetch the product list
@@ -185,16 +184,16 @@ export function EnvironmentCreationForm({
             <div className="flex flex-row items-center gap-2">
               <Switch
                 id="billed-monthly"
-                checked={isBilledMonthly}
-                onCheckedChange={setIsBilledMonthly}
+                checked={isBilledYearly}
+                onCheckedChange={setIsBilledYearly}
               />
               <Label
                 htmlFor="billed-monthly"
                 className={cn("transition-colors duration-200", {
-                  "text-slate-500": !isBilledMonthly,
+                  "text-slate-500": !isBilledYearly,
                 })}
               >
-                Billed Monthly
+                Billed Yearly
               </Label>
             </div>
           </div>
@@ -216,9 +215,9 @@ export function EnvironmentCreationForm({
 
                       const isSelected =
                         selectedPlan === product.product.stripeId;
-                      const price = isBilledMonthly
-                        ? monthly?.unitAmount
-                        : yearly?.unitAmount;
+                      const price = isBilledYearly
+                        ? Number(yearly?.unitAmount)
+                        : Number(monthly?.unitAmount);
 
                       return (
                         <div
@@ -244,10 +243,10 @@ export function EnvironmentCreationForm({
                                 }
                               >
                                 {price
-                                  ? `$${(Number(price) / 100).toFixed(2)}`
+                                  ? `$${(price / 100).toFixed(2)}`
                                   : "Custom"}
                               </span>
-                              {price && "/month"}
+                              {price && isBilledYearly ? "/year" : "/month"}
                             </h5>
                           </div>
                           <p
