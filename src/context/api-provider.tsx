@@ -3,7 +3,9 @@
 import React, { createContext, useContext, useMemo, useState } from "react";
 import { createClient, Client } from "@connectrpc/connect";
 import { Interceptor } from "@connectrpc/connect";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createConnectTransport } from "@connectrpc/connect-web";
+import { TransportProvider } from "@connectrpc/connect-query";
 import { AuthService } from "api/js/svc/auth/v1/service_connect";
 import { EnvironmentService } from "api/js/svc/environment/v1/service_connect";
 import { OrganizationService } from "api/js/svc/organization/v1/service_connect";
@@ -33,7 +35,68 @@ type ApiClients = {
 
 const ApiClientContext = createContext<ApiProviderType | null>(null);
 
-const auther: (cookie: string) => Interceptor = (cookie: string) => {
+const localhostTransport = createConnectTransport({
+  baseUrl: "http://localhost:32764",
+});
+const apiTransport = createConnectTransport({
+  baseUrl: getAPIURL(),
+  interceptors: getInterceptors(),
+});
+
+const queryClient = new QueryClient();
+
+export function ApiClientsProvider({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const [activeEnvironment, setActiveEnvironment] = useState<EnvironmentId>();
+
+  const apiClients = useMemo((): ApiClients => {
+    const activeTransport = !activeEnvironment
+      ? localhostTransport
+      : apiTransport;
+
+    // localhost client should always talk using the localhost transport
+    const localhost = createClient(LocalhostService, localhostTransport);
+    return {
+      localhost,
+      auth: createClient(AuthService, apiTransport),
+      product: createClient(ProductService, apiTransport),
+      environment: createClient(EnvironmentService, apiTransport),
+      org: createClient(OrganizationService, apiTransport),
+      user: createClient(UserService, apiTransport),
+      query: createClient(QueryService, activeTransport),
+    };
+  }, [activeEnvironment]);
+
+  return (
+    <TransportProvider transport={apiTransport}>
+      <QueryClientProvider client={queryClient}>
+        <ApiClientContext.Provider
+          value={{ apiClients, activeEnvironment, setActiveEnvironment }}
+        >
+          {children}
+        </ApiClientContext.Provider>
+      </QueryClientProvider>
+    </TransportProvider>
+  );
+}
+
+export function useApiClients(): ApiProviderType {
+  return useContext(ApiClientContext)!;
+}
+
+function getInterceptors(): Interceptor[] {
+  const cookie = getCookie("hlog_session");
+  let interceptors: Interceptor[] = [];
+  if (cookie) {
+    interceptors = interceptors.concat(auther(cookie));
+  }
+  return interceptors;
+}
+
+function auther(cookie: string): Interceptor {
   return (next) => async (req) => {
     req.header.set("Browser-Authorization", cookie);
     const res = await next(req);
@@ -45,54 +108,6 @@ const auther: (cookie: string) => Interceptor = (cookie: string) => {
     }
     return res;
   };
-};
-
-export function ApiClientsProvider({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  const [activeEnvironment, setActiveEnvironment] = useState<EnvironmentId>();
-
-  const apiClients = useMemo((): ApiClients => {
-    const cookie = getCookie("hlog_session");
-
-    let interceptors: Interceptor[] = [];
-    if (cookie) {
-      interceptors = interceptors.concat(auther(cookie));
-    }
-
-    const localhostTransport = createConnectTransport({
-      baseUrl: "http://localhost:32764",
-    });
-    const localhost = createClient(LocalhostService, localhostTransport);
-    const apiTransport = createConnectTransport({
-      baseUrl: getAPIURL(),
-      interceptors: interceptors,
-    });
-
-    const activeTrasnport = !activeEnvironment
-      ? localhostTransport
-      : apiTransport;
-
-    return {
-      localhost,
-      auth: createClient(AuthService, apiTransport),
-      product: createClient(ProductService, apiTransport),
-      environment: createClient(EnvironmentService, apiTransport),
-      org: createClient(OrganizationService, apiTransport),
-      user: createClient(UserService, apiTransport),
-      query: createClient(QueryService, activeTrasnport),
-    };
-  }, [activeEnvironment]);
-
-  return (
-    <ApiClientContext.Provider
-      value={{ apiClients, activeEnvironment, setActiveEnvironment }}
-    >
-      {children}
-    </ApiClientContext.Provider>
-  );
 }
 
 function getCookie(name: string): string | undefined {
@@ -107,8 +122,4 @@ function getCookie(name: string): string | undefined {
   const last = parts.pop()!;
 
   return last.split(";").shift();
-}
-
-export function useApiClients(): ApiProviderType {
-  return useContext(ApiClientContext)!;
 }
