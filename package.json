@@ -12,7 +12,8 @@
   "dependencies": {
     "@bufbuild/protobuf": "^1.10.0",
     "@connectrpc/connect": "^1.4.0",
-    "@connectrpc/connect-web": "^1.4.0",
+    "@connectrpc/connect-query": "^1.4.2",
+    "@connectrpc/connect-web": "^1.6.1",
     "@dnd-kit/sortable": "^8.0.0",
     "@hookform/resolvers": "^3.9.1",
     "@mdx-js/loader": "^3.0.1",
