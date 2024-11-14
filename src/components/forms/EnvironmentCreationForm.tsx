@@ -63,7 +63,8 @@ export function EnvironmentCreationForm({
   const [isBilledMonthly, setIsBilledMonthly] = useState(true);
   const [products, setProducts] = useState<Product[] | null>(null);
   const [selectedPlan, setSelectedPlan] = useState<string>("");
-  const { apiClients, activeAccount, setActiveAccount } = useApiClients();
+  const { apiClients, activeEnvironment, setActiveEnvironment } =
+    useApiClients();
 
   useEffect(() => {
     (async () => {
