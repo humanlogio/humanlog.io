@@ -1,11 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
-import { Building, Check } from "lucide-react";
+import { Building, Check, UserMinus } from "lucide-react";
+import { useApiClients } from "@/context/api-provider";
+import { ListProductRequest } from "api/js/svc/product/v1/service_pb";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -30,6 +32,8 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { tiers } from "@/lib/pricingDataFake";
+import { Product as APIProduct } from "api/js/types/v1/product_pb";
+import { Price as APIPrice } from "api/js/types/v1/price_pb";
 
 const formSchema = z.object({
   organization: z.string().min(1, "Please select an organization"),
@@ -47,12 +51,41 @@ interface EnvironmentCreationFormProps {
   orgId: string | null;
 }
 
+interface Product {
+  product: APIProduct;
+  prices: APIPrice[];
+}
+
 export function EnvironmentCreationForm({
   orgId,
 }: EnvironmentCreationFormProps) {
   const router = useRouter();
   const [isBilledMonthly, setIsBilledMonthly] = useState(true);
+  const [products, setProducts] = useState<Product[] | null>(null);
   const [selectedPlan, setSelectedPlan] = useState<string>("");
+  const { apiClients, activeEnvironment, setActiveEnvironment } =
+    useApiClients();
+
+  useEffect(() => {
+    (async () => {
+      const req = new ListProductRequest({ category: "logging" });
+      try {
+        const res = await apiClients?.product.listProduct(req);
+        if (!res || !res.items) {
+          return;
+        }
+        var products = res.items.map((el): Product => {
+          return {
+            product: el.product!,
+            prices: el.prices,
+          };
+        });
+        setProducts(products);
+      } catch (err) {
+        console.log(err);
+      }
+    })();
+  }, []);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),

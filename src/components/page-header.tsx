@@ -46,16 +46,17 @@ import {
 import { PingResponse } from "api/js/svc/localhost/v1/service_pb";
 import { User } from "api/js/types/v1/user_pb";
 import { gravatarURL } from "@/lib/utils";
-import { useAllAccounts } from "@/context/listAccounts";
+import { useAllEnvironments } from "@/context/listEnvironments";
 import { Button } from "./ui/button";
 
 const PageHeader: React.FC = () => {
   const signupOnly = process.env.NEXT_PUBLIC_SIGNUP_ONLY === "true";
   const [authURL, setAuthURL] = useState<string | null>(null);
-  const { apiClients, activeAccount, setActiveAccount } = useApiClients();
+  const { apiClients, activeEnvironment, setActiveEnvironment } =
+    useApiClients();
   const { isFullWidth, setIsFullWidth } = useFullWidth();
   const pathname = usePathname();
-  const { user, hasLocalhost, listAccounts } = useAllAccounts();
+  const { user, hasLocalhost, listEnvironments } = useAllEnvironments();
   const localhostValue = "localhost";
   const addNewValue = "add_new";
 
@@ -65,8 +66,6 @@ const PageHeader: React.FC = () => {
       const req = new GetAuthURLRequest({ returnToUrl: returnToUrl });
       if (hasLocalhost?.meta) {
         req.localhost = new LocalhostViaBrowser({
-          claimAccountId: hasLocalhost.meta.accountId,
-          claimMachineId: hasLocalhost.meta.machineId,
           architecture: hasLocalhost.architecture,
           operatingSystem: hasLocalhost.operatingSystem,
           usingVersion: hasLocalhost.clientVersion,
@@ -86,7 +85,6 @@ const PageHeader: React.FC = () => {
     apiClients?.auth,
     hasLocalhost,
     hasLocalhost?.meta,
-    hasLocalhost?.meta?.accountId,
     hasLocalhost?.meta?.machineId,
     hasLocalhost?.architecture,
     hasLocalhost?.operatingSystem,
@@ -96,7 +94,7 @@ const PageHeader: React.FC = () => {
   const updateSelection = useCallback(
     (selectValue: string) => {
       if (selectValue === localhostValue) {
-        setActiveAccount(undefined);
+        setActiveEnvironment(undefined);
         if (!hasLocalhost) {
           redirect("install");
         }
@@ -104,14 +102,17 @@ const PageHeader: React.FC = () => {
         redirect("pricing");
       } else {
         try {
-          setActiveAccount(BigInt(selectValue));
+          setActiveEnvironment(BigInt(selectValue));
         } catch (e) {
-          console.error("Error attempting to parse account ID:", selectValue);
+          console.error(
+            "Error attempting to parse environment ID:",
+            selectValue,
+          );
           console.error(e);
         }
       }
     },
-    [hasLocalhost, setActiveAccount],
+    [hasLocalhost, setActiveEnvironment],
   );
 
   const renderAvatarBlock = (user: User | null) => {
@@ -153,8 +154,11 @@ const PageHeader: React.FC = () => {
   };
 
   const renderSourceSelectorBlock = () => (
-    <div title="Account Selector" className="w-full md:min-w-52">
-      <Select value={activeAccount?.toString()} onValueChange={updateSelection}>
+    <div title="Environment Selector" className="w-full md:min-w-52">
+      <Select
+        value={activeEnvironment?.toString()}
+        onValueChange={updateSelection}
+      >
         <SelectTrigger className="w-full">
           <div className="flex flex-row items-center gap-2">
             <SquareCode size={16} />
@@ -171,13 +175,13 @@ const PageHeader: React.FC = () => {
             </SelectItem>
           </SelectGroup>
           <SelectGroup>
-            {listAccounts.map((item) =>
-              item.account?.id ? (
+            {listEnvironments.map((item) =>
+              item.environment?.id ? (
                 <SelectItem
-                  value={`${item.account.id}`}
-                  key={`${item.account.name}-${item.account.id}`}
+                  value={`${item.environment.id}`}
+                  key={`${item.environment.name}-${item.environment.id}`}
                 >
-                  {item.account?.name}
+                  {item.environment?.name}
                 </SelectItem>
               ) : (
                 <></>
