@@ -256,7 +256,7 @@ export default function Home() {
         <SetupGuide />
       ) : (
         <div className="flex flex-grow flex-col gap-4 overflow-y-hidden">
-          <div className="mx-auto grid w-full max-w-screen-xl flex-none grid-cols-2 gap-8 px-4">
+          <div className="container grid flex-none grid-cols-2 gap-8">
             <div className="col-span-2 md:col-span-1">
               <h1 className="text-2xl font-bold">
                 Lorem ipsum dolor sit amet consectetur
