@@ -6,6 +6,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { Building, Check } from "lucide-react";
+import { useQuery } from "@connectrpc/connect-query";
+import { listProduct } from "api/js/svc/product/v1/service-ProductService_connectquery";
 
 import { NewOrgModal } from "../organizations/NewOrgModal";
 import { Button } from "@/components/ui/button";
@@ -31,6 +33,8 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { tiers } from "@/lib/pricingDataFake";
+import { Product as APIProduct } from "api/js/types/v1/product_pb";
+import { Price as APIPrice } from "api/js/types/v1/price_pb";
 
 const formSchema = z.object({
   organization: z.string().min(1, "Please select an organization"),
@@ -48,6 +52,11 @@ interface EnvironmentCreationFormProps {
   orgId: string | null;
 }
 
+interface Product {
+  product: APIProduct;
+  prices: APIPrice[];
+}
+
 export function EnvironmentCreationForm({
   orgId,
 }: EnvironmentCreationFormProps) {
@@ -55,6 +64,16 @@ export function EnvironmentCreationForm({
   const [isNewOrgModalOpen, setIsNewOrgModalOpen] = useState(false);
   const [isBilledMonthly, setIsBilledMonthly] = useState(true);
   const [selectedPlan, setSelectedPlan] = useState<string>("");
+
+  // fetch the product list
+  const listProductRes = useQuery(listProduct, { category: "logging" });
+
+  // clean it up into ergonomic types
+  const products = listProductRes.data?.items.map((el): Product => {
+    return { product: el.product!, prices: el.prices };
+  });
+
+  console.log("products", products);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),

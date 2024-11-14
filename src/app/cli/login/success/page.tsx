@@ -2,10 +2,10 @@
 
 import { Copy } from "lucide-react";
 import { copyToClipboard } from "@/lib/utils/clipboard";
-import { useAllAccounts } from "@/context/listAccounts";
+import { useAllEnvironments } from "@/context/listEnvironments";
 
 export default function Page() {
-  const { user } = useAllAccounts();
+  const { user } = useAllEnvironments();
 
   const demoString = `humanlog --help`;
 
