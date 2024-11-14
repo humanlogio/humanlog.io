@@ -11,11 +11,30 @@ import { Button } from "./ui/button";
 import { useState } from "react";
 import Image from "next/image";
 
-const PageFooter = (props: {
-  iconSocialLinks: { href: string; icon: string; alt: string }[];
-  footerLinks: { href: string; text: string }[];
-}) => {
-  const { footerLinks, iconSocialLinks } = props;
+const iconSocialLinks = [
+  {
+    href: "https://github.com/humanlogio/humanlog",
+    icon: "/icons/github-mark-white.svg",
+    alt: "GitHub",
+  },
+];
+
+const footerLinks = [
+  {
+    href: "mailto:antoine@webscale.lol",
+    text: "Contact Us",
+  },
+  {
+    href: "/legal/siteterms",
+    text: "Terms of Service",
+  },
+  {
+    href: "/legal/privacy",
+    text: "Privacy Policy",
+  },
+];
+
+const PageFooter = () => {
   const [authURL, setAuthURL] = useState<string | null>(null);
   const { user } = useAllAccounts();
 
@@ -47,11 +66,11 @@ const PageFooter = (props: {
   return (
     <footer className="bg-darkBg py-10 text-slate-100 dark:bg-slate-950">
       <div className="container">
-        <div className="grid grid-cols-1 justify-items-center gap-6 text-center md:grid-cols-12 lg:gap-0">
-          <div className="flex flex-col justify-between gap-7 pb-1 md:col-span-3 md:justify-self-start">
-            <Logo small />
+        <div className="grid grid-cols-1 gap-10 md:grid-cols-12">
+          <div className="flex flex-col items-center gap-6 md:col-span-6 md:items-start">
+            <Logo sm />
 
-            <div className="flex items-center justify-center gap-4 md:justify-between">
+            <div className="flex items-center gap-4">
               {Object.values(iconSocialLinks).map((link) => (
                 <a
                   className="contents"
@@ -61,21 +80,20 @@ const PageFooter = (props: {
                   rel="noopener noreferrer"
                 >
                   <Image
-                    className="col-start-3 w-6 justify-self-end"
                     src={link.icon}
                     alt={link.alt}
-                    width={21}
-                    height={21}
+                    width={24}
+                    height={24}
                   />
                 </a>
               ))}
             </div>
           </div>
 
-          <div className="lx:col-span-3 grid grid-cols-1 items-end gap-2 py-1 text-sm text-white md:col-span-5 md:w-full md:grid-flow-col-dense md:grid-rows-3 md:justify-self-start md:py-0 md:text-left lg:gap-x-24">
+          <div className="flex flex-col items-center gap-2 md:col-span-3 md:items-start">
             {Object.values(footerLinks).map((link) => (
               <a
-                className="text-main transition-colors hover:text-slate-100"
+                className="text-main transition-colors hover:text-white"
                 key={link.href}
                 href={link.href}
                 target="_blank"
@@ -86,17 +104,13 @@ const PageFooter = (props: {
             ))}
           </div>
 
-          <div className="lx:col-span-2 hidden md:col-span-1 md:block" />
-
-          <div className="flex flex-col items-center justify-between gap-4 md:col-span-3 md:items-end md:justify-self-end">
-            <div className="flex flex-row items-center gap-6">
-              {renderAvatarBlock(user)}
-            </div>
-
-            <div className="text-neutral-grayish-blue text-xs md:text-sm">
-              <p>© Humanlog</p>
-              <p>All Rights Reserved</p>
-            </div>
+          <div className="flex flex-col items-center gap-4 md:col-span-3 md:items-end md:text-end">
+            {renderAvatarBlock(user)}
+            <p className="text-white">
+              2024 © Humanlog.io
+              <br />
+              All Rights Reserved.
+            </p>
           </div>
         </div>
       </div>
