@@ -1,6 +1,6 @@
 import { Copy } from "lucide-react";
 import { getSelfURL } from "@/lib/envs";
-import { copyToClipboard } from "@/lib/clipboard";
+import { copyToClipboard } from "@/lib/utils/clipboard";
 
 const SetupGuide: React.FC = () => {
   const origin = getSelfURL();

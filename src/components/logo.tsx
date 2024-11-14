@@ -1,14 +1,16 @@
 import React from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
-const Logo = (props: { small?: boolean }) => {
-  const sizeStyle = props.small ? " scale-75 md:-translate-x-[12.5%]" : "";
-
+const Logo = ({ sm = false }) => {
   return (
     <Link href="/">
       <div
-        className={"flex flex-row items-center gap-1" + sizeStyle}
+        className={cn(
+          "flex flex-row items-center gap-1",
+          sm && "-translate-x-[5%] scale-90",
+        )}
         title="humanlog.io home link"
       >
         <span className="text-[16px] text-white">human</span>
