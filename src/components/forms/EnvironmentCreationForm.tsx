@@ -1,13 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
-import { Building, Check, UserMinus } from "lucide-react";
-import { useApiClients } from "@/context/api-provider";
-import { ListProductRequest } from "api/js/svc/product/v1/service_pb";
+import { Building, Check } from "lucide-react";
+import { useQuery } from "@connectrpc/connect-query";
+import { listProduct } from "api/js/svc/product/v1/service-ProductService_connectquery";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -61,31 +61,17 @@ export function EnvironmentCreationForm({
 }: EnvironmentCreationFormProps) {
   const router = useRouter();
   const [isBilledMonthly, setIsBilledMonthly] = useState(true);
-  const [products, setProducts] = useState<Product[] | null>(null);
   const [selectedPlan, setSelectedPlan] = useState<string>("");
-  const { apiClients, activeEnvironment, setActiveEnvironment } =
-    useApiClients();
 
-  useEffect(() => {
-    (async () => {
-      const req = new ListProductRequest({ category: "logging" });
-      try {
-        const res = await apiClients?.product.listProduct(req);
-        if (!res || !res.items) {
-          return;
-        }
-        var products = res.items.map((el): Product => {
-          return {
-            product: el.product!,
-            prices: el.prices,
-          };
-        });
-        setProducts(products);
-      } catch (err) {
-        console.log(err);
-      }
-    })();
-  }, []);
+  // fetch the product list
+  const listProductRes = useQuery(listProduct, { category: "logging" });
+
+  // clean it up into ergonomic types
+  const products = listProductRes.data?.items.map((el): Product => {
+    return { product: el.product!, prices: el.prices };
+  });
+
+  console.log("products", products);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
