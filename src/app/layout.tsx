@@ -8,7 +8,7 @@ import { ApiClientsProvider } from "@/context/api-provider";
 import { FullWidthProvider } from "@/context/full-width-provider";
 import { Toaster } from "@/components/ui/sonner";
 import PageHeader from "@/components/page-header";
-import { ListAccountsProvider } from "@/context/listAccounts";
+import { ListEnvironmentsProvider } from "@/context/listEnvironments";
 import PageFooter from "@/components/page-footer";
 
 export const metadata: Metadata = {
@@ -37,14 +37,14 @@ export default function RootLayout({
         <ApiClientsProvider>
           <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
             <FullWidthProvider>
-              <ListAccountsProvider>
+              <ListEnvironmentsProvider>
                 <PageHeader />
                 {children}
                 {true && ( // todo
                   <PageFooter />
                 )}
                 <Toaster expand={true} />
-              </ListAccountsProvider>
+              </ListEnvironmentsProvider>
             </FullWidthProvider>
           </ThemeProvider>
         </ApiClientsProvider>

@@ -13,7 +13,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import SetupGuide from "@/components/setup-guide";
 import Graph, { DataPoint, ZoomType } from "@/components/ui/graph/graph";
-import { useAllAccounts } from "@/context/listAccounts";
+import { useAllEnvironments } from "@/context/listEnvironments";
 import { useApiClients } from "@/context/api-provider";
 import { SummarizeEventsResponse_Bucket } from "api/js/svc/query/v1/service_pb";
 import { Timestamp } from "@bufbuild/protobuf";
@@ -23,8 +23,8 @@ export default function Home() {
   const signupOnly = process.env.NEXT_PUBLIC_SIGNUP_ONLY === "true";
   const [isPretty, setIsPretty] = useState(true);
   const { isFullWidth } = useFullWidth();
-  const { hasLocalhost, listAccounts } = useAllAccounts();
-  const { apiClients, activeAccount } = useApiClients();
+  const { hasLocalhost, listEnvironments } = useAllEnvironments();
+  const { apiClients, activeEnvironment } = useApiClients();
   const [eventsList, setEvents] = useState<DataPoint[] | null>(null);
   const [bucketCount, setBucketCount] = useState<number>(10000);
   const [startDate, setStartDate] = useState<Date>(
@@ -124,7 +124,7 @@ export default function Home() {
 
         try {
           const stream = apiClients?.query.watchQuery({
-            accountId: activeAccount,
+            environmentId: activeEnvironment,
             query: {
               from: convertToTimestamp(startDate),
               to: (endDate && convertToTimestamp(endDate)) || undefined,
@@ -161,7 +161,7 @@ export default function Home() {
           }
         }
       })();
-  }, [activeAccount, apiClients?.query, endDate, startDate, queryString]);
+  }, [activeEnvironment, apiClients?.query, endDate, startDate, queryString]);
 
   const updateEvents = useCallback(() => {
     (async () => {
@@ -170,7 +170,7 @@ export default function Home() {
           (endDate ?? new Date()).getTime() - startDate.getTime(),
         );
         const events = await apiClients?.query.summarizeEvents({
-          accountId: activeAccount,
+          environmentId: activeEnvironment,
           from: convertToTimestamp(
             new Date(startDate.getTime() + Math.floor(timeGap / 2)),
           ),
@@ -198,7 +198,7 @@ export default function Home() {
     })();
   }, [
     apiClients?.query,
-    activeAccount,
+    activeEnvironment,
     bucketCount,
     startDate,
     endDate,
@@ -252,7 +252,7 @@ export default function Home() {
 
   return (
     <main className="flex h-[calc(100dvh-56px)] flex-col py-8">
-      {signupOnly || (!hasLocalhost && !listAccounts.length) ? (
+      {signupOnly || (!hasLocalhost && !listEnvironments.length) ? (
         <SetupGuide />
       ) : (
         <div className="flex flex-grow flex-col gap-4 overflow-y-hidden">
