@@ -26,7 +26,7 @@ const config = {
         overlay: "rgba(0,0,0,0.8)", // background color overlay for alert dialogs, modals, etc.
         destructive: "rgba(238, 75, 85, <alpha-value>)",
         warning: "rgba(245, 215, 110, <alpha-value>)",
-        success: "rgba(85, 194, 136, <alpha-value>)",
+        success: "rgba(22, 163, 74, <alpha-value>)",
 
         // light mode
         bg: "#fff",

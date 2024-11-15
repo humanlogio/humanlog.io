@@ -66,7 +66,7 @@ export default function Page() {
               (p) => p.lookupKey === "localdev_pro_yearly",
             );
             const price = isBilledYearly
-              ? Number(yearly?.unitAmount || 0) / 100
+              ? Number(yearly?.unitAmount || 0) / 100 / 12
               : Number(monthly?.unitAmount || 0) / 100;
 
             // to replace with stripe data
@@ -91,15 +91,20 @@ export default function Page() {
                   <p className="mb-3 mt-2 text-slate-500">
                     {product.product.description}
                   </p>
-                  <div>
-                    <span className="text-3xl font-bold">
-                      {price ? `$${price.toFixed(2)}` : "Custom"}
-                    </span>
-                    {price && isBilledYearly ? (
-                      <span>/year</span>
-                    ) : (
-                      <span>/month</span>
+                  <div className="flex items-center gap-4">
+                    {isBilledYearly && (
+                      <span className="text-2xl font-bold text-slate-500 line-through">
+                        ${Number(monthly?.unitAmount || 0) / 100}
+                      </span>
                     )}
+                    <div>
+                      <span className="text-3xl font-bold">
+                        {price
+                          ? `$${(Math.floor(price * 100) / 100).toFixed(2)}`
+                          : "Custom"}
+                      </span>
+                      {price && <span>/month</span>}
+                    </div>
                   </div>
                   <ul className="mt-8 flex flex-col gap-2">
                     {product.product.marketingFeatures.map((feature) => {
