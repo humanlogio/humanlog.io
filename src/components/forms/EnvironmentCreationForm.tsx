@@ -216,8 +216,8 @@ export function EnvironmentCreationForm({
                       const isSelected =
                         selectedPlan === product.product.stripeId;
                       const price = isBilledYearly
-                        ? Number(yearly?.unitAmount)
-                        : Number(monthly?.unitAmount);
+                        ? Number(yearly?.unitAmount || 0) / 100 / 12
+                        : Number(monthly?.unitAmount || 0) / 100;
 
                       return (
                         <div
@@ -237,16 +237,21 @@ export function EnvironmentCreationForm({
                               {product.product.name}
                             </div>
                             <h5 className="font-bold">
+                              {isBilledYearly && (
+                                <span className="mr-2 text-sm text-slate-500 line-through">
+                                  ${Number(monthly?.unitAmount || 0) / 100}
+                                </span>
+                              )}
                               <span
                                 className={
                                   isSelected ? "text-white" : "text-success"
                                 }
                               >
                                 {price
-                                  ? `$${(price / 100).toFixed(2)}`
+                                  ? `$${(Math.floor(price * 100) / 100).toFixed(2)}`
                                   : "Custom"}
                               </span>
-                              {price && isBilledYearly ? "/year" : "/month"}
+                              /month
                             </h5>
                           </div>
                           <p
