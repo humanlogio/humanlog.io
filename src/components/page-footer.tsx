@@ -11,6 +11,10 @@ const iconSocialLinks = [
 
 const footerLinks = [
   {
+    href: "/pricing",
+    text: "Pricing",
+  },
+  {
     href: "mailto:antoine@webscale.lol",
     text: "Contact Us",
   },

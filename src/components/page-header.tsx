@@ -205,11 +205,6 @@ const PageHeader: React.FC = () => {
           </div>
 
           <div className="flex flex-row items-center gap-6">
-            {!signupOnly && (
-              <Link href="/pricing" className="text-white hover:underline">
-                Pricing
-              </Link>
-            )}
             {renderAvatarBlock(user)}
             <div className="flex flex-row items-center gap-2">
               <ModeToggle />
@@ -238,11 +233,6 @@ const PageHeader: React.FC = () => {
             <div className="mt-4 flex w-full grow flex-col gap-8">
               {!signupOnly && renderSourceSelectorBlock()}
               {renderAvatarBlock(user)}
-              {!signupOnly && (
-                <Link href="/pricing" className="hover:underline md:text-white">
-                  Pricing
-                </Link>
-              )}
             </div>
             <ModeToggle />
           </SheetContent>
