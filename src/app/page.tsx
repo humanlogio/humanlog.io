@@ -18,6 +18,7 @@ import { useApiClients } from "@/context/api-provider";
 import { SummarizeEventsResponse_Bucket } from "api/js/svc/query/v1/service_pb";
 import { Timestamp } from "@bufbuild/protobuf";
 import DateRangePicker from "@/components/ui/graph/dateRangePicker";
+import { useDebouncer } from "@/lib/utils/useDebouncer";
 
 export default function Home() {
   const signupOnly = process.env.NEXT_PUBLIC_SIGNUP_ONLY === "true";
@@ -228,78 +229,70 @@ export default function Home() {
     ],
   );
 
-  const debounceRef = useRef<NodeJS.Timeout | null>(null);
-  const updateTimeFrame = useCallback(
+  const updateTimeFrame = useDebouncer(
     (zoom: ZoomType) => {
-      if (debounceRef.current) {
-        clearTimeout(debounceRef.current);
+      if (!eventsList) {
+        return;
       }
-      debounceRef.current = setTimeout(() => {
-        if (!eventsList) {
-          return;
-        }
 
-        setZoom(zoom);
+      setZoom(zoom);
 
-        const { startIndex, endIndex } = zoom;
-        const listSize = eventsList.length;
-        const borderRange = 0.2;
-        const graphGapRate = 0.1;
+      const { startIndex, endIndex } = zoom;
+      const listSize = eventsList.length;
+      const borderRange = 0.2;
+      const graphGapRate = 0.3;
 
-        let zoomStart: Date = startDate;
-        let zoomEnd: Date | null = endDate;
-        let targetGraphStart: Date | undefined;
-        let targetGraphEnd: Date | undefined;
+      let zoomStart: Date = startDate;
+      let zoomEnd: Date | null = endDate;
+      let targetGraphStart: Date | undefined;
+      let targetGraphEnd: Date | undefined;
 
-        if (
-          typeof startIndex === "number" &&
-          eventsList[Math.floor(startIndex)]?.date
-        ) {
-          zoomStart = eventsList[Math.floor(startIndex)].date;
-          setStartDate(zoomStart);
+      if (
+        typeof startIndex === "number" &&
+        eventsList[Math.floor(startIndex)]?.date
+      ) {
+        zoomStart = eventsList[Math.floor(startIndex)].date;
+        setStartDate(zoomStart);
 
-          if (startIndex / listSize <= borderRange) {
-            targetGraphStart = new Date(
-              graphRange.startDate.getTime() -
-                Math.floor(
-                  Math.abs(
-                    graphRange.endDate.getTime() -
-                      graphRange.startDate.getTime(),
-                  ) * graphGapRate,
-                ),
-            );
-          }
-        }
-
-        if (
-          typeof endIndex === "number" &&
-          eventsList[Math.floor(endIndex)]?.date
-        ) {
-          zoomEnd = eventsList[Math.floor(endIndex)].date;
-          setEndDate(zoomEnd);
-
-          if (endIndex / listSize >= 1 - borderRange) {
-            targetGraphEnd = new Date(
-              graphRange.endDate.getTime() +
-                Math.floor(
-                  Math.abs(
-                    graphRange.endDate.getTime() -
-                      graphRange.startDate.getTime(),
-                  ) * graphGapRate,
-                ),
-            );
-          }
-        }
-
-        if (targetGraphStart || targetGraphEnd) {
-          updateGraphRange(
-            zoomStart,
-            zoomEnd,
-            targetGraphStart,
-            targetGraphEnd,
+        if (startIndex / listSize <= borderRange) {
+          targetGraphStart = new Date(
+            graphRange.startDate.getTime() -
+              Math.floor(
+                Math.abs(
+                  graphRange.endDate.getTime() - graphRange.startDate.getTime(),
+                ) * graphGapRate,
+              ),
           );
         }
-      }, 400);
+      }
+
+      if (
+        typeof endIndex === "number" &&
+        eventsList[Math.floor(endIndex)]?.date
+      ) {
+        zoomEnd = eventsList[Math.floor(endIndex)].date;
+        setEndDate(zoomEnd);
+
+        if (endIndex / listSize >= 1 - borderRange) {
+          targetGraphEnd = new Date(
+            graphRange.endDate.getTime() +
+              Math.floor(
+                Math.abs(
+                  graphRange.endDate.getTime() - graphRange.startDate.getTime(),
+                ) * graphGapRate,
+              ),
+          );
+        }
+      }
+
+      // if abs of scroll size range is smaller than
+      // abs of whole graph range within that
+      // borderRange rate, then shrink to match the new
+      // scroller value * 1.[graphGapRate] on either side
+
+      if (targetGraphStart || targetGraphEnd) {
+        updateGraphRange(zoomStart, zoomEnd, targetGraphStart, targetGraphEnd);
+      }
     },
     [
       eventsList,
