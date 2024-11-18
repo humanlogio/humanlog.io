@@ -69,11 +69,11 @@ const Graph = (props: {
 
   return (
     <Scroller
-      data={data}
       minValue={minValue}
       maxValue={maxValue}
       startIndex={startIndex}
       endIndex={endIndex}
+      lockScroll={true}
       onProcessed={updateGraph}
     >
       <ResponsiveContainer>
