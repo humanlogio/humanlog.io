@@ -168,11 +168,14 @@ const Scroller = (props: {
       gap,
       deltaAccumulatorX,
       deltaAccumulatorY,
+      lockScroll,
+      scrollingDirection,
       startIndex,
       endIndex,
       minValue,
       maxValue,
       handleBrushChange,
+      resetDirectionLock,
     ],
   );
 

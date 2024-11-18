@@ -15,5 +15,5 @@ export const useDebouncer = <T extends (...args: any[]) => void>(
     timeoutRef.current = setTimeout(() => {
       callback(...args);
     }, delay);
-  }, deps) as T;
+  }, deps) as T; // eslint-disable-line react-hooks/exhaustive-deps
 };
