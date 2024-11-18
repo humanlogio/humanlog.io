@@ -285,10 +285,21 @@ export default function Home() {
         }
       }
 
-      // if abs of scroll size range is smaller than
-      // abs of whole graph range within that
-      // borderRange rate, then shrink to match the new
-      // scroller value * 1.[graphGapRate] on either side
+      if (
+        typeof startIndex === "number" &&
+        typeof endIndex === "number" &&
+        Math.abs(endIndex - startIndex) <= eventsList.length * borderRange
+      ) {
+        zoomStart = eventsList[Math.floor(startIndex)].date;
+        zoomEnd = eventsList[Math.floor(endIndex)].date;
+
+        const diff = Math.floor(
+          Math.abs(zoomEnd.getTime() - zoomStart.getTime()) / 2,
+        );
+
+        targetGraphStart = new Date(zoomStart.getTime() - diff);
+        targetGraphEnd = new Date(zoomEnd.getTime() + diff);
+      }
 
       if (targetGraphStart || targetGraphEnd) {
         updateGraphRange(zoomStart, zoomEnd, targetGraphStart, targetGraphEnd);
