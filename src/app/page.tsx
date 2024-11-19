@@ -19,6 +19,7 @@ import { SummarizeEventsResponse_Bucket } from "api/js/svc/query/v1/service_pb";
 import { Timestamp } from "@bufbuild/protobuf";
 import DateRangePicker from "@/components/ui/graph/dateRangePicker";
 import { useDebouncer } from "@/lib/utils/useDebouncer";
+import { GRAPH_RANGE_MIN_WIDTH } from "@/components/ui/graph/scroller";
 
 export default function Home() {
   const signupOnly = process.env.NEXT_PUBLIC_SIGNUP_ONLY === "true";
@@ -55,12 +56,13 @@ export default function Home() {
       // months
       return time.toDate().toLocaleDateString("en-US", {
         month: "short",
-        year: "2-digit",
+        year: "numeric",
       });
     }
     if (diff > 1000 * 60 * 60 * 24 * 7) {
       // days
       return time.toDate().toLocaleDateString("en-US", {
+        month: "short",
         day: "2-digit",
       });
     }
@@ -71,7 +73,7 @@ export default function Home() {
         dayPeriod: "short",
       });
     }
-    if (diff > 1000 * 60 * 60 * 2) {
+    if (diff > 1000 * 60 * 10) {
       // hours
       return time.toDate().toLocaleTimeString("en-US", {
         hourCycle: "h24",
@@ -82,6 +84,7 @@ export default function Home() {
     // minutes
     return time.toDate().toLocaleTimeString("en-US", {
       hourCycle: "h24",
+      hour: "2-digit",
       minute: "2-digit",
       second: "2-digit",
       fractionalSecondDigits: 3,
@@ -288,7 +291,8 @@ export default function Home() {
       if (
         typeof startIndex === "number" &&
         typeof endIndex === "number" &&
-        Math.abs(endIndex - startIndex) <= eventsList.length * borderRange
+        (Math.abs(endIndex - startIndex) <= eventsList.length * borderRange ||
+          Math.abs(endIndex - startIndex) <= GRAPH_RANGE_MIN_WIDTH)
       ) {
         zoomStart = eventsList[Math.floor(startIndex)].date;
         zoomEnd = eventsList[Math.floor(endIndex)].date;
