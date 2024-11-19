@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useState } from "react";
-import { redirect, usePathname } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import {
   Loader,
@@ -45,7 +45,7 @@ import {
 } from "api/js/svc/auth/v1/service_pb";
 import { PingResponse } from "api/js/svc/localhost/v1/service_pb";
 import { User } from "api/js/types/v1/user_pb";
-import { gravatarURL } from "@/lib/utils";
+import { gravatarURL, getNewEnvironmentUrl } from "@/lib/utils";
 import { useAllEnvironments } from "@/context/listEnvironments";
 import { Button } from "./ui/button";
 
@@ -56,9 +56,11 @@ const PageHeader: React.FC = () => {
     useApiClients();
   const { isFullWidth, setIsFullWidth } = useFullWidth();
   const pathname = usePathname();
-  const { user, hasLocalhost, listEnvironments } = useAllEnvironments();
+  const { user, currentOrg, defaultOrg, hasLocalhost, listEnvironments } =
+    useAllEnvironments();
   const localhostValue = "localhost";
   const addNewValue = "add_new";
+  const router = useRouter();
 
   useEffect(() => {
     (async () => {
@@ -96,23 +98,29 @@ const PageHeader: React.FC = () => {
       if (selectValue === localhostValue) {
         setActiveEnvironment(undefined);
         if (!hasLocalhost) {
-          redirect("install");
+          router.push("/install");
         }
-      } else if (selectValue === addNewValue) {
-        redirect("pricing");
-      } else {
-        try {
-          setActiveEnvironment(BigInt(selectValue));
-        } catch (e) {
-          console.error(
-            "Error attempting to parse environment ID:",
-            selectValue,
-          );
-          console.error(e);
+        return;
+      }
+      if (selectValue === addNewValue) {
+        setActiveEnvironment(undefined);
+        if (!defaultOrg && !currentOrg) {
+          router.push("/pricing");
+          return;
         }
+        let orgName =
+          defaultOrg?.id !== currentOrg?.id ? currentOrg!.name : undefined;
+        router.push(getNewEnvironmentUrl(orgName));
+        return;
+      }
+      try {
+        setActiveEnvironment(BigInt(selectValue));
+      } catch (e) {
+        console.error("Error attempting to parse environment ID:", selectValue);
+        console.error(e);
       }
     },
-    [hasLocalhost, setActiveEnvironment],
+    [router, currentOrg, defaultOrg, hasLocalhost, setActiveEnvironment],
   );
 
   const renderAvatarBlock = (user: User | null) => {
