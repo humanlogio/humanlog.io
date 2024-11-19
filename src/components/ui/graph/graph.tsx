@@ -94,6 +94,7 @@ const Graph = (props: {
           <Tooltip
             wrapperClassName="dark:bg-bg bg-darkBg"
             labelClassName="dark:text-text text-darkText"
+            contentStyle={{ background: "currentColor" }}
           />
           <Legend />
           <Bar
