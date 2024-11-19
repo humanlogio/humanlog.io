@@ -50,27 +50,38 @@ export default function Page() {
           />
           <Label
             htmlFor="billed-monthly"
-            className={cn("transition-colors duration-200", {
+            className={cn("relative transition-colors duration-200", {
               "text-slate-500": !isBilledYearly,
             })}
           >
-            Billed Annually
+            Billed Yearly
+            <span
+              className={cn(
+                "absolute left-full top-1/2 ml-2 hidden -translate-y-1/2 transform text-nowrap rounded-base bg-success px-2 py-1 text-xs font-bold text-white sm:block",
+                {
+                  "bg-slate-400": !isBilledYearly,
+                },
+              )}
+            >
+              SAVE 20%
+            </span>
           </Label>
         </div>
         <div className="grid w-full grid-cols-1 gap-8 pt-16 lg:grid-cols-3">
           {products?.map((product) => {
             const monthly = product.prices.find(
-              (p) => p.lookupKey === "localdev_pro_monthly",
+              (p) => p.recurring?.interval === "month",
             );
             const yearly = product.prices.find(
-              (p) => p.lookupKey === "localdev_pro_yearly",
+              (p) => p.recurring?.interval === "year",
             );
+
             const price = isBilledYearly
               ? Number(yearly?.unitAmount || 0) / 100 / 12
               : Number(monthly?.unitAmount || 0) / 100;
 
             // to replace with stripe data
-            const featured = true;
+            const featured = false;
 
             return (
               <div
@@ -92,7 +103,7 @@ export default function Page() {
                     {product.product.description}
                   </p>
                   <div className="flex items-center gap-4">
-                    {isBilledYearly && (
+                    {price && isBilledYearly && (
                       <span className="text-2xl font-bold text-slate-500 line-through">
                         ${Number(monthly?.unitAmount || 0) / 100}
                       </span>
