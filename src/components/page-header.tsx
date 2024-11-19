@@ -1,7 +1,12 @@
 "use client";
 
 import React, { useCallback, useEffect, useState } from "react";
-import { useRouter, usePathname } from "next/navigation";
+import {
+  useRouter,
+  usePathname,
+  redirect,
+  RedirectType,
+} from "next/navigation";
 import Link from "next/link";
 import {
   Loader,
@@ -47,11 +52,13 @@ import { PingResponse } from "api/js/svc/localhost/v1/service_pb";
 import { gravatarURL, getNewEnvironmentUrl } from "@/lib/utils";
 import { useAllEnvironments, UserState } from "@/context/listEnvironments";
 import { Button } from "@/components/ui/button";
+import { useQuery } from "@connectrpc/connect-query";
+import { getLogoutURL } from "api/js/svc/user/v1/service-UserService_connectquery";
 
 const PageHeader: React.FC = () => {
   const signupOnly = process.env.NEXT_PUBLIC_SIGNUP_ONLY === "true";
   const [authURL, setAuthURL] = useState<string | null>(null);
-  const { apiClients, activeEnvironment, setActiveEnvironment } =
+  const { apiClients, activeEnvironment, setActiveEnvironment, doLogout } =
     useApiClients();
   const { isFullWidth, setIsFullWidth } = useFullWidth();
   const pathname = usePathname();
@@ -122,6 +129,8 @@ const PageHeader: React.FC = () => {
     [router, currentOrg, defaultOrg, hasLocalhost, setActiveEnvironment],
   );
 
+  const logoutURL = useQuery(getLogoutURL).data?.logoutUrl!;
+
   const renderAvatarBlock = (user: UserState) => {
     if (user === "loading" || !authURL) {
       return <Loader className="animate-spin md:text-white" />;
@@ -151,11 +160,13 @@ const PageHeader: React.FC = () => {
           </div>
         </DropdownMenuTrigger>
         <DropdownMenuContent className="w-56">
-          <DropdownMenuItem>
-            <LogOut size={16} className="mr-2" />
-            <span>Log out</span>
-            <DropdownMenuShortcut>⇧⌘Q</DropdownMenuShortcut>
-          </DropdownMenuItem>
+          <Link href={logoutURL!}>
+            <DropdownMenuItem onClick={doLogout}>
+              <LogOut size={16} className="mr-2" />
+              <span>Log out</span>
+              <DropdownMenuShortcut>⇧⌘Q</DropdownMenuShortcut>
+            </DropdownMenuItem>
+          </Link>
         </DropdownMenuContent>
       </DropdownMenu>
     );

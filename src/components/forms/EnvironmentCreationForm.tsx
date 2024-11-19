@@ -76,7 +76,7 @@ export function EnvironmentCreationForm({
     Promise<Stripe | null> | undefined
   >();
 
-  const listOrgRes = useQuery(listOrganization, {}).data?.items.map(
+  const listOrgRes = useQuery(listOrganization, { limit: 100 }).data?.items.map(
     (el) => el.organization!,
   );
 
