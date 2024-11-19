@@ -3,12 +3,13 @@ import Flatpickr from "react-flatpickr";
 
 const DatePicker = (props: {
   styles: string;
-  includeTime: boolean;
-  date?: Date;
+  hideDate: boolean;
+  date: Date | null;
+  minDate?: Date;
   maxDate?: Date;
   setDate: (date: Date) => void;
 }) => {
-  const { styles, includeTime, date, maxDate, setDate } = props;
+  const { styles, hideDate, date, maxDate, minDate, setDate } = props;
   const className =
     "inline-block flex-1 rounded-md border-gray-300 text-sm focus:border-blue-500 focus:ring-blue-500 dark:border-darkBorder dark:bg-darkBg dark:text-darkText" +
     styles;
@@ -16,8 +17,15 @@ const DatePicker = (props: {
   return (
     <Flatpickr
       className={className}
-      value={date}
-      options={{ maxDate, enableTime: includeTime, noCalendar: false }}
+      value={date ?? undefined}
+      placeholder="stream"
+      options={{
+        maxDate,
+        minDate,
+        enableTime: true,
+        noCalendar: false,
+        dateFormat: hideDate ? "H:i:S" : "Y-m-d H:i:S",
+      }}
       onChange={([date]) => {
         setDate(date);
       }}

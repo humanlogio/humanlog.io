@@ -1,12 +1,16 @@
 import React from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
-const Logo: React.FC = () => {
+const Logo = ({ sm = false }) => {
   return (
     <Link href="/">
       <div
-        className="flex flex-row items-center gap-1"
+        className={cn(
+          "flex flex-row items-center gap-1",
+          sm && "-translate-x-[5%] scale-90",
+        )}
         title="humanlog.io home link"
       >
         <span className="text-[16px] text-white">human</span>

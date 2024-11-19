@@ -14,10 +14,7 @@ const config = {
   theme: {
     container: {
       center: true,
-      padding: "2rem",
-      screens: {
-        "2xl": "1400px",
-      },
+      padding: "1rem",
     },
     extend: {
       fontFamily: {
@@ -27,9 +24,9 @@ const config = {
         main: "rgba(136, 170, 238, <alpha-value>)",
         mainAccent: "#4d80e6", // not needed for shadcn components
         overlay: "rgba(0,0,0,0.8)", // background color overlay for alert dialogs, modals, etc.
-        danger: "rgba(238, 75, 85, <alpha-value>)",
+        destructive: "rgba(238, 75, 85, <alpha-value>)",
         warning: "rgba(245, 215, 110, <alpha-value>)",
-        success: "rgba(85, 194, 136, <alpha-value>)",
+        success: "rgba(22, 163, 74, <alpha-value>)",
 
         // light mode
         bg: "#fff",

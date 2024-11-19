@@ -1,14 +1,15 @@
 import type { Metadata } from "next";
 import { JetBrains_Mono as FontMono } from "next/font/google";
 
-import "./globals.css";
+import "@/app/globals.css";
 import { cn } from "@/lib/utils";
 import { ThemeProvider } from "@/context/theme-provider";
 import { ApiClientsProvider } from "@/context/api-provider";
 import { FullWidthProvider } from "@/context/full-width-provider";
 import { Toaster } from "@/components/ui/sonner";
 import PageHeader from "@/components/page-header";
-import { ListAccountsProvider } from "@/context/listAccounts";
+import { ListEnvironmentsProvider } from "@/context/listEnvironments";
+import PageFooter from "@/components/page-footer";
 
 export const metadata: Metadata = {
   title: "humanlog.io",
@@ -26,7 +27,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body
         className={cn(
           "min-h-screen bg-bg font-mono text-text antialiased dark:bg-darkBg dark:text-darkText",
@@ -34,20 +35,16 @@ export default function RootLayout({
         )}
       >
         <ApiClientsProvider>
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="system"
-            enableSystem
-            disableTransitionOnChange
-          >
+          <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
             <FullWidthProvider>
-              <ListAccountsProvider>
-                <header>
-                  <PageHeader />
-                </header>
-                <main>{children}</main>
+              <ListEnvironmentsProvider>
+                <PageHeader />
+                {children}
+                {true && ( // todo
+                  <PageFooter />
+                )}
                 <Toaster expand={true} />
-              </ListAccountsProvider>
+              </ListEnvironmentsProvider>
             </FullWidthProvider>
           </ThemeProvider>
         </ApiClientsProvider>

@@ -2,7 +2,11 @@ name: 🚀 to prod
 
 on:
   workflow_dispatch:
-
+    inputs:
+      sha:
+        description: "sha to deploy."
+        type: string
+        required: true
 jobs:
   shipit:
     name: "🚀 to prod"
@@ -10,17 +14,30 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.sha }}
+      - name: Set outputs
+        id: vars
+        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
 
       - name: Install doctl
         uses: digitalocean/action-doctl@v2
         with:
           token: ${{ secrets.DOCN_REGISTRY_TOKEN }}
 
-      - name: Install helm
-        uses: azure/setup-helm@v4.2.0
+      - name: Build container image
+        run: docker build --build-arg git_hash=${{steps.vars.outputs.sha_short}} --build-arg api_url="https://api.humanlog.io" --build-arg self_url="https://humanlog.io" --build-arg default_release_channel="main" --build-arg signup_only="true" -t registry.digitalocean.com/humanlog/humanlogio:prod-${{steps.vars.outputs.sha_short}} .
 
-      - name: Save DigitalOcean kubeconfig with short-lived credentials
-        run: doctl kubernetes cluster kubeconfig save --expiry-seconds 600 ${{ secrets.DOCN_K8S_CLUSTER_NAME }}
+      - name: Log in to DigitalOcean Container Registry with short-lived credentials
+        run: doctl registry login --expiry-seconds 1200
 
-      - name: Deploy to DigitalOcean Kubernetes
-        run: helm upgrade --install humanlogio ./deploy/app --namespace webapp  --values ./deploy/app/values.yaml --set "app.deployment.tag=$(echo $GITHUB_SHA | head -c7)"
+      - name: Push image to DigitalOcean Container Registry
+        run: docker push registry.digitalocean.com/humanlog/humanlogio:prod-${{steps.vars.outputs.sha_short}}
+
+      - name: Trigger `deploy/set_humanlogio_tag`
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.TRIGGER_EVENT_GITHUB_PAT }}
+          repository: humanlogio/deploy
+          event-type: set_humanlogio_tag
+          client-payload: '{"deploy_tag": "prod-${{steps.vars.outputs.sha_short}}", "env": "prod"}'

@@ -1,15 +1,27 @@
 "use client";
 
 import React, { useCallback, useEffect, useState } from "react";
-import { redirect, usePathname } from "next/navigation";
+import {
+  useRouter,
+  usePathname,
+  redirect,
+  RedirectType,
+} from "next/navigation";
 import Link from "next/link";
-import { Loader, SquareCode, User as UserIcon, LogOut } from "lucide-react";
+import {
+  Loader,
+  SquareCode,
+  User as UserIcon,
+  LogOut,
+  Menu,
+} from "lucide-react";
 import Logo from "@/components/logo";
 import {
   Select,
   SelectContent,
   SelectGroup,
   SelectItem,
+  SelectSeparator,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
@@ -20,6 +32,13 @@ import {
   DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ModeToggle } from "@/components/mode-toggle";
 import { WidthToggle } from "@/components/width-toggle";
@@ -30,20 +49,24 @@ import {
   LocalhostViaBrowser,
 } from "api/js/svc/auth/v1/service_pb";
 import { PingResponse } from "api/js/svc/localhost/v1/service_pb";
-import { User } from "api/js/types/v1/user_pb";
-import { md5 } from "js-md5";
-import { useAllAccounts } from "@/context/listAccounts";
-import { Button } from "./ui/button";
+import { gravatarURL, getNewEnvironmentUrl } from "@/lib/utils";
+import { useAllEnvironments, UserState } from "@/context/listEnvironments";
+import { Button } from "@/components/ui/button";
+import { useQuery } from "@connectrpc/connect-query";
+import { getLogoutURL } from "api/js/svc/user/v1/service-UserService_connectquery";
 
 const PageHeader: React.FC = () => {
   const signupOnly = process.env.NEXT_PUBLIC_SIGNUP_ONLY === "true";
   const [authURL, setAuthURL] = useState<string | null>(null);
-  const { apiClients, activeAccount, setActiveAccount } = useApiClients();
+  const { apiClients, activeEnvironment, setActiveEnvironment, doLogout } =
+    useApiClients();
   const { isFullWidth, setIsFullWidth } = useFullWidth();
   const pathname = usePathname();
-  const { user, hasLocalhost, listAccounts } = useAllAccounts();
+  const { user, currentOrg, defaultOrg, hasLocalhost, listEnvironments } =
+    useAllEnvironments();
   const localhostValue = "localhost";
   const addNewValue = "add_new";
+  const router = useRouter();
 
   useEffect(() => {
     (async () => {
@@ -51,8 +74,6 @@ const PageHeader: React.FC = () => {
       const req = new GetAuthURLRequest({ returnToUrl: returnToUrl });
       if (hasLocalhost?.meta) {
         req.localhost = new LocalhostViaBrowser({
-          claimAccountId: hasLocalhost.meta.accountId,
-          claimMachineId: hasLocalhost.meta.machineId,
           architecture: hasLocalhost.architecture,
           operatingSystem: hasLocalhost.operatingSystem,
           usingVersion: hasLocalhost.clientVersion,
@@ -63,7 +84,6 @@ const PageHeader: React.FC = () => {
         if (!res || !res.authUrl) {
           return;
         }
-        console.log("set the auth URL, returning to: " + returnToUrl);
         setAuthURL(res.authUrl);
       } catch (err) {
         console.log(err);
@@ -73,7 +93,6 @@ const PageHeader: React.FC = () => {
     apiClients?.auth,
     hasLocalhost,
     hasLocalhost?.meta,
-    hasLocalhost?.meta?.accountId,
     hasLocalhost?.meta?.machineId,
     hasLocalhost?.architecture,
     hasLocalhost?.operatingSystem,
@@ -83,64 +102,83 @@ const PageHeader: React.FC = () => {
   const updateSelection = useCallback(
     (selectValue: string) => {
       if (selectValue === localhostValue) {
-        setActiveAccount(undefined);
+        setActiveEnvironment(undefined);
         if (!hasLocalhost) {
-          redirect("install");
+          router.push("/install");
         }
-      } else if (selectValue === addNewValue) {
-        redirect("pricing");
-      } else {
-        try {
-          setActiveAccount(BigInt(selectValue));
-        } catch (e) {
-          console.error("Error attempting to parse account ID:", selectValue);
-          console.error(e);
+        return;
+      }
+      if (selectValue === addNewValue) {
+        setActiveEnvironment(undefined);
+        if (!defaultOrg && !currentOrg) {
+          router.push("/pricing");
+          return;
         }
+        let orgName =
+          defaultOrg?.id !== currentOrg?.id ? currentOrg!.name : undefined;
+        router.push(getNewEnvironmentUrl(orgName));
+        return;
+      }
+      try {
+        setActiveEnvironment(BigInt(selectValue));
+      } catch (e) {
+        console.error("Error attempting to parse environment ID:", selectValue);
+        console.error(e);
       }
     },
-    [hasLocalhost, setActiveAccount],
+    [router, currentOrg, defaultOrg, hasLocalhost, setActiveEnvironment],
   );
 
-  const renderAvatarBlock = (user: User | null) => {
-    if (user) {
+  const logoutURL = useQuery(getLogoutURL).data?.logoutUrl!;
+
+  const renderAvatarBlock = (user: UserState) => {
+    if (user === "loading" || !authURL) {
+      return <Loader className="animate-spin md:text-white" />;
+    }
+    if (user === "not-logged-in") {
       return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <div className="flex cursor-pointer flex-row items-center gap-2">
-              <p className="font-medium text-white">
-                {user?.firstName || "username"}
-              </p>
-              <Avatar>
-                <AvatarImage src={gravatarURL(user?.email)} />
-                <AvatarFallback className="uppercase">
-                  {user?.firstName?.slice(0, 2) || <UserIcon size={16} />}
-                </AvatarFallback>
-              </Avatar>
-            </div>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-56">
-            <DropdownMenuItem>
+        <Link href={authURL}>
+          <Button variant="noShadowNeutral" className="w-full">
+            Sign up
+          </Button>
+        </Link>
+      );
+    }
+    return (
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <div className="flex cursor-pointer flex-row items-center gap-2">
+            <Avatar>
+              <AvatarImage src={gravatarURL(user?.email)} />
+              <AvatarFallback className="uppercase">
+                {user?.firstName?.slice(0, 2) || <UserIcon size={16} />}
+              </AvatarFallback>
+            </Avatar>
+            <p className="font-medium text-text md:order-1 md:text-white">
+              {user?.firstName || "username"}
+            </p>
+          </div>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent className="w-56">
+          <Link href={logoutURL!}>
+            <DropdownMenuItem onClick={doLogout}>
               <LogOut size={16} className="mr-2" />
               <span>Log out</span>
               <DropdownMenuShortcut>⇧⌘Q</DropdownMenuShortcut>
             </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      );
-    } else if (authURL) {
-      return (
-        <Link href={authURL}>
-          <Button variant="neutral">Sign up</Button>
-        </Link>
-      );
-    }
-    return <Loader color="white" className="animate-spin" />;
+          </Link>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    );
   };
 
   const renderSourceSelectorBlock = () => (
-    <div title="Account Selector">
-      <Select value={activeAccount?.toString()} onValueChange={updateSelection}>
-        <SelectTrigger className="min-w-52">
+    <div title="Environment Selector" className="w-full md:min-w-52">
+      <Select
+        value={activeEnvironment?.toString()}
+        onValueChange={updateSelection}
+      >
+        <SelectTrigger className="w-full">
           <div className="flex flex-row items-center gap-2">
             <SquareCode size={16} />
             <SelectValue placeholder="Select source" />
@@ -156,18 +194,19 @@ const PageHeader: React.FC = () => {
             </SelectItem>
           </SelectGroup>
           <SelectGroup>
-            {listAccounts.map((item) =>
-              item.account?.id ? (
+            {listEnvironments.map((item) =>
+              item.environment?.id ? (
                 <SelectItem
-                  value={`${item.account.id}`}
-                  key={`${item.account.name}-${item.account.id}`}
+                  value={`${item.environment.id}`}
+                  key={`${item.environment.name}-${item.environment.id}`}
                 >
-                  {item.account?.name}
+                  {item.environment?.name}
                 </SelectItem>
               ) : (
                 <></>
               ),
             )}
+            <SelectSeparator />
             <SelectItem value={addNewValue}>+ Add new</SelectItem>
           </SelectGroup>
         </SelectContent>
@@ -176,42 +215,55 @@ const PageHeader: React.FC = () => {
   );
 
   return (
-    <div className="bg-darkBg dark:bg-slate-950">
-      <div className="mx-auto flex w-full max-w-screen-xl flex-row items-center justify-between gap-8 px-4 py-3">
-        <div className="flex flex-row items-center gap-8">
-          <Logo />
-          {!signupOnly && renderSourceSelectorBlock()}
-        </div>
-        <div className="flex flex-row items-center gap-6">
-          {!signupOnly && (
-            <Link href="/pricing" className="text-white hover:underline">
-              Pricing
-            </Link>
-          )}
-          {renderAvatarBlock(user)}
-          <div className="flex flex-row items-center gap-2">
-            <ModeToggle />
-            {pathname === "/" && (
-              <WidthToggle
-                isFullWidth={isFullWidth}
-                setIsFullWidth={setIsFullWidth}
-              />
-            )}
+    <header className="bg-darkBg dark:bg-slate-950">
+      <div className="container flex flex-row items-center justify-between gap-8 py-3">
+        <div className="hidden w-full flex-row items-center justify-between gap-8 md:flex">
+          <div className="flex flex-row items-center gap-8">
+            <Logo />
+            {!signupOnly && renderSourceSelectorBlock()}
+          </div>
+
+          <div className="flex flex-row items-center gap-6">
+            {renderAvatarBlock(user)}
+            <div className="flex flex-row items-center gap-2">
+              <ModeToggle />
+              {pathname === "/" && (
+                <WidthToggle
+                  isFullWidth={isFullWidth}
+                  setIsFullWidth={setIsFullWidth}
+                />
+              )}
+            </div>
           </div>
         </div>
+        <div className="md:hidden">
+          <Logo />
+        </div>
+        <Sheet>
+          <SheetTrigger asChild>
+            <Button size="icon" variant="neutral" className="md:hidden">
+              <Menu />
+            </Button>
+          </SheetTrigger>
+          <SheetContent className="flex flex-col items-start">
+            <SheetHeader>
+              <SheetTitle>Menu</SheetTitle>
+            </SheetHeader>
+            <div className="mt-4 flex w-full grow flex-col gap-8">
+              {!signupOnly && renderSourceSelectorBlock()}
+              {renderAvatarBlock(user)}
+            </div>
+            <ModeToggle />
+          </SheetContent>
+        </Sheet>
       </div>
-    </div>
+    </header>
   );
 };
 
 const localhostVersion = (res: PingResponse) => {
   const v = res.clientVersion!;
   return "v" + v.major + "." + v.minor + "." + v.patch;
-};
-
-export const gravatarURL = (email: string | undefined) => {
-  if (!email) return undefined;
-  return `https://www.gravatar.com/avatar/${md5(email)}`;
 };
 
 export default PageHeader;

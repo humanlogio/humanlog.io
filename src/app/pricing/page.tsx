@@ -1,114 +1,145 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useQuery } from "@connectrpc/connect-query";
+import { listProduct } from "api/js/svc/product/v1/service-ProductService_connectquery";
+import { Product as APIProduct } from "api/js/types/v1/product_pb";
+import { Price as APIPrice } from "api/js/types/v1/price_pb";
+import { Check } from "lucide-react";
+
 import { cn } from "@/lib/utils";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import PricingPlan from "@/components/pricing-plan";
+import { Button } from "@/components/ui/button";
 
-const tiers = [
-  {
-    name: "LocalDev",
-    id: "0",
-    href: "/subscribe?plan=localdev",
-    price: { "1": "$19", "2": "$14" },
-    discountPrice: { "1": "", "2": "$199" },
-    description: `Save and explore your local development logs.`,
-    features: [
-      `Single user`,
-      `Single machine`,
-      `500 GiB of history included`,
-      `30 days retention`,
-    ],
-    featured: false,
-    highlighted: false,
-    soldOut: false,
-    cta: `Get started`,
-  },
-  {
-    name: "Team",
-    id: "1",
-    href: "/subscribe?plan=team",
-    price: { "1": "$49", "2": "$38" },
-    discountPrice: { "1": "", "2": "$499" },
-    description: `When you grow, need more power and flexibility.`,
-    features: [
-      `All in LocalDev, plus`,
-      `Teams`,
-      `Any number of machines`,
-      `1 TiB of history included`,
-      `100 days retention`,
-    ],
-    featured: true,
-    highlighted: false,
-    soldOut: false,
-    cta: `Get started`,
-  },
-  {
-    name: "Enterprise Custom",
-    id: "2",
-    href: "/contact-us",
-    price: "",
-    discountPrice: { "1": "Custom", "2": "Custom" },
-    description: `Custom plans for your needs.`,
-    features: [
-      `All in Teams, plus`,
-      `Single Sign-on`,
-      `Custom history`,
-      `Custom environments`,
-      `Bring your own bucket`,
-      `Bring your own cloud`,
-      `Priority support`,
-    ],
-    featured: false,
-    highlighted: false,
-    soldOut: false,
-    cta: `Contact us`,
-  },
-];
+interface Product {
+  product: APIProduct;
+  prices: APIPrice[];
+}
 
 export default function Page() {
-  const [isAnnually, setIsAnnually] = useState(true);
+  const [isBilledYearly, setIsBilledYearly] = useState(true);
+
+  // fetch the product list
+  const listProductRes = useQuery(listProduct, { category: "logging" });
+
+  // clean it up into ergonomic types
+  const products = listProductRes.data?.items.map((el): Product => {
+    return { product: el.product!, prices: el.prices };
+  });
+
+  console.log(products);
 
   return (
-    <div className="flex min-h-[calc(100dvh-56px)] w-full flex-col items-center justify-center bg-[linear-gradient(to_right,#80808033_1px,transparent_1px),linear-gradient(to_bottom,#80808033_1px,transparent_1px)] bg-[size:64px_64px]">
-      <div className="mx-auto flex w-full max-w-screen-xl flex-col items-center justify-center px-4 py-8">
+    <div className="container-h-full flex w-full flex-col items-center justify-center bg-[linear-gradient(to_right,#80808033_1px,transparent_1px),linear-gradient(to_bottom,#80808033_1px,transparent_1px)] bg-[size:64px_64px]">
+      <div className="container flex flex-col items-center justify-center py-8">
         <h1 className="text-center text-4xl font-bold">Pricing</h1>
         <div className="flex flex-none flex-row items-center gap-2 pt-8">
           <Label
-            htmlFor="annualy"
+            htmlFor="billed-monthly"
             className={cn("transition-colors duration-200", {
-              "text-slate-500": isAnnually,
+              "text-slate-500": isBilledYearly,
             })}
           >
             Billed Monthly
           </Label>
           <Switch
-            id="annualy"
-            checked={isAnnually}
-            onCheckedChange={(checked) => setIsAnnually(checked)}
+            id="billed-monthly"
+            checked={isBilledYearly}
+            onCheckedChange={setIsBilledYearly}
           />
           <Label
-            htmlFor="annualy"
-            className={cn("transition-colors duration-200", {
-              "text-slate-500": !isAnnually,
+            htmlFor="billed-monthly"
+            className={cn("relative transition-colors duration-200", {
+              "text-slate-500": !isBilledYearly,
             })}
           >
-            Billed Annually
+            Billed Yearly
+            <span
+              className={cn(
+                "absolute left-full top-1/2 ml-2 hidden -translate-y-1/2 transform text-nowrap rounded-base bg-success px-2 py-1 text-xs font-bold text-white transition-colors duration-200 sm:block",
+                {
+                  "bg-slate-400": !isBilledYearly,
+                },
+              )}
+            >
+              SAVE 20%
+            </span>
           </Label>
         </div>
         <div className="grid w-full grid-cols-1 gap-8 pt-16 lg:grid-cols-3">
-          {tiers.map((tier) => (
-            <PricingPlan
-              key={tier.id}
-              name={tier.name}
-              featured={tier.featured}
-              price={isAnnually ? tier.price["2"] : tier.price["1"]}
-              description={tier.description}
-              features={tier.features}
-              cta={tier.cta}
-            />
-          ))}
+          {products?.map((product) => {
+            const monthly = product.prices.find(
+              (p) => p.recurring?.interval === "month",
+            );
+            const yearly = product.prices.find(
+              (p) => p.recurring?.interval === "year",
+            );
+
+            const price = isBilledYearly
+              ? Number(yearly?.unitAmount || 0) / 100 / 12
+              : Number(monthly?.unitAmount || 0) / 100;
+
+            // to replace with stripe data
+            const featured = false;
+
+            return (
+              <div
+                key={product.product.stripeId}
+                className="flex flex-col justify-between rounded-base border-2 border-border bg-white p-6 dark:border-darkBorder dark:bg-darkBg"
+              >
+                <div>
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-2xl font-bold">
+                      {product.product.name}
+                    </h3>
+                    {featured && (
+                      <span className="rounded-base border-2 border-border bg-success px-2 py-0.5 text-sm text-text dark:border-darkBorder">
+                        Most popular
+                      </span>
+                    )}
+                  </div>
+                  <p className="mb-3 mt-2 text-slate-500">
+                    {product.product.description}
+                  </p>
+                  <div className="flex items-center gap-4">
+                    {price && isBilledYearly && (
+                      <span className="text-2xl font-bold text-slate-500 line-through">
+                        ${Number(monthly?.unitAmount || 0) / 100}
+                      </span>
+                    )}
+                    <div>
+                      <span className="text-3xl font-bold">
+                        {price
+                          ? `$${(Math.floor(price * 100) / 100).toFixed(2)}`
+                          : "Custom"}
+                      </span>
+                      {price && <span>/month</span>}
+                    </div>
+                  </div>
+                  <ul className="mt-8 flex flex-col gap-2">
+                    {product.product.marketingFeatures.map((feature) => {
+                      return (
+                        <li
+                          key={feature.name}
+                          className="flex items-center gap-3"
+                        >
+                          <Check className="shrink-0" size={18} />{" "}
+                          {feature.name}
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+                <Button
+                  size={featured ? "lg" : "default"}
+                  className={cn("mt-12 w-full", featured && "bg-success")}
+                >
+                  {price ? "Get Started" : "Contact Us"}
+                </Button>
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>

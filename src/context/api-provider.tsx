@@ -1,100 +1,41 @@
 "use client";
 
 import React, { createContext, useContext, useMemo, useState } from "react";
-import { createPromiseClient, PromiseClient } from "@connectrpc/connect";
+import { createClient, Client, Transport } from "@connectrpc/connect";
 import { Interceptor } from "@connectrpc/connect";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createConnectTransport } from "@connectrpc/connect-web";
+import { TransportProvider } from "@connectrpc/connect-query";
 import { AuthService } from "api/js/svc/auth/v1/service_connect";
-import { AccountService } from "api/js/svc/account/v1/service_connect";
+import { EnvironmentService } from "api/js/svc/environment/v1/service_connect";
 import { OrganizationService } from "api/js/svc/organization/v1/service_connect";
 import { UserService } from "api/js/svc/user/v1/service_connect";
 import { LocalhostService } from "api/js/svc/localhost/v1/service_connect";
 import { QueryService } from "api/js/svc/query/v1/service_connect";
-import { unstable_noStore as noStore } from "next/cache";
+import { ProductService } from "api/js/svc/product/v1/service_connect";
+import { getAPIURL } from "@/lib/envs";
+import { useCookies } from "react-cookie";
 
-type AccountId = bigint | undefined;
+type EnvironmentId = bigint | undefined;
 
 type ApiProviderType = {
   apiClients: ApiClients | null;
-  activeAccount: AccountId;
-  setActiveAccount: React.Dispatch<React.SetStateAction<AccountId>>;
+  activeEnvironment: EnvironmentId;
+  setActiveEnvironment: React.Dispatch<React.SetStateAction<EnvironmentId>>;
+  doLogout: () => void;
 };
 
 type ApiClients = {
-  auth: PromiseClient<typeof AuthService>;
-  account: PromiseClient<typeof AccountService>;
-  org: PromiseClient<typeof OrganizationService>;
-  user: PromiseClient<typeof UserService>;
-  localhost: PromiseClient<typeof LocalhostService>;
-  query: PromiseClient<typeof QueryService>;
+  auth: Client<typeof AuthService>;
+  product: Client<typeof ProductService>;
+  environment: Client<typeof EnvironmentService>;
+  org: Client<typeof OrganizationService>;
+  user: Client<typeof UserService>;
+  localhost: Client<typeof LocalhostService>;
+  query: Client<typeof QueryService>;
 };
 
 const ApiClientContext = createContext<ApiProviderType | null>(null);
-
-const auther: (cookie: string) => Interceptor = (cookie: string) => {
-  return (next) => async (req) => {
-    req.header.set("Browser-Authorization", cookie);
-    const res = await next(req);
-    console.log("res", res);
-    res.header.get("content-type");
-    const cookies = res.header.getSetCookie();
-    if (cookies.length > 1) {
-      console.log(cookies);
-    }
-    return res;
-  };
-};
-
-export function ApiClientsProvider({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  noStore();
-  const [activeAccount, setActiveAccount] = useState<AccountId>();
-
-  const apiClients = useMemo((): ApiClients => {
-    const cookie = getCookie("hlog_session");
-
-    let interceptors: Interceptor[] = [];
-    if (cookie) {
-      interceptors = interceptors.concat(auther(cookie));
-    }
-
-    const apiTransport = createConnectTransport({
-      baseUrl:
-        process.env.NEXT_PUBLIC_API_BASE_URL ?? "https://api.humanlog.dev",
-      interceptors: interceptors,
-    });
-    const auth = createPromiseClient(AuthService, apiTransport);
-    const account = createPromiseClient(AccountService, apiTransport);
-    const org = createPromiseClient(OrganizationService, apiTransport);
-    const user = createPromiseClient(UserService, apiTransport);
-    const query = createPromiseClient(QueryService, apiTransport);
-
-    const localhostTransport = createConnectTransport({
-      baseUrl: "http://localhost:32764",
-    });
-    const localhost = createPromiseClient(LocalhostService, localhostTransport);
-
-    return {
-      auth,
-      account,
-      org,
-      user,
-      localhost,
-      query,
-    };
-  }, []);
-
-  return (
-    <ApiClientContext.Provider
-      value={{ apiClients, activeAccount, setActiveAccount }}
-    >
-      {children}
-    </ApiClientContext.Provider>
-  );
-}
 
 function getCookie(name: string): string | undefined {
   if (typeof document === "undefined") {
@@ -108,6 +49,83 @@ function getCookie(name: string): string | undefined {
   const last = parts.pop()!;
 
   return last.split(";").shift();
+}
+
+const queryClient = new QueryClient();
+
+export function ApiClientsProvider({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const [cookies, setCookie, removeCookie] = useCookies(["hlog_session"]);
+  const [apiTransport, setApiTransport] = useState<Transport>();
+  const [activeEnvironment, setActiveEnvironment] = useState<EnvironmentId>();
+
+  const humanlogSessionCookie = cookies["hlog_session"];
+  const doLogout = () => {
+    removeCookie("hlog_session");
+    console.log("removed cookies");
+  };
+
+  const apiClients = useMemo((): ApiClients => {
+    const auther = (token: string): Interceptor => {
+      return (next) => async (req) => {
+        if (token != "") {
+          req.header.set("Browser-Authorization", token);
+        }
+        const res = await next(req);
+        // console.log("res", res);
+        res.header.get("content-type");
+        const cookies = res.header.getSetCookie();
+        if (cookies.length > 1) {
+          console.error(cookies);
+          // setCookie // update the cookie when the api returns a refresh token
+        }
+        return res;
+      };
+    };
+
+    const localhostTransport = createConnectTransport({
+      baseUrl: "http://localhost:32764",
+    });
+    const apiTpt = createConnectTransport({
+      baseUrl: getAPIURL(),
+      interceptors: [auther(humanlogSessionCookie)],
+    });
+    setApiTransport(apiTpt);
+
+    const activeTransport = !activeEnvironment ? localhostTransport : apiTpt;
+
+    // localhost client should always talk using the localhost transport
+    const localhost = createClient(LocalhostService, localhostTransport);
+    return {
+      localhost,
+      auth: createClient(AuthService, apiTpt),
+      product: createClient(ProductService, apiTpt),
+      environment: createClient(EnvironmentService, apiTpt),
+      org: createClient(OrganizationService, apiTpt),
+      user: createClient(UserService, apiTpt),
+      query: createClient(QueryService, activeTransport),
+    };
+  }, [humanlogSessionCookie, activeEnvironment]);
+
+  return (
+    <TransportProvider transport={apiTransport!}>
+      <QueryClientProvider client={queryClient}>
+        <ApiClientContext.Provider
+          value={{
+            apiClients,
+            activeEnvironment,
+            setActiveEnvironment,
+            doLogout,
+          }}
+        >
+          {children}
+        </ApiClientContext.Provider>
+      </QueryClientProvider>
+    </TransportProvider>
+  );
 }
 
 export function useApiClients(): ApiProviderType {

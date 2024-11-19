@@ -2,5 +2,22 @@
   "extends": [
     "next/core-web-vitals",
     "plugin:prettier/recommended"
-  ]
+  ],
+  "rules": {
+    "react-hooks/rules-of-hooks": "error",
+    "react-hooks/exhaustive-deps": "warn",
+    "no-restricted-imports": [
+      "error",
+      {
+        "patterns": [
+          ".*" // no relative imports
+        ]
+      }
+    ]
+  },
+  "settings": {
+    "react-hooks": {
+      "additionalHooks": "^(useDebouncer)$"
+    }
+  }
 }

@@ -4,49 +4,63 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 import { Code, ConnectError } from "@connectrpc/connect";
 import { useApiClients } from "@/context/api-provider";
 import { PingResponse } from "api/js/svc/localhost/v1/service_pb";
-import { ListAccountResponse_ListItem } from "api/js/svc/organization/v1/service_pb";
+import { ListEnvironmentResponse_ListItem } from "api/js/svc/organization/v1/service_pb";
 import { User } from "api/js/types/v1/user_pb";
 import { Organization } from "api/js/types/v1/organization_pb";
 import { Cursor } from "api/js/types/v1/cursor_pb";
 
-type AllAccounts = {
-  user: User | null;
+export type UserState = User | "loading" | "not-logged-in";
+
+type AllEnvironments = {
+  user: UserState;
+  currentOrg: Organization | null;
+  defaultOrg: Organization | null;
   hasLocalhost: PingResponse | null;
-  listAccounts: ListAccountResponse_ListItem[];
+  listEnvironments: ListEnvironmentResponse_ListItem[];
 };
 
-const ListAccountContext = createContext<AllAccounts>({
-  user: null,
+const ListEnvironmentContext = createContext<AllEnvironments>({
+  user: "loading",
+  currentOrg: null,
+  defaultOrg: null,
   hasLocalhost: null,
-  listAccounts: [],
+  listEnvironments: [],
 });
 
-export function ListAccountsProvider({
+export function ListEnvironmentsProvider({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const { apiClients } = useApiClients();
+  const { apiClients, setActiveEnvironment } = useApiClients();
   const [hasLocalhost, setHasLocalhost] = useState<PingResponse | null>(null);
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<UserState>("loading");
   const [currentOrg, setCurrentOrg] = useState<Organization | null>(null);
-  const [listAccounts, setListAccounts] = useState<
-    ListAccountResponse_ListItem[]
+  const [defaultOrg, setDefaultOrg] = useState<Organization | null>(null);
+  const [listEnvironments, setListEnvironments] = useState<
+    ListEnvironmentResponse_ListItem[]
   >([]);
 
-  const [accountPage, setAccountPage] = useState<Cursor>(new Cursor());
+  const [environmentPage, setEnvironmentPage] = useState<Cursor>(new Cursor());
 
   useEffect(() => {
     (async () => {
       try {
         const res = await apiClients?.user.whoami({});
-        if (!res || !res.user || !res.currentOrganization) {
+        if (
+          !res ||
+          !res.user ||
+          !res.currentOrganization ||
+          !res.defaultOrganization
+        ) {
           return;
         }
         setUser(res.user);
         setCurrentOrg(res.currentOrganization);
+        setDefaultOrg(res.defaultOrganization);
       } catch (err) {
         if (err instanceof ConnectError && err.code == Code.Unauthenticated) {
+          setUser("not-logged-in");
           console.log("need to auth");
         } else {
           console.error(err);
@@ -58,15 +72,16 @@ export function ListAccountsProvider({
   useEffect(() => {
     (async () => {
       try {
-        const res = await apiClients?.org.listAccount({
-          organizationId: currentOrg?.id,
-          cursor: accountPage,
+        const res = await apiClients?.org.listEnvironment({
+          cursor: environmentPage,
           limit: 10,
         });
         if (!res || !res.items) {
+          setListEnvironments([]);
+          setActiveEnvironment(undefined);
           return;
         }
-        setListAccounts(res.items);
+        setListEnvironments(res.items);
       } catch (err) {
         if (err instanceof ConnectError && err.code == Code.Unauthenticated) {
           console.log("need to auth");
@@ -75,7 +90,7 @@ export function ListAccountsProvider({
         }
       }
     })();
-  }, [apiClients?.org, currentOrg, accountPage]);
+  }, [apiClients?.org, currentOrg, environmentPage, setActiveEnvironment]);
 
   useEffect(() => {
     (async () => {
@@ -97,12 +112,14 @@ export function ListAccountsProvider({
   }, [apiClients?.localhost]);
 
   return (
-    <ListAccountContext.Provider value={{ user, hasLocalhost, listAccounts }}>
+    <ListEnvironmentContext.Provider
+      value={{ user, currentOrg, defaultOrg, hasLocalhost, listEnvironments }}
+    >
       {children}
-    </ListAccountContext.Provider>
+    </ListEnvironmentContext.Provider>
   );
 }
 
-export function useAllAccounts(): AllAccounts {
-  return useContext(ListAccountContext)!;
+export function useAllEnvironments(): AllEnvironments {
+  return useContext(ListEnvironmentContext)!;
 }
