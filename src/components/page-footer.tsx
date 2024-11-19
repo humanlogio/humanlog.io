@@ -1,5 +1,7 @@
-import Logo from "./logo";
+import Link from "next/link";
 import Image from "next/image";
+
+import Logo from "./logo";
 
 const iconSocialLinks = [
   {
@@ -44,26 +46,24 @@ const PageFooter = () => {
 
           <div className="flex flex-col items-center gap-2 md:col-span-2 md:items-start">
             {Object.values(footerLinks).map((link) => (
-              <a
+              <Link
                 className="text-main transition-colors hover:text-white"
                 key={link.href}
                 href={link.href}
                 target="_blank"
-                rel="noopener noreferrer"
               >
                 {link.text}
-              </a>
+              </Link>
             ))}
           </div>
 
           <div className="flex items-start justify-center gap-4 md:col-span-2 md:justify-end">
             {Object.values(iconSocialLinks).map((link) => (
-              <a
+              <Link
                 className="contents"
                 key={link.href}
                 href={link.href}
                 target="_blank"
-                rel="noopener noreferrer"
               >
                 <Image
                   className="transition-transform hover:scale-110"
@@ -72,7 +72,7 @@ const PageFooter = () => {
                   width={24}
                   height={24}
                 />
-              </a>
+              </Link>
             ))}
           </div>
         </div>
