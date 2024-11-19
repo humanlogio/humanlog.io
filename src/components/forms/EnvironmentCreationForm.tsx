@@ -8,9 +8,13 @@ import * as z from "zod";
 import { Building, Check } from "lucide-react";
 import { useQuery } from "@connectrpc/connect-query";
 import { listProduct } from "api/js/svc/product/v1/service-ProductService_connectquery";
-import { listPaymentMethod, getStripePublishableKey } from "api/js/svc/organization/v1/service-OrganizationService_connectquery";
-import { Elements, PaymentElement } from '@stripe/react-stripe-js';
-import { loadStripe, Stripe } from '@stripe/stripe-js';
+import { listOrganization } from "api/js/svc/user/v1/service-UserService_connectquery";
+import {
+  listPaymentMethod,
+  getStripePublishableKey,
+} from "api/js/svc/organization/v1/service-OrganizationService_connectquery";
+import { Elements, PaymentElement } from "@stripe/react-stripe-js";
+import { loadStripe, Stripe } from "@stripe/stripe-js";
 import { NewOrgModal } from "@/components/organizations/NewOrgModal";
 import { Button } from "@/components/ui/button";
 import {
@@ -34,6 +38,7 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
+import { useAllEnvironments } from "@/context/listEnvironments";
 import { Product as APIProduct } from "api/js/types/v1/product_pb";
 import { Price as APIPrice } from "api/js/types/v1/price_pb";
 
@@ -62,29 +67,37 @@ export function EnvironmentCreationForm({
   orgId,
 }: EnvironmentCreationFormProps) {
   const router = useRouter();
+
+  const { currentOrg, defaultOrg } = useAllEnvironments();
   const [isNewOrgModalOpen, setIsNewOrgModalOpen] = useState(false);
   const [isBilledYearly, setIsBilledYearly] = useState(true);
   const [selectedPlan, setSelectedPlan] = useState<string>("");
-  const [stripePromise, setStripePromise] = useState<Promise<Stripe | null> | undefined>();
+  const [stripePromise, setStripePromise] = useState<
+    Promise<Stripe | null> | undefined
+  >();
+
+  const listOrgRes = useQuery(listOrganization, {}).data?.items.map(
+    (el) => el.organization!,
+  );
 
   // fetch the product list
-  const listProductRes = useQuery(listProduct, { category: "logging" });
-  // clean it up into ergonomic types
-  const products = listProductRes.data?.items.map((el): Product => {
+  const products = useQuery(listProduct, {
+    category: "logging",
+  }).data?.items.map((el): Product => {
     return { product: el.product!, prices: el.prices };
   });
 
   // const listPaymentMethodRes = useQuery(listPaymentMethod);
 
-  const getStripePublishableKeyRes = useQuery(getStripePublishableKey);
-  useMemo(() => {
-    if (!getStripePublishableKeyRes.data) {
-      return
-    }
-    setStripePromise(
-      loadStripe(getStripePublishableKeyRes.data!.stripePublishableKey),
-    );
-  }, [getStripePublishableKeyRes]);
+  // const getStripePublishableKeyRes = useQuery(getStripePublishableKey);
+  // useMemo(() => {
+  //   if (!getStripePublishableKeyRes.data) {
+  //     return
+  //   }
+  //   setStripePromise(
+  //     loadStripe(getStripePublishableKeyRes.data!.stripePublishableKey),
+  //   );
+  // }, [getStripePublishableKeyRes]);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -124,6 +137,10 @@ export function EnvironmentCreationForm({
     }
   }
 
+  console.log("defaultOrg", defaultOrg);
+  console.log("currentOrg", currentOrg);
+  console.log("listOrgRes", listOrgRes);
+
   return (
     <Form {...form}>
       <form
@@ -151,9 +168,22 @@ export function EnvironmentCreationForm({
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectGroup>
-                      <SelectItem value="defaultOrg1">defaultOrg1</SelectItem>
-                      <SelectItem value="defaultOrg2">defaultOrg2</SelectItem>
+                    <SelectGroup defaultValue={defaultOrg?.name}>
+                      {listOrgRes?.map((o) => {
+                        console.log("o", o);
+                        if (o.id === defaultOrg?.id) {
+                          return (
+                            <SelectItem key={o.name} value={o.name}>
+                              default
+                            </SelectItem>
+                          );
+                        }
+                        return (
+                          <SelectItem key={o.name} value={o.name}>
+                            {o.name}
+                          </SelectItem>
+                        );
+                      })}
                       <SelectSeparator />
                       <SelectItem value="createNew">+ Create new</SelectItem>
                     </SelectGroup>
@@ -220,8 +250,12 @@ export function EnvironmentCreationForm({
                 <FormControl>
                   <div className="mt-2 grid grid-cols-1 gap-4 md:grid-cols-3">
                     {products?.map((product) => {
-                      const monthly = product.prices.find((p) => p.lookupKey.includes("monthly"));
-                      const yearly = product.prices.find((p) => p.lookupKey.includes("yearly"));
+                      const monthly = product.prices.find((p) =>
+                        p.lookupKey.includes("monthly"),
+                      );
+                      const yearly = product.prices.find((p) =>
+                        p.lookupKey.includes("yearly"),
+                      );
 
                       const isSelected =
                         selectedPlan === product.product.stripeId;
@@ -239,7 +273,7 @@ export function EnvironmentCreationForm({
                           className={cn(
                             "cursor-pointer rounded-md border-2 border-border p-6 shadow-light hover:translate-x-boxShadowX hover:translate-y-boxShadowY hover:shadow-none dark:shadow-dark dark:hover:shadow-none",
                             isSelected &&
-                            "translate-x-boxShadowX translate-y-boxShadowY bg-main shadow-none",
+                              "translate-x-boxShadowX translate-y-boxShadowY bg-main shadow-none",
                           )}
                         >
                           <div className="flex flex-row items-center justify-between gap-6">
@@ -302,15 +336,17 @@ export function EnvironmentCreationForm({
             <Label>Payment</Label>
             <div className="mt-3 flex flex-row items-center justify-between gap-6 rounded-base border-2 border-warning bg-warning/30 p-4 dark:border-warning/50 dark:bg-warning/10">
               <p>Please add a credit card for this organization.</p>
-              {stripePromise ?
+              {stripePromise ? (
                 <Elements stripe={stripePromise} options={{}}>
                   <PaymentElement />
                   <Button variant="noShadowNeutral" type="button">
                     Add card
                   </Button>
-                </Elements> :
+                </Elements>
+              ) : (
                 <>...</>
-              };
+              )}
+              ;
             </div>
           </div>
         </div>
