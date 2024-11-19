@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
-import { Building, Check } from "lucide-react";
+import { Building, Check, Loader } from "lucide-react";
 import { useQuery } from "@connectrpc/connect-query";
 import { listProduct } from "api/js/svc/product/v1/service-ProductService_connectquery";
 import { listOrganization } from "api/js/svc/user/v1/service-UserService_connectquery";
@@ -14,7 +14,11 @@ import {
   getStripePublishableKey,
 } from "api/js/svc/organization/v1/service-OrganizationService_connectquery";
 import { Elements, PaymentElement } from "@stripe/react-stripe-js";
-import { loadStripe, Stripe } from "@stripe/stripe-js";
+import {
+  loadStripe,
+  Stripe,
+  StripeConstructorOptions,
+} from "@stripe/stripe-js";
 import { NewOrgModal } from "@/components/organizations/NewOrgModal";
 import { Button } from "@/components/ui/button";
 import {
@@ -41,6 +45,7 @@ import { cn } from "@/lib/utils";
 import { useAllEnvironments } from "@/context/listEnvironments";
 import { Product as APIProduct } from "api/js/types/v1/product_pb";
 import { Price as APIPrice } from "api/js/types/v1/price_pb";
+import { PaymentMethod } from "api/js/types/v1/payment_method_pb";
 
 const formSchema = z.object({
   organization: z.string().min(1, "Please select an organization"),
@@ -87,17 +92,19 @@ export function EnvironmentCreationForm({
     return { product: el.product!, prices: el.prices };
   });
 
-  // const listPaymentMethodRes = useQuery(listPaymentMethod);
+  const listPaymentMethodRes = useQuery(listPaymentMethod).data?.items.map(
+    (el): PaymentMethod => {
+      return el.paymentMethod!;
+    },
+  );
 
-  // const getStripePublishableKeyRes = useQuery(getStripePublishableKey);
-  // useMemo(() => {
-  //   if (!getStripePublishableKeyRes.data) {
-  //     return
-  //   }
-  //   setStripePromise(
-  //     loadStripe(getStripePublishableKeyRes.data!.stripePublishableKey),
-  //   );
-  // }, [getStripePublishableKeyRes]);
+  const stripePK = useQuery(getStripePublishableKey).data?.stripePublishableKey;
+  useMemo(() => {
+    if (!stripePK) {
+      return;
+    }
+    setStripePromise(loadStripe(stripePK));
+  }, [stripePK]);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -137,9 +144,8 @@ export function EnvironmentCreationForm({
     }
   }
 
-  console.log("defaultOrg", defaultOrg);
-  console.log("currentOrg", currentOrg);
-  console.log("listOrgRes", listOrgRes);
+  console.log("listPaymentMethodRes", listPaymentMethodRes);
+  console.log("stripePK", stripePK);
 
   return (
     <Form {...form}>
@@ -345,19 +351,24 @@ export function EnvironmentCreationForm({
         <div className="grid-cols-3 gap-4 md:grid">
           <div className="col-span-2">
             <Label>Payment</Label>
+            <p>
+              Please add a credit card for this organization (handled by
+              Stripe).
+            </p>
             <div className="mt-3 flex flex-row items-center justify-between gap-6 rounded-base border-2 border-warning bg-warning/30 p-4 dark:border-warning/50 dark:bg-warning/10">
-              <p>Please add a credit card for this organization.</p>
               {stripePromise ? (
-                <Elements stripe={stripePromise} options={{}}>
+                <Elements
+                  stripe={stripePromise}
+                  options={{ mode: "setup", currency: "usd" }}
+                >
                   <PaymentElement />
                   <Button variant="noShadowNeutral" type="button">
                     Add card
                   </Button>
                 </Elements>
               ) : (
-                <>...</>
+                <Loader></Loader>
               )}
-              ;
             </div>
           </div>
         </div>
