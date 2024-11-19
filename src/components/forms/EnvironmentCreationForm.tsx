@@ -238,6 +238,16 @@ export function EnvironmentCreationForm({
                 })}
               >
                 Billed Yearly
+                <span
+                  className={cn(
+                    "ml-2 rounded-base bg-success px-2 py-1 text-xs font-bold text-white transition-colors duration-200",
+                    {
+                      "bg-slate-400": !isBilledYearly,
+                    },
+                  )}
+                >
+                  SAVE 20%
+                </span>
               </Label>
             </div>
           </div>
@@ -259,6 +269,7 @@ export function EnvironmentCreationForm({
 
                       const isSelected =
                         selectedPlan === product.product.stripeId;
+
                       const price = isBilledYearly
                         ? Number(yearly?.unitAmount || 0) / 100 / 12
                         : Number(monthly?.unitAmount || 0) / 100;
