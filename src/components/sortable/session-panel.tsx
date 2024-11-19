@@ -1,10 +1,9 @@
-import { Search, Share } from "lucide-react";
+import { Loader, Search, Share } from "lucide-react";
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { DragHandle } from "@/components/sortable/sortable-item";
 import { LogEventGroup } from "@/components/sortable/session-container";
 import { useDebouncer } from "@/lib/utils/useDebouncer";
-import LoadingSpinner from "../ui/loading-spinner";
 
 type SessionPanelProps = {
   logEventGroup: LogEventGroup | undefined;
@@ -78,7 +77,14 @@ const SessionPanel = ({ logEventGroup }: SessionPanelProps) => {
         <div className="flex w-1/3 justify-start">
           <h4 className="flex flex-row items-center gap-3 truncate font-bold text-white">
             Session {logEventGroup?.sessionId}
-            {blockRetrigger ? <LoadingSpinner></LoadingSpinner> : ""}
+            {blockRetrigger ? (
+              <div className="contents" title="Fetching more log data...">
+                <Loader className="animate-spin"></Loader>
+                <span className="sr-only">Loading...</span>
+              </div>
+            ) : (
+              ""
+            )}
           </h4>
         </div>
         <div className="flex w-1/3 justify-center">
