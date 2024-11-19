@@ -1,6 +1,6 @@
 "use client";
 
-import { Copy } from "lucide-react";
+import { Copy, Loader } from "lucide-react";
 import { copyToClipboard } from "@/lib/utils/clipboard";
 import { useAllEnvironments } from "@/context/listEnvironments";
 
@@ -10,10 +10,19 @@ export default function Page() {
   const demoString = `humanlog --help`;
 
   let content;
-  if (!user) {
+  if (user === "not-logged-in") {
     content = (
       <div className="container flex flex-grow flex-col items-center justify-center gap-8">
         <h1 className="text-center text-4xl font-bold">You need to login.</h1>
+      </div>
+    );
+  } else if (user === "loading") {
+    content = (
+      <div className="container flex flex-grow flex-col items-center justify-center gap-8">
+        <h1 className="text-center text-4xl font-bold">
+          Verifying your identity...
+        </h1>
+        <Loader className="animate-spin"></Loader>
       </div>
     );
   } else {

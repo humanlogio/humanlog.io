@@ -46,7 +46,7 @@ import {
 import { PingResponse } from "api/js/svc/localhost/v1/service_pb";
 import { User } from "api/js/types/v1/user_pb";
 import { gravatarURL, getNewEnvironmentUrl } from "@/lib/utils";
-import { useAllEnvironments } from "@/context/listEnvironments";
+import { useAllEnvironments, UserState } from "@/context/listEnvironments";
 import { Button } from "./ui/button";
 
 const PageHeader: React.FC = () => {
@@ -123,33 +123,11 @@ const PageHeader: React.FC = () => {
     [router, currentOrg, defaultOrg, hasLocalhost, setActiveEnvironment],
   );
 
-  const renderAvatarBlock = (user: User | null) => {
-    if (user) {
-      return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <div className="flex cursor-pointer flex-row items-center gap-2">
-              <Avatar>
-                <AvatarImage src={gravatarURL(user?.email)} />
-                <AvatarFallback className="uppercase">
-                  {user?.firstName?.slice(0, 2) || <UserIcon size={16} />}
-                </AvatarFallback>
-              </Avatar>
-              <p className="font-medium text-text md:order-1 md:text-white">
-                {user?.firstName || "username"}
-              </p>
-            </div>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-56">
-            <DropdownMenuItem>
-              <LogOut size={16} className="mr-2" />
-              <span>Log out</span>
-              <DropdownMenuShortcut>⇧⌘Q</DropdownMenuShortcut>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      );
-    } else if (authURL) {
+  const renderAvatarBlock = (user: UserState) => {
+    if (user === "loading" || !authURL) {
+      return <Loader className="animate-spin md:text-white" />;
+    }
+    if (user === "not-logged-in") {
       return (
         <Link href={authURL}>
           <Button variant="noShadowNeutral" className="w-full">
@@ -158,7 +136,30 @@ const PageHeader: React.FC = () => {
         </Link>
       );
     }
-    return <Loader className="animate-spin md:text-white" />;
+    return (
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <div className="flex cursor-pointer flex-row items-center gap-2">
+            <Avatar>
+              <AvatarImage src={gravatarURL(user?.email)} />
+              <AvatarFallback className="uppercase">
+                {user?.firstName?.slice(0, 2) || <UserIcon size={16} />}
+              </AvatarFallback>
+            </Avatar>
+            <p className="font-medium text-text md:order-1 md:text-white">
+              {user?.firstName || "username"}
+            </p>
+          </div>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent className="w-56">
+          <DropdownMenuItem>
+            <LogOut size={16} className="mr-2" />
+            <span>Log out</span>
+            <DropdownMenuShortcut>⇧⌘Q</DropdownMenuShortcut>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    );
   };
 
   const renderSourceSelectorBlock = () => (
