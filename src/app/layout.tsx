@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { JetBrains_Mono as FontMono } from "next/font/google";
 
-import "./globals.css";
+import "@/app/globals.css";
 import { cn } from "@/lib/utils";
 import { ThemeProvider } from "@/context/theme-provider";
 import { ApiClientsProvider } from "@/context/api-provider";
