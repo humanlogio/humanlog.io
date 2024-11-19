@@ -27,11 +27,16 @@ export type DataPoint = {
 
 const Graph = (props: {
   data?: DataPoint[] | null;
+  zoom: ZoomType;
   onZoom?: (zoom: ZoomType) => void;
 }) => {
   const { data, onZoom } = props;
-  const [zoom, setZoom] = useState<ZoomType | null>(null);
+  const [zoom, setZoom] = useState<ZoomType>(props.zoom);
   const [activeAnimations, setActiveAnimations] = useState(true);
+
+  useEffect(() => {
+    setZoom(props.zoom);
+  }, [props.zoom]);
 
   const updateGraph = useCallback(
     (zoom: ZoomType, animate: boolean) => {
@@ -64,11 +69,11 @@ const Graph = (props: {
 
   return (
     <Scroller
-      data={data}
       minValue={minValue}
       maxValue={maxValue}
       startIndex={startIndex}
       endIndex={endIndex}
+      lockScroll={true}
       onProcessed={updateGraph}
     >
       <ResponsiveContainer>
@@ -84,27 +89,12 @@ const Graph = (props: {
           }}
         >
           <CartesianGrid strokeDasharray="3 3" />
-          <XAxis
-            dataKey="date"
-            tickFormatter={(value) =>
-              new Date(value).toLocaleDateString("en-US", {
-                day: "2-digit",
-                month: "2-digit",
-                year: "2-digit",
-              })
-            }
-          />
+          <XAxis dataKey="name" />
           <YAxis />
           <Tooltip
             wrapperClassName="dark:bg-bg bg-darkBg"
             labelClassName="dark:text-text text-darkText"
-            labelFormatter={(value) =>
-              new Date(value).toLocaleDateString("en-US", {
-                day: "2-digit",
-                month: "2-digit",
-                year: "2-digit",
-              })
-            }
+            contentStyle={{ background: "currentColor" }}
           />
           <Legend />
           <Bar
@@ -118,17 +108,10 @@ const Graph = (props: {
           <Brush
             stroke={"rgba(24, 106, 188, 0.6)"}
             height={16}
-            dataKey={"date"}
+            dataKey={"name"}
             type="number"
             travellerWidth={15}
             gap={data.length / 100}
-            tickFormatter={(value) =>
-              new Date(value).toLocaleDateString("en-US", {
-                day: "2-digit",
-                month: "2-digit",
-                year: "2-digit",
-              })
-            }
             onChange={(zoom) => updateGraph(zoom, activeAnimations)}
             startIndex={startIndex}
             endIndex={endIndex}

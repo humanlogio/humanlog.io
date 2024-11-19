@@ -18,6 +18,8 @@ import { useApiClients } from "@/context/api-provider";
 import { SummarizeEventsResponse_Bucket } from "api/js/svc/query/v1/service_pb";
 import { Timestamp } from "@bufbuild/protobuf";
 import DateRangePicker from "@/components/ui/graph/dateRangePicker";
+import { useDebouncer } from "@/lib/utils/useDebouncer";
+import { GRAPH_RANGE_MIN_WIDTH } from "@/components/ui/graph/scroller";
 
 export default function Home() {
   const signupOnly = process.env.NEXT_PUBLIC_SIGNUP_ONLY === "true";
@@ -26,16 +28,20 @@ export default function Home() {
   const { hasLocalhost, listEnvironments } = useAllEnvironments();
   const { apiClients, activeEnvironment } = useApiClients();
   const [eventsList, setEvents] = useState<DataPoint[] | null>(null);
-  const [bucketCount, setBucketCount] = useState<number>(10000);
+  const [bucketCount, setBucketCount] = useState<number>(100);
   const [startDate, setStartDate] = useState<Date>(
     // starting from one week ago
     // new Date(new Date().valueOf() - 1000 * 60 * 60 * 24 * 7),
-    new Date(new Date().valueOf() - 1000 * 60),
+    new Date(new Date().valueOf() - 1000 * 60 * 10),
   );
   const [endDate, setEndDate] = useState<Date | null>(null);
   const [zoom, setZoom] = useState<{ startIndex?: number; endIndex?: number }>(
     {},
   );
+  const [graphRange, setGraphRange] = useState<{
+    startDate: Date;
+    endDate: Date;
+  }>({ startDate, endDate: new Date() });
   const [sessions, setSessions] = useState<LogEventGroup[] | null>(null);
   const [queryString, setQueryString] = useState<string>("");
 
@@ -50,12 +56,13 @@ export default function Home() {
       // months
       return time.toDate().toLocaleDateString("en-US", {
         month: "short",
-        year: "2-digit",
+        year: "numeric",
       });
     }
     if (diff > 1000 * 60 * 60 * 24 * 7) {
       // days
       return time.toDate().toLocaleDateString("en-US", {
+        month: "short",
         day: "2-digit",
       });
     }
@@ -66,7 +73,7 @@ export default function Home() {
         dayPeriod: "short",
       });
     }
-    if (diff > 1000 * 60 * 60 * 2) {
+    if (diff > 1000 * 60 * 10) {
       // hours
       return time.toDate().toLocaleTimeString("en-US", {
         hourCycle: "h24",
@@ -77,18 +84,37 @@ export default function Home() {
     // minutes
     return time.toDate().toLocaleTimeString("en-US", {
       hourCycle: "h24",
+      hour: "2-digit",
       minute: "2-digit",
       second: "2-digit",
       fractionalSecondDigits: 3,
     });
   };
 
+  const closestIndex = (
+    buckets: SummarizeEventsResponse_Bucket[],
+    targetDate: Date,
+  ) =>
+    buckets.reduce((closest, bucket, index) => {
+      const currentTs = bucket.ts?.toDate();
+      if (!currentTs) return closest;
+
+      const currentDiff = Math.abs(currentTs.getTime() - targetDate.getTime());
+      const closestTime = buckets[closest]?.ts?.toDate()?.getTime();
+      if (!closestTime) {
+        return index;
+      }
+
+      const closestDiff = Math.abs(closestTime - targetDate.getTime());
+
+      return currentDiff < closestDiff ? index : closest;
+    }, 0);
+
   const convertToGraphDataPoints = useCallback(
     (buckets: SummarizeEventsResponse_Bucket[]) => {
       const diff = Math.abs(
         startDate.getTime() - (endDate ?? new Date()).getTime(),
       );
-      console.log({ diff });
       return buckets
         .filter((data) => data?.ts)
         .map((data, i) => ({
@@ -163,92 +189,141 @@ export default function Home() {
       })();
   }, [activeEnvironment, apiClients?.query, endDate, startDate, queryString]);
 
-  const updateEvents = useCallback(() => {
-    (async () => {
-      try {
-        const timeGap = Math.abs(
-          (endDate ?? new Date()).getTime() - startDate.getTime(),
-        );
-        const events = await apiClients?.query.summarizeEvents({
-          environmentId: activeEnvironment,
-          from: convertToTimestamp(
-            new Date(startDate.getTime() + Math.floor(timeGap / 2)),
-          ),
-          to:
-            (endDate &&
-              convertToTimestamp(
-                new Date(endDate.getTime() + Math.floor(timeGap / 2)),
-              )) ||
-            undefined,
-          bucketCount,
-        });
-        if (events) {
-          // TODO: set time range to closes bucket with similar time values
-          console.log(
-            "settings events from",
-            events.buckets[0]?.ts?.toDate(),
-            "to",
-            events.buckets[events.buckets.length - 1]?.ts?.toDate(),
-          );
-          setEvents(convertToGraphDataPoints(events.buckets));
+  const updateGraphRange = useCallback(
+    (
+      zoomStartDate: Date,
+      zoomEndDate: Date | null,
+      targetStart?: Date,
+      targetEnd?: Date,
+    ) => {
+      (async () => {
+        try {
+          const events = await apiClients?.query.summarizeEvents({
+            environmentId: activeEnvironment,
+            from: convertToTimestamp(targetStart ?? graphRange.startDate),
+            to: convertToTimestamp(targetEnd ?? graphRange.endDate),
+            bucketCount,
+          });
+          if (events) {
+            setEvents(convertToGraphDataPoints(events.buckets));
+            setGraphRange({
+              startDate: targetStart ?? graphRange.startDate,
+              endDate: targetEnd ?? graphRange.endDate,
+            });
+            setZoom({
+              startIndex: closestIndex(events.buckets, zoomStartDate),
+              endIndex:
+                (zoomEndDate && closestIndex(events.buckets, zoomEndDate)) ??
+                events.buckets.length - 1,
+            });
+          }
+        } catch (e) {
+          console.log("it crahsed", e);
         }
-      } catch (e) {
-        console.log("it crahsed", e);
-      }
-    })();
-  }, [
-    apiClients?.query,
-    activeEnvironment,
-    bucketCount,
-    startDate,
-    endDate,
-    convertToGraphDataPoints,
-  ]);
-
-  const debounceRef = useRef<NodeJS.Timeout | null>(null);
-  const updateTimeFrame = useCallback(
-    (zoom: ZoomType) => {
-      if (debounceRef.current) {
-        clearTimeout(debounceRef.current);
-      }
-      debounceRef.current = setTimeout(() => {
-        if (!eventsList) {
-          return;
-        }
-
-        setZoom(zoom);
-
-        if (zoom.startIndex && eventsList[Math.floor(zoom.startIndex)]?.date) {
-          setStartDate(eventsList[Math.floor(zoom.startIndex)].date);
-        }
-
-        if (zoom.endIndex && eventsList[Math.floor(zoom.endIndex)]?.date) {
-          setEndDate(eventsList[Math.floor(zoom.endIndex)].date);
-        }
-
-        console.log("checking should we re-query", zoom);
-        if (typeof zoom.startIndex === "number" && zoom.startIndex < 5) {
-          // TODO: query when we have reached a min or max scroll value
-          console.log(
-            "updating events",
-            eventsList[Math.floor(zoom.startIndex)]?.date,
-            "to",
-            typeof zoom.endIndex === "number"
-              ? (eventsList[Math.floor(zoom.endIndex)]?.date ?? "undefined")
-              : "undefined",
-          );
-          updateEvents();
-        }
-      }, 400);
+      })();
     },
-    [eventsList, updateEvents],
+    [
+      apiClients?.query,
+      activeEnvironment,
+      bucketCount,
+      graphRange.startDate,
+      graphRange.endDate,
+      convertToGraphDataPoints,
+    ],
+  );
+
+  const updateTimeFrame = useDebouncer(
+    (zoom: ZoomType) => {
+      if (!eventsList) {
+        return;
+      }
+
+      setZoom(zoom);
+
+      const { startIndex, endIndex } = zoom;
+      const listSize = eventsList.length;
+      const borderRange = 0.2;
+      const graphGapRate = 0.3;
+
+      let zoomStart: Date = startDate;
+      let zoomEnd: Date | null = endDate;
+      let targetGraphStart: Date | undefined;
+      let targetGraphEnd: Date | undefined;
+
+      if (
+        typeof startIndex === "number" &&
+        eventsList[Math.floor(startIndex)]?.date
+      ) {
+        zoomStart = eventsList[Math.floor(startIndex)].date;
+        setStartDate(zoomStart);
+
+        if (startIndex / listSize <= borderRange) {
+          targetGraphStart = new Date(
+            graphRange.startDate.getTime() -
+              Math.floor(
+                Math.abs(
+                  graphRange.endDate.getTime() - graphRange.startDate.getTime(),
+                ) * graphGapRate,
+              ),
+          );
+        }
+      }
+
+      if (
+        typeof endIndex === "number" &&
+        eventsList[Math.floor(endIndex)]?.date
+      ) {
+        zoomEnd = eventsList[Math.floor(endIndex)].date;
+        setEndDate(zoomEnd);
+
+        if (endIndex / listSize >= 1 - borderRange) {
+          targetGraphEnd = new Date(
+            graphRange.endDate.getTime() +
+              Math.floor(
+                Math.abs(
+                  graphRange.endDate.getTime() - graphRange.startDate.getTime(),
+                ) * graphGapRate,
+              ),
+          );
+        }
+      }
+
+      if (
+        typeof startIndex === "number" &&
+        typeof endIndex === "number" &&
+        (Math.abs(endIndex - startIndex) <= eventsList.length * borderRange ||
+          Math.abs(endIndex - startIndex) <= GRAPH_RANGE_MIN_WIDTH)
+      ) {
+        zoomStart = eventsList[Math.floor(startIndex)].date;
+        zoomEnd = eventsList[Math.floor(endIndex)].date;
+
+        const diff = Math.floor(
+          Math.abs(zoomEnd.getTime() - zoomStart.getTime()) / 2,
+        );
+
+        targetGraphStart = new Date(zoomStart.getTime() - diff);
+        targetGraphEnd = new Date(zoomEnd.getTime() + diff);
+      }
+
+      if (targetGraphStart || targetGraphEnd) {
+        updateGraphRange(zoomStart, zoomEnd, targetGraphStart, targetGraphEnd);
+      }
+    },
+    [
+      eventsList,
+      startDate,
+      endDate,
+      graphRange.startDate,
+      graphRange.endDate,
+      updateGraphRange,
+    ],
   );
 
   useEffect(() => {
     if (!eventsList) {
-      updateEvents();
+      updateGraphRange(startDate, endDate);
     }
-  }, [eventsList, updateEvents]);
+  }, [eventsList, startDate, endDate, updateGraphRange]);
 
   return (
     <main className="flex h-[calc(100dvh-56px)] flex-col py-8">
@@ -281,7 +356,7 @@ export default function Home() {
               </div>
             </div>
             <div className="col-span-2 space-y-8 md:col-span-1">
-              <Graph data={eventsList} onZoom={updateTimeFrame} />
+              <Graph data={eventsList} zoom={zoom} onZoom={updateTimeFrame} />
 
               <DateRangePicker
                 dateFrom={startDate}

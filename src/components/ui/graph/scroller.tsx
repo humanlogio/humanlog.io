@@ -1,5 +1,11 @@
 import { ReactElement, useCallback, useEffect, useRef, useState } from "react";
-import { DataPoint, ZoomType } from "./graph";
+import { ZoomType } from "./graph";
+import { useDebouncer } from "@/lib/utils/useDebouncer";
+
+export const GRAPH_RANGE_MIN_WIDTH = 10;
+const PAN_THRESHOLD = 10;
+const ZOOM_THRESHOLD = 15;
+const MAX_ANIMATION_SIZE = 20;
 
 type WheelEvent = {
   preventDefault: () => void;
@@ -15,34 +21,31 @@ type KeyEvent = {
 };
 
 const Scroller = (props: {
-  data: DataPoint[];
   minValue: number;
   maxValue: number;
   startIndex: number;
   endIndex: number;
+  lockScroll: boolean;
   children: ReactElement | ReactElement[];
   onProcessed: (zoom: ZoomType, animate: boolean) => void;
 }) => {
   const {
-    data,
     minValue,
     maxValue,
     startIndex,
     endIndex,
+    lockScroll,
     children,
     onProcessed,
   } = props;
   const [deltaAccumulatorY, setDeltaAccumulatorY] = useState(0);
   const [deltaAccumulatorX, setDeltaAccumulatorX] = useState(0);
+  const [scrollingDirection, setDirection] = useState("");
   const graphRef = useRef<HTMLDivElement>(null);
 
-  const maxAnimationSize = 20;
-  const zoomThreshold = 15;
-  const panThreshold = 10;
-  const rangeMinWidth = 10;
   const gap = Math.min(
     Math.ceil(0.05 * Math.abs(startIndex - endIndex)),
-    rangeMinWidth,
+    GRAPH_RANGE_MIN_WIDTH,
   );
 
   const handleBrushChange = useCallback(
@@ -62,11 +65,11 @@ const Scroller = (props: {
         return;
       }
 
-      if (animate && Math.abs(startIndex - endIndex) > maxAnimationSize) {
+      if (animate && Math.abs(startIndex - endIndex) > MAX_ANIMATION_SIZE) {
         animate = false;
       } else if (
         !animate &&
-        Math.abs(startIndex - endIndex) <= maxAnimationSize
+        Math.abs(startIndex - endIndex) <= MAX_ANIMATION_SIZE
       ) {
         animate = true;
       }
@@ -75,6 +78,8 @@ const Scroller = (props: {
     },
     [onProcessed],
   );
+
+  const resetDirectionLock = useDebouncer(() => setDirection(""), []);
 
   const handleWheelScrolling = useCallback(
     (event: WheelEvent | KeyEvent, zoomIn?: boolean) => {
@@ -96,8 +101,8 @@ const Scroller = (props: {
         ("deltaY" in event
           ? event.deltaY
           : zoomIn
-            ? zoomThreshold
-            : -zoomThreshold);
+            ? ZOOM_THRESHOLD
+            : -ZOOM_THRESHOLD);
 
       if ("deltaY" in event) {
         const container = event.currentTarget.getBoundingClientRect();
@@ -106,60 +111,78 @@ const Scroller = (props: {
         zoomFactor = smoothZoom(mouseX / containerWidth);
       }
 
-      if (accumulatedDeltaX >= panThreshold) {
-        handleBrushChange({
-          startIndex: Math.min(startIndex + gap, maxValue - rangeMinWidth),
-          endIndex: Math.min(endIndex + gap, maxValue),
-        });
-        accumulatedDeltaX = 0;
-      } else if (accumulatedDeltaX <= -panThreshold) {
-        handleBrushChange({
-          startIndex: Math.max(startIndex - gap, minValue),
-          endIndex: Math.max(endIndex - gap, minValue + rangeMinWidth),
-        });
-        accumulatedDeltaX = 0;
+      if (!lockScroll || scrollingDirection !== "y") {
+        if (accumulatedDeltaX >= PAN_THRESHOLD) {
+          handleBrushChange({
+            startIndex: Math.min(
+              startIndex + gap,
+              maxValue - GRAPH_RANGE_MIN_WIDTH,
+            ),
+            endIndex: Math.min(endIndex + gap, maxValue),
+          });
+          setDirection("x");
+          accumulatedDeltaX = 0;
+        } else if (accumulatedDeltaX <= -PAN_THRESHOLD) {
+          handleBrushChange({
+            startIndex: Math.max(startIndex - gap, minValue),
+            endIndex: Math.max(
+              endIndex - gap,
+              minValue + GRAPH_RANGE_MIN_WIDTH,
+            ),
+          });
+          setDirection("x");
+          accumulatedDeltaX = 0;
+        }
       }
 
-      if (accumulatedDeltaY >= zoomThreshold) {
-        handleBrushChange(
-          {
-            startIndex: Math.max(
-              startIndex - processGap(zoomFactor, gap),
-              minValue,
-            ),
-            endIndex: Math.min(
-              endIndex + processGap(1 - zoomFactor, gap),
-              maxValue,
-            ),
-          },
-          "out",
-        );
-        accumulatedDeltaY = 0;
-      } else if (accumulatedDeltaY <= -zoomThreshold) {
-        if (Math.abs(startIndex - endIndex) > rangeMinWidth) {
+      if (!lockScroll || scrollingDirection !== "x") {
+        if (accumulatedDeltaY >= ZOOM_THRESHOLD) {
           handleBrushChange(
             {
-              startIndex: startIndex + processGap(zoomFactor, gap),
-              endIndex: endIndex - processGap(1 - zoomFactor, gap),
+              startIndex: Math.max(
+                startIndex - processGap(zoomFactor, gap),
+                minValue,
+              ),
+              endIndex: Math.min(
+                endIndex + processGap(1 - zoomFactor, gap),
+                maxValue,
+              ),
             },
-            "in",
+            "out",
           );
+          setDirection("y");
+          accumulatedDeltaY = 0;
+        } else if (accumulatedDeltaY <= -ZOOM_THRESHOLD) {
+          if (Math.abs(startIndex - endIndex) > GRAPH_RANGE_MIN_WIDTH) {
+            handleBrushChange(
+              {
+                startIndex: startIndex + processGap(zoomFactor, gap),
+                endIndex: endIndex - processGap(1 - zoomFactor, gap),
+              },
+              "in",
+            );
+          }
+          setDirection("y");
+          accumulatedDeltaY = 0;
         }
-        accumulatedDeltaY = 0;
       }
 
       setDeltaAccumulatorX(accumulatedDeltaX);
       setDeltaAccumulatorY(accumulatedDeltaY);
+      resetDirectionLock();
     },
     [
       gap,
       deltaAccumulatorX,
       deltaAccumulatorY,
+      lockScroll,
+      scrollingDirection,
       startIndex,
       endIndex,
       minValue,
       maxValue,
       handleBrushChange,
+      resetDirectionLock,
     ],
   );
 
