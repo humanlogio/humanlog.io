@@ -240,7 +240,7 @@ export function EnvironmentCreationForm({
                 Billed Yearly
                 <span
                   className={cn(
-                    "ml-2 rounded-base bg-success px-2 py-1 text-xs font-bold text-white",
+                    "ml-2 rounded-base bg-success px-2 py-1 text-xs font-bold text-white transition-colors duration-200",
                     {
                       "bg-slate-400": !isBilledYearly,
                     },
