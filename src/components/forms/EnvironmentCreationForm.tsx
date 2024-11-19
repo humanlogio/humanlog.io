@@ -194,6 +194,16 @@ export function EnvironmentCreationForm({
                 })}
               >
                 Billed Yearly
+                <span
+                  className={cn(
+                    "ml-2 rounded-base bg-success px-2 py-1 text-xs font-bold text-white",
+                    {
+                      "bg-slate-400": !isBilledYearly,
+                    },
+                  )}
+                >
+                  SAVE 20%
+                </span>
               </Label>
             </div>
           </div>
@@ -207,14 +217,15 @@ export function EnvironmentCreationForm({
                   <div className="mt-2 grid grid-cols-1 gap-4 md:grid-cols-3">
                     {products?.map((product) => {
                       const monthly = product.prices.find(
-                        (p) => p.lookupKey === "localdev_pro_monthly",
+                        (p) => p.recurring?.interval === "month",
                       );
                       const yearly = product.prices.find(
-                        (p) => p.lookupKey === "localdev_pro_yearly",
+                        (p) => p.recurring?.interval === "year",
                       );
 
                       const isSelected =
                         selectedPlan === product.product.stripeId;
+
                       const price = isBilledYearly
                         ? Number(yearly?.unitAmount || 0) / 100 / 12
                         : Number(monthly?.unitAmount || 0) / 100;
