@@ -9,8 +9,10 @@ import { User } from "api/js/types/v1/user_pb";
 import { Organization } from "api/js/types/v1/organization_pb";
 import { Cursor } from "api/js/types/v1/cursor_pb";
 
+export type UserState = User | "loading" | "not-logged-in";
+
 type AllEnvironments = {
-  user: User | null;
+  user: UserState;
   currentOrg: Organization | null;
   defaultOrg: Organization | null;
   hasLocalhost: PingResponse | null;
@@ -18,7 +20,7 @@ type AllEnvironments = {
 };
 
 const ListEnvironmentContext = createContext<AllEnvironments>({
-  user: null,
+  user: "loading",
   currentOrg: null,
   defaultOrg: null,
   hasLocalhost: null,
@@ -32,7 +34,7 @@ export function ListEnvironmentsProvider({
 }) {
   const { apiClients, setActiveEnvironment } = useApiClients();
   const [hasLocalhost, setHasLocalhost] = useState<PingResponse | null>(null);
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<UserState>("loading");
   const [currentOrg, setCurrentOrg] = useState<Organization | null>(null);
   const [defaultOrg, setDefaultOrg] = useState<Organization | null>(null);
   const [listEnvironments, setListEnvironments] = useState<
@@ -58,6 +60,7 @@ export function ListEnvironmentsProvider({
         setDefaultOrg(res.defaultOrganization);
       } catch (err) {
         if (err instanceof ConnectError && err.code == Code.Unauthenticated) {
+          setUser("not-logged-in");
           console.log("need to auth");
         } else {
           console.error(err);
