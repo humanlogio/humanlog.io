@@ -10,7 +10,7 @@ import {
   Bar,
   ResponsiveContainer,
 } from "recharts";
-import Scroller from "./scroller";
+import Scroller from "@/components/ui/graph/scroller";
 
 export type ZoomType = {
   startIndex?: number;
