@@ -57,7 +57,7 @@ export default function Page() {
             Billed Yearly
             <span
               className={cn(
-                "absolute left-full top-1/2 ml-2 hidden -translate-y-1/2 transform text-nowrap rounded-base bg-success px-2 py-1 text-xs font-bold text-white sm:block",
+                "absolute left-full top-1/2 ml-2 hidden -translate-y-1/2 transform text-nowrap rounded-base bg-success px-2 py-1 text-xs font-bold text-white transition-colors duration-200 sm:block",
                 {
                   "bg-slate-400": !isBilledYearly,
                 },
