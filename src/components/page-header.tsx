@@ -44,10 +44,9 @@ import {
   LocalhostViaBrowser,
 } from "api/js/svc/auth/v1/service_pb";
 import { PingResponse } from "api/js/svc/localhost/v1/service_pb";
-import { User } from "api/js/types/v1/user_pb";
 import { gravatarURL, getNewEnvironmentUrl } from "@/lib/utils";
 import { useAllEnvironments, UserState } from "@/context/listEnvironments";
-import { Button } from "./ui/button";
+import { Button } from "@/components/ui/button";
 
 const PageHeader: React.FC = () => {
   const signupOnly = process.env.NEXT_PUBLIC_SIGNUP_ONLY === "true";
