@@ -11,12 +11,16 @@ import { Cursor } from "api/js/types/v1/cursor_pb";
 
 type AllEnvironments = {
   user: User | null;
+  currentOrg: Organization | null;
+  defaultOrg: Organization | null;
   hasLocalhost: PingResponse | null;
   listEnvironments: ListEnvironmentResponse_ListItem[];
 };
 
 const ListEnvironmentContext = createContext<AllEnvironments>({
   user: null,
+  currentOrg: null,
+  defaultOrg: null,
   hasLocalhost: null,
   listEnvironments: [],
 });
@@ -30,6 +34,7 @@ export function ListEnvironmentsProvider({
   const [hasLocalhost, setHasLocalhost] = useState<PingResponse | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [currentOrg, setCurrentOrg] = useState<Organization | null>(null);
+  const [defaultOrg, setDefaultOrg] = useState<Organization | null>(null);
   const [listEnvironments, setListEnvironments] = useState<
     ListEnvironmentResponse_ListItem[]
   >([]);
@@ -40,11 +45,17 @@ export function ListEnvironmentsProvider({
     (async () => {
       try {
         const res = await apiClients?.user.whoami({});
-        if (!res || !res.user || !res.currentOrganization) {
+        if (
+          !res ||
+          !res.user ||
+          !res.currentOrganization ||
+          !res.defaultOrganization
+        ) {
           return;
         }
         setUser(res.user);
         setCurrentOrg(res.currentOrganization);
+        setDefaultOrg(res.defaultOrganization);
       } catch (err) {
         if (err instanceof ConnectError && err.code == Code.Unauthenticated) {
           console.log("need to auth");
@@ -59,7 +70,6 @@ export function ListEnvironmentsProvider({
     (async () => {
       try {
         const res = await apiClients?.org.listEnvironment({
-          organizationId: currentOrg?.id,
           cursor: environmentPage,
           limit: 10,
         });
@@ -100,7 +110,7 @@ export function ListEnvironmentsProvider({
 
   return (
     <ListEnvironmentContext.Provider
-      value={{ user, hasLocalhost, listEnvironments }}
+      value={{ user, currentOrg, defaultOrg, hasLocalhost, listEnvironments }}
     >
       {children}
     </ListEnvironmentContext.Provider>
