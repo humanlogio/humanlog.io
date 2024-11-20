@@ -1,4 +1,5 @@
 {
+  "files.insertFinalNewline": true,
   "files.trimFinalNewlines": false,
   "files.insertFinalNewline": true,
   "[html]": {
