@@ -1,14 +1,15 @@
 import { EnvironmentCreationForm } from "@/components/forms/EnvironmentCreationForm";
 
 interface NewOrgEnvironmentPageProps {
-  params: {
+  params: Promise<{
     orgName: string;
-  };
+  }>;
 }
 
-export default function NewOrgEnvironmentPage({
-  params,
-}: NewOrgEnvironmentPageProps) {
+export default async function NewOrgEnvironmentPage(
+  props: NewOrgEnvironmentPageProps,
+) {
+  const params = await props.params;
   return (
     <div className="container-h-full container py-6">
       <h1 className="mb-6 text-3xl font-bold">
