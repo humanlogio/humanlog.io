@@ -21,7 +21,7 @@ test("account selector is interactable", () => {
     </TestWrapper>,
   );
 
-  const main = within(screen.getAllByTitle("Account Selector")[0]);
+  const main = within(screen.getAllByTitle("Environment Selector")[0]);
 
   const selectTrigger = main.getByRole("combobox");
   expect(selectTrigger).toBeInTheDocument();
