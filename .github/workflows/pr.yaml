@@ -7,14 +7,30 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+      - uses: pkgxdev/setup@v1
 
-      - name: Install
-        run: npm i
+      - name: Install deps
+        run: npm ci
 
       - name: Lint
         run: npm run lint
+
+      - name: Check if localhost is set up
+        run: script/check-has-setup-localhost || sudo script/setup-localhost
+
+      - name: Install test browsers and certs
+        run: |
+          npx playwright install --with-deps
+          sudo mkdir -p /usr/local/share/ca-certificates/humanlog
+          sudo cp ./certificates/rootCA.pem /usr/local/share/ca-certificates/humanlog/
+          sudo update-ca-certificates
+
+      - name: Run unit tests
+        run: npm run test:unit
+
+      - name: Run e2e tests
+        run: npm run test:e2e
 
       - name: Build container image
         run: docker build -t registry.digitalocean.com/humanlog/humanlogio:$(echo $GITHUB_SHA | head -c7) .
