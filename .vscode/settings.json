@@ -1,4 +1,5 @@
 {
+  "files.insertFinalNewline": true,
   "files.trimFinalNewlines": false,
   "[html]": {
     "editor.defaultFormatter": "vscode.html-language-features"
