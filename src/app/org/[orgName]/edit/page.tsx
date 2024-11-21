@@ -1,11 +1,10 @@
 import { OrgSettingsForm } from "@/components/org/OrgSettingsForm";
 import { SettingsShell } from "@/components/settings-shell";
 
-export default function OrgSettingsPage({
-  params,
-}: {
-  params: { orgName: string };
+export default async function OrgSettingsPage(props: {
+  params: Promise<{ orgName: string }>;
 }) {
+  const params = await props.params;
   const { orgName } = params;
   return (
     <SettingsShell activeSection="organization" orgName={orgName}>
