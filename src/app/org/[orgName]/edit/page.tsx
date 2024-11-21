@@ -9,9 +9,9 @@ export default async function OrgSettingsPage(props: {
   return (
     <SettingsShell activeSection="organization" orgName={orgName}>
       <h1 className="mb-6 text-3xl font-bold">
-        Organization Settings / {params.orgName}
+        Organization Settings / {orgName}
       </h1>
-      <OrgSettingsForm orgName={params.orgName} />
+      <OrgSettingsForm orgName={orgName} />
     </SettingsShell>
   );
 }

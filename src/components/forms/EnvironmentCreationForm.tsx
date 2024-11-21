@@ -113,7 +113,7 @@ export function EnvironmentCreationForm({
       return false;
     });
     setPrice(selectedPrice);
-  }, [isBilledYearly, selectedProduct]);
+  }, [isBilledYearly, selectedProduct, lpres?.defaultProduct?.defaultPrice]);
 
   const stripeClientSecret = useQuery(createStripeCustomerSession).data
     ?.customerSessionClientSecret;

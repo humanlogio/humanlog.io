@@ -6,7 +6,7 @@ import {
   getEnvSettingsUrl,
 } from "@/lib/utils/navigation";
 import { cn } from "@/lib/utils";
-import { Building, CodeSquareIcon, User } from "lucide-react";
+import { Building, CodeSquareIcon, Loader, User } from "lucide-react";
 
 interface SettingsShellProps {
   activeSection: "user" | "organization" | "environment";
@@ -20,6 +20,10 @@ export function SettingsShell({
   envName,
   children,
 }: PropsWithChildren<SettingsShellProps>) {
+  if (!orgName || !envName) {
+    return <Loader className="animate-spin" />;
+  }
+
   const sections = [
     {
       name: "User Settings",

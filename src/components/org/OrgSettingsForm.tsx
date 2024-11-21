@@ -21,7 +21,7 @@ const formSchema = z.object({
 });
 
 interface OrgSettingsFormProps {
-  orgId: string | null;
+  orgName: string | null;
   defaultValues?: {
     name: string;
     domain?: string;
@@ -29,7 +29,7 @@ interface OrgSettingsFormProps {
 }
 
 export function OrgSettingsForm({
-  orgId,
+  orgName,
   defaultValues,
 }: OrgSettingsFormProps) {
   const router = useRouter();
