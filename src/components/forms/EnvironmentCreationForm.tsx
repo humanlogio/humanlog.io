@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import ReactMarkdown from "react-markdown";
 import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -326,7 +327,7 @@ export function EnvironmentCreationForm({
                                   className="flex items-center gap-3"
                                 >
                                   <Check className="shrink-0" size={18} />{" "}
-                                  {feature.name}
+                                  <ReactMarkdown>{feature.name}</ReactMarkdown>
                                 </li>
                               ),
                             )}

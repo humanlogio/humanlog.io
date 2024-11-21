@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import ReactMarkdown from "react-markdown";
 import { useQuery } from "@connectrpc/connect-query";
 import { listProduct } from "api/js/svc/product/v1/service-ProductService_connectquery";
 import { Product as APIProduct } from "api/js/types/v1/product_pb";
@@ -125,7 +126,7 @@ export default function Page() {
                           className="flex items-center gap-3"
                         >
                           <Check className="shrink-0" size={18} />{" "}
-                          {feature.name}
+                          <ReactMarkdown>{feature.name}</ReactMarkdown>
                         </li>
                       );
                     })}
