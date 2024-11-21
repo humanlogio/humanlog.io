@@ -326,7 +326,7 @@ export default function Home() {
   }, [eventsList, startDate, endDate, updateGraphRange]);
 
   return (
-    <main className="flex h-[calc(100dvh-56px)] flex-col py-8">
+    <main className="container-h-full flex flex-col py-8">
       {signupOnly || (!hasLocalhost && !listEnvironments.length) ? (
         <SetupGuide />
       ) : (

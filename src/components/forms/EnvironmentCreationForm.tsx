@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import ReactMarkdown from "react-markdown";
 import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -15,7 +16,7 @@ import {
 } from "api/js/svc/organization/v1/service-OrganizationService_connectquery";
 import { Elements, PaymentElement } from "@stripe/react-stripe-js";
 import { loadStripe, Stripe } from "@stripe/stripe-js";
-import { NewOrgModal } from "@/components/organizations/NewOrgModal";
+import { NewOrgModal } from "@/components/org/NewOrgModal";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -112,7 +113,7 @@ export function EnvironmentCreationForm({
       return false;
     });
     setPrice(selectedPrice);
-  }, [isBilledYearly, selectedProduct]);
+  }, [isBilledYearly, selectedProduct, lpres?.defaultProduct?.defaultPrice]);
 
   const stripeClientSecret = useQuery(createStripeCustomerSession).data
     ?.customerSessionClientSecret;
@@ -350,7 +351,7 @@ export function EnvironmentCreationForm({
                                   className="flex items-center gap-3"
                                 >
                                   <Check className="shrink-0" size={18} />{" "}
-                                  {feature.name}
+                                  <ReactMarkdown>{feature.name}</ReactMarkdown>
                                 </li>
                               ),
                             )}
