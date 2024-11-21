@@ -12,6 +12,7 @@ import { listOrganization } from "api/js/svc/user/v1/service-UserService_connect
 import {
   listPaymentMethod,
   getStripePublishableKey,
+  createStripeCustomerSession,
 } from "api/js/svc/organization/v1/service-OrganizationService_connectquery";
 import { Elements, PaymentElement } from "@stripe/react-stripe-js";
 import { loadStripe, Stripe } from "@stripe/stripe-js";
@@ -74,6 +75,7 @@ export function EnvironmentCreationForm({
   const [isNewOrgModalOpen, setIsNewOrgModalOpen] = useState(false);
   const [isBilledYearly, setIsBilledYearly] = useState(true);
   const [selectedPlan, setSelectedPlan] = useState<string>("");
+  const [price, setPrice] = useState<APIPrice>();
   const [stripePromise, setStripePromise] = useState<
     Promise<Stripe | null> | undefined
   >();
@@ -82,18 +84,16 @@ export function EnvironmentCreationForm({
     (el) => el.organization!,
   );
 
-  // fetch the product list
-  const products = useQuery(listProduct, {
-    category: "logging",
-  }).data?.items.map((el): Product => {
+  // fetch the product list, set the defaults
+  const lpres = useQuery(listProduct, { category: "logging" }).data;
+  const products = lpres?.items.map((el): Product => {
     return { product: el.product!, prices: el.prices };
   });
+  useMemo(() => setPrice(lpres?.defaultProduct?.defaultPrice), [lpres]);
 
-  const listPaymentMethodRes = useQuery(listPaymentMethod).data?.items.map(
-    (el): PaymentMethod => {
-      return el.paymentMethod!;
-    },
-  );
+  const stripeClientSecret = useQuery(createStripeCustomerSession).data
+    ?.customerSessionClientSecret;
+  console.log("stripeClientSecret", stripeClientSecret);
 
   const stripePK = useQuery(getStripePublishableKey).data?.stripePublishableKey;
   useMemo(() => {
@@ -140,9 +140,6 @@ export function EnvironmentCreationForm({
       console.error("Form submission error:", error);
     }
   }
-
-  console.log("listPaymentMethodRes", listPaymentMethodRes);
-  console.log("stripePK", stripePK);
 
   return (
     <Form {...form}>
@@ -272,6 +269,7 @@ export function EnvironmentCreationForm({
                       const isSelected =
                         selectedPlan === product.product.stripeId;
 
+                      const selectedPrice = isBilledYearly ? yearly : monthly;
                       const price = isBilledYearly
                         ? Number(yearly?.unitAmount || 0) / 100 / 12
                         : Number(monthly?.unitAmount || 0) / 100;
@@ -282,6 +280,7 @@ export function EnvironmentCreationForm({
                           onClick={() => {
                             setSelectedPlan(product.product.stripeId);
                             field.onChange(product.product.stripeId);
+                            setPrice(selectedPrice);
                           }}
                           className={cn(
                             "cursor-pointer rounded-md border-2 border-border p-6 shadow-light hover:translate-x-boxShadowX hover:translate-y-boxShadowY hover:shadow-none dark:shadow-dark dark:hover:shadow-none",
@@ -358,12 +357,14 @@ export function EnvironmentCreationForm({
                 height={24}
                 className="mb-4"
               />
-              {stripePromise ? (
+              {stripePromise && stripeClientSecret && price ? (
                 <Elements
                   stripe={stripePromise}
                   options={{
-                    mode: "setup",
-                    currency: "usd",
+                    customerSessionClientSecret: stripeClientSecret,
+                    mode: "subscription",
+                    amount: Number(price.unitAmount),
+                    currency: price.currency,
                     appearance: {
                       variables: {
                         colorPrimary: "rgba(136, 170, 238, 1)",
