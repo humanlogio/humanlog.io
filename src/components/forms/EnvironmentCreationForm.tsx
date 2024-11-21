@@ -74,7 +74,7 @@ export function EnvironmentCreationForm({
   const { currentOrg, defaultOrg } = useAllEnvironments();
   const [isNewOrgModalOpen, setIsNewOrgModalOpen] = useState(false);
   const [isBilledYearly, setIsBilledYearly] = useState(true);
-  const [selectedPlan, setSelectedPlan] = useState<string>("");
+  const [selectedProduct, setSelectedProduct] = useState<Product>();
   const [price, setPrice] = useState<APIPrice>();
   const [stripePromise, setStripePromise] = useState<
     Promise<Stripe | null> | undefined
@@ -89,7 +89,32 @@ export function EnvironmentCreationForm({
   const products = lpres?.items.map((el): Product => {
     return { product: el.product!, prices: el.prices };
   });
-  useMemo(() => setPrice(lpres?.defaultProduct?.defaultPrice), [lpres]);
+  useMemo(() => {
+    if (selectedProduct || !lpres || !lpres.defaultProduct) {
+      return;
+    }
+    const defaultProduct = lpres.defaultProduct;
+    let item = lpres.items.find(
+      (el) => el.product?.stripeId === defaultProduct.stripeId,
+    );
+    item && setSelectedProduct({ product: item.product!, prices: item.prices });
+  }, [lpres, selectedProduct]);
+  useMemo(() => {
+    if (!selectedProduct) {
+      setPrice(lpres?.defaultProduct?.defaultPrice);
+      return;
+    }
+    const selectedPrice = selectedProduct.prices.find((p) => {
+      if (isBilledYearly && p.lookupKey.includes("yearly")) {
+        return true;
+      }
+      if (!isBilledYearly && p.lookupKey.includes("monthly")) {
+        return true;
+      }
+      return false;
+    });
+    setPrice(selectedPrice);
+  }, [isBilledYearly, selectedProduct]);
 
   const stripeClientSecret = useQuery(createStripeCustomerSession).data
     ?.customerSessionClientSecret;
@@ -267,7 +292,8 @@ export function EnvironmentCreationForm({
                       );
 
                       const isSelected =
-                        selectedPlan === product.product.stripeId;
+                        selectedProduct?.product.stripeId ===
+                        product.product.stripeId;
 
                       const selectedPrice = isBilledYearly ? yearly : monthly;
                       const price = isBilledYearly
@@ -278,7 +304,7 @@ export function EnvironmentCreationForm({
                         <div
                           key={product.product.stripeId}
                           onClick={() => {
-                            setSelectedPlan(product.product.stripeId);
+                            setSelectedProduct(product);
                             field.onChange(product.product.stripeId);
                             setPrice(selectedPrice);
                           }}
@@ -345,9 +371,6 @@ export function EnvironmentCreationForm({
         {/* Payment Section */}
         <div>
           <Label>Payment</Label>
-          <p>
-            Please add a credit card for this organization (handled by Stripe).
-          </p>
           <div className="grid grid-cols-3 gap-4">
             <div className="col-span-3 mt-3 rounded-base border-2 border-warning bg-warning/30 p-4 dark:border-warning/50 dark:bg-warning/10 md:col-span-1">
               <Image
@@ -365,6 +388,7 @@ export function EnvironmentCreationForm({
                     mode: "subscription",
                     amount: Number(price.unitAmount),
                     currency: price.currency,
+                    paymentMethodCreation: "manual",
                     appearance: {
                       variables: {
                         colorPrimary: "rgba(136, 170, 238, 1)",
@@ -389,39 +413,18 @@ export function EnvironmentCreationForm({
             <Button type="submit">Create environment</Button>
             <div className="flex flex-col gap-1">
               {/* Find the selected product */}
-              {products?.find(
-                (product) => product.product.stripeId === selectedPlan,
-              ) && (
+              {selectedProduct && (
                 <>
                   <span className="font-bold">
                     Total cost:{" "}
                     <span className="text-success">
                       $
-                      {(
-                        Math.floor(
-                          (isBilledYearly
-                            ? Number(
-                                products
-                                  .find(
-                                    (product) =>
-                                      product.product.stripeId === selectedPlan,
-                                  )
-                                  ?.prices.find((p) =>
-                                    p.lookupKey.includes("yearly"),
-                                  )?.unitAmount || 0,
-                              ) / 100
-                            : Number(
-                                products
-                                  .find(
-                                    (product) =>
-                                      product.product.stripeId === selectedPlan,
-                                  )
-                                  ?.prices.find((p) =>
-                                    p.lookupKey.includes("monthly"),
-                                  )?.unitAmount || 0,
-                              ) / 100) * 100,
-                        ) / 100
-                      ).toFixed(2)}
+                      {price &&
+                        price.unitAmount &&
+                        (
+                          Math.floor((Number(price.unitAmount) / 100) * 100) /
+                          100
+                        ).toFixed(2)}
                       <span className="text-text">
                         {isBilledYearly ? " /year" : " /month"}
                       </span>
