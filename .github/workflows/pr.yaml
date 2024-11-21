@@ -6,31 +6,43 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
     steps:
       - uses: actions/checkout@v4
       - uses: pkgxdev/setup@v1
 
-      - name: Install deps
+      - name: Cache Node Modules
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Install Dependencies
         run: npm ci
 
-      - name: Lint
-        run: npm run lint
+      - name: Cache Playwright Browsers
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-browsers
 
-      - name: Check if localhost is set up
+      - name: Setup Localhost
         run: script/check-has-setup-localhost || sudo script/setup-localhost
 
-      - name: Install test browsers and certs
+      - name: Install Playwright Browsers
         run: |
           npx playwright install --with-deps
           sudo mkdir -p /usr/local/share/ca-certificates/humanlog
           sudo cp ./certificates/rootCA.pem /usr/local/share/ca-certificates/humanlog/
           sudo update-ca-certificates
 
-      - name: Run unit tests
+      - name: Run Unit Tests
         run: npm run test:unit
 
-      - name: Run e2e tests
+      - name: Run e2e Tests
         run: npm run test:e2e
 
-      - name: Build container image
+      - name: Build Container Image
         run: docker build -t registry.digitalocean.com/humanlog/humanlogio:$(echo $GITHUB_SHA | head -c7) .

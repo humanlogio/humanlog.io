@@ -1,0 +1,36 @@
+name: NextJS Linting
+
+on:
+  pull_request:
+    types: [opened, synchronize, ready_for_review, review_requested]
+
+jobs:
+  node-lint:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    if: github.event.pull_request.draft == false
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+
+      - name: Cache Node Modules
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Run Formatter
+        run: npm run fmt
+
+      - name: Commit changes
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: Node.js Linting (npm run fmt)
+          skip_fetch: true
