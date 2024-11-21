@@ -147,14 +147,14 @@ const PageHeader: React.FC = () => {
     return (
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <div className="flex cursor-pointer flex-row items-center gap-2">
+          <div className="flex cursor-pointer flex-row items-center gap-2 md:flex-row-reverse">
             <Avatar>
               <AvatarImage src={gravatarURL(user?.email)} />
               <AvatarFallback className="uppercase">
                 {user?.firstName?.slice(0, 2) || <UserIcon size={16} />}
               </AvatarFallback>
             </Avatar>
-            <p className="font-medium text-text md:order-1 md:text-white">
+            <p className="font-medium dark:text-white md:order-1 md:text-white">
               {user?.firstName || "username"}
             </p>
           </div>
@@ -245,7 +245,7 @@ const PageHeader: React.FC = () => {
               <Menu />
             </Button>
           </SheetTrigger>
-          <SheetContent className="flex flex-col items-start">
+          <SheetContent className="flex flex-col items-start dark:bg-darkBg">
             <SheetHeader>
               <SheetTitle>Menu</SheetTitle>
             </SheetHeader>
