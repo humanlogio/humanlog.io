@@ -50,7 +50,6 @@ const PageFooter = () => {
                 className="text-main transition-colors hover:text-white"
                 key={link.href}
                 href={link.href}
-                target="_blank"
               >
                 {link.text}
               </Link>
