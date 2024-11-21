@@ -40,9 +40,7 @@ export default function RootLayout({
               <ListEnvironmentsProvider>
                 <PageHeader />
                 {children}
-                {true && ( // todo
-                  <PageFooter />
-                )}
+                <PageFooter />
                 <Toaster expand={true} />
               </ListEnvironmentsProvider>
             </FullWidthProvider>
