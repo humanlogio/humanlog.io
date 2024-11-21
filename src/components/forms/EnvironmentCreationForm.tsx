@@ -443,7 +443,7 @@ export function EnvironmentCreationForm({
                           100
                         ).toFixed(2)}
                       <span className="text-text">
-                        {isBilledYearly ? " /year" : " /month"}
+                        {isBilledYearly ? "/year" : "/month"}
                       </span>
                     </span>
                   </span>
