@@ -52,7 +52,5 @@ export default function Page() {
       </div>
     );
   }
-  return (
-    <div className="flex h-[calc(100dvh-56px)] flex-col py-8">{content}</div>
-  );
+  return <div className="container-h-full flex flex-col py-8">{content}</div>;
 }
