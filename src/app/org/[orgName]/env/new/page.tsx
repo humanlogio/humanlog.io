@@ -1,4 +1,4 @@
-import { EnvironmentCreationForm } from "@/components/forms/EnvironmentCreationForm";
+import { EnvironmentCreationForm } from "@/components/env/env-creation-form";
 
 interface NewOrgEnvironmentPageProps {
   params: Promise<{

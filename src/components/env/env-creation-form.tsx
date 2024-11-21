@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import ReactMarkdown from "react-markdown";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -16,7 +16,7 @@ import {
 } from "api/js/svc/organization/v1/service-OrganizationService_connectquery";
 import { Elements, PaymentElement } from "@stripe/react-stripe-js";
 import { loadStripe, Stripe } from "@stripe/stripe-js";
-import { NewOrgModal } from "@/components/org/NewOrgModal";
+import { NewOrgModal } from "@/components/org/new-org-modal";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -69,6 +69,8 @@ export function EnvironmentCreationForm({
   orgId,
 }: EnvironmentCreationFormProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const urlPlanId = searchParams.get("plan");
 
   const { currentOrg, defaultOrg } = useAllEnvironments();
   const [isNewOrgModalOpen, setIsNewOrgModalOpen] = useState(false);
@@ -130,11 +132,27 @@ export function EnvironmentCreationForm({
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      organization: orgId || "",
+      organization: "",
       environmentName: "",
-      plan: "",
+      plan: urlPlanId || "",
     },
   });
+
+  useMemo(() => {
+    if (selectedProduct || !lpres) return;
+
+    const defaultProduct = urlPlanId
+      ? lpres.items.find((el) => el.product?.stripeId === urlPlanId)
+      : lpres.items.find(
+          (el) => el.product?.stripeId === lpres.defaultProduct?.stripeId,
+        );
+
+    defaultProduct &&
+      setSelectedProduct({
+        product: defaultProduct.product!,
+        prices: defaultProduct.prices,
+      });
+  }, [lpres, selectedProduct, urlPlanId]);
 
   const handleOrganizationChange = (value: string) => {
     if (value === "createNew") {
@@ -425,7 +443,7 @@ export function EnvironmentCreationForm({
                           100
                         ).toFixed(2)}
                       <span className="text-text">
-                        {isBilledYearly ? " /year" : " /month"}
+                        {isBilledYearly ? "/year" : "/month"}
                       </span>
                     </span>
                   </span>

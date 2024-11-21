@@ -21,7 +21,11 @@ export function SettingsShell({
   children,
 }: PropsWithChildren<SettingsShellProps>) {
   if (!orgName || !envName) {
-    return <Loader className="animate-spin" />;
+    return (
+      <div className="container-h-full container flex items-center justify-center">
+        <Loader className="animate-spin" />
+      </div>
+    );
   }
 
   const sections = [
@@ -55,14 +59,22 @@ export function SettingsShell({
               key={section?.name}
               href={section?.href}
               className={cn(
-                "flex items-center gap-2 rounded-s-base px-4 py-2 text-base",
+                "flex items-center gap-2 rounded-s-base px-4 py-2",
                 section?.active
-                  ? "border-r-4 border-r-main bg-slate-200 text-text"
-                  : "text-slate-400 hover:bg-slate-200",
+                  ? "border-r-4 border-r-main bg-slate-200"
+                  : "hover:bg-slate-100",
               )}
             >
-              {section?.icon}
-              {section?.name}
+              <span
+                className={section?.active ? "text-main" : "text-slate-400"}
+              >
+                {section?.icon}
+              </span>
+              <span
+                className={section?.active ? "text-text" : "text-slate-400"}
+              >
+                {section?.name}
+              </span>
             </Link>
           ))}
         </nav>
