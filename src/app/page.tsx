@@ -218,7 +218,7 @@ export default function Home() {
             });
           }
         } catch (e) {
-          console.log("it crahsed", e);
+          console.log("it crashed", e);
         }
       })();
     },
