@@ -42,6 +42,7 @@ import { useAllEnvironments } from "@/context/listEnvironments";
 import { Product as APIProduct } from "api/js/types/v1/product_pb";
 import { Price as APIPrice } from "api/js/types/v1/price_pb";
 import { PaymentMethod } from "api/js/types/v1/payment_method_pb";
+import Image from "next/image";
 
 const formSchema = z.object({
   organization: z.string().min(1, "Please select an organization"),
@@ -150,7 +151,7 @@ export function EnvironmentCreationForm({
         className="flex flex-col gap-6"
       >
         {/* Organization and Environment Name */}
-        <div className="flex flex-col items-stretch gap-4 md:flex-row">
+        <div className="flex flex-col gap-4 md:flex-row">
           <FormField
             control={form.control}
             name="organization"
@@ -195,8 +196,8 @@ export function EnvironmentCreationForm({
             )}
           />
 
-          <div className="hidden items-center md:flex">
-            <span className="mt-2 text-xl font-bold">/</span>
+          <div className="relative hidden w-4 items-center md:flex">
+            <span className="absolute left-0 top-10 text-xl font-bold">/</span>
           </div>
 
           <FormField
@@ -207,7 +208,7 @@ export function EnvironmentCreationForm({
                 <FormLabel>Environment name</FormLabel>
                 <FormControl>
                   <Input
-                    className="w-full max-w-lg"
+                    className="w-full md:max-w-lg"
                     placeholder="Name your new environment"
                     {...field}
                   />
@@ -259,7 +260,7 @@ export function EnvironmentCreationForm({
             render={({ field }) => (
               <FormItem>
                 <FormControl>
-                  <div className="mt-2 grid grid-cols-1 gap-4 md:grid-cols-3">
+                  <div className="mt-2 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
                     {products?.map((product) => {
                       const monthly = product.prices.find((p) =>
                         p.lookupKey.includes("monthly"),
@@ -343,49 +344,99 @@ export function EnvironmentCreationForm({
         </div>
 
         {/* Payment Section */}
-        <div className="grid-cols-3 gap-4 md:grid">
-          <div className="col-span-2">
-            <Label>Payment</Label>
-            <p>
-              Please add a credit card for this organization (handled by
-              Stripe).
-            </p>
-            <div className="mt-3 flex flex-row items-center justify-between gap-6 rounded-base border-2 border-warning bg-warning/30 p-4 dark:border-warning/50 dark:bg-warning/10">
+        <div>
+          <Label>Payment</Label>
+          <p>
+            Please add a credit card for this organization (handled by Stripe).
+          </p>
+          <div className="grid grid-cols-3 gap-4">
+            <div className="col-span-3 mt-3 rounded-base border-2 border-warning bg-warning/30 p-4 dark:border-warning/50 dark:bg-warning/10 md:col-span-1">
+              <Image
+                src="/images/powered-by-stripe.svg"
+                alt="Powered by Stripe"
+                width={112}
+                height={24}
+                className="mb-4"
+              />
               {stripePromise ? (
                 <Elements
                   stripe={stripePromise}
-                  options={{ mode: "setup", currency: "usd" }}
+                  options={{
+                    mode: "setup",
+                    currency: "usd",
+                    appearance: {
+                      variables: {
+                        colorPrimary: "rgba(136, 170, 238, 1)",
+                        fontSizeBase: "14px",
+                      },
+                    },
+                  }}
                 >
                   <PaymentElement />
-                  <Button variant="noShadowNeutral" type="button">
-                    Add card
-                  </Button>
                 </Elements>
               ) : (
-                <Loader></Loader>
+                <Loader className="animate-spin" />
               )}
             </div>
           </div>
         </div>
 
         {/* Submit Section */}
-        <div className="grid-cols-3 gap-4 md:grid">
-          <div className="col-span-2">
-            <Label className="text-lg font-bold">
-              Create a new environment
-            </Label>
-            <div className="mt-3 flex flex-col gap-4 md:flex-row md:items-center md:gap-6">
-              <Button type="submit">Create environment</Button>
-              <div className="flex flex-col gap-1">
-                <span className="font-bold">
-                  Monthly cost: <span className="text-success">$999</span>
-                </span>
-                <p className="text-sm text-slate-500">
-                  Your first payment of $19 will be charged today.
-                  <br />
-                  Subsequent monthly charges will occur every 30 days.
-                </p>
-              </div>
+        <div className="col-span-2">
+          <Label className="text-lg font-bold">Create a new environment</Label>
+          <div className="mt-3 flex flex-col gap-4 md:flex-row md:gap-6">
+            <Button type="submit">Create environment</Button>
+            <div className="flex flex-col gap-1">
+              {/* Find the selected product */}
+              {products?.find(
+                (product) => product.product.stripeId === selectedPlan,
+              ) && (
+                <>
+                  <span className="font-bold">
+                    Total cost:{" "}
+                    <span className="text-success">
+                      $
+                      {(
+                        Math.floor(
+                          (isBilledYearly
+                            ? Number(
+                                products
+                                  .find(
+                                    (product) =>
+                                      product.product.stripeId === selectedPlan,
+                                  )
+                                  ?.prices.find((p) =>
+                                    p.lookupKey.includes("yearly"),
+                                  )?.unitAmount || 0,
+                              ) / 100
+                            : Number(
+                                products
+                                  .find(
+                                    (product) =>
+                                      product.product.stripeId === selectedPlan,
+                                  )
+                                  ?.prices.find((p) =>
+                                    p.lookupKey.includes("monthly"),
+                                  )?.unitAmount || 0,
+                              ) / 100) * 100,
+                        ) / 100
+                      ).toFixed(2)}
+                      <span className="text-text">
+                        {isBilledYearly ? " /year" : " /month"}
+                      </span>
+                    </span>
+                  </span>
+                  <p className="text-sm text-slate-500">
+                    {isBilledYearly
+                      ? "Your first annual payment will be prorated and charged today."
+                      : "Your first monthly payment will be charged today."}
+                    <br />
+                    {isBilledYearly
+                      ? "Subsequent annual charges will occur every 12 months."
+                      : "Subsequent monthly charges will occur every 30 days."}
+                  </p>
+                </>
+              )}
             </div>
           </div>
         </div>
