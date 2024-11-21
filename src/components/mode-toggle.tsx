@@ -23,14 +23,8 @@ export function ModeToggle() {
           className="group gap-2 md:w-[35px] md:gap-0 md:px-2"
           variant="noShadow"
         >
-          <Sun
-            size={16}
-            className="scale-100 transition-all group-hover:rotate-90 dark:scale-0"
-          />
-          <Moon
-            size={16}
-            className="absolute scale-0 transition-all group-hover:rotate-45 dark:scale-100"
-          />
+          <Sun size={16} className="group-hover:rotate-90 dark:hidden" />
+          <Moon size={16} className="hidden group-hover:rotate-45 dark:block" />
           <span className="md:sr-only">Toggle theme</span>
         </Button>
       </DropdownMenuTrigger>
