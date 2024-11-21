@@ -1,4 +1,4 @@
-import { EnvironmentCreationForm } from "@/components/forms/environment-creation-form";
+import { EnvironmentCreationForm } from "@/components/env/env-creation-form";
 
 export default function NewEnvironmentPage() {
   return (

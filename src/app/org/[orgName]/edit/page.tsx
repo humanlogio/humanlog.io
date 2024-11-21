@@ -1,5 +1,5 @@
-import { OrgSettingsForm } from "@/components/org/org-settings-form";
 import { SettingsShell } from "@/components/settings-shell";
+import { OrgSettingsForm } from "@/components/org/org-settings-form";
 
 export default async function OrgSettingsPage(props: {
   params: Promise<{ orgName: string }>;
