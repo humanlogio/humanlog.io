@@ -33,6 +33,10 @@ type ApiClients = {
   user: Client<typeof UserService>;
   localhost: Client<typeof LocalhostService>;
   query: Client<typeof QueryService>;
+
+  apiTransport: Transport;
+  localhostTransport: Transport;
+  activeTransport: Transport;
 };
 
 const ApiClientContext = createContext<ApiProviderType | null>(null);
@@ -71,7 +75,7 @@ export function ApiClientsProvider({
   const apiClients = useMemo((): ApiClients => {
     const auther = (token: string): Interceptor => {
       return (next) => async (req) => {
-        if (token != "") {
+        if (token && token != "") {
           req.header.set("Browser-Authorization", token);
         }
         const res = await next(req);
@@ -79,7 +83,6 @@ export function ApiClientsProvider({
         res.header.get("content-type");
         const cookies = res.header.getSetCookie();
         if (cookies.length > 1) {
-          console.error(cookies);
           // setCookie // update the cookie when the api returns a refresh token
         }
         return res;
@@ -107,6 +110,10 @@ export function ApiClientsProvider({
       org: createClient(OrganizationService, apiTpt),
       user: createClient(UserService, apiTpt),
       query: createClient(QueryService, activeTransport),
+
+      apiTransport: apiTpt,
+      localhostTransport: localhostTransport,
+      activeTransport: activeTransport,
     };
   }, [humanlogSessionCookie, activeEnvironment]);
 
