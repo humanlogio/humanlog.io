@@ -1,17 +1,18 @@
-import { OrganizationSettingsForm } from "@/components/organizations/OrganizationSettingsForm";
+import { OrgSettingsForm } from "@/components/org/OrgSettingsForm";
 import { SettingsShell } from "@/components/settings-shell";
 
-interface EditOrgPageProps {
+export default function OrgSettingsPage({
+  params,
+}: {
   params: { orgName: string };
-}
-
-export default function EditOrgPage({ params }: EditOrgPageProps) {
+}) {
+  const { orgName } = params;
   return (
-    <SettingsShell activeSection="organization">
+    <SettingsShell activeSection="organization" orgName={orgName}>
       <h1 className="mb-6 text-3xl font-bold">
         Organization Settings / {params.orgName}
       </h1>
-      <OrganizationSettingsForm orgName={params.orgName} />
+      <OrgSettingsForm orgName={params.orgName} />
     </SettingsShell>
   );
 }

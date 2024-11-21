@@ -8,9 +8,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
-  getEnvironmentUrl,
-  getNewEnvironmentUrl,
-  getOrganizationSettingsUrl,
+  getEnvUrl,
+  getNewEnvUrl,
+  getOrgSettingsUrl,
 } from "@/lib/utils/navigation";
 import { MoreHorizontal, Plus, Settings } from "lucide-react";
 import Link from "next/link";
@@ -23,11 +23,11 @@ interface Environment {
   // Add other environment properties as needed
 }
 
-interface OrganizationDashboardProps {
+interface OrgDashboardProps {
   orgName: string;
 }
 
-export function OrganizationDashboard({ orgName }: OrganizationDashboardProps) {
+export function OrgDashboard({ orgName }: OrgDashboardProps) {
   // This would typically come from an API
   const environments: Environment[] = [
     {
@@ -57,13 +57,13 @@ export function OrganizationDashboard({ orgName }: OrganizationDashboardProps) {
         </div>
         <div className="flex flex-col gap-4 md:flex-row md:items-center">
           <Button asChild>
-            <Link href={getOrganizationSettingsUrl(orgName)}>
+            <Link href={getOrgSettingsUrl(orgName)}>
               <Settings className="mr-2 h-4 w-4" />
               Organization Settings
             </Link>
           </Button>
           <Button asChild>
-            <Link href={getNewEnvironmentUrl(orgName)}>
+            <Link href={getNewEnvUrl(orgName)}>
               <Plus className="mr-2 h-4 w-4" />
               New Environment
             </Link>
@@ -74,7 +74,7 @@ export function OrganizationDashboard({ orgName }: OrganizationDashboardProps) {
       {/* Environments Grid */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {environments.map((env) => (
-          <Link key={env.id} href={getEnvironmentUrl(env.name, orgName)}>
+          <Link key={env.id} href={getEnvUrl(env.name, orgName)}>
             <Card hoverable className="text-text dark:text-darkText">
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="text-xl font-semibold">
@@ -89,14 +89,12 @@ export function OrganizationDashboard({ orgName }: OrganizationDashboardProps) {
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem asChild>
-                      <Link href={getEnvironmentUrl(env.name, orgName)}>
+                      <Link href={getEnvUrl(env.name, orgName)}>
                         View Environment
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
-                      <Link
-                        href={`${getEnvironmentUrl(env.name, orgName)}/edit`}
-                      >
+                      <Link href={`${getEnvUrl(env.name, orgName)}/edit`}>
                         Environment Settings
                       </Link>
                     </DropdownMenuItem>

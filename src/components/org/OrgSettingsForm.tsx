@@ -20,7 +20,7 @@ const formSchema = z.object({
   domain: z.string().optional(),
 });
 
-interface OrganizationSettingsFormProps {
+interface OrgSettingsFormProps {
   orgId: string | null;
   defaultValues?: {
     name: string;
@@ -28,10 +28,10 @@ interface OrganizationSettingsFormProps {
   };
 }
 
-export function OrganizationSettingsForm({
+export function OrgSettingsForm({
   orgId,
   defaultValues,
-}: OrganizationSettingsFormProps) {
+}: OrgSettingsFormProps) {
   const router = useRouter();
 
   const form = useForm<z.infer<typeof formSchema>>({

@@ -1,23 +1,29 @@
+// User
+export function getUserSettingsUrl() {
+  return `/user/edit`;
+}
+
 // Org
-export function getOrganizationUrl(orgName: string) {
+export function getOrgUrl(orgName: string) {
   return `/org/${orgName}`;
 }
 
-export function getOrganizationSettingsUrl(orgName: string) {
+export function getOrgSettingsUrl(orgName: string) {
   return `/org/${orgName}/edit`;
 }
 
 // Env
-export function getEnvironmentUrl(envName: string, orgName?: string) {
+export function getEnvUrl(envName: string, orgName?: string) {
   if (orgName) {
     return `/org/${orgName}/env/${envName}`;
   }
   return `/env/${envName}`;
 }
 
-export function getNewEnvironmentUrl(orgName?: string) {
-  if (orgName) {
-    return `/org/${orgName}/env/new`;
-  }
-  return "/env/new";
+export function getEnvSettingsUrl(envName: string, orgName: string) {
+  return `/org/${orgName}/env/${envName}/edit`;
+}
+
+export function getNewEnvUrl(orgName?: string) {
+  return orgName ? `/org/${orgName}/env/new` : "/env/new";
 }

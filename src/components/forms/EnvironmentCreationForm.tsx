@@ -17,7 +17,7 @@ import {
 } from "api/js/svc/organization/v1/service-OrganizationService_connectquery";
 import { Elements, PaymentElement } from "@stripe/react-stripe-js";
 import { loadStripe, Stripe } from "@stripe/stripe-js";
-import { NewOrgModal } from "@/components/organizations/NewOrgModal";
+import { NewOrgModal } from "@/components/org/NewOrgModal";
 import { Button } from "@/components/ui/button";
 import {
   Form,
