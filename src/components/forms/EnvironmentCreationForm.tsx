@@ -10,7 +10,6 @@ import { useQuery } from "@connectrpc/connect-query";
 import { listProduct } from "api/js/svc/product/v1/service-ProductService_connectquery";
 import { listOrganization } from "api/js/svc/user/v1/service-UserService_connectquery";
 import {
-  listPaymentMethod,
   getStripePublishableKey,
   createStripeCustomerSession,
 } from "api/js/svc/organization/v1/service-OrganizationService_connectquery";
@@ -42,7 +41,6 @@ import { cn } from "@/lib/utils";
 import { useAllEnvironments } from "@/context/listEnvironments";
 import { Product as APIProduct } from "api/js/types/v1/product_pb";
 import { Price as APIPrice } from "api/js/types/v1/price_pb";
-import { PaymentMethod } from "api/js/types/v1/payment_method_pb";
 import Image from "next/image";
 
 const formSchema = z.object({

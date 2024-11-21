@@ -5,7 +5,7 @@ import { useQuery } from "@connectrpc/connect-query";
 import { listProduct } from "api/js/svc/product/v1/service-ProductService_connectquery";
 import { Product as APIProduct } from "api/js/types/v1/product_pb";
 import { Price as APIPrice } from "api/js/types/v1/price_pb";
-import { Check } from "lucide-react";
+import { Check, Loader } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { Switch } from "@/components/ui/switch";
@@ -21,14 +21,13 @@ export default function Page() {
   const [isBilledYearly, setIsBilledYearly] = useState(true);
 
   // fetch the product list
-  const listProductRes = useQuery(listProduct, { category: "logging" });
+  const { isLoading, data } = useQuery(listProduct, { category: "logging" });
 
   // clean it up into ergonomic types
-  const products = listProductRes.data?.items.map((el): Product => {
+  const products = data?.items.map((el): Product => {
     return { product: el.product!, prices: el.prices };
   });
-
-  console.log(products);
+  const defaultProduct = data?.defaultProduct;
 
   return (
     <div className="container-h-full flex w-full flex-col items-center justify-center bg-[linear-gradient(to_right,#80808033_1px,transparent_1px),linear-gradient(to_bottom,#80808033_1px,transparent_1px)] bg-[size:64px_64px]">
@@ -68,6 +67,7 @@ export default function Page() {
           </Label>
         </div>
         <div className="grid w-full grid-cols-1 gap-8 pt-16 lg:grid-cols-3">
+          {isLoading && <Loader className="animate-spin" />}
           {products?.map((product) => {
             const monthly = product.prices.find(
               (p) => p.recurring?.interval === "month",
@@ -76,12 +76,14 @@ export default function Page() {
               (p) => p.recurring?.interval === "year",
             );
 
-            const price = isBilledYearly
+            const price = isBilledYearly ? yearly : monthly;
+            const displayPrice = isBilledYearly
               ? Number(yearly?.unitAmount || 0) / 100 / 12
               : Number(monthly?.unitAmount || 0) / 100;
 
             // to replace with stripe data
-            const featured = false;
+            const featured =
+              product.product.stripeId == defaultProduct?.stripeId;
 
             return (
               <div
@@ -103,18 +105,18 @@ export default function Page() {
                     {product.product.description}
                   </p>
                   <div className="flex items-center gap-4">
-                    {price && isBilledYearly && (
+                    {displayPrice && isBilledYearly && (
                       <span className="text-2xl font-bold text-slate-500 line-through">
                         ${Number(monthly?.unitAmount || 0) / 100}
                       </span>
                     )}
                     <div>
                       <span className="text-3xl font-bold">
-                        {price
-                          ? `$${(Math.floor(price * 100) / 100).toFixed(2)}`
+                        {displayPrice
+                          ? `$${(Math.floor(displayPrice * 100) / 100).toFixed(2)}`
                           : "Custom"}
                       </span>
-                      {price && <span>/month</span>}
+                      {displayPrice && <span>/month</span>}
                     </div>
                   </div>
                   <ul className="mt-8 flex flex-col gap-2">
