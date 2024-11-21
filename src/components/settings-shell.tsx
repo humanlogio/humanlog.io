@@ -6,6 +6,7 @@ import {
   getEnvSettingsUrl,
 } from "@/lib/utils/navigation";
 import { cn } from "@/lib/utils";
+import { Building, CodeSquareIcon, User } from "lucide-react";
 
 interface SettingsShellProps {
   activeSection: "user" | "organization" | "environment";
@@ -22,16 +23,19 @@ export function SettingsShell({
   const sections = [
     {
       name: "User Settings",
+      icon: <User size={16} />,
       href: getUserSettingsUrl(),
       active: activeSection === "user",
     },
     {
       name: "Organization Settings",
+      icon: <Building size={16} />,
       href: getOrgSettingsUrl(orgName),
       active: activeSection === "organization",
     },
     {
       name: "Environment Settings",
+      icon: <CodeSquareIcon size={16} />,
       href: getEnvSettingsUrl(envName, orgName),
       active: activeSection === "environment",
     },
@@ -40,19 +44,20 @@ export function SettingsShell({
   return (
     <div className="container-h-full container flex">
       {/* Sidebar */}
-      <aside className="w-64 border-r border-gray-200 bg-gray-100 p-4 dark:border-gray-800 dark:bg-gray-900">
+      <aside className="w-80 border-r-2 border-border py-6">
         <nav className="space-y-2">
           {sections.map((section) => (
             <Link
               key={section?.name}
               href={section?.href}
               className={cn(
-                "block rounded-md px-4 py-2",
+                "flex items-center gap-2 rounded-s-base px-4 py-2 text-base",
                 section?.active
-                  ? "bg-blue-500 text-white"
-                  : "text-gray-700 hover:bg-gray-200 dark:text-gray-300 dark:hover:bg-gray-800",
+                  ? "border-r-4 border-r-main bg-slate-200 text-text"
+                  : "text-slate-400 hover:bg-slate-200",
               )}
             >
+              {section?.icon}
               {section?.name}
             </Link>
           ))}

@@ -49,7 +49,7 @@ import {
   LocalhostViaBrowser,
 } from "api/js/svc/auth/v1/service_pb";
 import { PingResponse } from "api/js/svc/localhost/v1/service_pb";
-import { gravatarURL, getNewEnvironmentUrl } from "@/lib/utils";
+import { gravatarURL, getNewEnvUrl } from "@/lib/utils";
 import { useAllEnvironments, UserState } from "@/context/listEnvironments";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@connectrpc/connect-query";
@@ -116,7 +116,7 @@ const PageHeader: React.FC = () => {
         }
         let orgName =
           defaultOrg?.id !== currentOrg?.id ? currentOrg!.name : undefined;
-        router.push(getNewEnvironmentUrl(orgName));
+        router.push(getNewEnvUrl(orgName));
         return;
       }
       try {
