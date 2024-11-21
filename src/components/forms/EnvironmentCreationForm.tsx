@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import ReactMarkdown from "react-markdown";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -69,6 +69,8 @@ export function EnvironmentCreationForm({
   orgId,
 }: EnvironmentCreationFormProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const urlPlanId = searchParams.get("plan");
 
   const { currentOrg, defaultOrg } = useAllEnvironments();
   const [isNewOrgModalOpen, setIsNewOrgModalOpen] = useState(false);
@@ -130,11 +132,27 @@ export function EnvironmentCreationForm({
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      organization: orgId || "",
+      organization: "",
       environmentName: "",
-      plan: "",
+      plan: urlPlanId || "",
     },
   });
+
+  useMemo(() => {
+    if (selectedProduct || !lpres) return;
+
+    const defaultProduct = urlPlanId
+      ? lpres.items.find((el) => el.product?.stripeId === urlPlanId)
+      : lpres.items.find(
+          (el) => el.product?.stripeId === lpres.defaultProduct?.stripeId,
+        );
+
+    defaultProduct &&
+      setSelectedProduct({
+        product: defaultProduct.product!,
+        prices: defaultProduct.prices,
+      });
+  }, [lpres, selectedProduct, urlPlanId]);
 
   const handleOrganizationChange = (value: string) => {
     if (value === "createNew") {

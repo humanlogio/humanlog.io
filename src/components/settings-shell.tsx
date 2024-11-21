@@ -21,7 +21,11 @@ export function SettingsShell({
   children,
 }: PropsWithChildren<SettingsShellProps>) {
   if (!orgName || !envName) {
-    return <Loader className="animate-spin" />;
+    return (
+      <div className="container-h-full container flex items-center justify-center">
+        <Loader className="animate-spin" />
+      </div>
+    );
   }
 
   const sections = [
