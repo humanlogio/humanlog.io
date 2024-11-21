@@ -1,4 +1,4 @@
-import { OrgDashboard } from "@/components/org/OrgDashboard";
+import { OrgDashboard } from "@/components/org/org-dashboard";
 
 interface OrganizationPageProps {
   params: Promise<{

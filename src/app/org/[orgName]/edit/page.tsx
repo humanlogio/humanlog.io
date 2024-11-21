@@ -1,4 +1,4 @@
-import { OrgSettingsForm } from "@/components/org/OrgSettingsForm";
+import { OrgSettingsForm } from "@/components/org/org-settings-form";
 import { SettingsShell } from "@/components/settings-shell";
 
 export default async function OrgSettingsPage(props: {
