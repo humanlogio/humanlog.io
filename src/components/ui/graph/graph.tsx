@@ -19,7 +19,7 @@ export type ZoomType = {
 
 export type DataPoint = {
   dayNumber: number;
-  name: string;
+name: string;
   date: Date;
   amt: number;
   pv?: number;
