@@ -14,11 +14,7 @@ import {
   getStripePublishableKey,
 } from "api/js/svc/organization/v1/service-OrganizationService_connectquery";
 import { Elements, PaymentElement } from "@stripe/react-stripe-js";
-import {
-  loadStripe,
-  Stripe,
-  StripeConstructorOptions,
-} from "@stripe/stripe-js";
+import { loadStripe, Stripe } from "@stripe/stripe-js";
 import { NewOrgModal } from "@/components/organizations/NewOrgModal";
 import { Button } from "@/components/ui/button";
 import {
@@ -176,7 +172,6 @@ export function EnvironmentCreationForm({
                   <SelectContent>
                     <SelectGroup defaultValue={defaultOrg?.name}>
                       {listOrgRes?.map((o) => {
-                        console.log("o", o);
                         if (o.id === defaultOrg?.id) {
                           return (
                             <SelectItem key={o.name} value={o.name}>
