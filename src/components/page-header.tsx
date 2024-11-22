@@ -50,7 +50,7 @@ import {
 } from "api/js/svc/auth/v1/service_pb";
 import { PingResponse } from "api/js/svc/localhost/v1/service_pb";
 import { gravatarURL, getEnvUrl } from "@/lib/utils";
-import { useAllEnvironments, UserState } from "@/context/listEnvironments";
+import { useAllEnvironments, UserState } from "@/context/list-environments";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@connectrpc/connect-query";
 import { getLogoutURL } from "api/js/svc/user/v1/service-UserService_connectquery";

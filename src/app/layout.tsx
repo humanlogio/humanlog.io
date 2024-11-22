@@ -8,7 +8,7 @@ import { ApiClientsProvider } from "@/context/api-provider";
 import { FullWidthProvider } from "@/context/full-width-provider";
 import { Toaster } from "@/components/ui/sonner";
 import PageHeader from "@/components/page-header";
-import { ListEnvironmentsProvider } from "@/context/listEnvironments";
+import { ListEnvironmentsProvider } from "@/context/list-environments";
 import PageFooter from "@/components/page-footer";
 
 export const metadata: Metadata = {

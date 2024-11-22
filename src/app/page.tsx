@@ -13,7 +13,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import SetupGuide from "@/components/setup-guide";
 import Graph, { DataPoint, ZoomType } from "@/components/ui/graph/graph";
-import { useAllEnvironments } from "@/context/listEnvironments";
+import { useAllEnvironments } from "@/context/list-environments";
 import { useApiClients } from "@/context/api-provider";
 import { SummarizeEventsResponse_Bucket } from "api/js/svc/query/v1/service_pb";
 import { Timestamp } from "@bufbuild/protobuf";
