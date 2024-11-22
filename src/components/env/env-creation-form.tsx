@@ -14,7 +14,12 @@ import {
   getStripePublishableKey,
   createStripeCustomerSession,
 } from "api/js/svc/organization/v1/service-OrganizationService_connectquery";
-import { Elements, PaymentElement } from "@stripe/react-stripe-js";
+import {
+  Elements,
+  PaymentElement,
+  useElements,
+  useStripe,
+} from "@stripe/react-stripe-js";
 import { loadStripe, Stripe } from "@stripe/stripe-js";
 import { NewOrgModal } from "@/components/org/new-org-modal";
 import { Button } from "@/components/ui/button";
@@ -171,7 +176,7 @@ export function EnvironmentCreationForm({
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
       // Add your form submission logic here
-      console.log(values);
+      console.log("onSubmit", values);
 
       // Redirect after successful creation
       const redirectPath = orgId
@@ -301,80 +306,21 @@ export function EnvironmentCreationForm({
                 <FormControl>
                   <div className="mt-2 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
                     {products?.map((product) => {
-                      const monthly = product.prices.find((p) =>
-                        p.lookupKey.includes("monthly"),
-                      );
-                      const yearly = product.prices.find((p) =>
-                        p.lookupKey.includes("yearly"),
-                      );
-
-                      const isSelected =
-                        selectedProduct?.product.stripeId ===
-                        product.product.stripeId;
-
-                      const selectedPrice = isBilledYearly ? yearly : monthly;
-                      const price = isBilledYearly
-                        ? Number(yearly?.unitAmount || 0) / 100 / 12
-                        : Number(monthly?.unitAmount || 0) / 100;
-
                       return (
-                        <div
+                        <ProductPane
                           key={product.product.stripeId}
-                          onClick={() => {
+                          product={product}
+                          isSelected={
+                            selectedProduct?.product.stripeId ===
+                            product.product.stripeId
+                          }
+                          isBilledYearly={isBilledYearly}
+                          onClick={(price: APIPrice | undefined) => {
                             setSelectedProduct(product);
                             field.onChange(product.product.stripeId);
-                            setPrice(selectedPrice);
+                            setPrice(price);
                           }}
-                          className={cn(
-                            "cursor-pointer rounded-md border-2 border-border p-6 shadow-light hover:translate-x-boxShadowX hover:translate-y-boxShadowY hover:shadow-none dark:shadow-dark dark:hover:shadow-none",
-                            isSelected &&
-                              "translate-x-boxShadowX translate-y-boxShadowY bg-main shadow-none",
-                          )}
-                        >
-                          <div className="flex flex-row items-center justify-between gap-6">
-                            <div className="rounded-base bg-slate-200 px-2 py-0.5 font-bold dark:bg-slate-950">
-                              {product.product.name}
-                            </div>
-                            <h5 className="font-bold">
-                              {isBilledYearly && (
-                                <span className="mr-2 text-sm text-slate-500 line-through">
-                                  ${Number(monthly?.unitAmount || 0) / 100}
-                                </span>
-                              )}
-                              <span
-                                className={
-                                  isSelected ? "text-white" : "text-success"
-                                }
-                              >
-                                {price
-                                  ? `$${(Math.floor(price * 100) / 100).toFixed(2)}`
-                                  : "Custom"}
-                              </span>
-                              /month
-                            </h5>
-                          </div>
-                          <p
-                            className={cn(
-                              "mt-4 text-sm text-slate-500",
-                              isSelected && "text-white",
-                            )}
-                          >
-                            {product.product.description}
-                          </p>
-                          <ul className="mt-4 flex flex-col gap-2">
-                            {product.product.marketingFeatures.map(
-                              (feature, index) => (
-                                <li
-                                  key={index}
-                                  className="flex items-center gap-3"
-                                >
-                                  <Check className="shrink-0" size={18} />{" "}
-                                  <ReactMarkdown>{feature.name}</ReactMarkdown>
-                                </li>
-                              ),
-                            )}
-                          </ul>
-                        </div>
+                        />
                       );
                     })}
                   </div>
@@ -414,7 +360,7 @@ export function EnvironmentCreationForm({
                     },
                   }}
                 >
-                  <PaymentElement />
+                  <CheckoutForm />
                 </Elements>
               ) : (
                 <Loader className="animate-spin" />
@@ -430,33 +376,11 @@ export function EnvironmentCreationForm({
             <Button type="submit">Create environment</Button>
             <div className="flex flex-col gap-1">
               {/* Find the selected product */}
-              {selectedProduct && (
-                <>
-                  <span className="font-bold">
-                    Total cost:{" "}
-                    <span className="text-success">
-                      $
-                      {price &&
-                        price.unitAmount &&
-                        (
-                          Math.floor((Number(price.unitAmount) / 100) * 100) /
-                          100
-                        ).toFixed(2)}
-                      <span className="text-text">
-                        {isBilledYearly ? "/year" : "/month"}
-                      </span>
-                    </span>
-                  </span>
-                  <p className="text-sm text-slate-500">
-                    {isBilledYearly
-                      ? "Your first annual payment will be prorated and charged today."
-                      : "Your first monthly payment will be charged today."}
-                    <br />
-                    {isBilledYearly
-                      ? "Subsequent annual charges will occur every 12 months."
-                      : "Subsequent monthly charges will occur every 30 days."}
-                  </p>
-                </>
+              {price && (
+                <TotalPriceSummary
+                  price={price}
+                  isBilledYearly={isBilledYearly}
+                />
               )}
             </div>
           </div>
@@ -470,5 +394,119 @@ export function EnvironmentCreationForm({
         />
       </form>
     </Form>
+  );
+}
+
+function ProductPane({
+  product,
+  isSelected,
+  isBilledYearly,
+  onClick,
+}: {
+  product: Product;
+  isSelected: boolean;
+  isBilledYearly: boolean;
+  onClick: (price: APIPrice | undefined) => void;
+}) {
+  const monthly = product.prices.find((p) => p.lookupKey.includes("monthly"));
+  const yearly = product.prices.find((p) => p.lookupKey.includes("yearly"));
+
+  const selectedPrice = isBilledYearly ? yearly : monthly;
+  const price = isBilledYearly
+    ? Number(yearly?.unitAmount || 0) / 100 / 12
+    : Number(monthly?.unitAmount || 0) / 100;
+
+  return (
+    <div
+      onClick={() => onClick(selectedPrice)}
+      className={cn(
+        "cursor-pointer rounded-md border-2 border-border p-6 shadow-light hover:translate-x-boxShadowX hover:translate-y-boxShadowY hover:shadow-none dark:shadow-dark dark:hover:shadow-none",
+        isSelected &&
+          "translate-x-boxShadowX translate-y-boxShadowY bg-main shadow-none",
+      )}
+    >
+      <div className="flex flex-row items-center justify-between gap-6">
+        <div className="rounded-base bg-slate-200 px-2 py-0.5 font-bold dark:bg-slate-950">
+          {product.product.name}
+        </div>
+        <h5 className="font-bold">
+          {isBilledYearly && (
+            <span className="mr-2 text-sm text-slate-500 line-through">
+              ${Number(monthly?.unitAmount || 0) / 100}
+            </span>
+          )}
+          <span className={isSelected ? "text-white" : "text-success"}>
+            {price
+              ? `$${(Math.floor(price * 100) / 100).toFixed(2)}`
+              : "Custom"}
+          </span>
+          /month
+        </h5>
+      </div>
+      <p
+        className={cn(
+          "mt-4 text-sm text-slate-500",
+          isSelected && "text-white",
+        )}
+      >
+        {product.product.description}
+      </p>
+      <ul className="mt-4 flex flex-col gap-2">
+        {product.product.marketingFeatures.map((feature, index) => (
+          <li key={index} className="flex items-center gap-3">
+            <Check className="shrink-0" size={18} />{" "}
+            <ReactMarkdown>{feature.name}</ReactMarkdown>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function TotalPriceSummary({
+  price,
+  isBilledYearly,
+}: {
+  price: APIPrice;
+  isBilledYearly: boolean;
+}) {
+  const displayPriceAmount = (
+    Math.floor((Number(price.unitAmount) / 100) * 100) / 100
+  ).toFixed(2);
+
+  const frequency = isBilledYearly ? "/year" : "/month";
+  const chargedToday = isBilledYearly
+    ? "Your first annual payment will be prorated and charged today."
+    : "Your first monthly payment will be charged today.";
+  const nextPayment = isBilledYearly
+    ? "Subsequent annual charges will occur every 12 months."
+    : "Subsequent monthly charges will occur every 30 days.";
+
+  return (
+    <>
+      <span className="font-bold">
+        Total cost:{" "}
+        <span className="text-success">
+          ${displayPriceAmount}
+          <span className="text-text">{frequency}</span>
+        </span>
+      </span>
+      <p className="text-sm text-slate-500">
+        {chargedToday}
+        <br />
+        {nextPayment}
+      </p>
+    </>
+  );
+}
+
+function CheckoutForm({}) {
+  const stripe = useStripe();
+  const elements = useElements();
+
+  return (
+    <>
+      <PaymentElement />
+    </>
   );
 }
