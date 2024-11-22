@@ -1,10 +1,10 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { Dispatch, SetStateAction, useMemo, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import { useRouter, useSearchParams } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { useForm, UseFormReturn } from "react-hook-form";
 import * as z from "zod";
 import { Building, Check, Loader } from "lucide-react";
 import { useQuery } from "@connectrpc/connect-query";
@@ -20,7 +20,13 @@ import {
   useElements,
   useStripe,
 } from "@stripe/react-stripe-js";
-import { loadStripe, Stripe } from "@stripe/stripe-js";
+import {
+  ConfirmationToken,
+  loadStripe,
+  Stripe,
+  StripeElements,
+  StripeError,
+} from "@stripe/stripe-js";
 import { NewOrgModal } from "@/components/org/new-org-modal";
 import { Button } from "@/components/ui/button";
 import {
@@ -48,6 +54,7 @@ import { useAllEnvironments } from "@/context/list-environments";
 import { Product as APIProduct } from "api/js/types/v1/product_pb";
 import { Price as APIPrice } from "api/js/types/v1/price_pb";
 import Image from "next/image";
+import { Organization } from "api/js/types/v1/organization_pb";
 
 const formSchema = z.object({
   organization: z.string().min(1, "Please select an organization"),
@@ -73,7 +80,6 @@ interface Product {
 export function EnvironmentCreationForm({
   orgId,
 }: EnvironmentCreationFormProps) {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const urlPlanId = searchParams.get("plan");
 
@@ -86,28 +92,31 @@ export function EnvironmentCreationForm({
     Promise<Stripe | null> | undefined
   >();
 
-  const listOrgRes = useQuery(listOrganization, { limit: 100 }).data?.items.map(
-    (el) => el.organization!,
-  );
+  const organizations = useQuery(listOrganization, {
+    limit: 100,
+  }).data?.items.map((el) => el.organization!);
 
+  const stripeClientSecret = useQuery(createStripeCustomerSession).data
+    ?.customerSessionClientSecret;
+  const stripePK = useQuery(getStripePublishableKey).data?.stripePublishableKey;
   // fetch the product list, set the defaults
-  const lpres = useQuery(listProduct, { category: "logging" }).data;
-  const products = lpres?.items.map((el): Product => {
+  const listProductRes = useQuery(listProduct, { category: "logging" }).data;
+  const products = listProductRes?.items.map((el): Product => {
     return { product: el.product!, prices: el.prices };
   });
   useMemo(() => {
-    if (selectedProduct || !lpres || !lpres.defaultProduct) {
+    if (selectedProduct || !listProductRes || !listProductRes.defaultProduct) {
       return;
     }
-    const defaultProduct = lpres.defaultProduct;
-    let item = lpres.items.find(
+    const defaultProduct = listProductRes.defaultProduct;
+    let item = listProductRes.items.find(
       (el) => el.product?.stripeId === defaultProduct.stripeId,
     );
     item && setSelectedProduct({ product: item.product!, prices: item.prices });
-  }, [lpres, selectedProduct]);
+  }, [listProductRes, selectedProduct]);
   useMemo(() => {
     if (!selectedProduct) {
-      setPrice(lpres?.defaultProduct?.defaultPrice);
+      setPrice(listProductRes?.defaultProduct?.defaultPrice);
       return;
     }
     const selectedPrice = selectedProduct.prices.find((p) => {
@@ -120,13 +129,12 @@ export function EnvironmentCreationForm({
       return false;
     });
     setPrice(selectedPrice);
-  }, [isBilledYearly, selectedProduct, lpres?.defaultProduct?.defaultPrice]);
+  }, [
+    isBilledYearly,
+    selectedProduct,
+    listProductRes?.defaultProduct?.defaultPrice,
+  ]);
 
-  const stripeClientSecret = useQuery(createStripeCustomerSession).data
-    ?.customerSessionClientSecret;
-  console.log("stripeClientSecret", stripeClientSecret);
-
-  const stripePK = useQuery(getStripePublishableKey).data?.stripePublishableKey;
   useMemo(() => {
     if (!stripePK) {
       return;
@@ -144,12 +152,13 @@ export function EnvironmentCreationForm({
   });
 
   useMemo(() => {
-    if (selectedProduct || !lpres) return;
+    if (selectedProduct || !listProductRes) return;
 
     const defaultProduct = urlPlanId
-      ? lpres.items.find((el) => el.product?.stripeId === urlPlanId)
-      : lpres.items.find(
-          (el) => el.product?.stripeId === lpres.defaultProduct?.stripeId,
+      ? listProductRes.items.find((el) => el.product?.stripeId === urlPlanId)
+      : listProductRes.items.find(
+          (el) =>
+            el.product?.stripeId === listProductRes.defaultProduct?.stripeId,
         );
 
     defaultProduct &&
@@ -157,7 +166,7 @@ export function EnvironmentCreationForm({
         product: defaultProduct.product!,
         prices: defaultProduct.prices,
       });
-  }, [lpres, selectedProduct, urlPlanId]);
+  }, [listProductRes, selectedProduct, urlPlanId]);
 
   const handleOrganizationChange = (value: string) => {
     if (value === "createNew") {
@@ -172,6 +181,195 @@ export function EnvironmentCreationForm({
     // and select the newly created one
     form.setValue("organization", newOrgName);
   };
+
+  if (!stripePromise || !price) {
+    return <Loader className="animate-spin" />;
+  }
+
+  return (
+    <Elements
+      stripe={stripePromise}
+      options={{
+        customerSessionClientSecret: stripeClientSecret,
+        mode: "subscription",
+        amount: Number(price.unitAmount),
+        currency: price.currency,
+        paymentMethodCreation: "manual",
+        appearance: {
+          variables: {
+            colorPrimary: "rgba(136, 170, 238, 1)",
+            fontSizeBase: "14px",
+          },
+        },
+      }}
+    >
+      <Form {...form}>
+        <CheckoutForm
+          form={form}
+          orgId={orgId}
+          handleOrganizationChange={handleOrganizationChange}
+          defaultOrg={defaultOrg}
+          organizations={organizations}
+          isBilledYearly={isBilledYearly}
+          setIsBilledYearly={setIsBilledYearly}
+          products={products}
+          selectedProduct={selectedProduct}
+          setSelectedProduct={setSelectedProduct}
+          price={price}
+          setPrice={setPrice}
+        />
+      </Form>
+      {/* Modals */}
+      <NewOrgModal
+        open={isNewOrgModalOpen}
+        onOpenChange={setIsNewOrgModalOpen}
+        onOrgCreated={handleOrgCreated}
+      />
+    </Elements>
+  );
+}
+
+function ProductPane({
+  product,
+  isSelected,
+  isBilledYearly,
+  onClick,
+}: {
+  product: Product;
+  isSelected: boolean;
+  isBilledYearly: boolean;
+  onClick: (price: APIPrice | undefined) => void;
+}) {
+  const monthly = product.prices.find((p) => p.lookupKey.includes("monthly"));
+  const yearly = product.prices.find((p) => p.lookupKey.includes("yearly"));
+
+  const selectedPrice = isBilledYearly ? yearly : monthly;
+  const price = isBilledYearly
+    ? Number(yearly?.unitAmount || 0) / 100 / 12
+    : Number(monthly?.unitAmount || 0) / 100;
+
+  return (
+    <div
+      onClick={() => onClick(selectedPrice)}
+      className={cn(
+        "cursor-pointer rounded-md border-2 border-border p-6 shadow-light hover:translate-x-boxShadowX hover:translate-y-boxShadowY hover:shadow-none dark:shadow-dark dark:hover:shadow-none",
+        isSelected &&
+          "translate-x-boxShadowX translate-y-boxShadowY bg-main shadow-none",
+      )}
+    >
+      <div className="flex flex-row items-center justify-between gap-6">
+        <div className="rounded-base bg-slate-200 px-2 py-0.5 font-bold dark:bg-slate-950">
+          {product.product.name}
+        </div>
+        <h5 className="font-bold">
+          {isBilledYearly && (
+            <span className="mr-2 text-sm text-slate-500 line-through">
+              ${Number(monthly?.unitAmount || 0) / 100}
+            </span>
+          )}
+          <span className={isSelected ? "text-white" : "text-success"}>
+            {price
+              ? `$${(Math.floor(price * 100) / 100).toFixed(2)}`
+              : "Custom"}
+          </span>
+          /month
+        </h5>
+      </div>
+      <p
+        className={cn(
+          "mt-4 text-sm text-slate-500",
+          isSelected && "text-white",
+        )}
+      >
+        {product.product.description}
+      </p>
+      <ul className="mt-4 flex flex-col gap-2">
+        {product.product.marketingFeatures.map((feature, index) => (
+          <li key={index} className="flex items-center gap-3">
+            <Check className="shrink-0" size={18} />{" "}
+            <ReactMarkdown>{feature.name}</ReactMarkdown>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function TotalPriceSummary({
+  price,
+  isBilledYearly,
+}: {
+  price: APIPrice;
+  isBilledYearly: boolean;
+}) {
+  const displayPriceAmount = (
+    Math.floor((Number(price.unitAmount) / 100) * 100) / 100
+  ).toFixed(2);
+
+  const frequency = isBilledYearly ? "/year" : "/month";
+  const chargedToday = isBilledYearly
+    ? "Your first annual payment will be prorated and charged today."
+    : "Your first monthly payment will be charged today.";
+  const nextPayment = isBilledYearly
+    ? "Subsequent annual charges will occur every 12 months."
+    : "Subsequent monthly charges will occur every 30 days.";
+
+  return (
+    <>
+      <span className="font-bold">
+        Total cost:{" "}
+        <span className="text-success">
+          ${displayPriceAmount}
+          <span className="text-text">{frequency}</span>
+        </span>
+      </span>
+      <p className="text-sm text-slate-500">
+        {chargedToday}
+        <br />
+        {nextPayment}
+      </p>
+    </>
+  );
+}
+
+function CheckoutForm({
+  form,
+  orgId,
+  handleOrganizationChange,
+  defaultOrg,
+  organizations,
+  isBilledYearly,
+  setIsBilledYearly,
+  products,
+  selectedProduct,
+  setSelectedProduct,
+  price,
+  setPrice,
+}: {
+  form: UseFormReturn<
+    {
+      organization: string;
+      environmentName: string;
+      plan: string;
+    },
+    any,
+    undefined
+  >;
+  orgId: string | null;
+  handleOrganizationChange: (value: string) => void;
+  defaultOrg: Organization | null;
+  organizations: Organization[] | undefined;
+  isBilledYearly: boolean;
+  setIsBilledYearly: Dispatch<SetStateAction<boolean>>;
+  products: Product[] | undefined;
+  selectedProduct: Product | undefined;
+  setSelectedProduct: Dispatch<SetStateAction<Product | undefined>>;
+  price: APIPrice | undefined;
+  setPrice: Dispatch<SetStateAction<APIPrice | undefined>>;
+}) {
+  const router = useRouter();
+  const stripe = useStripe();
+  const elements = useElements();
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
@@ -189,7 +387,7 @@ export function EnvironmentCreationForm({
   }
 
   return (
-    <Form {...form}>
+    <>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
         className="flex flex-col gap-6"
@@ -216,7 +414,7 @@ export function EnvironmentCreationForm({
                   </FormControl>
                   <SelectContent>
                     <SelectGroup defaultValue={defaultOrg?.name}>
-                      {listOrgRes?.map((o) => {
+                      {organizations?.map((o) => {
                         if (o.id === defaultOrg?.id) {
                           return (
                             <SelectItem key={o.name} value={o.name}>
@@ -343,28 +541,7 @@ export function EnvironmentCreationForm({
                 height={24}
                 className="mb-4"
               />
-              {stripePromise && stripeClientSecret && price ? (
-                <Elements
-                  stripe={stripePromise}
-                  options={{
-                    customerSessionClientSecret: stripeClientSecret,
-                    mode: "subscription",
-                    amount: Number(price.unitAmount),
-                    currency: price.currency,
-                    paymentMethodCreation: "manual",
-                    appearance: {
-                      variables: {
-                        colorPrimary: "rgba(136, 170, 238, 1)",
-                        fontSizeBase: "14px",
-                      },
-                    },
-                  }}
-                >
-                  <CheckoutForm />
-                </Elements>
-              ) : (
-                <Loader className="animate-spin" />
-              )}
+              <PaymentElement />
             </div>
           </div>
         </div>
@@ -385,128 +562,7 @@ export function EnvironmentCreationForm({
             </div>
           </div>
         </div>
-
-        {/* Modals */}
-        <NewOrgModal
-          open={isNewOrgModalOpen}
-          onOpenChange={setIsNewOrgModalOpen}
-          onOrgCreated={handleOrgCreated}
-        />
       </form>
-    </Form>
-  );
-}
-
-function ProductPane({
-  product,
-  isSelected,
-  isBilledYearly,
-  onClick,
-}: {
-  product: Product;
-  isSelected: boolean;
-  isBilledYearly: boolean;
-  onClick: (price: APIPrice | undefined) => void;
-}) {
-  const monthly = product.prices.find((p) => p.lookupKey.includes("monthly"));
-  const yearly = product.prices.find((p) => p.lookupKey.includes("yearly"));
-
-  const selectedPrice = isBilledYearly ? yearly : monthly;
-  const price = isBilledYearly
-    ? Number(yearly?.unitAmount || 0) / 100 / 12
-    : Number(monthly?.unitAmount || 0) / 100;
-
-  return (
-    <div
-      onClick={() => onClick(selectedPrice)}
-      className={cn(
-        "cursor-pointer rounded-md border-2 border-border p-6 shadow-light hover:translate-x-boxShadowX hover:translate-y-boxShadowY hover:shadow-none dark:shadow-dark dark:hover:shadow-none",
-        isSelected &&
-          "translate-x-boxShadowX translate-y-boxShadowY bg-main shadow-none",
-      )}
-    >
-      <div className="flex flex-row items-center justify-between gap-6">
-        <div className="rounded-base bg-slate-200 px-2 py-0.5 font-bold dark:bg-slate-950">
-          {product.product.name}
-        </div>
-        <h5 className="font-bold">
-          {isBilledYearly && (
-            <span className="mr-2 text-sm text-slate-500 line-through">
-              ${Number(monthly?.unitAmount || 0) / 100}
-            </span>
-          )}
-          <span className={isSelected ? "text-white" : "text-success"}>
-            {price
-              ? `$${(Math.floor(price * 100) / 100).toFixed(2)}`
-              : "Custom"}
-          </span>
-          /month
-        </h5>
-      </div>
-      <p
-        className={cn(
-          "mt-4 text-sm text-slate-500",
-          isSelected && "text-white",
-        )}
-      >
-        {product.product.description}
-      </p>
-      <ul className="mt-4 flex flex-col gap-2">
-        {product.product.marketingFeatures.map((feature, index) => (
-          <li key={index} className="flex items-center gap-3">
-            <Check className="shrink-0" size={18} />{" "}
-            <ReactMarkdown>{feature.name}</ReactMarkdown>
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-}
-
-function TotalPriceSummary({
-  price,
-  isBilledYearly,
-}: {
-  price: APIPrice;
-  isBilledYearly: boolean;
-}) {
-  const displayPriceAmount = (
-    Math.floor((Number(price.unitAmount) / 100) * 100) / 100
-  ).toFixed(2);
-
-  const frequency = isBilledYearly ? "/year" : "/month";
-  const chargedToday = isBilledYearly
-    ? "Your first annual payment will be prorated and charged today."
-    : "Your first monthly payment will be charged today.";
-  const nextPayment = isBilledYearly
-    ? "Subsequent annual charges will occur every 12 months."
-    : "Subsequent monthly charges will occur every 30 days.";
-
-  return (
-    <>
-      <span className="font-bold">
-        Total cost:{" "}
-        <span className="text-success">
-          ${displayPriceAmount}
-          <span className="text-text">{frequency}</span>
-        </span>
-      </span>
-      <p className="text-sm text-slate-500">
-        {chargedToday}
-        <br />
-        {nextPayment}
-      </p>
-    </>
-  );
-}
-
-function CheckoutForm({}) {
-  const stripe = useStripe();
-  const elements = useElements();
-
-  return (
-    <>
-      <PaymentElement />
     </>
   );
 }
