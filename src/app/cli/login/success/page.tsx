@@ -2,7 +2,7 @@
 
 import { Copy, Loader } from "lucide-react";
 import { copyToClipboard } from "@/lib/utils/clipboard";
-import { useAllEnvironments } from "@/context/listEnvironments";
+import { useAllEnvironments } from "@/context/list-environments";
 
 export default function Page() {
   const { user } = useAllEnvironments();
