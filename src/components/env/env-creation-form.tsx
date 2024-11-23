@@ -7,7 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, UseFormReturn } from "react-hook-form";
 import * as z from "zod";
 import { Building, Check, Loader } from "lucide-react";
-import { useQuery } from "@connectrpc/connect-query";
+import { useMutation, useQuery } from "@connectrpc/connect-query";
 import { listProduct } from "api/js/svc/product/v1/service-ProductService_connectquery";
 import { listOrganization } from "api/js/svc/user/v1/service-UserService_connectquery";
 import {
@@ -55,6 +55,9 @@ import { Product as APIProduct } from "api/js/types/v1/product_pb";
 import { Price as APIPrice } from "api/js/types/v1/price_pb";
 import Image from "next/image";
 import { Organization } from "api/js/types/v1/organization_pb";
+import { createEnvironment } from "api/js/svc/organization/v1/service-OrganizationService_connectquery";
+import { CreateEnvironmentResponse } from "api/js/svc/organization/v1/service_pb";
+import { ConnectError } from "@connectrpc/connect";
 
 const formSchema = z.object({
   organization: z.string().min(1, "Please select an organization"),
@@ -371,19 +374,74 @@ function CheckoutForm({
   const stripe = useStripe();
   const elements = useElements();
 
-  async function onSubmit(values: z.infer<typeof formSchema>) {
-    try {
-      // Add your form submission logic here
-      console.log("onSubmit", values);
+  const [errorMessage, setErrorMessage] = useState<string>();
+  const [loading, setLoading] = useState(false);
 
-      // Redirect after successful creation
-      const redirectPath = orgId
-        ? `/org/${values.organization}/env/${values.environmentName}`
-        : `/env/${values.environmentName}`;
-      router.push(redirectPath);
-    } catch (error) {
-      console.error("Form submission error:", error);
+  const handleError = (error: string) => {
+    setLoading(false);
+    setErrorMessage(error);
+  };
+
+  const createEnvironmentMutation = useMutation(createEnvironment);
+
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    if (!stripe || !elements || !price) {
+      return;
     }
+    setLoading(true);
+
+    const { error: submitError } = await elements.submit();
+    if (submitError) {
+      handleError(submitError.message!);
+      return;
+    }
+    const { error, confirmationToken } = await stripe.createConfirmationToken({
+      elements,
+    });
+    if (error) {
+      handleError(error.message!);
+      return;
+    }
+
+    let res: CreateEnvironmentResponse;
+    try {
+      res = await createEnvironmentMutation.mutateAsync({
+        environmentName: values.environmentName,
+        payment: {
+          case: "stripe",
+          value: {
+            confirmationToken: confirmationToken.id,
+            priceId: price?.stripeId,
+          },
+        },
+      });
+    } catch (e) {
+      if (e instanceof ConnectError) {
+        handleError(e.message);
+      } else {
+        handleError("an unexpected problem occured");
+        throw e;
+      }
+      return;
+    }
+    switch (res.payment.case) {
+      case "stripe":
+        if (res.payment.value.status === "requires_action") {
+          const { error } = await stripe.handleNextAction({
+            clientSecret: res.payment.value.clientSecret,
+          });
+          if (error) {
+            handleError(error.message!);
+            return;
+          }
+        }
+    }
+    const envName = res.environment?.name;
+    // Redirect after successful creation
+    const redirectPath = orgId
+      ? `/org/${values.organization}/env/${envName}`
+      : `/env/${envName}`;
+    router.push(redirectPath);
   }
 
   return (
@@ -550,7 +608,9 @@ function CheckoutForm({
         <div className="col-span-2">
           <Label className="text-lg font-bold">Create a new environment</Label>
           <div className="mt-3 flex flex-col gap-4 md:flex-row md:gap-6">
-            <Button type="submit">Create environment</Button>
+            <Button type="submit" disabled={!stripe || !price || loading}>
+              Create environment
+            </Button>
             <div className="flex flex-col gap-1">
               {/* Find the selected product */}
               {price && (
@@ -560,6 +620,7 @@ function CheckoutForm({
                 />
               )}
             </div>
+            {errorMessage && <div>{errorMessage}</div>}
           </div>
         </div>
       </form>
