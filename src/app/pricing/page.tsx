@@ -74,7 +74,7 @@ export default function Page() {
               </Label>
             </div>
 
-            <div className="grid w-full grid-cols-1 gap-8 pt-16 lg:grid-cols-3">
+            <div className="grid w-full grid-cols-1 gap-8 pt-16 lg:grid-cols-2 xl:grid-cols-4">
               {products?.map((product) => {
                 const monthly = product.prices.find(
                   (p) => p.recurring?.interval === "month",
@@ -112,18 +112,18 @@ export default function Page() {
                         {product.product.description}
                       </p>
                       <div className="flex items-center gap-4">
-                        {displayPrice && isBilledYearly && (
+                        {displayPrice && isBilledYearly ? (
                           <span className="text-2xl font-bold text-slate-500 line-through">
                             ${Number(monthly?.unitAmount || 0) / 100}
                           </span>
-                        )}
+                        ) : null}
                         <div>
                           <span className="text-3xl font-bold">
                             {displayPrice
                               ? `$${(Math.floor(displayPrice * 100) / 100).toFixed(2)}`
                               : "Custom"}
                           </span>
-                          {displayPrice && <span>/month</span>}
+                          {displayPrice ? <span>/month</span> : null}
                         </div>
                       </div>
                       <ul className="mt-8 flex flex-col gap-2">
@@ -143,9 +143,15 @@ export default function Page() {
                     <Button
                       size={featured ? "lg" : "default"}
                       className={cn("mt-12 w-full", featured && "bg-success")}
-                      onClick={() =>
-                        router.push(`/env/new?plan=${product.product.stripeId}`)
-                      }
+                      onClick={() => {
+                        if (price) {
+                          router.push(
+                            `/env/new?plan=${product.product.stripeId}`,
+                          );
+                        } else {
+                          window.location.href = "mailto:antoine@webscale.lol";
+                        }
+                      }}
                     >
                       {price ? "Get Started" : "Contact Us"}
                     </Button>
