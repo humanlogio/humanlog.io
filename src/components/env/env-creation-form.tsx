@@ -104,9 +104,13 @@ export function EnvironmentCreationForm({
   const stripePK = useQuery(getStripePublishableKey).data?.stripePublishableKey;
   // fetch the product list, set the defaults
   const listProductRes = useQuery(listProduct, { category: "logging" }).data;
-  const products = listProductRes?.items.map((el): Product => {
-    return { product: el.product!, prices: el.prices };
-  });
+  const products = listProductRes?.items
+    .filter((el) => {
+      return el.product?.isNewEnv;
+    })
+    .map((el): Product => {
+      return { product: el.product!, prices: el.prices };
+    });
   useMemo(() => {
     if (selectedProduct || !listProductRes || !listProductRes.defaultProduct) {
       return;
