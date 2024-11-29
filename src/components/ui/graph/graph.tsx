@@ -51,7 +51,7 @@ const Graph = (props: {
     return (
       <div className="h-full w-full">
         <p className="mt-1 rounded-md border bg-slate-200 p-4 text-sm font-medium leading-tight text-slate-800 dark:bg-slate-800 dark:text-slate-200">
-          No event list data was loaded for that time frame.
+          No log data was found for that time frame.
           <br />
           <br />
           Try expanding the date range. If still no data is coming through,

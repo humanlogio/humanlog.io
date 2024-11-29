@@ -296,7 +296,7 @@ const SessionContainer = (props: { sessions: LogEventGroup[] | null }) => {
         {!Object.keys(items).length ? (
           <div className="m-auto h-full w-full max-w-3xl">
             <p className="mt-1 rounded-md border bg-slate-200 p-4 text-sm font-medium leading-tight text-slate-800 dark:bg-slate-800 dark:text-slate-200">
-              No event list data was loaded for that query.
+              No logs were found given that query.
               <br />
               <br />
               Try adjusting your query or time range. If still no data is coming
