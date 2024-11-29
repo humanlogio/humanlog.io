@@ -51,7 +51,10 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { useAllEnvironments } from "@/context/list-environments";
-import { Product as APIProduct } from "api/js/types/v1/product_pb";
+import {
+  Product as APIProduct,
+  Product_Scope,
+} from "api/js/types/v1/product_pb";
 import { Price as APIPrice } from "api/js/types/v1/price_pb";
 import Image from "next/image";
 import { Organization } from "api/js/types/v1/organization_pb";
@@ -106,7 +109,7 @@ export function EnvironmentCreationForm({
   const listProductRes = useQuery(listProduct, { category: "logging" }).data;
   const products = listProductRes?.items
     .filter((el) => {
-      return el.product?.isNewEnv;
+      return el.product?.scope == Product_Scope.Environment;
     })
     .map((el): Product => {
       return { product: el.product!, prices: el.prices };
