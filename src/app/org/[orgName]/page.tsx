@@ -9,7 +9,7 @@ interface OrganizationPageProps {
 export default async function OrganizationPage(props: OrganizationPageProps) {
   const params = await props.params;
   return (
-    <div className="container-h-full container py-6">
+    <div className="container-min-h-full container py-6">
       <OrgDashboard orgName={params.orgName} />
     </div>
   );
