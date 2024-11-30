@@ -24,7 +24,8 @@ const LogInterface = ({ env }: { env?: string }) => {
   const [isPretty, setIsPretty] = useState(true);
   const { isFullWidth } = useFullWidth();
   const { hasLocalhost, listEnvironments } = useAllEnvironments();
-  const { apiClients, activeEnvironment } = useApiClients();
+  const { apiClients, activeEnvironment, setActiveEnvironment } =
+    useApiClients();
   const [eventsList, setEvents] = useState<DataPoint[] | null>(null);
   const [bucketCount, setBucketCount] = useState<number>(100);
   const [startDate, setStartDate] = useState<Date>(
@@ -322,6 +323,12 @@ const LogInterface = ({ env }: { env?: string }) => {
       updateGraphRange(startDate, endDate);
     }
   }, [eventsList, startDate, endDate, updateGraphRange]);
+
+  useEffect(() => {
+    if (env) {
+      setActiveEnvironment(env);
+    }
+  }, [env]);
 
   return (
     <section className="container-h-full flex flex-col gap-4 overflow-y-hidden py-8">
