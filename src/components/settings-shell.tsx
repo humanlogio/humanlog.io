@@ -22,7 +22,7 @@ export function SettingsShell({
 }: PropsWithChildren<SettingsShellProps>) {
   if (!orgName || !envName) {
     return (
-      <div className="container-h-full container flex items-center justify-center">
+      <div className="container-min-h-full container flex items-center justify-center">
         <Loader className="animate-spin" />
       </div>
     );
@@ -50,7 +50,7 @@ export function SettingsShell({
   ].filter(Boolean);
 
   return (
-    <div className="container-h-full container flex">
+    <div className="container-min-h-full container flex">
       {/* Sidebar */}
       <aside className="w-80 border-r-2 border-border py-6">
         <nav className="space-y-2">

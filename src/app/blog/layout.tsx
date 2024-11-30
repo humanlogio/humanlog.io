@@ -6,7 +6,7 @@ export default function RootLayout({
   return (
     <>
       <h1>{"the humanlog blog"}</h1>
-      <div className="container-h-full container space-y-8 py-8">
+      <div className="container-min-h-full container space-y-8 py-8">
         {children}
       </div>
     </>

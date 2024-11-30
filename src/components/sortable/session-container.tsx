@@ -292,7 +292,7 @@ const SessionContainer = (props: { sessions: LogEventGroup[] | null }) => {
       collisionDetection={collisionDetectionStrategy}
       sensors={sensors}
     >
-      <div className="flex flex-grow flex-col overflow-hidden">
+      <>
         {!Object.keys(items).length ? (
           <div className="m-auto h-full w-full max-w-3xl">
             <p className="mt-1 rounded-md border bg-slate-200 p-4 text-sm font-medium leading-tight text-slate-800 dark:bg-slate-800 dark:text-slate-200">
@@ -313,7 +313,7 @@ const SessionContainer = (props: { sessions: LogEventGroup[] | null }) => {
             />
           ))
         )}
-      </div>
+      </>
       <SortableOverlay>
         {activeId && (
           <SortableItem id={activeId}>

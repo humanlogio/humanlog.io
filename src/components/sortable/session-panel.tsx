@@ -105,7 +105,7 @@ const SessionPanel = ({ logEventGroup }: SessionPanelProps) => {
             key={log.id ?? index}
             className="group flex flex-row items-start hover:bg-slate-400/20 hover:dark:bg-slate-700/20"
           >
-            <div className="w-[10%] cursor-pointer p-2">
+            <div className="min-w-[10%] cursor-pointer p-2">
               <div className="hidden group-hover:inline-block">
                 <Share size={12} />
               </div>
@@ -114,7 +114,7 @@ const SessionPanel = ({ logEventGroup }: SessionPanelProps) => {
               </code>
             </div>
 
-            <div className="flex w-full flex-1 flex-row gap-4 px-4 py-2">
+            <div className="flex w-full flex-shrink flex-row gap-4 px-4 py-2">
               <code>
                 {log.structured?.lvl ? (
                   <span

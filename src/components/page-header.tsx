@@ -1,12 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useState } from "react";
-import {
-  useRouter,
-  usePathname,
-  redirect,
-  RedirectType,
-} from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import {
   Loader,
@@ -65,7 +60,7 @@ const PageHeader: React.FC = () => {
   const { user, currentOrg, defaultOrg, hasLocalhost, listEnvironments } =
     useAllEnvironments();
   const localhostValue = "localhost";
-  const addNewValue = "add_new";
+  const addNewValue = "add-new";
   const router = useRouter();
 
   useEffect(() => {
@@ -111,7 +106,7 @@ const PageHeader: React.FC = () => {
       if (selectValue === addNewValue) {
         setActiveEnvironment(undefined);
         if (!defaultOrg && !currentOrg) {
-          router.push("/pricing");
+          router.push("/env/new");
           return;
         }
         let orgName =
