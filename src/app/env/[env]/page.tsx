@@ -1,5 +1,6 @@
 "use client";
 
+import EnvSwitcher from "@/components/env-switcher";
 import LogInterface from "@/components/log-interface";
 
 export default async function EnvironmentPage({
@@ -10,7 +11,9 @@ export default async function EnvironmentPage({
   const env = (await params).env;
   return (
     <main>
-      <LogInterface env={env} />
+      <EnvSwitcher env={env}>
+        <LogInterface />
+      </EnvSwitcher>
     </main>
   );
 }

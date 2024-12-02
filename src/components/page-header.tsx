@@ -100,6 +100,8 @@ const PageHeader: React.FC = () => {
         setActiveEnvironment(undefined);
         if (!hasLocalhost) {
           router.push("/install");
+        } else {
+          router.push("/");
         }
         return;
       }
@@ -181,7 +183,7 @@ const PageHeader: React.FC = () => {
         </SelectTrigger>
         <SelectContent>
           <SelectGroup>
-            <SelectItem value={localhostValue}>
+            <SelectItem className="cursor-pointer" value={localhostValue}>
               localhost{" "}
               {hasLocalhost
                 ? localhostVersion(hasLocalhost)
@@ -192,6 +194,7 @@ const PageHeader: React.FC = () => {
             {listEnvironments.map((item) =>
               item.environment?.id ? (
                 <SelectItem
+                  className="cursor-pointer"
                   value={`${item.environment.id}`}
                   key={`${item.environment.name}-${item.environment.id}`}
                 >
@@ -202,7 +205,9 @@ const PageHeader: React.FC = () => {
               ),
             )}
             <SelectSeparator />
-            <SelectItem value={addNewValue}>+ Add new</SelectItem>
+            <SelectItem className="cursor-pointer" value={addNewValue}>
+              + Add new
+            </SelectItem>
           </SelectGroup>
         </SelectContent>
       </Select>
