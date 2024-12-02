@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Share } from "lucide-react";
 import { AutosizeTextarea } from "@/components/ui/autosize-textarea";
@@ -19,7 +21,7 @@ import DateRangePicker from "@/components/ui/graph/dateRangePicker";
 import { useDebouncer } from "@/lib/utils/useDebouncer";
 import { GRAPH_RANGE_MIN_WIDTH } from "@/components/ui/graph/scroller";
 
-const LogInterface = ({ env }: { env?: string }) => {
+const LogInterface = () => {
   const signupOnly = process.env.NEXT_PUBLIC_SIGNUP_ONLY === "true";
   const [isPretty, setIsPretty] = useState(true);
   const { isFullWidth } = useFullWidth();
@@ -323,24 +325,6 @@ const LogInterface = ({ env }: { env?: string }) => {
       updateGraphRange(startDate, endDate);
     }
   }, [eventsList, startDate, endDate, updateGraphRange]);
-
-  useEffect(() => {
-    (async () => {
-      try {
-        if (env && apiClients) {
-          const environment = await apiClients.org.getEnvironment({
-            by: {
-              value: env,
-              case: "name",
-            },
-          });
-          setActiveEnvironment(environment.environment?.id);
-        }
-      } catch (e) {
-        console.error("Environment not found", e);
-      }
-    })();
-  }, [env, setActiveEnvironment]);
 
   return (
     <section className="container-h-full flex flex-col gap-4 overflow-y-hidden py-8">
