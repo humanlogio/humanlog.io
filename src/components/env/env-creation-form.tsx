@@ -51,7 +51,10 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { useAllEnvironments } from "@/context/list-environments";
-import { Product as APIProduct } from "api/js/types/v1/product_pb";
+import {
+  Product as APIProduct,
+  Product_Scope,
+} from "api/js/types/v1/product_pb";
 import { Price as APIPrice } from "api/js/types/v1/price_pb";
 import Image from "next/image";
 import { Organization } from "api/js/types/v1/organization_pb";
