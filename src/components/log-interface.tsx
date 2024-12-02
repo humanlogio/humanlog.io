@@ -325,10 +325,22 @@ const LogInterface = ({ env }: { env?: string }) => {
   }, [eventsList, startDate, endDate, updateGraphRange]);
 
   useEffect(() => {
-    if (env) {
-      setActiveEnvironment(env);
-    }
-  }, [env]);
+    (async () => {
+      try {
+        if (env && apiClients) {
+          const environment = await apiClients.org.getEnvironment({
+            by: {
+              value: env,
+              case: "name",
+            },
+          });
+          setActiveEnvironment(environment.environment?.id);
+        }
+      } catch (e) {
+        console.error("Environment not found", e);
+      }
+    })();
+  }, [env, setActiveEnvironment]);
 
   return (
     <section className="container-h-full flex flex-col gap-4 overflow-y-hidden py-8">
