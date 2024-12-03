@@ -1,0 +1,990 @@
+import { AuthorBlock, Authors } from "@/components/blog/author";
+
+<AuthorBlock author={Authors.antoine} />
+
+# Logs for humans, logs for machines
+
+There's an age old debate that you'll see pop-up in the entrails of any company's Slack channel. Are logs for humans or are logs for machines?
+
+When we look at the history of logging, we hear of heresitical eras in which programs went so far as to logging in binary format, to save space and time. There are programs built this way today, where performance at all cost is a necessity. Think about time-critical trading applications that are collocated next to NASDAQ on the US East Coast. These services don't have time to sprintf some strings and write to stdio.
+
+## sprintf logging
+
+For the rest of us, the convention has been to log in normal human-readable string format. I call this "sprintf logging", where you write plain strings and interpolate values in it. The quintessential:
+
+```go
+log.Printf("user %s signed in with with permission %v", auth.Username, auth.Perms)
+```
+
+Which would output something like:
+
+```
+2024-11-23 23:11:43.5162 ERROR user aybabtme signed in with permissions [admin, member, ingestor]
+```
+
+A binary logger might have a similar API from a programmer's standpoint, but output an unreadable mess of bites instead, which you'd then have to return to strings with a secondary tool.
+
+This is cool, but being unable to read logs that are emitted by one's program is a bit of a bummer. So we stick with plaintext logging, and for a while, sprintf logging was what got put into the recipe.
+
+## why we log
+
+In its most basic form, we make programs log so we can see what they're doing. We run the program and look at the logs. When there's a lot of logs, we "ctrl-f" through them to find what we need. Or we pass them through grep.
+
+Then one day we ship our code to a server in a faraway datacenter and the logs aren't in our terminals anymore. We still want to see them! Centralized logging gets involved, and picks up the logs where your server made them and ships them somewhere central to make them searchable. We don't want to SSH into the server everytime we want to see what's up. We _certainly_ don't want to SSH into more than 3 or 4 servers. Into centralized logging in goes, and out of centralized logging will we search.
+
+Whereas we could simply grep or "ctrl-f" our way to victory, this new reality poses challenges. Lots of servers sprintf-ing lots of logs. We need a full text search engine. Now you can search again, kind of.
+
+But when you run 200 replicas of your program, usually it's because you have to serve a lot more than just to user `aybabtme` in:
+
+```
+2024-11-23 23:11:43.5162 ERROR user aybabtme signed in with permissions [admin, member, ingestor]
+```
+
+You serve hundred, thousands, millions of users. What if you want to get a list of all the users that signed up in the last 60min?
+
+## parsing logs
+
+You need to parse the logs. So you start searching with regexps, you start writing recording rules and adding them in your logging solution.
+
+You used human-scale logging by writing plain-english logs that anyone can read in situ. But this leads to logs that don't follow formally defined grammatical rule. You can't (practically) write (and maintain) an EBNF grammar for this:
+
+```ebnf
+log                 = user_signed_in_log | user_signed_out_log | ...
+user_signed_in_log  = "user " , username , " signed in with permissions " , permission_array
+username            = [a-Z0-9-_.+]+
+permission_array    = "[" , items , "]"
+items               = item | item , "," , items
+user_signed_out_log = ... ad infinitum
+```
+
+It wouldn't make any sense. And that would only start to parse the string message of the log, not the timestamp, or the log level, or all that stuff. While they don't work with EBNF notation, regexp recording rules end up being written in the same manner. These sort of recording rules are what traditional centralized logging platforms work with.
+
+```
+2024-11-23 23:11:43.5162 ERROR user aybabtme signed in with permissions [admin, member, ingestor]
+```
+
+The logs are for humands to read in situ. It's human readable, not machine readable. And it may be human readable in the small (with a few logs) but it's not in the big (with a large quantity of logs). Before logs in the big can be for humans, first they need to be machine friendly.
+
+So are logs for humans or machines to read?
+
+## structured json/logfmt logging
+
+The problem I'm raising is similar to that of binary wire protocols versus plaintext protocols. Plaintext HTTP received a lot of love for being just plaintext. You can tcpdump a socket and see what's happening. HTML is plaintext, JSON is plaintext. Some would say these are human-readable as well.
+
+What if, instead of `sprintf`-ing logs, we emitted them with the structure preserved? What if we had a logging API that kept the structure intact:
+
+```go
+log.Printf("user signed in with with permission",
+    "username", auth.Username,
+    "permissions", auth.Perms,
+)
+```
+
+And printed logs like:
+
+```json
+{
+  "time": "2024-11-23 23:11:43.5162",
+  "lvl": "ERROR",
+  "msg": "user signed in with permissions",
+  "username": "aybabtme",
+  "permissions": ["admin", "member", "ingestor"]
+}
+```
+
+Suddenly, we're not losing all the information anymore. This is well formed JSON, with a clear well defined formal grammar. A bajillion parsers exist for it. And it's still mostly human readable. It's plaintext.
+
+This is called structured logging. This idea is not new at all, and by the time I personally came to it, it was having a renaissance in webservices about 10-15 years ago. Along with it, the [`logfmt` syntax was also introduced](https://brandur.org/logfmt).
+
+```logfmt
+time="2024-11-23 23:11:43.5162" lvl=ERROR msg="user signed in with permissions" username=aybabtme permissions=["admin", "member", "ingestor"]
+```
+
+More compact, a bit more readable. (but with a less formal syntax). This came out, as far as I can tell, from the original team that built Heroku. Lots of good stuff came out of there, like [the concept of 13 Factor apps](http://13factor.net/).
+
+## colored outputs and detecting TTY
+
+In another axis of this story, a not parallel but also not orthogonal plot thickens.
+
+On one side of the ring, the "human readable" fighter is preaching for entirely human focused logs. Colored, pretty. Everything.
+
+On the other side of the ring, obviously the binary log fighter will have none of that. This fighter doesn't even believe in logging to unbuffered outputs, it will happily buffer logs in memory! Thank gods I'm not a banker, so I don't need to be on that guy's camp.
+
+I'm on the web-services camp. I can spend some CPU time logging useful error messages. But I take offense with the other guy's colored output stuff.
+
+Clearly, we don't want colored JSON output sent to machines. What's the point of logging in JSON if you add ANSI color escape codes to it.
+
+```
+{\033[31;1;4m"key"\033[0m: \033[31;1;4m"value"\033[0m}
+```
+
+So what some folks decided to do was to make logging libraries detect if `stdin` is a TTY, and log without colors if it isn't. These folks were usually far onto the "human readable" spectrum.
+
+And some others, especially those espousing the 13 Factors app ideas, felt offense at this suggestion. Should logging libraries switch behavior based on what type of file `stdin` is? Logging libraries don't even use `stdin` for anything! Apps should run in prod the same way as they run in dev!!1!
+
+Obviously, never ending flamewars ensued.
+
+We start to reach where I'm going with all this.
+
+# humanlog
+
+In 2014, I was involved in such a flamewar.
+
+On one side of the Slack channel was a convivial veteran of the colored log output movement. Concerns of his did not include things like "a library concerned without outputing logs has no business inspecting stdin". The end justified the means to this person. Logrus, a [venerable structured logging library for Go](https://github.com/sirupsen/logrus) did such a thing. I participated in the creative explosion that was ongoing with my [own zalgo-ified version](https://github.com/aybabtme/logzalgo/) of a ~human~ kraken readable log format. This argument was winning.
+
+On the other side of the channel was another veteran, more grumpy than convivial. I appreciated his argument for prudence and restraint, for the philosophy of running in prod like you run in dev. Of doing one thing well. He was losing the Slack flamewar. He was alone on his side of the flamewar.
+
+But I wanted to hear his point. I reached out in direct message and asked about his thoughts. His point was that color could be added later.
+
+## decision tree reduction
+
+Color can be added later. This is such a simple argument. It's so obvious.
+
+Yes, indeed, if my program can directly print `ERROR` in red, then something that parses structured logs in JSON or logfmt... can also detect the `ERROR` string and print it in red.
+
+The program at the source doesn't need to. Unlike binary loggers, where the raw logs are trully not human readable... the human grepping a program logging in logfmt is not going to be impacted much by the lack of color. And if they do... well they can also use a tool to color the output on demand (like the banker with his binary logger).
+
+My favorite problems are those where you find them having apparently complex decision trees, splayed in multi-dimensionality. And the part I love is when, upon examination with a clear and creative mind, I discover that the tree is mostly dead branches. The choice of possibilities can be collapsed. The decision tree reduces to a simple one that's tilting heavily on one side.
+
+Enter `humanlog`.
+
+## proof of concept in a weekend
+
+Having decided that I wanted to try Mr. Grumpy's idea, I went about implementing the very first incarnation of `humanlog` over a weekend. It did some very basic things.
+
+### parsing structured logs
+
+It parsed JSON logs, and if not JSON, tried logfmt. If neither matched, it gave up and printed the line unchanged. This way, anyone mildly annoyed from looking at JSON could alleviate their symptoms of pain by piping them into `humanlog`.
+
+### it colored the output
+
+When parsing structured logs, it extracted useful things like log levels, timestamps, core human readable messages, and key-values. And then it printed the logs with different colors depending on the level, aligned the timestamps and human readable messages first, and presented the key-values a bit out of the way more to the right, with toned down colors.
+
+### it allowed basic decluttering
+
+When logging in logfmt/json, you start to include a lot of key-values to your logs. Things like `method` or `file` or `line`. A lot of these key-values are repeated across all log sites, and you only care about the first time you see it. `humanlog` deduplicated them.
+
+Some key-values can be very long and useless and hide more useful key-values furhter to the right, out of view. `humanlog` truncates overly long values by default.
+
+Some loggers, especially in Go, produce structured logs with randomly ordered keys (map iteration is random in Go, and everything uses maps). `humanlog` sorts the keys and presents them always in the same order, to make them easier to catch when scanning by eye.
+
+And more little features like this.
+
+## made as OSS project, left over for years
+
+So I made this tool, provided ways to `go install` (this used to be a thing) it easily. Internally at my then company (DigitalOcean), we had a Chef (think Ansible) recipe to install `humanlog` on all our servers. But that was sort of it.
+
+I mostly left the project at this stage, used it for my own needs, and other engineers at DigitalOcean used it as well. I gave a lightning talk at a Gophercon.
+
+Then over time, I started to receive PRs from people I knew, and then from people I didn't know. I mostly held a policy of default-to-accepting PRs.
+
+Years passed and I gave it some very little love here and there. I baked in a little precompiled-binary package, and someone contributed an integration with [`Goreleaser`](https://goreleaser.com/) to make it simpler. But years would go by without touching it, or looking at PRs, issues (also I turned off all notifications, so didn't know there were any pending PRs).
+
+But then as the years passed and I switched jobs, I would occasionally see it used in the wild. I would pair with an engineer and see them using `humanlog`. I would join a company and someone would reach out, asking if I was the author of `humanlog`. Somehow, some group of folks were spreading the word. I never did much marketing for it, but the star count slowly grew to the 700s.
+
+I started to be embarassed by the code. I had written it a very long while ago just to solve a Slack flamewar. It was not well architected or designed. It was exploratory code. It still is, largely.
+
+So over time, I added some features. Allowed configuration with a config file. I also added some basic end-to-end tests to feel more confident about mergin random PRs that popped up. And with more tests, I felt more confident to start refactoring things.
+
+I added a self update mechanism, so that old-time users could pick up new changes without having to closely follow the project. But I kept focused on adding features without breaking prior users. And this means by default, it should just work.
+
+And then recently, I decided to give it a whole lot more love.
+
+## How it's built, how it works
+
+### parsing
+
+Our data model looks like this:
+
+```protobuf
+message LogEvent {
+  google.protobuf.Timestamp parsed_at = 1;
+  bytes raw = 2;
+  StructuredLogEvent structured = 3;
+}
+
+message StructuredLogEvent {
+  google.protobuf.Timestamp timestamp = 1;
+  string lvl = 2;
+  string msg = 3;
+  repeated KV kvs = 4;
+}
+
+message KV {
+  string key = 1;
+  string value = 2;
+}
+```
+
+Where a `LogEvent` always has `raw` populated, and may have `structured` filled if we managed to parse something useful.
+
+#### line oriented scanning
+
+The parsing in `humanlog` is currently based on line-oriented logs. We don't support multi-line logs at this time, largely for simplicity and performance reasons. So things that don't work with `humanlog` are stacktrace, or Rails-type of logs that span multiple lines. There are also other log formats, such as the CockroachDB loggers, that are multi-line oriented and would be interesting to parse. There are ways around this, but we haven't explored them yet. It's just a matter of focus, and I'm concerned about the performance impact of starting to support more losely defined multi-line formats.
+
+So what we match on today is `\n` terminated strings. To do this, we use Go's `bufio.Scanner` type:
+
+```go
+in := bufio.NewScanner(src)
+in.Buffer(make([]byte, 0, maxBufferSize), maxBufferSize)
+in.Split(bufio.ScanLines)
+for in.Scan() {
+    lineData := in.Bytes()
+    // parse it
+}
+if err := in.Err(); err != nil {
+    // do something sensible
+}
+```
+
+#### speculative parsing
+
+After reading a line, we pass it to a small collection of handlers
+
+```go
+logfmtEntry := LogfmtHandler{Opts: opts}
+jsonEntry := JSONHandler{Opts: opts}
+```
+
+and ask them to try to handle the line.
+
+```go
+lineData := in.Bytes()
+switch {
+case jsonEntry.TryHandle(lineData, data):
+case logfmtEntry.TryHandle(lineData, data):
+case tryDockerComposePrefix(lineData, data, &jsonEntry):
+case tryDockerComposePrefix(lineData, data, &logfmtEntry):
+case tryZapDevPrefix(lineData, data, &jsonEntry):
+default:
+    ev.Structured = nil
+}
+```
+
+If the line was handled by a handler, the handler will have filled the `Structured` field in the log event:
+
+```protobuf
+message LogEvent {
+  google.protobuf.Timestamp parsed_at = 1;
+  bytes raw = 2;
+  StructuredLogEvent structured = 3;
+}
+```
+
+#### generous with inputs
+
+Our focused on accepting input as much as possible. So when we try to match lines, say in the JSON handler, we will accept a wide variety of possible keys and values for time formats.
+
+For example, by default all of these values are tried when trying to parse a timestamp:
+
+```go
+var DefaultOptions = func() *HandlerOptions {
+    opts := &HandlerOptions{
+        TimeFields:    []string{"time", "ts", "@timestamp", "timestamp", "Timestamp"},
+        MessageFields: []string{"message", "msg", "Body"},
+        LevelFields:   []string{"level", "lvl", "loglevel", "severity", "SeverityText"},
+        timeNow:       time.Now,
+    }
+    return opts
+}
+
+type HandlerOptions struct {
+    TimeFields    []string
+    MessageFields []string
+    LevelFields   []string
+
+    timeNow func() time.Time
+}
+```
+
+For each log line, we search through the key-values we found:
+
+```go
+searchJSON(raw, h.Opts.TimeFields, func(field string, value interface{}) bool {
+    var ok bool
+    h.Time, ok = tryParseTime(value)
+    if ok {
+        deleteJSONKey(field, raw)
+    }
+    return ok
+})
+```
+
+And using a list of format strings:
+
+```go
+var TimeFormats = []string{
+    "2006-01-02 15:04:05.999999999 -0700 MST",
+    "2006-01-02 15:04:05",
+    "2006-01-02T15:04:05-0700",
+    time.RFC3339,
+    time.RFC3339Nano,
+    time.RFC822,
+    time.RFC822Z,
+    time.RFC850,
+    time.RFC1123,
+    time.RFC1123Z,
+    time.UnixDate,
+    time.RubyDate,
+    time.ANSIC,
+    time.Kitchen,
+    time.Stamp,
+    time.StampMilli,
+    time.StampMicro,
+    time.StampNano,
+    "2006/01/02 15:04:05",
+    "2006/01/02 15:04:05.999999999",
+}
+```
+
+We try to parse the input with any matcher we can find:
+
+```go
+// tries to parse time using a couple of formats before giving up
+func tryParseTime(value interface{}) (time.Time, bool) {
+    var t time.Time
+    switch v := value.(type) {
+    case string:
+        for _, layout := range TimeFormats {
+            t, err := time.Parse(layout, v)
+            if err == nil {
+                t = fixTimebeforeUnixZero(t)
+                return t, true
+            }
+        }
+        // try to parse unix time number from string
+        floatVal, err := strconv.ParseFloat(v, 64)
+        if err == nil {
+            return parseTimeFloat64(floatVal), true
+        }
+    case float32:
+        return parseTimeFloat64(float64(v)), true
+    case float64:
+        return parseTimeFloat64(v), true
+    case int:
+        return parseTimeFloat64(float64(v)), true
+    case int32:
+        return parseTimeFloat64(float64(v)), true
+    case int64:
+        return parseTimeFloat64(float64(v)), true
+    }
+    return t, false
+}
+```
+
+### sinks
+
+Once we parsed the data, we send it down the pipes. The design of the plumbing is simple and builds on a set of composable components that implement the sink interface:
+
+```go
+type Sink interface {
+    Receive(ctx context.Context, ev *typesv1.LogEvent) error
+    Close(ctx context.Context) error
+}
+```
+
+From this interface, we can compose various behaviors. For instance, a sink that sequentially tees to multiple other sinks:
+
+```go
+func NewTeeSink(sinks ...sink.Sink) sink.Sink {
+    return &Tee{sinks: sinks}
+}
+
+type Tee struct {
+    sinks []sink.Sink
+}
+
+func (sn *Tee) Receive(ctx context.Context, ev *typesv1.LogEvent) error {
+    for i, sinks := range sn.sinks {
+        if err := sinks.Receive(ctx, ev); err != nil {
+            return fmt.Errorf("tee sink %d: %w", i, err)
+        }
+    }
+    return nil
+}
+```
+
+Or a sink that measures metrics:
+
+```go
+func NewMetricSink(
+    sink sink.Sink,
+    observeReceiveCall func(*typesv1.LogEvent, time.Duration, error),
+) sink.Sink {
+    return &Metric{
+        sink:               sink,
+        observeReceiveCall: observeReceiveCall,
+        timeNow:            time.Now,
+    }
+}
+
+type Metric struct {
+    sink               sink.Sink
+    observeReceiveCall func(*typesv1.LogEvent, time.Duration, error)
+    timeNow            func() time.Time
+}
+
+func (sn *Metric) Receive(ctx context.Context, ev *typesv1.LogEvent) error {
+    start := sn.timeNow()
+    err := sn.sink.Receive(ctx, ev)
+    end := sn.timeNow()
+    sn.observeReceiveCall(ev, end.Sub(start), err)
+    return err
+}
+```
+
+We can augment the sink behavior with capabilities that provide optimization opportunities:
+
+```go
+type BatchSink interface {
+    Sink
+    ReceiveBatch(ctx context.Context, evs []*typesv1.LogEvent) error
+}
+```
+
+And use this to make a buffering stage in our pipeline:
+
+```go
+type SizedBuffer struct {
+    size     int
+    Buffered []*typesv1.LogEvent
+    batcher    sink.BatchSink
+}
+
+func (sn *SizedBuffer) Receive(ctx context.Context, ev *typesv1.LogEvent) error {
+    cev := proto.Clone(ev).(*typesv1.LogEvent)
+    sn.Buffered = append(sn.Buffered, cev)
+    if len(sn.Buffered) == sn.size {
+        if err := sn.batcher.ReceiveBatch(ctx, sn.Buffered); err != nil {
+            sn.Buffered = sn.Buffered[:len(sn.Buffered)-1]
+            return err
+        }
+        sn.Buffered = sn.Buffered[:0:sn.size]
+    }
+    return nil
+}
+```
+
+And so on. Small composable interfaces are neat. Keep your interfaces small and simple.
+
+Back to pragmatic stuff, `humanlog` is a tool to make logs pretty. The last sink in our pipeline is a presentation layer.
+
+```go
+var _ sink.Sink = (*Stdio)(nil)
+
+func NewStdio(w io.Writer, opts StdioOpts) *Stdio {
+    return &Stdio{
+        w:    w,
+        opts: opts,
+    }
+}
+```
+
+When it receives log events, it prints them on an `io.Writer` (stdout) in a pretty way:
+
+```go
+func (std *Stdio) Receive(ctx context.Context, ev *typesv1.LogEvent) error {
+    if ev.Structured == nil {
+        // no parsed data, just write the `Raw` message out ...
+        return ...
+    }
+    data := ev.Structured
+
+    out := tabwriter.NewWriter(std.w, 0, 1, 0, '\t', 0)
+    pattern := "%s |%s| %s\t %s\n"
+    ts := std.prettifyTime(data.Timestamp.AsTime())
+    lvlstr := std.prettifyLevel(data.Lvl)
+    msg := std.prettifyMessage(data.Message)
+    keyvals := std.prettyKVs(data, "=")
+
+    _, err = fmt.Fprintf(out, pattern, ts, lvl, msg, strings.Join(keyvals, "\t ")))
+    return err
+}
+```
+
+And that's the crux of the `humanlog` pipeline logic. However, the actual code does much more than that. Simply prettifying logs is a good start, but logs can be noisy, too long, repeat a lot of information, etc. We can clean that up at the presentation layer.
+
+We don't live in an ideal world, but ideals are great targets to clarify thinking. The ideal log line is short and concise. It gives us all the information we need in as little horizontal space as possible, and it ideally carries on a consistent story from the logs that preceeded it.
+
+When logging in structured format, you'll find yourself adding the same key-values to logs. This is great to make things unambiguous, but can waste a lot of horizontal space when reading logs. We can clean this up in our `Stdio` sink.
+
+First we track some information about the last log event:
+
+```go
+type Stdio struct {
+    // ...
+    lastRaw   bool
+    lastLevel string
+    lastKVs   map[string]string
+}
+```
+
+Then when prettifying the key-values, we filter those that haven't changed since the last time we printed a log event similar in nature.
+
+```go
+func (std *Stdio) prettyKVs(data *typesv1.StructuredLogEvent, sep string) []string {
+    // if the level changed
+    // of if the last log was a raw log (failed parse)
+    // then don't skip unchanged key-values
+    wasSameLevel := std.lastLevel == data.Lvl
+    skipUnchanged := !std.lastRaw && std.opts.SkipUnchanged && wasSameLevel
+
+    kv := make([]string, 0, len(data.Kvs))
+    for _, pair := range data.Kvs {
+        k, v := pair.Key, pair.Value
+        if skipUnchanged {
+            // if we're skipping unchanged key-values, and the last log had the same key
+            // with the same value, then don't print it
+            if lastV, ok := std.lastKVs[k]; ok && lastV == v && !std.opts.shouldShowUnchanged(k) {
+                continue
+            }
+        }
+        // ...
+        kv = append(kv, k+"="+v)
+    }
+    return kv
+}
+```
+
+Sometimes, key-values can be very long and crowd out the other key-values. So by default, `humanlog` truncates obnoxious values.
+
+```go
+func (std *Stdio) prettyKVs(data *typesv1.StructuredLogEvent, sep string) []string {
+    // ...
+    for _, pair := range data.Kvs {
+        // ...
+        var vstr string
+        if std.opts.Truncates && len(v) > std.opts.TruncateLength {
+            vstr = v[:std.opts.TruncateLength] + "..."
+        } else {
+            vstr = v
+        }
+        kv = append(kv, k+"="+vstr)
+    }
+    // ...
+    return kv
+}
+```
+
+We also want some colors to make this human readable. This was the start of the whole debate after all.
+
+```go
+func (std *Stdio) joinKVs(data *typesv1.StructuredLogEvent, sep string) []string {
+    // ...
+    for _, pair := range data.Kvs {
+        k, v := pair.Key, pair.Value
+        // ...
+        kstr := std.opts.Palette.KeyColor.Sprint(k)
+        vstr = std.opts.Palette.ValColor.Sprint(vstr)
+        kv = append(kv, kstr+sep+vstr)
+    }
+    // ...
+    return kv
+}
+```
+
+And to tie it all up, it's probably better if key-values are always showing up in the same order, and not dancing around in the horizontal space. So we sort them:
+
+```go
+func (std *Stdio) joinKVs(data *typesv1.StructuredLogEvent, sep string) []string {
+    // ...
+    kv := make([]string, 0, len(data.Kvs))
+    for _, pair := range data.Kvs {
+        k, v := pair.Key, pair.Value
+        // ... process `k, v`
+        kv = append(kv, kstr+sep+vstr)
+    }
+    sort.Strings(kv)
+    if std.opts.SortLongest {
+        sort.Stable(byLongest(kv))
+    }
+    return kv
+}
+
+type byLongest []string
+
+func (s byLongest) Len() int           { return len(s) }
+func (s byLongest) Less(i, j int) bool { return len(s[i]) < len(s[j]) }
+func (s byLongest) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
+```
+
+More things can be done here, such as adding column to the tabular data presentation based on user specified preferences, or taking dynamic filtering rules, and so on.
+
+### complexification
+
+Here's a largely useless observation: many web services spend a lot more CPU time logging than they do performing useful work. That's probably why CPU poor high-frequency traders aren't big fan of your typical human readable logger. But for the rest of us, this doesn't matter much. We're not poor, we're CPU rich. We deliver value to our users not by maximizing CPU clock cycles, but by providing polished and capacity enhancing experiences at a good cost. And usually, engineering time dominates the cost equation for most products, not CPU clock time.
+
+Regardless, it's a fun observation. Another fun observation is the CPU cost of parsing arbitrary logs and being very lenient with input formats. Hint: it's not particularly fast.
+
+Parsing JSON in general is not super fast. Last time I spent time toying with this problem, I benchmarked my custom JSON parser with the `encoding/json` one. The results were a tad underwhelming:
+
+```
+BenchmarkFlatJSON-12         1660015     722.9 ns/op 930.93 MB/s      32 B/op       2 allocs/op
+BenchmarkEncodingJSON-12      594927    2394 ns/op   311.13 MB/s     168 B/op       3 allocs/op
+```
+
+Now these numbers will change over time, on different hardware, and depending on the barometric pressure and the alignment of the stars in your head. Just keep them in mind as an order-of-magnitude thing.
+
+In `humanlog`, we're not exactly aiming for performance. We're focused on the user experience first and foremost. But this doesn't mean that performance doesn't matter at all, so we wrote some basic benchmarks to at least have an idea of how fast we can parse various log formats. Keep in mind that `encoding/json` parses on the order of ~300MB/s.
+
+Recently @KevRiver came up with these results:
+
+```
+.../c-cpp-glog-8                  37.83 MB/s     7127158 B/op       37382 allocs/op
+.../c-cpp-spdlog-8               111.44 MB/s     1756341 B/op       12301 allocs/op
+.../csharp-nlog-8                 84.29 MB/s     1916528 B/op       15514 allocs/op
+.../csharp-nlog-csv-8             95.45 MB/s     1688077 B/op       10972 allocs/op
+.../csharp-nlog-json-8            49.39 MB/s   355104298 B/op     7287606 allocs/op
+.../csharp-serilog-8              96.26 MB/s     1762382 B/op       17522 allocs/op
+.../csharp-serilog-json-8         40.15 MB/s     4941686 B/op       87556 allocs/op
+.../golang-gin-8                 313.98 MB/s     1500216 B/op       11010 allocs/op
+.../golang-logrus-8               85.42 MB/s     7208972 B/op       47830 allocs/op
+.../golang-logrus-json-8          38.64 MB/s   413347736 B/op     9453455 allocs/op
+.../golang-slog-json-8            43.92 MB/s  1059153496 B/op    21780749 allocs/op
+.../golang-zap-8                  42.90 MB/s     3574186 B/op       60635 allocs/op
+.../golang-zerolog-8              55.60 MB/s     7838375 B/op       45006 allocs/op
+.../golang-zerolog-json-8         47.13 MB/s     3881025 B/op       73030 allocs/op
+.../java-log4j2-8                 93.71 MB/s     1990777 B/op       16397 allocs/op
+.../java-log4j2-json-8            48.98 MB/s     7864399 B/op      148896 allocs/op
+.../java-logback-8                93.74 MB/s     3278767 B/op       23425 allocs/op
+.../java-logback-ext-8            94.93 MB/s     3601258 B/op       24763 allocs/op
+.../java-logback-ext-json-8       39.80 MB/s    10518371 B/op      183988 allocs/op
+.../java-logback-json-8           39.66 MB/s    10478973 B/op      183176 allocs/op
+.../java-logback-mdc-8           108.45 MB/s     3657896 B/op       25277 allocs/op
+.../java-logback-mdc-json-8       39.66 MB/s    10463910 B/op      182810 allocs/op
+.../js-ts-bunyan-8                35.59 MB/s    10858449 B/op      195023 allocs/op
+.../js-ts-pino-8                  40.10 MB/s     5234243 B/op      103462 allocs/op
+.../js-ts-winston-8               38.99 MB/s    10321322 B/op      199535 allocs/op
+.../opentelemetry-8               88.49 MB/s     1468105 B/op       10010 allocs/op
+.../opentelemetry-json-8          39.27 MB/s    11917622 B/op      192876 allocs/op
+.../python-loguru-8               64.88 MB/s     7486091 B/op       32354 allocs/op
+.../python-loguru-json-8          30.18 MB/s     9208628 B/op      158421 allocs/op
+.../python-structlog-8           112.06 MB/s     1469041 B/op       10010 allocs/op
+.../ruby-semantic-logger-8       128.98 MB/s     3455192 B/op       23227 allocs/op
+.../ruby-semantic-logger-json-8   39.32 MB/s     6821616 B/op      133821 allocs/op
+.../ruby-std-logger-8             93.71 MB/s     2361975 B/op       19147 allocs/op
+.../rust-log4rs-8                 70.26 MB/s     2749869 B/op       16340 allocs/op
+```
+
+We're not super fast, far fromm it. But in the interesting case where our first parsing guesses all line up (`golang-gin-8`) we do match `encoding/json`'s performance of about ~300MB/s. Not so bad. This is workable. We can keep iterating and focus on this later, as there's a ton of stuff we can do to make things faster if the need arises. Maybe I should use my `flatjson` parser =D.
+
+In the mean time, if your service was spending most of its time generating JSON, you can also add humanlog to the mix and make it spend time parsing and prettifying logs as well!
+
+Despite my casual talk of not focusing on performance, I couldn't help myself trying something fun.
+
+In the scanning loop, what if instead of trying out log formats one by one in a fixed switch statement:
+
+```go
+lineData := in.Bytes()
+switch {
+case jsonEntry.TryHandle(lineData, data):
+case logfmtEntry.TryHandle(lineData, data):
+case tryDockerComposePrefix(lineData, data, &jsonEntry):
+case tryDockerComposePrefix(lineData, data, &logfmtEntry):
+case tryZapDevPrefix(lineData, data, &jsonEntry):
+default:
+    ev.Structured = nil
+}
+```
+
+We could instead keep the handlers in a slice:
+
+```go
+handlers := []func([]byte, *typesv1.StructuredLogEvent) bool{
+    jsonEntry.TryHandle,
+    logfmtEntry.TryHandle,
+    func(lineData []byte, data *typesv1.StructuredLogEvent) bool {
+        return tryDockerComposePrefix(lineData, data, &jsonEntry)
+    },
+    func(lineData []byte, data *typesv1.StructuredLogEvent) bool {
+        return tryDockerComposePrefix(lineData, data, &logfmtEntry)
+    },
+    func(lineData []byte, data *typesv1.StructuredLogEvent) bool {
+        return tryZapDevPrefix(lineData, data, &jsonEntry)
+    },
+}
+```
+
+And try them out one by one, similarly to how the switch statement ends up working:
+
+```go
+    handled := false
+handled_line:
+    for i, tryHandler := range handlers {
+        if tryHandler(lineData, data) {
+            handled = true
+            break handled_line
+        }
+    }
+    if !handled {
+        ev.Structured = nil
+    }
+```
+
+So far, nothing changed except making the code harder to read, and perhaps a tad more extensible. But what we can now do is reorder which handler will be tried first. We can essentially "learn" what the input data looks like, and adapt.
+
+Let's make a little function that emulates a MRU cache:
+
+```go
+// moveToFront moves the element at index `i` to the front
+// of the slice
+func moveToFront[El any](i int, s []El) []El {
+	if i == 0 {
+		return s
+	}
+	el := s[i]
+	for j := i; j > 0; j-- {
+		s[j] = s[j-1]
+	}
+	s[0] = el
+	return s
+}
+```
+
+It moves a given slice element to the front of the slice, and the pushes all the other elements to the right. Then, we use this function on our slice of handlers:
+
+```go
+    handled := false
+handled_line:
+    for i, tryHandler := range handlers {
+        if tryHandler(lineData, data) {
+            if dynamicReordering {
+                handlers = moveToFront(i, handlers)
+            }
+            handled = true
+            break handled_line
+        }
+    }
+    if !handled {
+        ev.Structured = nil
+    }
+```
+
+We can do the same thing elsewhere, for instance in our time format matching loop. Whereas it looked like this:
+
+```go
+for _, layout := range TimeFormats {
+    t, err := time.Parse(layout, v)
+    if err == nil {
+        t = fixTimebeforeUnixZero(t)
+        return t, true
+    }
+}
+```
+
+We can move the most recently used format to the front:
+
+```go
+for i, layout := range TimeFormats {
+    t, err := time.Parse(layout, value.(string))
+    if err == nil {
+        if dynamicReordering {
+            TimeFormats = moveToFront(i, TimeFormats)
+        }
+        t = fixTimebeforeUnixZero(t)
+        return t, true
+    }
+}
+```
+
+And the result looks like this:
+
+```
+<TODO: insert results>
+```
+
+Isn't it fun? It is. That's why we don't start with performance work first. It's too fun and we end up doing nothing else and not delivering value to users. Don't be like me, don't get distracted. Focus on your users.
+
+Our users want to prettify their logs. They want to understand what's going on. They want to search their logs.
+
+### more sinks
+
+What if we made a searchable sink? Right now, we take events, prettify them and dump them on stdout. To make them searchable, we should keep them in storage somewhere.
+
+```go
+type Storage interface {
+	Queryable
+	SinkFor(ctx context.Context, machineID, sessionID int64) (sink.Sink, error)
+	Close() error
+}
+```
+
+When I try something, I always like to start with the simplest, least dependency approach possible. Let's make the first version of a searchable storage interface's sink in memory:
+
+```go
+type MemStorageSink struct {
+    id  SinkID
+    mu  sync.RWMutex
+    evs []*typesv1.LogEvent
+
+    closed bool
+}
+```
+
+When we receive log events, we simply add them to our memory storage:
+
+```go
+func (snk *MemStorageSink) Receive(ctx context.Context, ev *typesv1.LogEvent) error {
+    snk.mu.Lock()
+    defer snk.mu.Unlock()
+    if snk.closed {
+        return fmt.Errorf("sink is closed")
+    }
+    ev = proto.Clone(ev).(*typesv1.LogEvent)
+    snk.evs = append(snk.evs, ev)
+    return nil
+}
+```
+
+Then we can work on the `Storage` interface:
+
+```go
+type Storage interface {
+    Queryable
+    // ...
+}
+
+type Queryable interface {
+    Query(context.Context, *typesv1.LogQuery) ([]Cursor, error)
+}
+```
+
+We add to it the ability to `Query` and return cursors from which we can extract results.
+
+```go
+type Cursor interface {
+    IDs() (machineID, sessionID int64)
+    Next(context.Context) bool
+    Event(*typesv1.LogEvent) error
+    Err() error
+    Close() error
+}
+```
+
+And we implement the `Storage` in memory as well:
+
+```go
+type MemStorage struct {
+    sinksMu   sync.Mutex
+    sinks     []*MemStorageSink
+}
+```
+
+When it's requested to provide a `SinkFor(machine, session)`, it does so by looking if it doesn't already have a sink for the same set of IDs, and creating one if not:
+
+```go
+func (str *MemStorage) SinkFor(ctx context.Context, machineID, sessionID int64) (sink.Sink, time.Duration, error) {
+    str.sinksMu.Lock()
+    defer str.sinksMu.Unlock()
+    id := SinkID{machineID: machineID, sessionID: sessionID}
+    loc, ok := slices.BinarySearchFunc(str.sinks, id, func(mss *MemStorageSink, si SinkID) int {
+        return mss.id.cmp(si)
+    })
+    if ok {
+        return str.sinks[loc], str.heartbeat, nil
+    }
+    newsink := newMemStorageSink(ll, id)
+    str.sinks = slices.Insert(str.sinks, loc, newsink)
+    return newsink, str.heartbeat, nil
+}
+```
+
+To `Query`, we start by finding all the sinks that would match the query object, and returning cursors:
+
+```go
+func (str *MemStorage) Query(ctx context.Context, q *typesv1.LogQuery) ([]localstorage.Cursor, error) {
+    str.sinksMu.Lock()
+    defer str.sinksMu.Unlock()
+    var cursors []localstorage.Cursor
+    for _, snk := range str.sinks {
+        if idx, ok, err := snk.firstMatch(ctx, q); err != nil {
+            return nil, err
+        } else if ok || q.To == nil {
+            ll := snk.queryLogger(q)
+            ll.DebugContext(ctx, "sink is relevant for query")
+            cursors = append(cursors, newMemSinkCursor(ll, q, idx, idx, true, snk))
+        }
+    }
+    return cursor, nil
+}
+```
+
+The sinks do the brute-force lookup by iterating over all events and returning the first one that matches. Remember, we're crafting a user experience here, not going for performance.
+
+```go
+func (snk *MemStorageSink) firstMatch(ctx context.Context, q *typesv1.LogQuery) (index int, ok bool, err error) {
+    snk.mu.RLock()
+    defer snk.mu.RUnlock()
+
+    for i, ev := range snk.evs {
+        if eventMatches(q, ev) {
+            snk.ll.DebugContext(ctx, "first match found at index", slog.Int("i", i))
+            return i, true, nil
+        }
+    }
+    return len(snk.evs), false, nil
+}
+```
+
+The cursors that get returned are essentially windows on the `sink` they represent. They track their position in the slice of event:
+
+```go
+type MemSinkCursor struct {
+    q  *typesv1.LogQuery
+    cur  int
+    next int
+    more bool
+    sink     *MemStorageSink
+    err      error
+}
+```
+
+And allow advancing forward in the event list:
+
+```go
+func (crs *MemSinkCursor) Next(ctx context.Context) bool {
+    hasCurrent := crs.cur >= 0 && crs.more
+    if !hasCurrent {
+        return false
+    }
+    crs.cur = crs.next
+    crs.next = crs.next + 1
+    crs.next, crs.more, crs.err = crs.sink.nextMatch(ctx, crs.ll, crs.q, crs.next, crs.listener)
+    return hasCurrent && crs.err == nil
+}
+```
+
+It finds the matches by evaluating the query object against each log event in the sink's list:
+
+```go
+func eventMatches(q *typesv1.LogQuery, ev *typesv1.LogEvent) bool {
+    ts := ev.ParsedAt.AsTime()
+    from := q.From.AsTime()
+    atOrAfter := ts.Equal(from) || ts.After(from)
+
+    to := q.To
+    before := to == nil || ts.Before(to.AsTime())
+
+    // TODO(antoine): implement filtering, etc
+
+    return atOrAfter && before
+}
+```
+
+And now we can run queries. Very basic queries for now: time range filters and that's it. But that's a good starting point for the future work we want to do.
+
+## Where it's going
+
+When I started this project, I just wanted to implement an idea brought up by my friend who was losing the flamewar on Slack. As I implemented it, it dawned on me that such a tool could do more than just prettifying and coloring logs.
+
+It could make them searchable. It could have a UI.
+
+It could interpret logs and turn them into metrics. If so, it could maybe parse metrics? And distributed tracing spans?
+
+It could be a mini-centralized logging solution on your laptop.
+
+It could perhaps also be a centralized logging solution in its own right, so you could use the same tool on your laptop as in the cloud?
+
+That's what we're working working on next, at `humanlog.io`. We're a small team iterating on these ideas, trying to turn the `humanlog` CLI into a full fledged log search engine on your development machine. No need to wait until prod to search your logs, no need to install Grafana and Loki on your machine just to see your logs. We want to make the local-dev experience of working with logs, and telemetry in general, as polished as what you can get with your full-fledged centralized logging system.
+
+We think this is useful, and we'll try to make it. If you're interested, follow along by installing the CLI and giving us some feedback about what you want `humanlog` to be. And if you like it, we'll soon be offering some paid features to help pay for the team working on this.
