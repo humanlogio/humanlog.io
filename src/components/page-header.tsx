@@ -107,13 +107,7 @@ const PageHeader: React.FC = () => {
       }
       if (selectValue === addNewValue) {
         setActiveEnvironment(undefined);
-        if (!defaultOrg && !currentOrg) {
-          router.push("/env/new");
-          return;
-        }
-        let orgName =
-          defaultOrg?.id !== currentOrg?.id ? currentOrg!.name : undefined;
-        orgName && router.push(getEnvUrl(orgName));
+        router.push("/env/new");
         return;
       }
       try {
