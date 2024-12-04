@@ -122,7 +122,10 @@ export function EnvironmentCreationForm({
     let item = listProductRes.items.find(
       (el) => el.product?.stripeId === defaultProduct.stripeId,
     );
-    item && setSelectedProduct({ product: item.product!, prices: item.prices });
+    if (item) {
+      setSelectedProduct({ product: item.product!, prices: item.prices });
+      // field.onChange(product.product.stripeId);
+    }
   }, [listProductRes, selectedProduct]);
   useMemo(() => {
     if (!selectedProduct) {

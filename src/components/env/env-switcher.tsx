@@ -31,7 +31,7 @@ const EnvSwitcher = ({
         router.push("/");
       }
     })();
-  }, [env, setActiveEnvironment]);
+  }, [env, apiClients, router, setActiveEnvironment]);
 
   return children;
 };
