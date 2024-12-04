@@ -20,14 +20,14 @@ import { Timestamp } from "@bufbuild/protobuf";
 import DateRangePicker from "@/components/ui/graph/dateRangePicker";
 import { useDebouncer } from "@/lib/utils/useDebouncer";
 import { GRAPH_RANGE_MIN_WIDTH } from "@/components/ui/graph/scroller";
+import { useAbortable } from "@/lib/utils/useAbortable";
 
 const LogInterface = () => {
   const signupOnly = process.env.NEXT_PUBLIC_SIGNUP_ONLY === "true";
   const [isPretty, setIsPretty] = useState(true);
   const { isFullWidth } = useFullWidth();
   const { hasLocalhost, listEnvironments } = useAllEnvironments();
-  const { apiClients, activeEnvironment, setActiveEnvironment } =
-    useApiClients();
+  const { apiClients, activeEnvironment } = useApiClients();
   const [eventsList, setEvents] = useState<DataPoint[] | null>(null);
   const [bucketCount, setBucketCount] = useState<number>(100);
   const [startDate, setStartDate] = useState<Date>(
@@ -137,58 +137,34 @@ const LogInterface = () => {
       nanos: (date.getTime() % 1000) * 1e6,
     });
 
-  const abortControllerRef = useRef<AbortController>();
-  const createNewSession = useCallback(() => {
-    queryString &&
-      (async () => {
-        if (abortControllerRef.current) {
-          abortControllerRef.current.abort();
-        }
+  const createNewSession = useAbortable(
+    (signal: AbortSignal) => async () => {
+      if (!queryString || !apiClients?.query) return;
 
-        const controller = new AbortController();
-        abortControllerRef.current = controller;
-        const { signal } = controller;
+      const stream = apiClients.query.watchQuery({
+        environmentId: activeEnvironment,
+        query: {
+          from: convertToTimestamp(startDate),
+          to: endDate ? convertToTimestamp(endDate) : undefined,
+        },
+      });
 
-        try {
-          const stream = apiClients?.query.watchQuery({
-            environmentId: activeEnvironment,
-            query: {
-              from: convertToTimestamp(startDate),
-              to: (endDate && convertToTimestamp(endDate)) || undefined,
-            },
-          });
-          if (!stream) {
-            return;
-          }
-          for await (const response of stream) {
-            if (signal.aborted) {
-              break;
-            }
-            if (!response.events.length) {
-              continue;
-            }
-            setSessions(
-              response.events.map((event) => {
-                return {
-                  ...event,
-                  isStreaming: !endDate,
-                };
-              }),
-            );
-          }
+      if (!stream) return;
 
-          return () => {
-            controller.abort();
-          };
-        } catch (e) {
-          if (signal.aborted) {
-            console.log("Stream aborted");
-          } else {
-            console.error("Fetch error:", e);
-          }
-        }
-      })();
-  }, [activeEnvironment, apiClients?.query, endDate, startDate, queryString]);
+      for await (const response of stream) {
+        if (signal.aborted) break;
+        if (!response.events.length) continue;
+
+        setSessions(
+          response.events.map((event) => ({
+            ...event,
+            isStreaming: !endDate,
+          })),
+        );
+      }
+    },
+    [activeEnvironment, apiClients?.query, endDate, startDate, queryString],
+  );
 
   const updateGraphRange = useCallback(
     (
@@ -367,6 +343,7 @@ const LogInterface = () => {
               />
             </div>
           </div>
+
           <div
             className={cn(
               "mx-auto flex w-full flex-grow flex-col gap-4 overflow-y-auto px-4 transition-all duration-300",
