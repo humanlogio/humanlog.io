@@ -112,6 +112,12 @@ const PageHeader: React.FC = () => {
       }
       try {
         setActiveEnvironment(BigInt(selectValue));
+        const envName = listEnvironments.find(
+          (env) => `${env.environment?.id}` === selectValue,
+        );
+        if (envName) {
+          router.push(`/env/${envName}`);
+        }
       } catch (e) {
         console.error("Error attempting to parse environment ID:", selectValue);
         console.error(e);
