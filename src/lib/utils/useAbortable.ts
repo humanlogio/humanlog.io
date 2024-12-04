@@ -1,14 +1,14 @@
 import { useRef, useCallback } from "react";
 
 export const useAbortable = <
-  T extends (signal: AbortSignal) => (...args: any[]) => Promise<void>,
+  T extends (...args: Parameters<any>[]) => Promise<void>,
 >(
-  asyncFunction: T,
+  asyncFunction: (signal: AbortSignal) => T,
   deps: React.DependencyList,
-): ((...args: Parameters<T>) => void) => {
+): ((...args: Parameters<T>) => Promise<void>) => {
   const abortControllerRef = useRef<AbortController | null>(null);
 
-  return useCallback(async (...args: Parameters<T>) => {
+  return useCallback(async (...args) => {
     abortControllerRef.current?.abort();
 
     const controller = new AbortController();
@@ -22,10 +22,8 @@ export const useAbortable = <
       } else {
         console.error("Error in request:", error);
       }
-    }
-
-    return () => {
+    } finally {
       controller.abort();
-    };
+    }
   }, deps); // eslint-disable-line react-hooks/exhaustive-deps
 };

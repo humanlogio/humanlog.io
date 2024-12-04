@@ -1,7 +1,7 @@
 "use client";
 
-import EnvSwitcher from "@/components/env-switcher";
-import LogInterface from "@/components/log-interface";
+import EnvSwitcher from "@/components/env/env-switcher";
+import LogInterface from "@/components/env/log-interface";
 
 export default async function EnvironmentPage({
   params,
