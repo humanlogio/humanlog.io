@@ -124,7 +124,6 @@ export function EnvironmentCreationForm({
     );
     if (item) {
       setSelectedProduct({ product: item.product!, prices: item.prices });
-      // field.onChange(product.product.stripeId);
     }
   }, [listProductRes, selectedProduct]);
   useMemo(() => {
