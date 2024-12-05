@@ -44,7 +44,7 @@ import {
   LocalhostViaBrowser,
 } from "api/js/svc/auth/v1/service_pb";
 import { PingResponse } from "api/js/svc/localhost/v1/service_pb";
-import { gravatarURL } from "@/lib/utils";
+import { getEnvUrl, gravatarURL } from "@/lib/utils";
 import { useAllEnvironments, UserState } from "@/context/list-environments";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@connectrpc/connect-query";
@@ -120,8 +120,7 @@ const PageHeader: React.FC = () => {
             currentOrg?.id && currentOrg?.id !== defaultOrg?.id
               ? currentOrg.name
               : undefined;
-          const orgLink = orgName ? `/org/${orgName}` : "";
-          router.push(`${orgLink}/env/${selectedEnv.environment.name}`);
+          router.push(getEnvUrl(selectedEnv.environment.name, orgName));
         }
       } catch (e) {
         console.error("Error attempting to parse environment ID:", selectValue);
