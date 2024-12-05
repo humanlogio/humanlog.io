@@ -17,16 +17,21 @@ const EnvSwitcher = ({
   const { setActiveEnvironment } = useApiClients();
   const router = useRouter();
 
+  const { data, error, isFetching } = useSuspenseQuery(
+    getEnvironment,
+    env
+      ? {
+          by: {
+            value: env,
+            case: "name",
+          },
+        }
+      : {},
+  );
+
   if (!env) {
     return children;
   }
-
-  const { data, error, isFetching } = useSuspenseQuery(getEnvironment, {
-    by: {
-      value: env,
-      case: "name",
-    },
-  });
 
   if (isFetching) {
     return <Loader className="animate-spin" />;
