@@ -44,7 +44,7 @@ import {
   LocalhostViaBrowser,
 } from "api/js/svc/auth/v1/service_pb";
 import { PingResponse } from "api/js/svc/localhost/v1/service_pb";
-import { gravatarURL, getEnvUrl } from "@/lib/utils";
+import { gravatarURL } from "@/lib/utils";
 import { useAllEnvironments, UserState } from "@/context/list-environments";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@connectrpc/connect-query";
@@ -112,11 +112,16 @@ const PageHeader: React.FC = () => {
       }
       try {
         setActiveEnvironment(BigInt(selectValue));
-        const envName = listEnvironments.find(
+        const selectedEnv = listEnvironments.find(
           (env) => `${env.environment?.id}` === selectValue,
         );
-        if (envName) {
-          router.push(`/env/${envName}`);
+        if (selectedEnv?.environment) {
+          const orgName =
+            currentOrg?.id && currentOrg?.id !== defaultOrg?.id
+              ? currentOrg.name
+              : undefined;
+          const orgLink = orgName ? `/org/${orgName}` : "";
+          router.push(`${orgLink}/env/${selectedEnv.environment.name}`);
         }
       } catch (e) {
         console.error("Error attempting to parse environment ID:", selectValue);
