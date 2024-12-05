@@ -1,5 +1,3 @@
-"use client";
-
 import EnvSwitcher from "@/components/env/env-switcher";
 import LogInterface from "@/components/env/log-interface";
 
