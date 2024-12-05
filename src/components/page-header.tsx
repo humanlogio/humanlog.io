@@ -106,6 +106,10 @@ const PageHeader: React.FC = () => {
         return;
       }
       if (selectValue === addNewValue) {
+        if (!defaultOrg && !currentOrg) {
+          router.push("/pricing");
+          return;
+        }
         setActiveEnvironment(undefined);
         router.push("/env/new");
         return;
