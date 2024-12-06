@@ -49,9 +49,10 @@ import { useAllEnvironments, UserState } from "@/context/list-environments";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@connectrpc/connect-query";
 import { getLogoutURL } from "api/js/svc/user/v1/service-UserService_connectquery";
+import config from "@/features/config";
 
 const PageHeader: React.FC = () => {
-  const signupOnly = process.env.NEXT_PUBLIC_SIGNUP_ONLY === "true";
+  const signupOnly = config.NEXT_PUBLIC_SIGNUP_ONLY
   const [authURL, setAuthURL] = useState<string | null>(null);
   const { apiClients, activeEnvironment, setActiveEnvironment, doLogout } =
     useApiClients();
