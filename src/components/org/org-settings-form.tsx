@@ -14,6 +14,11 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { useAllEnvironments } from "@/context/list-environments";
+import { useQuery } from "@connectrpc/connect-query";
+import { getAuthURL } from "api/js/svc/auth/v1/service-AuthService_connectquery";
+import { Loader } from "lucide-react";
+import Link from "next/link";
 
 const formSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -21,7 +26,7 @@ const formSchema = z.object({
 });
 
 interface OrgSettingsFormProps {
-  orgName: string | null;
+  orgName: string;
   defaultValues?: {
     name: string;
     domain?: string;
@@ -34,10 +39,32 @@ export function OrgSettingsForm({
 }: OrgSettingsFormProps) {
   const router = useRouter();
 
+  const { currentOrg } = useAllEnvironments();
+  const { data } = useQuery(getAuthURL, {
+    organization: { case: "byName", value: orgName },
+    returnToUrl: window.location.href,
+  });
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: defaultValues || { name: "", domain: "" },
   });
+
+  if (currentOrg?.name != orgName) {
+    if (data && data?.authUrl) {
+      if (data?.authUrl != "") {
+        return <Link href={data?.authUrl!}>Log in with {orgName}</Link>;
+      } else {
+        return <>No org with name {orgName}</>;
+      }
+    }
+    return (
+      <>
+        {"Redirecting you to authenticate with org " + orgName + "..."}
+        <Loader className="animate-spin" />
+      </>
+    );
+  }
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {

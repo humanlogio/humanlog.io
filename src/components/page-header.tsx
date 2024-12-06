@@ -49,7 +49,7 @@ import {
   LocalhostViaBrowser,
 } from "api/js/svc/auth/v1/service_pb";
 import { PingResponse } from "api/js/svc/localhost/v1/service_pb";
-import { gravatarURL, getEnvUrl } from "@/lib/utils";
+import { gravatarURL, getEnvUrl, getUserSettingsUrl } from "@/lib/utils";
 import { useAllEnvironments, UserState } from "@/context/list-environments";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@connectrpc/connect-query";
@@ -119,14 +119,20 @@ const PageHeader: React.FC = () => {
         orgName && router.push(getEnvUrl(orgName));
         return;
       }
-      try {
-        setActiveEnvironment(BigInt(selectValue));
-      } catch (e) {
-        console.error("Error attempting to parse environment ID:", selectValue);
-        console.error(e);
-      }
+      const envId = BigInt(selectValue);
+      const selectedEnv = listEnvironments
+        .map((li) => li.environment)
+        .find((el) => el?.id == envId);
+      setActiveEnvironment(selectedEnv);
     },
-    [router, currentOrg, defaultOrg, hasLocalhost, setActiveEnvironment],
+    [
+      router,
+      currentOrg,
+      defaultOrg,
+      hasLocalhost,
+      setActiveEnvironment,
+      listEnvironments,
+    ],
   );
 
   const logoutURL = useQuery(getLogoutURL).data?.logoutUrl!;
@@ -160,6 +166,11 @@ const PageHeader: React.FC = () => {
           </div>
         </DropdownMenuTrigger>
         <DropdownMenuContent className="w-56">
+          <Link href={getUserSettingsUrl()}>
+            <DropdownMenuItem>
+              <span>Settings</span>
+            </DropdownMenuItem>
+          </Link>
           <Link href={logoutURL!}>
             <DropdownMenuItem onClick={doLogout}>
               <LogOut size={16} className="mr-2" />
@@ -175,7 +186,7 @@ const PageHeader: React.FC = () => {
   const renderSourceSelectorBlock = () => (
     <div title="Environment Selector" className="w-full md:min-w-52">
       <Select
-        value={activeEnvironment?.toString()}
+        value={activeEnvironment?.id.toString()}
         onValueChange={updateSelection}
       >
         <SelectTrigger className="w-full">
