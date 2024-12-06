@@ -2,6 +2,7 @@ import React from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import config from "@/features/config";
 
 const Logo = ({ sm = false }) => {
   return (
@@ -21,7 +22,7 @@ const Logo = ({ sm = false }) => {
           log
         </Button>
         <span className="text-[16px] text-white">
-          {process.env.NODE_ENV === "development" ? ".dev" : ".io"}
+          {config.TLD}
         </span>
       </div>
     </Link>
