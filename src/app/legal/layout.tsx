@@ -4,6 +4,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <div className="container-h-full container space-y-8 py-8">{children}</div>
+    <div className="container-min-h-full container space-y-8 py-8">
+      {children}
+    </div>
   );
 }

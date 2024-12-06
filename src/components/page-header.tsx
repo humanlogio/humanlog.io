@@ -1,12 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useState } from "react";
-import {
-  useRouter,
-  usePathname,
-  redirect,
-  RedirectType,
-} from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import {
   Loader,
@@ -65,7 +60,7 @@ const PageHeader: React.FC = () => {
   const { user, currentOrg, defaultOrg, hasLocalhost, listEnvironments } =
     useAllEnvironments();
   const localhostValue = "localhost";
-  const addNewValue = "add_new";
+  const addNewValue = "add-new";
   const router = useRouter();
 
   useEffect(() => {
@@ -105,33 +100,44 @@ const PageHeader: React.FC = () => {
         setActiveEnvironment(undefined);
         if (!hasLocalhost) {
           router.push("/install");
+        } else {
+          router.push("/");
         }
         return;
       }
       if (selectValue === addNewValue) {
-        setActiveEnvironment(undefined);
         if (!defaultOrg && !currentOrg) {
           router.push("/pricing");
           return;
         }
-        let orgName =
-          defaultOrg?.id !== currentOrg?.id ? currentOrg!.name : undefined;
-        orgName && router.push(getEnvUrl(orgName));
+        setActiveEnvironment(undefined);
+        router.push("/env/new");
         return;
       }
-      const envId = BigInt(selectValue);
-      const selectedEnv = listEnvironments
-        .map((li) => li.environment)
-        .find((el) => el?.id == envId);
-      setActiveEnvironment(selectedEnv);
+      try {
+        const selectedEnv = listEnvironments.find(
+          (env) => `${env.environment?.id}` === selectValue,
+        );
+        if (selectedEnv?.environment) {
+          setActiveEnvironment(selectedEnv.environment);
+          const orgName =
+            currentOrg?.id && currentOrg?.id !== defaultOrg?.id
+              ? currentOrg.name
+              : undefined;
+          router.push(getEnvUrl(selectedEnv.environment.name, orgName));
+        }
+      } catch (e) {
+        console.error("Error attempting to parse environment ID:", selectValue);
+        console.error(e);
+      }
     },
     [
       router,
+      hasLocalhost,
       currentOrg,
       defaultOrg,
-      hasLocalhost,
-      setActiveEnvironment,
       listEnvironments,
+      setActiveEnvironment,
     ],
   );
 
@@ -197,7 +203,7 @@ const PageHeader: React.FC = () => {
         </SelectTrigger>
         <SelectContent>
           <SelectGroup>
-            <SelectItem value={localhostValue}>
+            <SelectItem className="cursor-pointer" value={localhostValue}>
               localhost{" "}
               {hasLocalhost
                 ? localhostVersion(hasLocalhost)
@@ -208,6 +214,7 @@ const PageHeader: React.FC = () => {
             {listEnvironments.map((item) =>
               item.environment?.id ? (
                 <SelectItem
+                  className="cursor-pointer"
                   value={`${item.environment.id}`}
                   key={`${item.environment.name}-${item.environment.id}`}
                 >
@@ -218,7 +225,9 @@ const PageHeader: React.FC = () => {
               ),
             )}
             <SelectSeparator />
-            <SelectItem value={addNewValue}>+ Add new</SelectItem>
+            <SelectItem className="cursor-pointer" value={addNewValue}>
+              + Add new
+            </SelectItem>
           </SelectGroup>
         </SelectContent>
       </Select>
