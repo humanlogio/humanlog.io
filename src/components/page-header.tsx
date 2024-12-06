@@ -44,7 +44,7 @@ import {
   LocalhostViaBrowser,
 } from "api/js/svc/auth/v1/service_pb";
 import { PingResponse } from "api/js/svc/localhost/v1/service_pb";
-import { getEnvUrl, gravatarURL } from "@/lib/utils";
+import { gravatarURL, getEnvUrl, getUserSettingsUrl } from "@/lib/utils";
 import { useAllEnvironments, UserState } from "@/context/list-environments";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@connectrpc/connect-query";
@@ -115,11 +115,11 @@ const PageHeader: React.FC = () => {
         return;
       }
       try {
-        setActiveEnvironment(BigInt(selectValue));
         const selectedEnv = listEnvironments.find(
           (env) => `${env.environment?.id}` === selectValue,
         );
         if (selectedEnv?.environment) {
+          setActiveEnvironment(selectedEnv.environment)
           const orgName =
             currentOrg?.id && currentOrg?.id !== defaultOrg?.id
               ? currentOrg.name
@@ -165,6 +165,11 @@ const PageHeader: React.FC = () => {
           </div>
         </DropdownMenuTrigger>
         <DropdownMenuContent className="w-56">
+          <Link href={getUserSettingsUrl()}>
+            <DropdownMenuItem>
+              <span>Settings</span>
+            </DropdownMenuItem>
+          </Link>
           <Link href={logoutURL!}>
             <DropdownMenuItem onClick={doLogout}>
               <LogOut size={16} className="mr-2" />
@@ -180,7 +185,7 @@ const PageHeader: React.FC = () => {
   const renderSourceSelectorBlock = () => (
     <div title="Environment Selector" className="w-full md:min-w-52">
       <Select
-        value={activeEnvironment?.toString()}
+        value={activeEnvironment?.id.toString()}
         onValueChange={updateSelection}
       >
         <SelectTrigger className="w-full">

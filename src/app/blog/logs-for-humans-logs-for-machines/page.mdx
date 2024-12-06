@@ -1,7 +1,3 @@
-import { AuthorBlock, Authors } from "@/components/blog/author";
-
-<AuthorBlock author={Authors.antoine} />
-
 # Logs for humans, logs for machines
 
 There's an age old debate that you'll see pop-up in the entrails of any company's Slack channel. Are logs for humans or are logs for machines?
@@ -48,7 +44,7 @@ You need to parse the logs. So you start searching with regexps, you start writi
 
 You used human-scale logging by writing plain-english logs that anyone can read in situ. But this leads to logs that don't follow formally defined grammatical rule. You can't (practically) write (and maintain) an EBNF grammar for this:
 
-```ebnf
+```bnf
 log                 = user_signed_in_log | user_signed_out_log | ...
 user_signed_in_log  = "user " , username , " signed in with permissions " , permission_array
 username            = [a-Z0-9-_.+]+
@@ -106,7 +102,9 @@ This is called structured logging. This idea is not new at all, and by the time 
 time="2024-11-23 23:11:43.5162" lvl=ERROR msg="user signed in with permissions" username=aybabtme permissions=["admin", "member", "ingestor"]
 ```
 
-More compact, a bit more readable. (but with a less formal syntax). This came out, as far as I can tell, from the original team that built Heroku. Lots of good stuff came out of there, like [the concept of 13 Factor apps](http://13factor.net/).
+More compact, a bit more readable. (but with a less formal syntax).
+
+This came out, as far as I can tell, from the original team that built Heroku. Lots of good stuff came out of there, like [the concept of 13 Factor apps](http://13factor.net/).
 
 ## colored outputs and detecting TTY
 
@@ -188,9 +186,9 @@ Years passed and I gave it some very little love here and there. I baked in a li
 
 But then as the years passed and I switched jobs, I would occasionally see it used in the wild. I would pair with an engineer and see them using `humanlog`. I would join a company and someone would reach out, asking if I was the author of `humanlog`. Somehow, some group of folks were spreading the word. I never did much marketing for it, but the star count slowly grew to the 700s.
 
-I started to be embarassed by the code. I had written it a very long while ago just to solve a Slack flamewar. It was not well architected or designed. It was exploratory code. It still is, largely.
+I started to be embarrassed by the code. I had written it a very long while ago just to solve a Slack flamewar. It was not well architected or designed. It was exploratory code. It still is, largely.
 
-So over time, I added some features. Allowed configuration with a config file. I also added some basic end-to-end tests to feel more confident about mergin random PRs that popped up. And with more tests, I felt more confident to start refactoring things.
+So over time, I added some features. Allowed configuration with a config file. I also added some basic end-to-end tests to feel more confident about merging random PRs that popped up. And with more tests, I felt more confident to start refactoring things.
 
 I added a self update mechanism, so that old-time users could pick up new changes without having to closely follow the project. But I kept focused on adding features without breaking prior users. And this means by default, it should just work.
 

@@ -15,13 +15,14 @@ import { QueryService } from "api/js/svc/query/v1/service_connect";
 import { ProductService } from "api/js/svc/product/v1/service_connect";
 import { getAPIURL } from "@/lib/envs";
 import { useCookies } from "react-cookie";
-
-type EnvironmentId = bigint | undefined;
+import { Environment } from "api/js/types/v1/environment_pb";
 
 type ApiProviderType = {
   apiClients: ApiClients | null;
-  activeEnvironment: EnvironmentId;
-  setActiveEnvironment: React.Dispatch<React.SetStateAction<EnvironmentId>>;
+  activeEnvironment: Environment | undefined;
+  setActiveEnvironment: React.Dispatch<
+    React.SetStateAction<Environment | undefined>
+  >;
   doLogout: () => void;
 };
 
@@ -41,20 +42,6 @@ type ApiClients = {
 
 const ApiClientContext = createContext<ApiProviderType | null>(null);
 
-function getCookie(name: string): string | undefined {
-  if (typeof document === "undefined") {
-    return undefined;
-  }
-  const value = `; ${document.cookie}`;
-  const parts = value.split(`; ${name}=`);
-  if (!parts || parts.length !== 2) {
-    return undefined;
-  }
-  const last = parts.pop()!;
-
-  return last.split(";").shift();
-}
-
 const queryClient = new QueryClient();
 
 export function ApiClientsProvider({
@@ -64,7 +51,9 @@ export function ApiClientsProvider({
 }) {
   const [cookies, setCookie, removeCookie] = useCookies(["hlog_session"]);
   const [apiTransport, setApiTransport] = useState<Transport>();
-  const [activeEnvironment, setActiveEnvironment] = useState<EnvironmentId>();
+  const [activeEnvironment, setActiveEnvironment] = useState<
+    Environment | undefined
+  >();
 
   const humanlogSessionCookie = cookies["hlog_session"];
   const doLogout = () => {
