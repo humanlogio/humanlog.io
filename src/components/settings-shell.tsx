@@ -26,7 +26,7 @@ export function SettingsShell({
   if (user == "not-logged-in") {
     // todo redirect to login
     return (
-      <div className="container-h-full container flex items-center justify-center">
+      <div className="container-min-h-full container flex items-center justify-center">
         <div>You need to login!</div>
       </div>
     );
@@ -80,7 +80,7 @@ export function SettingsShell({
   }
 
   return (
-    <div className="container-h-full container flex">
+    <div className="container-min-h-full container flex">
       {/* Sidebar */}
       <aside className="w-80 border-r-2 border-border py-6">
         <nav className="space-y-2">
