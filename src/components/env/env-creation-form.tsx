@@ -239,7 +239,7 @@ export function EnvironmentCreationForm({
   );
 }
 
-function ProductPane({
+export function ProductPane({
   product,
   isSelected,
   isBilledYearly,
@@ -305,7 +305,7 @@ function ProductPane({
   );
 }
 
-function TotalPriceSummary({
+export function TotalPriceSummary({
   price,
   isBilledYearly,
 }: {
