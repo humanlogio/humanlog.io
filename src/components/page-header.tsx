@@ -131,7 +131,7 @@ const PageHeader: React.FC = () => {
         console.error(e);
       }
     },
-    [router, hasLocalhost, currentOrg, defaultOrg, setActiveEnvironment],
+    [router, hasLocalhost, currentOrg, defaultOrg, listEnvironments, setActiveEnvironment],
   );
 
   const logoutURL = useQuery(getLogoutURL).data?.logoutUrl!;
