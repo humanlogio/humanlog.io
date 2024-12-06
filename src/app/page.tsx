@@ -150,7 +150,7 @@ export default function Home() {
 
         try {
           const stream = apiClients?.query.watchQuery({
-            environmentId: activeEnvironment,
+            environmentId: activeEnvironment?.id,
             query: {
               from: convertToTimestamp(startDate),
               to: (endDate && convertToTimestamp(endDate)) || undefined,
@@ -199,7 +199,7 @@ export default function Home() {
       (async () => {
         try {
           const events = await apiClients?.query.summarizeEvents({
-            environmentId: activeEnvironment,
+            environmentId: activeEnvironment?.id,
             from: convertToTimestamp(targetStart ?? graphRange.startDate),
             to: convertToTimestamp(targetEnd ?? graphRange.endDate),
             bucketCount,
@@ -334,7 +334,7 @@ export default function Home() {
           <div className="container grid flex-none grid-cols-2 gap-8">
             <div className="col-span-2 md:col-span-1">
               <h1 className="text-2xl font-bold">
-                Lorem ipsum dolor sit amet consectetur
+                Querying `{activeEnvironment?.name}`
               </h1>
               <p className="mt-2 text-slate-500">subtitle</p>
               <div className="ml-[4px] mt-4 flex flex-row gap-2">
