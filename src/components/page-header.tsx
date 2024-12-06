@@ -119,7 +119,7 @@ const PageHeader: React.FC = () => {
           (env) => `${env.environment?.id}` === selectValue,
         );
         if (selectedEnv?.environment) {
-          setActiveEnvironment(selectedEnv.environment)
+          setActiveEnvironment(selectedEnv.environment);
           const orgName =
             currentOrg?.id && currentOrg?.id !== defaultOrg?.id
               ? currentOrg.name
@@ -131,7 +131,14 @@ const PageHeader: React.FC = () => {
         console.error(e);
       }
     },
-    [router, hasLocalhost, currentOrg, defaultOrg, listEnvironments, setActiveEnvironment],
+    [
+      router,
+      hasLocalhost,
+      currentOrg,
+      defaultOrg,
+      listEnvironments,
+      setActiveEnvironment,
+    ],
   );
 
   const logoutURL = useQuery(getLogoutURL).data?.logoutUrl!;

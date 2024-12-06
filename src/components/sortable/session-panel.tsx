@@ -76,7 +76,7 @@ const SessionPanel = ({ logEventGroup }: SessionPanelProps) => {
       <div className="flex flex-none flex-row items-center justify-between bg-slate-900 px-4 py-2 dark:bg-slate-800">
         <div className="flex w-1/3 justify-start">
           <h4 className="flex flex-row items-center gap-3 truncate font-bold text-white">
-            Session {logEventGroup?.sessionId.toString() ?? '#'}
+            Session {logEventGroup?.sessionId.toString() ?? "#"}
             {blockRetrigger ? (
               <div className="contents" title="Fetching more log data...">
                 <Loader className="animate-spin"></Loader>
