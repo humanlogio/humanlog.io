@@ -52,7 +52,7 @@ import { getLogoutURL } from "api/js/svc/user/v1/service-UserService_connectquer
 import config from "@/features/config";
 
 const PageHeader: React.FC = () => {
-  const signupOnly = config.NEXT_PUBLIC_SIGNUP_ONLY
+  const signupOnly = config.NEXT_PUBLIC_SIGNUP_ONLY;
   const [authURL, setAuthURL] = useState<string | null>(null);
   const { apiClients, activeEnvironment, setActiveEnvironment, doLogout } =
     useApiClients();
