@@ -9,7 +9,7 @@ import { LogEventGroup } from "@/components/sortable/session-container";
 import config from "@/features/config";
 
 const LogInterface = () => {
-  const signupOnly = config.NEXT_PUBLIC_SIGNUP_ONLY
+  const signupOnly = config.NEXT_PUBLIC_SIGNUP_ONLY;
   const { hasLocalhost, listEnvironments } = useAllEnvironments();
   const [sessions, setSessions] = useState<LogEventGroup[] | null>(null);
 

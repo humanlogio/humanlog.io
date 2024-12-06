@@ -21,9 +21,7 @@ const Logo = ({ sm = false }) => {
         >
           log
         </Button>
-        <span className="text-[16px] text-white">
-          {config.TLD}
-        </span>
+        <span className="text-[16px] text-white">{config.TLD}</span>
       </div>
     </Link>
   );
