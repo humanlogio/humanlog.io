@@ -7,7 +7,7 @@ export default async function OrgSettingsPage(props: {
   const params = await props.params;
   const { orgName } = params;
   return (
-    <SettingsShell activeSection="organization" orgName={orgName}>
+    <SettingsShell activeSection="organization">
       <h1 className="mb-6 text-3xl font-bold">
         Organization Settings / {orgName}
       </h1>

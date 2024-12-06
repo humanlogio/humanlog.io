@@ -1,3 +1,5 @@
+"use client";
+
 import { PropsWithChildren } from "react";
 import Link from "next/link";
 import {
@@ -7,26 +9,49 @@ import {
 } from "@/lib/utils/navigation";
 import { cn } from "@/lib/utils";
 import { Building, CodeSquareIcon, Loader, User } from "lucide-react";
+import { useAllEnvironments } from "@/context/list-environments";
+import { useApiClients } from "@/context/api-provider";
 
 interface SettingsShellProps {
   activeSection: "user" | "organization" | "environment";
-  orgName?: string;
-  envName?: string;
 }
 
 export function SettingsShell({
   activeSection,
-  orgName,
-  envName,
   children,
 }: PropsWithChildren<SettingsShellProps>) {
-  if (!orgName || !envName) {
+  const { user, currentOrg, defaultOrg } = useAllEnvironments();
+  const { activeEnvironment } = useApiClients();
+
+  if (user == "not-logged-in") {
+    // todo redirect to login
     return (
       <div className="container-min-h-full container flex items-center justify-center">
+        <div>You need to login!</div>
+      </div>
+    );
+  }
+  if (user == "loading") {
+    return (
+      <div className="container-h-full container flex items-center justify-center">
+        Checking user...
         <Loader className="animate-spin" />
       </div>
     );
   }
+
+  if (!currentOrg) {
+    // todo redirect to login
+    return (
+      <div className="container-h-full container flex items-center justify-center">
+        <div>You need to login (org)</div>
+        <Loader className="animate-spin" />
+      </div>
+    );
+  }
+
+  const orgName = currentOrg.id != defaultOrg?.id && currentOrg.name;
+  const envName = activeEnvironment?.name;
 
   const sections = [
     {
@@ -35,19 +60,24 @@ export function SettingsShell({
       href: getUserSettingsUrl(),
       active: activeSection === "user",
     },
-    {
+  ];
+  if (orgName) {
+    sections.push({
       name: "Organization Settings",
       icon: <Building size={16} />,
       href: getOrgSettingsUrl(orgName),
       active: activeSection === "organization",
-    },
-    {
+    });
+  }
+
+  if (orgName && envName) {
+    sections.push({
       name: "Environment Settings",
       icon: <CodeSquareIcon size={16} />,
       href: getEnvSettingsUrl(envName, orgName),
       active: activeSection === "environment",
-    },
-  ].filter(Boolean);
+    });
+  }
 
   return (
     <div className="container-min-h-full container flex">
