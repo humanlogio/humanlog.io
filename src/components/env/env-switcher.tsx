@@ -39,7 +39,7 @@ const EnvSwitcher = ({
     );
   }
 
-  setActiveEnvironment(data.environment.id);
+  setActiveEnvironment(data.environment);
 
   return children;
 };

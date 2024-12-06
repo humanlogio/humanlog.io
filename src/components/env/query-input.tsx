@@ -50,7 +50,7 @@ const QueryInput = ({
       (async () => {
         try {
           const events = await apiClients?.query.summarizeEvents({
-            environmentId: activeEnvironment,
+            environmentId: activeEnvironment?.id,
             from: convertToTimestamp(targetStart ?? graphRange.startDate),
             to: convertToTimestamp(targetEnd ?? graphRange.endDate),
             bucketCount,
@@ -91,7 +91,7 @@ const QueryInput = ({
       if (!queryString || !apiClients?.query) return;
 
       const stream = apiClients.query.watchQuery({
-        environmentId: activeEnvironment,
+        environmentId: activeEnvironment?.id,
         query: {
           from: convertToTimestamp(startDate),
           to: endDate ? convertToTimestamp(endDate) : undefined,
