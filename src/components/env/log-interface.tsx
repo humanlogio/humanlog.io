@@ -6,9 +6,10 @@ import QueryOutput from "@/components/env/query-output";
 import QueryInput from "@/components/env/query-input";
 import { useState } from "react";
 import { LogEventGroup } from "@/components/sortable/session-container";
+import config from "@/features/config";
 
 const LogInterface = () => {
-  const signupOnly = process.env.NEXT_PUBLIC_SIGNUP_ONLY === "true";
+  const signupOnly = config.NEXT_PUBLIC_SIGNUP_ONLY;
   const { hasLocalhost, listEnvironments } = useAllEnvironments();
   const [sessions, setSessions] = useState<LogEventGroup[] | null>(null);
 
