@@ -188,6 +188,13 @@ const Scroller = (props: {
 
   const handleKeyPress = useCallback(
     (event: KeyboardEvent) => {
+      // Ignore keyboard events when textarea or input is focused
+      if (
+        document.activeElement?.tagName === "TEXTAREA" ||
+        document.activeElement?.tagName === "INPUT"
+      ) {
+        return;
+      }
       if (event.key === "+" || event.key === "=") {
         handleWheelScrolling(event, true);
       } else if (event.key === "-" || event.key === "_") {
