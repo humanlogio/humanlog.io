@@ -1,6 +1,6 @@
-import React, { useEffect, useRef } from 'react';
-import 'asciinema-player/dist/bundle/asciinema-player.css';
-import { create } from 'asciinema-player';
+import React, { useEffect, useRef } from "react";
+import "asciinema-player/dist/bundle/asciinema-player.css";
+import { create } from "asciinema-player";
 
 interface AsciinemaPlayerProps {
   src: string;
@@ -12,8 +12,7 @@ const AsciinemaPlayer = ({ src }: AsciinemaPlayerProps) => {
   const options = {
     autoplay: true,
     loop: true,
-    theme: 'solarized-dark',
-    speed: 2,
+    theme: "solarized-dark",
   };
 
   useEffect(() => {
