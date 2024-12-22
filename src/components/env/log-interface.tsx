@@ -7,6 +7,7 @@ import QueryOutput from "@/components/env/query-output";
 import QueryInput from "@/components/env/query-input";
 import { LogEventGroup } from "@/components/sortable/session-container";
 import PreviewCode from "@/components/env/previewCode";
+import config from "@/features/config";
 
 const LogInterface = () => {
   const signupOnly = config.NEXT_PUBLIC_SIGNUP_ONLY;
