@@ -20,25 +20,24 @@ const AsciinemaPlayer = ({ src }: AsciinemaPlayerProps) => {
       create(src, playerRef.current, options);
       setTimeout(() => {
         if (!playerRef.current) return;
-        const codeBlocks = playerRef.current.querySelectorAll('[role="paragraph"]');
+        const codeBlocks =
+          playerRef.current.querySelectorAll('[role="paragraph"]');
 
         codeBlocks.forEach((line, index) => {
           // 줄 번호 추가
-          const lineNumber = document.createElement('span');
+          const lineNumber = document.createElement("span");
           lineNumber.textContent = `${index + 1} `;
-          lineNumber.className = 'line-number';
+          lineNumber.className = "line-number";
           line.insertBefore(lineNumber, line.firstChild);
         });
       }, 1000);
     }
-
-
   }, [src]);
 
   useEffect(() => {
     if (playerRef.current) {
       // 스타일 동적 변경
-      const style = document.createElement('style');
+      const style = document.createElement("style");
       style.textContent = `
       .ap-player{
         background-color: #121212 !important; 
@@ -72,8 +71,17 @@ const AsciinemaPlayer = ({ src }: AsciinemaPlayerProps) => {
     }
   }, []);
   return (
-    <div style={{ borderRadius: '7px', border: '2px solid' }}>
-      <div className='text-white font-bold rounded-t-sm' style={{ backgroundColor: '#3A3D4D', borderRadius: '4px 4px 0 0', padding: '8px 10px' }}>Session 88</div>
+    <div style={{ borderRadius: "7px", border: "2px solid" }}>
+      <div
+        className="rounded-t-sm font-bold text-white"
+        style={{
+          backgroundColor: "#3A3D4D",
+          borderRadius: "4px 4px 0 0",
+          padding: "8px 10px",
+        }}
+      >
+        Session 88
+      </div>
       <div ref={playerRef} />
     </div>
   );
