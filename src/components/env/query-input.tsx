@@ -92,9 +92,16 @@ const QueryInput = ({
 
       const stream = apiClients.query.watchQuery({
         environmentId: activeEnvironment?.id,
-        query: {
+        // TODO: move back to the parsed query expression when a typescript parser exists
+        // query: {
+        //   from: convertToTimestamp(startDate),
+        //   to: endDate ? convertToTimestamp(endDate) : undefined,
+        //   query: parseString(queryString),
+        // },
+        plaintextQuery: {
           from: convertToTimestamp(startDate),
           to: endDate ? convertToTimestamp(endDate) : undefined,
+          query: queryString,
         },
       });
 
