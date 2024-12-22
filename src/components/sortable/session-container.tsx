@@ -20,6 +20,7 @@ import { SortableOverlay } from "@/components/sortable/sortable-overlay";
 import { SortableItem } from "@/components/sortable/sortable-item";
 import { Timestamp } from "@bufbuild/protobuf";
 import SessionPanel from "@/components/sortable/session-panel";
+import { KV } from "api/js/types/v1/types_pb";
 
 // Define a type for the session item
 export type LogEventGroup = {
@@ -39,11 +40,6 @@ export type LogEvent = {
     msg: string;
     kvs: KV[];
   };
-};
-
-export type KV = {
-  key: string;
-  value: string;
 };
 
 const SessionContainer = (props: { sessions: LogEventGroup[] | null }) => {
