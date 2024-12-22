@@ -17,11 +17,11 @@ export default function PreviewCode() {
         </p>
       </div>
 
-      <div className="flex justify-center gap-7 py-20">
-        <div className="w-1/2">
+      <div className="flex flex-col sm:flex-row justify-center gap-7 py-20">
+        <div className="w-full sm:w-1/2">
           <AsciinemaPlayer src={rowLogSrc} />
         </div>
-        <div className="w-1/2">
+        <div className="w-full sm:w-1/2">
           <AsciinemaPlayer src={prettyLogsSrc} />
         </div>
       </div>
