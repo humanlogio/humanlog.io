@@ -17,7 +17,7 @@ export default function PreviewCode() {
         </p>
       </div>
 
-      <div className="flex flex-col sm:flex-row justify-center gap-7 py-20">
+      <div className="flex flex-col justify-center gap-7 py-20 sm:flex-row">
         <div className="w-full sm:w-1/2">
           <AsciinemaPlayer src={rowLogSrc} />
         </div>
