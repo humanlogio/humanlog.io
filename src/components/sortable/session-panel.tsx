@@ -11,7 +11,8 @@ import { DragHandle } from "@/components/sortable/sortable-item";
 import { LogEventGroup } from "@/components/sortable/session-container";
 import { useDebouncer } from "@/lib/utils/useDebouncer";
 import { Val } from "api/js/types/v1/types_pb";
-import { Duration } from "@bufbuild/protobuf";
+import { Duration, Timestamp } from "@bufbuild/protobuf";
+import dayjs from "dayjs";
 
 type SessionPanelProps = {
   logEventGroup: LogEventGroup | undefined;
@@ -70,6 +71,15 @@ const SessionPanel = ({ logEventGroup }: SessionPanelProps) => {
     }
   }, [blockRetrigger, currentPage, resetScroll, totalPages]);
 
+  const formatTimestamp = (timestamp: Timestamp) => {
+    if (!timestamp?.seconds) {
+      return "-";
+    }
+    return dayjs
+      .unix(Number(timestamp.seconds))
+      .format("MMM D, YYYY, h:mm:ss A");
+  };
+
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
@@ -106,59 +116,53 @@ const SessionPanel = ({ logEventGroup }: SessionPanelProps) => {
       </div>
       <div
         ref={containerRef}
-        className="flex flex-grow flex-col overflow-x-auto bg-gradient-to-r from-slate-300 from-10% via-slate-200 via-10% to-slate-200 to-100% text-sm dark:from-slate-900 dark:via-slate-950 dark:to-slate-950"
+        className="flex flex-grow flex-col overflow-x-auto bg-gradient-to-r from-slate-300 via-slate-200 via-10% to-slate-200 text-sm dark:from-slate-900 dark:via-slate-950 dark:to-slate-950"
       >
         {currentLogs?.map((log, index) => (
           <div
             key={log.id ?? index}
             className="group flex flex-row items-start hover:bg-slate-400/20 hover:dark:bg-slate-700/20"
           >
-            <div className="min-w-[10%] cursor-pointer p-2">
-              <div className="hidden group-hover:inline-block">
-                <Share size={12} />
-              </div>
-              <code className="block truncate text-slate-500 group-hover:hidden">
-                {log.id ?? index + OVERLAP * currentPage}
-              </code>
-            </div>
-
-            <div className="flex w-full flex-shrink flex-row gap-4 px-4 py-2">
-              <code>
-                {log.structured?.lvl ? (
-                  <span
-                    className={
-                      log.structured.lvl === "ERROR"
-                        ? "text-red-600 dark:text-red-500"
-                        : log.structured.lvl === "WARN"
-                          ? "text-yellow-600 dark:text-yellow-500"
-                          : log.structured.lvl === "INFO"
-                            ? "text-blue-600 dark:text-blue-500"
-                            : "text-slate-600 dark:text-slate-500"
-                    }
-                  >
-                    [{log.structured.lvl}]
-                  </span>
-                ) : (
-                  <span className="text-slate-400">[empty]</span>
-                )}
-              </code>
-
-              <div className="flex flex-col">
+            <div className="flex px-4 py-2">
+              <code className="ml-4">{formatTimestamp(log.parsedAt)}</code>
+              <div className="flex w-full flex-shrink flex-row gap-4">
                 <code>
-                  {log.structured?.msg || (
-                    <span className="text-slate-400">[no message]</span>
+                  {log.structured?.lvl ? (
+                    <span
+                      className={
+                        log.structured.lvl === "ERROR"
+                          ? "text-red-600 dark:text-red-500"
+                          : log.structured.lvl === "WARN"
+                            ? "text-yellow-600 dark:text-yellow-500"
+                            : log.structured.lvl === "INFO"
+                              ? "text-blue-600 dark:text-blue-500"
+                              : "text-slate-600 dark:text-slate-500"
+                      }
+                    >
+                      [{log.structured.lvl}]
+                    </span>
+                  ) : (
+                    <span className="text-slate-400">[empty]</span>
                   )}
                 </code>
 
-                <div className="flex flex-wrap gap-x-4">
-                  {log.structured?.kvs.map((kv) => (
-                    <code key={`${log.id ?? index}-${kv.key}`}>
-                      <span className="text-green-700 dark:text-green-400">
-                        {kv.key}
-                      </span>
-                      ={valueToJSX(kv.value)}
-                    </code>
-                  ))}
+                <div className="flex flex-col">
+                  <code>
+                    {log.structured?.msg || (
+                      <span className="text-slate-400">[no message]</span>
+                    )}
+                  </code>
+
+                  <div className="flex flex-wrap gap-x-4">
+                    {log.structured?.kvs.map((kv) => (
+                      <code key={`${log.id ?? index}-${kv.key}`}>
+                        <span className="text-green-700 dark:text-green-400">
+                          {kv.key}
+                        </span>
+                        ={valueToJSX(kv.value)}
+                      </code>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
