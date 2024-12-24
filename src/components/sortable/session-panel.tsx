@@ -8,7 +8,10 @@ import React, {
 } from "react";
 import { Button } from "@/components/ui/button";
 import { DragHandle } from "@/components/sortable/sortable-item";
-import { LogEventGroup } from "@/components/sortable/session-container";
+import {
+  LogEvent,
+  LogEventGroup,
+} from "@/components/sortable/session-container";
 import { useDebouncer } from "@/lib/utils/useDebouncer";
 import { Val } from "api/js/types/v1/types_pb";
 import { Duration, Timestamp } from "@bufbuild/protobuf";
@@ -71,13 +74,12 @@ const SessionPanel = ({ logEventGroup }: SessionPanelProps) => {
     }
   }, [blockRetrigger, currentPage, resetScroll, totalPages]);
 
-  const formatTimestamp = (timestamp: Timestamp) => {
-    if (!timestamp?.seconds) {
-      return "-";
-    }
-    return dayjs
-      .unix(Number(timestamp.seconds))
-      .format("MMM D, YYYY, h:mm:ss A");
+  const formatTimestamp = (log: LogEvent) => {
+    const timestamp = log.structured?.timestamp ?? log.parsedAt;
+    const milliseconds =
+      Number(timestamp?.seconds) * 1000 +
+      (timestamp?.nanos ? timestamp?.nanos / 1e6 : 0);
+    return dayjs(milliseconds).toISOString();
   };
 
   useEffect(() => {
@@ -124,7 +126,7 @@ const SessionPanel = ({ logEventGroup }: SessionPanelProps) => {
             className="group flex flex-row items-start hover:bg-slate-400/20 hover:dark:bg-slate-700/20"
           >
             <div className="flex px-4 py-2">
-              <code className="ml-4">{formatTimestamp(log.parsedAt)}</code>
+              <code className="ml-4">{formatTimestamp(log)}</code>
               <div className="flex w-full flex-shrink flex-row gap-4">
                 <code>
                   {log.structured?.lvl ? (
