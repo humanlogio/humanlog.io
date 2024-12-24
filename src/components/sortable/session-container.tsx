@@ -33,7 +33,7 @@ export type LogEventGroup = {
 
 export type LogEvent = {
   id?: UniqueIdentifier;
-  parsedAt: Timestamp;
+  parsedAt?: Timestamp;
   raw: Uint8Array;
   structured?: {
     timestamp?: Timestamp;
