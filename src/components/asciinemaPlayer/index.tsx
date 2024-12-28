@@ -24,7 +24,7 @@ const AsciinemaPlayer = ({ src }: AsciinemaPlayerProps) => {
           playerRef.current.querySelectorAll('[role="paragraph"]');
 
         codeBlocks.forEach((line, index) => {
-          // 줄 번호 추가
+          // Add line numbers
           const lineNumber = document.createElement("span");
           lineNumber.textContent = `${index + 1} `;
           lineNumber.className = "line-number";
@@ -36,7 +36,7 @@ const AsciinemaPlayer = ({ src }: AsciinemaPlayerProps) => {
 
   useEffect(() => {
     if (playerRef.current) {
-      // 스타일 동적 변경
+      // Dynamic style change
       const style = document.createElement("style");
       style.textContent = `
       .ap-player{
