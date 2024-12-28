@@ -16,7 +16,6 @@ const AsciinemaPlayer = ({ src }: AsciinemaPlayerProps) => {
   };
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
     if (playerRef.current) {
       create(src, playerRef.current, options);
       setTimeout(() => {
