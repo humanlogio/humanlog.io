@@ -61,10 +61,15 @@ const AsciinemaPlayer = ({ src }: AsciinemaPlayerProps) => {
       }
 
       pre.ap-terminal .ap-line span.line-number {
-        width: 35px;
+        width: 7%;
         background-color: #1A1D2A !important;
         color: #707A8A;
         text-align: center;
+      }
+
+      .ap-control-bar {
+        opacity: 1 !important;
+        visibility: visible !important;
       }
       `;
       document.head.appendChild(style);

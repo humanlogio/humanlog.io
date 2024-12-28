@@ -1,3 +1,5 @@
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 import dynamic from "next/dynamic";
 
 const AsciinemaPlayer = dynamic(() => import("@/components/asciinemaPlayer"), {
@@ -21,7 +23,7 @@ export default function PreviewCode() {
         </p>
       </div>
 
-      <div className="flex flex-col justify-center gap-7 py-20 sm:flex-row">
+      <div className="flex flex-col justify-center gap-7 sm:flex-row" style={{ padding: '5rem 0 11rem' }}>
         <div className="w-full sm:w-1/2">
           <AsciinemaPlayer src={rowLogSrc} />
         </div>
@@ -29,6 +31,23 @@ export default function PreviewCode() {
           <AsciinemaPlayer src={prettyLogsSrc} />
         </div>
       </div>
+
+      <div className="grid gap-12">
+        <h2 className="text-center text-3xl font-bold">
+          Want to Clean Your Logs? Try Humanlog for Free!
+        </h2>
+        <Link href={'/pricing'} style={{ width: 'max-content', margin: 'auto' }}
+        >
+          <Button
+            size="lg"
+            className="h-8 border-darkBg px-2 text-[16px] shadow-[2px_2px_0_0_#000000] shadow-black dark:shadow-black"
+            style={{ padding: '20px 25px' }}
+          >
+            Get started
+          </Button>
+        </Link>
+      </div>
+
     </div>
   );
 }
