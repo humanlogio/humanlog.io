@@ -45,3 +45,9 @@ vi.mock("@/components/asciinemaPlayer", () => {
     default: () => <div data-testid="mock-asciinema-player">Mock Player</div>,
   };
 });
+
+vi.mock("asciinema-player", () => {
+  return {
+    default: () => <div data-testid="mock-asciinema-player-library">Mock Library Player</div>,
+  };
+});
