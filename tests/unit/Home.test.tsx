@@ -40,17 +40,5 @@ test("account selector is interactable", () => {
   expect(localhostOption).toHaveTextContent("localhost");
 });
 
-vi.mock("asciinema-player", () => {
-  return {
-    default: () => <div data-testid="mock-asciinema-player">Mock Player</div>,
-  };
-});
-
-
-vi.mock("@/components/asciinemaPlayer", () => {
-  return {
-    default: () => <div data-testid="mock-asciinema-player">Mock Player</div>,
-  };
-});
 
 

@@ -1,11 +1,12 @@
-import createMDX from '@next/mdx';
-import remarkGfm from 'remark-gfm';
+import createMDX from "@next/mdx";
+import remarkGfm from "remark-gfm";
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-    output: 'standalone',
-    transpilePackages: ['api'],
-    pageExtensions: ['js', 'jsx', 'mdx', 'ts', 'tsx'],
+  output: "standalone",
+  transpilePackages: ["api"],
+  pageExtensions: ["js", "jsx", "mdx", "ts", "tsx"],
+  reactStrictMode: false,
 };
 
 const withMDX = createMDX({
@@ -14,6 +15,6 @@ const withMDX = createMDX({
     remarkPlugins: [remarkGfm],
     rehypePlugins: [],
   },
-})
+});
 
 export default withMDX(nextConfig);

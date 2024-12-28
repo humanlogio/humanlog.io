@@ -1,4 +1,8 @@
-import AsciinemaPlayer from "@/components/asciinemaPlayer";
+import dynamic from "next/dynamic";
+
+const AsciinemaPlayer = dynamic(() => import("@/components/asciinemaPlayer"), {
+  ssr: false,
+});
 
 export default function PreviewCode() {
   const rowLogSrc = "/asciinema/raw_logs.cast";
