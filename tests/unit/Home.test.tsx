@@ -1,7 +1,8 @@
-import { expect, test } from "vitest";
+import { expect, test, vi } from "vitest";
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import Home from "@/app/page";
 import { TestWrapper } from "./layout-wrapper";
+
 
 test("pages render", () => {
   render(
@@ -38,3 +39,6 @@ test("account selector is interactable", () => {
   expect(localhostOption).toBeVisible();
   expect(localhostOption).toHaveTextContent("localhost");
 });
+
+
+
