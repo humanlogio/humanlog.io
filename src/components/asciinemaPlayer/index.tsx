@@ -56,7 +56,7 @@ const AsciinemaPlayer = ({ src }: AsciinemaPlayerProps) => {
       }
 
       pre.ap-terminal .ap-line span {
-        position: relative;
+        // position: relative;
         background-color: #121212
       }
 
@@ -84,9 +84,7 @@ const AsciinemaPlayer = ({ src }: AsciinemaPlayerProps) => {
           borderRadius: "4px 4px 0 0",
           padding: "8px 10px",
         }}
-      >
-        Session 88
-      </div>
+      />
       <div ref={playerRef} />
     </div>
   );
