@@ -5,26 +5,7 @@ import { cn } from "@/lib/utils";
 import config from "@/features/config";
 
 const Logo = ({ sm = false }) => {
-  return (
-    <Link href="/">
-      <div
-        className={cn(
-          "flex flex-row items-center gap-1",
-          sm && "-translate-x-[5%] scale-90",
-        )}
-        title="humanlog.io home link"
-      >
-        <span className="text-[16px] text-white">human</span>
-        <Button
-          size="sm"
-          className="h-8 border-darkBg px-2 text-[16px] shadow-[2px_2px_0_0_#fff] shadow-white dark:shadow-white"
-        >
-          log
-        </Button>
-        <span className="text-[16px] text-white">{config.TLD}</span>
-      </div>
-    </Link>
-  );
+  return <Link href="/"></Link>;
 };
 
 export default Logo;
