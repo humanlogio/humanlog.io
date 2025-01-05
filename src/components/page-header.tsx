@@ -193,7 +193,10 @@ const PageHeader: React.FC = () => {
   const renderSourceSelectorBlock = () => (
     <div title="Environment Selector" className="w-full md:min-w-52">
       <Select
-        value={activeEnvironment?.id.toString()}
+        value={
+          activeEnvironment?.id.toString() ??
+          (hasLocalhost ? localhostValue : undefined)
+        }
         onValueChange={updateSelection}
       >
         <SelectTrigger className="w-full">
