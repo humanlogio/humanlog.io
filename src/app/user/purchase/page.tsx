@@ -5,14 +5,7 @@ import {
   TotalPriceSummary,
 } from "@/components/env/env-creation-form";
 import { Button } from "@/components/ui/button";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+import { Form, FormLabel } from "@/components/ui/form";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
@@ -47,6 +40,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Dispatch, SetStateAction, useMemo, useState } from "react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useAllEnvironments } from "@/context/list-environments";
 
 interface Product {
   product: APIProduct;
@@ -59,6 +53,7 @@ export default function UserAddonsPage() {
   const [isBilledYearly, setIsBilledYearly] = useState(true);
   const [selectedProduct, setSelectedProduct] = useState<Product>();
   const [price, setPrice] = useState<APIPrice>();
+  const { user } = useAllEnvironments();
   const [stripePromise, setStripePromise] = useState<
     Promise<Stripe | null> | undefined
   >();
@@ -143,8 +138,31 @@ export default function UserAddonsPage() {
     setStripePromise(loadStripe(stripePK));
   }, [stripePK]);
 
+  if (user === "not-logged-in") {
+    return (
+      <div className="container-min-h-full container flex flex-grow flex-col items-center justify-center gap-8">
+        <h1 className="text-center text-4xl font-bold">You need to login.</h1>
+      </div>
+    );
+  }
+
+  if (user === "loading") {
+    return (
+      <div className="container-min-h-full container flex flex-grow flex-col items-center justify-center gap-8">
+        <h1 className="text-center text-4xl font-bold">
+          Verifying your identity...
+        </h1>
+        <Loader className="animate-spin"></Loader>
+      </div>
+    );
+  }
+
   if (!stripePromise || !price || !products) {
-    return <Loader className="animate-spin" />;
+    return (
+      <div className="container-min-h-full container py-6">
+        <Loader className="animate-spin" />
+      </div>
+    );
   }
 
   return (
