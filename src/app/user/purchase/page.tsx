@@ -125,9 +125,9 @@ export default function UserAddonsPage() {
     const defaultProduct = urlPlanId
       ? listProductRes.items.find((el) => el.product?.stripeId === urlPlanId)
       : listProductRes.items.find(
-        (el) =>
-          el.product?.stripeId === listProductRes.defaultProduct?.stripeId,
-      );
+          (el) =>
+            el.product?.stripeId === listProductRes.defaultProduct?.stripeId,
+        );
 
     defaultProduct &&
       setSelectedProduct({
