@@ -125,9 +125,9 @@ export default function UserAddonsPage() {
     const defaultProduct = urlPlanId
       ? listProductRes.items.find((el) => el.product?.stripeId === urlPlanId)
       : listProductRes.items.find(
-          (el) =>
-            el.product?.stripeId === listProductRes.defaultProduct?.stripeId,
-        );
+        (el) =>
+          el.product?.stripeId === listProductRes.defaultProduct?.stripeId,
+      );
 
     defaultProduct &&
       setSelectedProduct({
@@ -148,7 +148,7 @@ export default function UserAddonsPage() {
   }
 
   return (
-    <div className="container-h-full container py-6">
+    <div className="container py-6">
       <h1 className="mb-6 text-3xl font-bold">Subscribe</h1>
       <Elements
         stripe={stripePromise}
