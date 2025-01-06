@@ -125,9 +125,12 @@ const SessionPanel = ({ logEventGroup }: SessionPanelProps) => {
             key={log.id ?? index}
             className="group flex flex-row items-start hover:bg-slate-400/20 hover:dark:bg-slate-700/20"
           >
-            <div className="flex px-4 py-2">
-              <code className="ml-4">{formatTimestamp(log)}</code>
-              <div className="flex w-full flex-shrink flex-row gap-4">
+            <div className="flex w-full flex-row items-start gap-2 px-4 py-2">
+              <div className="w-44 flex-none">
+                <code>{formatTimestamp(log)}</code>
+              </div>
+
+              <div className="w-20 flex-none">
                 <code>
                   {log.structured?.lvl ? (
                     <span
@@ -147,25 +150,31 @@ const SessionPanel = ({ logEventGroup }: SessionPanelProps) => {
                     <span className="text-slate-400">[empty]</span>
                   )}
                 </code>
+              </div>
 
-                <div className="flex flex-col">
-                  <code>
-                    {log.structured?.msg || (
-                      <span className="text-slate-400">[no message]</span>
-                    )}
-                  </code>
+              <div className="flex-none">
+                <code className="block whitespace-nowrap">
+                  {`${log.structured?.msg}` || (
+                    <span className="text-slate-400">[no message]</span>
+                  )}
+                </code>
+              </div>
 
-                  <div className="flex flex-wrap gap-x-4">
-                    {log.structured?.kvs.map((kv) => (
-                      <code key={`${log.id ?? index}-${kv.key}`}>
-                        <span className="text-green-700 dark:text-green-400">
-                          {kv.key}
-                        </span>
-                        ={valueToJSX(kv.value)}
-                      </code>
-                    ))}
-                  </div>
-                </div>
+              <div className="flex-1">
+                <code className="flex items-center gap-2 whitespace-nowrap">
+                  {log.structured?.kvs.map((kv, kvIndex) => (
+                    <span
+                      key={`${log.id ?? index}-${kv.key}`}
+                      className="flex-none"
+                    >
+                      <span className="text-green-700 dark:text-green-400">
+                        {kv.key}
+                      </span>
+                      ={valueToJSX(kv.value)}
+                      {kvIndex < (log.structured?.kvs.length || 0) - 1 && " "}
+                    </span>
+                  ))}
+                </code>
               </div>
             </div>
           </div>
