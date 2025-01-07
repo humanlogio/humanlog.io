@@ -39,7 +39,7 @@ export default function RootLayout({
             <FullWidthProvider>
               <ListEnvironmentsProvider>
                 <PageHeader />
-                {children}
+                <div className="container-min-h-full">{children}</div>
                 <PageFooter />
                 <Toaster expand={true} />
               </ListEnvironmentsProvider>
