@@ -126,11 +126,11 @@ const SessionPanel = ({ logEventGroup }: SessionPanelProps) => {
             className="group flex flex-row items-start hover:bg-slate-400/20 hover:dark:bg-slate-700/20"
           >
             <div className="flex w-full flex-row items-start gap-2 px-4 py-2">
-              <div className="w-44 flex-none">
+              <div className="flex-none">
                 <code>{formatTimestamp(log)}</code>
               </div>
 
-              <div className="w-20 flex-none">
+              <div className="flex-none">
                 <code>
                   {log.structured?.lvl ? (
                     <span
