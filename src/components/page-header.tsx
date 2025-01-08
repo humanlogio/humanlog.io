@@ -36,7 +36,6 @@ import {
 } from "@/components/ui/sheet";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ModeToggle } from "@/components/mode-toggle";
-import { WidthToggle } from "@/components/width-toggle";
 import { useApiClients } from "@/context/api-provider";
 import { useFullWidth } from "@/context/full-width-provider";
 import {
@@ -50,6 +49,11 @@ import { Button } from "@/components/ui/button";
 import { useQuery } from "@connectrpc/connect-query";
 import { getLogoutURL } from "api/js/svc/user/v1/service-UserService_connectquery";
 import config from "@/features/config";
+import dynamic from "next/dynamic";
+
+const WidthToggle = dynamic(() => import("@/components/width-toggle"), {
+  ssr: false,
+});
 
 const PageHeader: React.FC = () => {
   const signupOnly = config.NEXT_PUBLIC_SIGNUP_ONLY;
