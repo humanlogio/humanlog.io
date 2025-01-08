@@ -160,7 +160,7 @@ const SessionPanel = ({ logEventGroup }: SessionPanelProps) => {
                   className="inline-flex min-w-0"
                 >
                   <Panel defaultSize={30}>
-                    <div className="scrollbar-hide h-full overflow-x-scroll">
+                    <div className="h-full overflow-x-scroll scrollbar-hide">
                       <code className="whitespace-nowrap">
                         {`${log.structured?.msg}` || (
                           <span className="text-slate-400">no message</span>
@@ -172,7 +172,7 @@ const SessionPanel = ({ logEventGroup }: SessionPanelProps) => {
                   <ResizableHandle />
                   <Panel>
                     <div className="h-full">
-                      <code className="scrollbar-hide flex items-center gap-2 overflow-x-scroll whitespace-nowrap">
+                      <code className="flex items-center gap-2 overflow-x-scroll whitespace-nowrap scrollbar-hide">
                         {log.structured?.kvs.map((kv, kvIndex) => (
                           <span
                             key={`${log.id ?? index}-${kv.key}`}
