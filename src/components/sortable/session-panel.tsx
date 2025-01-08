@@ -149,22 +149,32 @@ const SessionPanel = ({ logEventGroup }: SessionPanelProps) => {
                 </code>
 
                 <div className="flex flex-col">
-                  <code>
-                    {log.structured?.msg || (
-                      <span className="text-slate-400">[no message]</span>
-                    )}
-                  </code>
-
-                  <div className="flex flex-wrap gap-x-4">
-                    {log.structured?.kvs.map((kv) => (
-                      <code key={`${log.id ?? index}-${kv.key}`}>
-                        <span className="text-green-700 dark:text-green-400">
-                          {kv.key}
-                        </span>
-                        ={valueToJSX(kv.value)}
+                  {log.structured ? (
+                    <>
+                      <code>
+                        {log.structured.msg || (
+                          <span className="text-slate-400">[no message]</span>
+                        )}
                       </code>
-                    ))}
-                  </div>
+
+                      <div className="flex flex-wrap gap-x-4">
+                        {log.structured.kvs.map((kv) => (
+                          <code key={`${log.id ?? index}-${kv.key}`}>
+                            <span className="text-green-700 dark:text-green-400">
+                              {kv.key}
+                            </span>
+                            ={valueToJSX(kv.value)}
+                          </code>
+                        ))}
+                      </div>
+                    </>
+                  ) : (
+                    <code>
+                      {log.raw || (
+                        <span className="text-slate-400">[no message]</span>
+                      )}
+                    </code>
+                  )}
                 </div>
               </div>
             </div>
