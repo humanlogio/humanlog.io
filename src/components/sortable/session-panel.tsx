@@ -17,7 +17,7 @@ import { Val } from "api/js/types/v1/types_pb";
 import { Duration, Timestamp } from "@bufbuild/protobuf";
 import dayjs from "dayjs";
 import { Panel, PanelGroup } from "react-resizable-panels";
-import { ResizableHandle } from "../ui/resizable";
+import { ResizableHandle } from "@/components/ui/resizable";
 
 type SessionPanelProps = {
   logEventGroup: LogEventGroup | undefined;
