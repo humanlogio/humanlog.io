@@ -91,6 +91,7 @@ export function ApiClientsProvider({
 
     // localhost client should always talk using the localhost transport
     const localhost = createClient(LocalhostService, localhostTransport);
+
     return {
       localhost,
       auth: createClient(AuthService, apiTpt),
