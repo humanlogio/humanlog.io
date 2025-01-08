@@ -10,6 +10,7 @@ import { Toaster } from "@/components/ui/sonner";
 import PageHeader from "@/components/page-header";
 import { ListEnvironmentsProvider } from "@/context/list-environments";
 import PageFooter from "@/components/page-footer";
+import config from "@/features/config";
 
 export const metadata: Metadata = {
   title: "humanlog.io",
@@ -28,6 +29,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      {config.TLD === "dev" && (
+        <meta name="robots" content="noindex, nofollow" />
+      )}
       <body
         className={cn(
           "min-h-screen bg-bg font-mono text-text antialiased dark:bg-darkBg dark:text-darkText",
