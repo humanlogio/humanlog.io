@@ -16,6 +16,8 @@ import { useDebouncer } from "@/lib/utils/useDebouncer";
 import { Val } from "api/js/types/v1/types_pb";
 import { Duration, Timestamp } from "@bufbuild/protobuf";
 import dayjs from "dayjs";
+import { Panel, PanelGroup } from "react-resizable-panels";
+import { ResizableHandle } from "@/components/ui/resizable";
 
 type SessionPanelProps = {
   logEventGroup: LogEventGroup | undefined;
@@ -125,9 +127,12 @@ const SessionPanel = ({ logEventGroup }: SessionPanelProps) => {
             key={log.id ?? index}
             className="group flex flex-row items-start hover:bg-slate-400/20 hover:dark:bg-slate-700/20"
           >
-            <div className="flex px-4 py-2">
-              <code className="ml-4">{formatTimestamp(log)}</code>
-              <div className="flex w-full flex-shrink flex-row gap-4">
+            <div className="flex w-full flex-row items-start gap-2 px-4 py-2">
+              <div className="flex-none">
+                <code>{formatTimestamp(log)}</code>
+              </div>
+
+              <div className="flex-none">
                 <code>
                   {log.structured?.lvl ? (
                     <span
@@ -147,36 +152,51 @@ const SessionPanel = ({ logEventGroup }: SessionPanelProps) => {
                     <span className="text-slate-400">[empty]</span>
                   )}
                 </code>
+              </div>
 
-                <div className="flex flex-col">
-                  {log.structured ? (
-                    <>
-                      <code>
-                        {log.structured.msg || (
-                          <span className="text-slate-400">[no message]</span>
+              {log.structured ? (
+                <PanelGroup
+                  direction="horizontal"
+                  className="inline-flex min-w-0"
+                >
+                  <Panel defaultSize={30}>
+                    <div className="h-full overflow-x-scroll scrollbar-hide">
+                      <code className="whitespace-nowrap">
+                        {`${log.structured?.msg}` || (
+                          <span className="text-slate-400">no message</span>
                         )}
                       </code>
+                    </div>
+                  </Panel>
 
-                      <div className="flex flex-wrap gap-x-4">
-                        {log.structured.kvs.map((kv) => (
-                          <code key={`${log.id ?? index}-${kv.key}`}>
+                  <ResizableHandle />
+                  <Panel>
+                    <div className="h-full">
+                      <code className="flex items-center gap-2 overflow-x-scroll whitespace-nowrap scrollbar-hide">
+                        {log.structured?.kvs.map((kv, kvIndex) => (
+                          <span
+                            key={`${log.id ?? index}-${kv.key}`}
+                            className="flex-none"
+                          >
                             <span className="text-green-700 dark:text-green-400">
                               {kv.key}
                             </span>
                             ={valueToJSX(kv.value)}
-                          </code>
+                            {kvIndex < (log.structured?.kvs.length || 0) - 1 &&
+                              " "}
+                          </span>
                         ))}
-                      </div>
-                    </>
-                  ) : (
-                    <code>
-                      {log.raw || (
-                        <span className="text-slate-400">[no message]</span>
-                      )}
-                    </code>
+                      </code>
+                    </div>
+                  </Panel>
+                </PanelGroup>
+              ) : (
+                <code>
+                  {log.raw || (
+                    <span className="text-slate-400">no message</span>
                   )}
-                </div>
-              </div>
+                </code>
+              )}
             </div>
           </div>
         ))}

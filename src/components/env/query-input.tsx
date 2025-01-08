@@ -216,7 +216,7 @@ const QueryInput = ({
   }, [eventsList, startDate, endDate, updateGraphRange]);
 
   return (
-    <div className="container grid flex-1 grid-cols-2 gap-8">
+    <div className="container grid grid-cols-2 gap-8">
       <div className="col-span-2 md:col-span-1">
         <h1 className="text-2xl font-bold">
           Lorem ipsum dolor sit amet consectetur
