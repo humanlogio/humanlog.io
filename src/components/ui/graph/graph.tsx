@@ -47,9 +47,9 @@ const Graph = (props: {
     [onZoom],
   );
 
-  if (!data) {
+  if (!data || data.length === 0) {
     return (
-      <div className="h-full w-full">
+      <div className="w-full">
         <p className="mt-1 rounded-md border bg-slate-200 p-4 text-sm font-medium leading-tight text-slate-800 dark:bg-slate-800 dark:text-slate-200">
           No log data was found for that time frame.
           <br />
