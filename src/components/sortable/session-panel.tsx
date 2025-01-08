@@ -152,30 +152,40 @@ const SessionPanel = ({ logEventGroup }: SessionPanelProps) => {
                 </code>
               </div>
 
-              <div className="flex-none">
-                <code className="block whitespace-nowrap">
-                  {`${log.structured?.msg}` || (
+              {log.structured ? (
+                <>
+                  <div className="flex-none">
+                    <code className="block whitespace-nowrap">
+                      {`${log.structured?.msg}` || (
+                        <span className="text-slate-400">[no message]</span>
+                      )}
+                    </code>
+                  </div>
+                  <div className="flex-1">
+                    <code className="flex items-center gap-2 whitespace-nowrap">
+                      {log.structured?.kvs.map((kv, kvIndex) => (
+                        <span
+                          key={`${log.id ?? index}-${kv.key}`}
+                          className="flex-none"
+                        >
+                          <span className="text-green-700 dark:text-green-400">
+                            {kv.key}
+                          </span>
+                          ={valueToJSX(kv.value)}
+                          {kvIndex < (log.structured?.kvs.length || 0) - 1 &&
+                            " "}
+                        </span>
+                      ))}
+                    </code>
+                  </div>
+                </>
+              ) : (
+                <code>
+                  {log.raw || (
                     <span className="text-slate-400">[no message]</span>
                   )}
                 </code>
-              </div>
-
-              <div className="flex-1">
-                <code className="flex items-center gap-2 whitespace-nowrap">
-                  {log.structured?.kvs.map((kv, kvIndex) => (
-                    <span
-                      key={`${log.id ?? index}-${kv.key}`}
-                      className="flex-none"
-                    >
-                      <span className="text-green-700 dark:text-green-400">
-                        {kv.key}
-                      </span>
-                      ={valueToJSX(kv.value)}
-                      {kvIndex < (log.structured?.kvs.length || 0) - 1 && " "}
-                    </span>
-                  ))}
-                </code>
-              </div>
+              )}
             </div>
           </div>
         ))}
