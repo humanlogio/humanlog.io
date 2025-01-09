@@ -1,4 +1,4 @@
-export default {
+const config = {
   TLD: ".io",
   NEXT_PUBLIC_SIGNUP_ONLY: process.env.NEXT_PUBLIC_SIGNUP_ONLY === "true",
   NEXT_PUBLIC_API_BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL,
@@ -6,3 +6,5 @@ export default {
   NEXT_PUBLIC_DEFAULT_RELEASE_CHANNEL:
     process.env.NEXT_PUBLIC_DEFAULT_RELEASE_CHANNEL,
 };
+
+export default config;
