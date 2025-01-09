@@ -291,7 +291,7 @@ const SessionContainer = (props: { sessions: LogEventGroup[] | null }) => {
     >
       <>
         {!Object.keys(items).length ? (
-          <div className="m-auto h-full w-full max-w-3xl">
+          <div className="w-full">
             <p className="mt-1 rounded-md border bg-slate-200 p-4 text-sm font-medium leading-tight text-slate-800 dark:bg-slate-800 dark:text-slate-200">
               No logs were found given that query.
               <br />

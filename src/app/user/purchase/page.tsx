@@ -166,7 +166,7 @@ export default function UserAddonsPage() {
   }
 
   return (
-    <div className="container py-6">
+    <div className="container-min-h-full container py-6">
       <h1 className="mb-6 text-3xl font-bold">Subscribe</h1>
       <Elements
         stripe={stripePromise}

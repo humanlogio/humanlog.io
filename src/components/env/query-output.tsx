@@ -16,7 +16,7 @@ const QueryOutput = ({ sessions }: { sessions: LogEventGroup[] | null }) => {
   return (
     <div
       className={cn(
-        "mx-auto flex w-full flex-grow flex-col gap-4 overflow-y-auto px-4 transition-all duration-300",
+        "mx-auto flex w-full flex-1 flex-grow flex-col gap-4 overflow-y-auto px-4 transition-all duration-300",
         isFullWidth ? "max-w-full" : "max-w-screen-xl",
       )}
     >
