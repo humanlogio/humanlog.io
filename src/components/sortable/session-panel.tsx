@@ -1,4 +1,4 @@
-import { Loader, Search, Share } from "lucide-react";
+import { Loader, Search } from "lucide-react";
 import React, {
   useState,
   useEffect,
@@ -14,7 +14,7 @@ import {
 } from "@/components/sortable/session-container";
 import { useDebouncer } from "@/lib/utils/useDebouncer";
 import { Val } from "api/js/types/v1/types_pb";
-import { Duration, Timestamp } from "@bufbuild/protobuf";
+import { Duration } from "@bufbuild/protobuf";
 import dayjs from "dayjs";
 import { Panel, PanelGroup } from "react-resizable-panels";
 import { ResizableHandle } from "@/components/ui/resizable";
@@ -120,86 +120,108 @@ const SessionPanel = ({ logEventGroup }: SessionPanelProps) => {
       </div>
       <div
         ref={containerRef}
-        className="flex flex-grow flex-col overflow-x-auto bg-gradient-to-r from-slate-300 via-slate-200 via-10% to-slate-200 text-sm dark:from-slate-900 dark:via-slate-950 dark:to-slate-950"
+        className="flex flex-grow overflow-y-auto bg-gradient-to-r from-slate-300 via-slate-200 via-10% to-slate-200 text-sm dark:from-slate-900 dark:via-slate-950 dark:to-slate-950"
       >
-        {currentLogs?.map((log, index) => (
-          <div
-            key={log.id ?? index}
-            className="group flex flex-row items-start hover:bg-slate-400/20 hover:dark:bg-slate-700/20"
-          >
-            <div className="flex w-full flex-row items-start gap-2 px-4 py-2">
-              <div className="flex-none">
-                <code>{formatTimestamp(log)}</code>
+        <div className="flex min-w-0 flex-1">
+          <div className="flex flex-none flex-col">
+            {currentLogs?.map((log, index) => (
+              <div
+                key={`${log.id ?? index}-meta`}
+                className="group flex gap-2 px-4 py-2"
+              >
+                <div className="flex-none">
+                  <code>{formatTimestamp(log)}</code>
+                </div>
+
+                <div className="flex-none">
+                  <code>
+                    {log.structured?.lvl ? (
+                      <span
+                        className={
+                          log.structured.lvl === "ERROR"
+                            ? "text-red-600 dark:text-red-500"
+                            : log.structured.lvl === "WARN"
+                              ? "text-yellow-600 dark:text-yellow-500"
+                              : log.structured.lvl === "INFO"
+                                ? "text-blue-600 dark:text-blue-500"
+                                : "text-slate-600 dark:text-slate-500"
+                        }
+                      >
+                        [{log.structured.lvl}]
+                      </span>
+                    ) : (
+                      <span className="text-slate-400">[empty]</span>
+                    )}
+                  </code>
+                </div>
               </div>
-
-              <div className="flex-none">
-                <code>
-                  {log.structured?.lvl ? (
-                    <span
-                      className={
-                        log.structured.lvl === "ERROR"
-                          ? "text-red-600 dark:text-red-500"
-                          : log.structured.lvl === "WARN"
-                            ? "text-yellow-600 dark:text-yellow-500"
-                            : log.structured.lvl === "INFO"
-                              ? "text-blue-600 dark:text-blue-500"
-                              : "text-slate-600 dark:text-slate-500"
-                      }
-                    >
-                      [{log.structured.lvl}]
-                    </span>
-                  ) : (
-                    <span className="text-slate-400">[empty]</span>
-                  )}
-                </code>
-              </div>
-
-              {log.structured ? (
-                <PanelGroup
-                  direction="horizontal"
-                  className="inline-flex min-w-0"
-                >
-                  <Panel defaultSize={30}>
-                    <div className="h-full overflow-x-scroll scrollbar-hide">
-                      <code className="whitespace-nowrap">
-                        {`${log.structured?.msg}` || (
-                          <span className="text-slate-400">no message</span>
-                        )}
-                      </code>
-                    </div>
-                  </Panel>
-
-                  <ResizableHandle />
-                  <Panel>
-                    <div className="h-full">
-                      <code className="flex items-center gap-2 overflow-x-scroll whitespace-nowrap scrollbar-hide">
-                        {log.structured?.kvs.map((kv, kvIndex) => (
-                          <span
-                            key={`${log.id ?? index}-${kv.key}`}
-                            className="flex-none"
-                          >
-                            <span className="text-green-700 dark:text-green-400">
-                              {kv.key}
-                            </span>
-                            ={valueToJSX(kv.value)}
-                            {kvIndex < (log.structured?.kvs.length || 0) - 1 &&
-                              " "}
-                          </span>
-                        ))}
-                      </code>
-                    </div>
-                  </Panel>
-                </PanelGroup>
-              ) : (
-                <code>
-                  {log.raw || (
-                    <span className="text-slate-400">no message</span>
-                  )}
-                </code>
-              )}
-            </div>
+            ))}
           </div>
-        ))}
+
+          <PanelGroup direction="horizontal" className="min-w-0 flex-1">
+            <Panel defaultSize={70}>
+              <div className="flex w-full flex-col">
+                {currentLogs?.map((log, index) => (
+                  <div
+                    key={`${log.id ?? index}-msg`}
+                    className="group h-[37px] hover:bg-slate-400/20 hover:dark:bg-slate-700/20"
+                  >
+                    <div className="h-full px-4 py-2">
+                      {log.structured ? (
+                        <div className="scrollbar-hide h-full overflow-x-auto">
+                          <code className="whitespace-nowrap">
+                            {`${log.structured?.msg}` || (
+                              <span className="text-slate-400">no message</span>
+                            )}
+                          </code>
+                        </div>
+                      ) : (
+                        <code>
+                          {log.raw || (
+                            <span className="text-slate-400">no message</span>
+                          )}
+                        </code>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Panel>
+
+            <ResizableHandle />
+
+            <Panel>
+              <div className="flex w-full flex-col">
+                {currentLogs?.map((log, index) => (
+                  <div
+                    key={`${log.id ?? index}-kvs`}
+                    className="group h-[37px] hover:bg-slate-400/20 hover:dark:bg-slate-700/20"
+                  >
+                    <div className="h-full px-4 py-2">
+                      {log.structured && (
+                        <code className="scrollbar-hide flex items-center gap-2 overflow-x-auto whitespace-nowrap">
+                          {log.structured?.kvs.map((kv, kvIndex) => (
+                            <span
+                              key={`${log.id ?? index}-${kv.key}`}
+                              className="flex-none"
+                            >
+                              <span className="text-green-700 dark:text-green-400">
+                                {kv.key}
+                              </span>
+                              ={valueToJSX(kv.value)}
+                              {kvIndex <
+                                (log.structured?.kvs.length || 0) - 1 && " "}
+                            </span>
+                          ))}
+                        </code>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Panel>
+          </PanelGroup>
+        </div>
       </div>
     </div>
   );
@@ -260,7 +282,6 @@ const valueToJSX = (val: Val | undefined): ReactNode => {
 
 const durationToString = (dur: Duration): string => {
   if (dur.seconds === BigInt(0)) {
-    // sub-second duration
     if (dur.nanos > 1e6) {
       return wholeOrSingleDecimal(dur.nanos, 1e6) + "ms";
     } else if (dur.nanos > 1e3) {
@@ -271,7 +292,6 @@ const durationToString = (dur: Duration): string => {
   }
   if (dur.seconds < 10) {
     if (dur.nanos > 0) {
-      // note that "1s == 1e9ns" and thus "0.1s == 1e8ns"
       const decisecond = wholeOrSingleDecimal(dur.nanos, 1e8);
       return Number(dur.seconds) + "." + decisecond + "s";
     }
@@ -294,10 +314,8 @@ const wholeOrSingleDecimal = (
   orderOfMagnitude: number,
 ): number => {
   if (num % orderOfMagnitude === 0) {
-    // wholly divisible by millisecond
     return num / orderOfMagnitude;
   }
-  // scale up and down to keep 1 decimal
   return Math.round((10 * num) / orderOfMagnitude) / 10;
 };
 
