@@ -96,7 +96,10 @@ const SessionPanel = ({ logEventGroup }: SessionPanelProps) => {
   return (
     <div className="flex h-full flex-col overflow-hidden rounded-base border-2 border-border">
       <div className="flex flex-none flex-row items-center justify-between bg-slate-900 px-4 py-2 dark:bg-slate-800">
-        <div className="flex w-1/3 justify-start">
+        <div className="flex">
+          <div className="mr-2">
+            <DragHandle />
+          </div>
           <h4 className="flex flex-row items-center gap-3 truncate font-bold text-white">
             Session {logEventGroup?.sessionId.toString() ?? "#"}
             {blockRetrigger ? (
@@ -109,10 +112,8 @@ const SessionPanel = ({ logEventGroup }: SessionPanelProps) => {
             )}
           </h4>
         </div>
-        <div className="flex w-1/3 justify-center">
-          <DragHandle />
-        </div>
-        <div className="flex w-1/3 justify-end">
+
+        <div className="flex">
           <Button size="icon" className="mb-1 h-8">
             <Search size={14} />
           </Button>
@@ -158,9 +159,9 @@ const SessionPanel = ({ logEventGroup }: SessionPanelProps) => {
             ))}
           </div>
 
-          <PanelGroup direction="horizontal" className="min-w-0 flex-1">
-            <Panel defaultSize={70}>
-              <div className="flex w-full flex-col">
+          <PanelGroup direction="horizontal" className="group min-w-0 flex-1">
+            <Panel defaultSize={40}>
+              <div className="flex w-full flex-col overflow-x-auto">
                 {currentLogs?.map((log, index) => (
                   <div
                     key={`${log.id ?? index}-msg`}
@@ -168,7 +169,7 @@ const SessionPanel = ({ logEventGroup }: SessionPanelProps) => {
                   >
                     <div className="h-full px-4 py-2">
                       {log.structured ? (
-                        <div className="scrollbar-hide h-full overflow-x-auto">
+                        <div className="scrollbar-hide h-full">
                           <code className="whitespace-nowrap">
                             {`${log.structured?.msg}` || (
                               <span className="text-slate-400">no message</span>
@@ -188,10 +189,10 @@ const SessionPanel = ({ logEventGroup }: SessionPanelProps) => {
               </div>
             </Panel>
 
-            <ResizableHandle />
+            <ResizableHandle className="my-auto h-full w-[0.1px] rounded-full bg-slate-700 opacity-0 group-hover:opacity-50" />
 
             <Panel>
-              <div className="flex w-full flex-col">
+              <div className="flex w-full flex-col overflow-x-auto">
                 {currentLogs?.map((log, index) => (
                   <div
                     key={`${log.id ?? index}-kvs`}
@@ -199,7 +200,7 @@ const SessionPanel = ({ logEventGroup }: SessionPanelProps) => {
                   >
                     <div className="h-full px-4 py-2">
                       {log.structured && (
-                        <code className="scrollbar-hide flex items-center gap-2 overflow-x-auto whitespace-nowrap">
+                        <code className="flex items-center gap-2 whitespace-nowrap">
                           {log.structured?.kvs.map((kv, kvIndex) => (
                             <span
                               key={`${log.id ?? index}-${kv.key}`}
@@ -210,7 +211,7 @@ const SessionPanel = ({ logEventGroup }: SessionPanelProps) => {
                               </span>
                               ={valueToJSX(kv.value)}
                               {kvIndex <
-                                (log.structured?.kvs.length || 0) - 1 && " "}
+                                (log.structured?.kvs.length || 0) - 1 && ""}
                             </span>
                           ))}
                         </code>
