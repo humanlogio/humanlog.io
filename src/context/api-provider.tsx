@@ -16,6 +16,7 @@ import { ProductService } from "api/js/svc/product/v1/service_connect";
 import { getAPIURL } from "@/lib/envs";
 import { useCookies } from "react-cookie";
 import { Environment } from "api/js/types/v1/environment_pb";
+import { useRouter } from "next/navigation";
 
 type ApiProviderType = {
   apiClients: ApiClients | null;
@@ -54,11 +55,15 @@ export function ApiClientsProvider({
   const [activeEnvironment, setActiveEnvironment] = useState<
     Environment | undefined
   >();
+  const router = useRouter();
 
   const humanlogSessionCookie = cookies["hlog_session"];
   const doLogout = () => {
     removeCookie("hlog_session");
     console.log("removed cookies");
+    router.push(
+      `/login?redirect=${encodeURIComponent(window.location.pathname)}`,
+    );
   };
 
   const apiClients = useMemo((): ApiClients => {
