@@ -169,7 +169,7 @@ const SessionPanel = ({ logEventGroup }: SessionPanelProps) => {
                   >
                     <div className="h-full px-4 py-2">
                       {log.structured ? (
-                        <div className="scrollbar-hide h-full">
+                        <div className="h-full scrollbar-hide">
                           <code className="whitespace-nowrap">
                             {`${log.structured?.msg}` || (
                               <span className="text-slate-400">no message</span>
