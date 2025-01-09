@@ -8,8 +8,6 @@ import { ListEnvironmentResponse_ListItem } from "api/js/svc/organization/v1/ser
 import { User } from "api/js/types/v1/user_pb";
 import { Organization } from "api/js/types/v1/organization_pb";
 import { Cursor } from "api/js/types/v1/cursor_pb";
-import { useQuery } from "@connectrpc/connect-query";
-import { whoami } from "api/js/svc/user/v1/service-UserService_connectquery";
 
 export type UserState = User | "loading" | "not-logged-in";
 
@@ -61,8 +59,8 @@ export function ListEnvironmentsProvider({
         setCurrentOrg(res.currentOrganization);
         setDefaultOrg(res.defaultOrganization);
       } catch (err) {
+        setUser("not-logged-in");
         if (err instanceof ConnectError && err.code == Code.Unauthenticated) {
-          setUser("not-logged-in");
           console.log("need to auth");
         } else {
           console.error(err);

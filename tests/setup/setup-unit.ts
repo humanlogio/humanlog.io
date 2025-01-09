@@ -39,3 +39,5 @@ Object.defineProperty(window, "matchMedia", {
     dispatchEvent: () => false,
   }),
 });
+
+export * from "@testing-library/react";

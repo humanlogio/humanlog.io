@@ -24,9 +24,13 @@
     "paths": {
       "@/*": [
         "./src/*"
+      ],
+      "tests/*": [
+        "tests/*"
       ]
     },
-    "target": "ES2017"
+    "target": "ES2017",
+    "baseUrl": "."
   },
   "include": [
     "next-env.d.ts",
