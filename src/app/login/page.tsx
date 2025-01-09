@@ -67,7 +67,9 @@ export default function Page() {
           <h1 className="text-center text-4xl font-bold">
             Hi {user.firstName!}!
           </h1>
-          <p className="mt-4 text-center text-slate-500">You're logged in!</p>
+          <p className="mt-4 text-center text-slate-500">
+            {"You're logged in!"}
+          </p>
         </div>
         <div className="flex flex-row items-center gap-2">
           <span>You can go back in your terminal :)</span>
