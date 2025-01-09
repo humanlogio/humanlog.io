@@ -30,7 +30,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body
         className={cn(
-          "min-h-screen bg-bg font-mono text-text antialiased dark:bg-darkBg dark:text-darkText",
+          "h-screen bg-bg font-mono text-text antialiased dark:bg-darkBg dark:text-darkText",
           font.variable,
         )}
       >
@@ -38,9 +38,13 @@ export default function RootLayout({
           <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
             <FullWidthProvider>
               <ListEnvironmentsProvider>
-                <PageHeader />
-                <div className="container-min-h-full">{children}</div>
-                <PageFooter />
+                <div className="flex min-h-screen flex-col">
+                  <PageHeader />
+                  <div className="container-min-h-full flex flex-1 flex-col">
+                    {children}
+                  </div>
+                  <PageFooter />
+                </div>
                 <Toaster expand={true} />
               </ListEnvironmentsProvider>
             </FullWidthProvider>
