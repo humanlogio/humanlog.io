@@ -164,7 +164,10 @@ const PageHeader: React.FC = () => {
     return (
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <div className="flex cursor-pointer flex-row items-center gap-2 md:flex-row-reverse">
+          <div
+            className="flex cursor-pointer flex-row items-center gap-2 md:flex-row-reverse"
+            aria-label="user-dropdown"
+          >
             <Avatar>
               <AvatarImage src={gravatarURL(user?.email)} />
               <AvatarFallback className="uppercase">
@@ -182,7 +185,7 @@ const PageHeader: React.FC = () => {
               <span>Settings</span>
             </DropdownMenuItem>
           </Link>
-          <Link href={logoutURL!}>
+          <Link href={logoutURL} aria-label="logout">
             <DropdownMenuItem onClick={doLogout}>
               <LogOut size={16} className="mr-2" />
               <span>Log out</span>
