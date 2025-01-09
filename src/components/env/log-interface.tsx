@@ -15,17 +15,17 @@ const LogInterface = () => {
   const [sessions, setSessions] = useState<LogEventGroup[] | null>(null);
 
   return (
-    <section className="container-h-full flex flex-col gap-4">
+    <section>
       {signupOnly || (!hasLocalhost && !listEnvironments.length) ? (
-        <div className="grid w-full grid-cols-1 gap-48 py-44 lg:gap-72 lg:py-60">
+        <div className="flex w-full flex-col gap-48 py-44 lg:gap-72 lg:py-60">
           <SetupGuide />
           <PreviewCode />
         </div>
       ) : (
-        <>
+        <div className="container-h-full flex flex-col gap-4 overflow-y-hidden py-8">
           <QueryInput setSessions={setSessions} />
           <QueryOutput sessions={sessions} />
-        </>
+        </div>
       )}
     </section>
   );
