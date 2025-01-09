@@ -1,15 +1,34 @@
 "use client";
 
-import { useState } from "react";
-import { Copy, Loader, User as UserIcon } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Copy, Loader } from "lucide-react";
 import { copyToClipboard } from "@/lib/utils/clipboard";
 import { useAllEnvironments } from "@/context/list-environments";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { GetAuthURLRequest } from "api/js/svc/auth/v1/service_pb";
+import { useApiClients } from "@/context/api-provider";
 
 export default function Page() {
   const { user } = useAllEnvironments();
   const [authURL, setAuthURL] = useState<string | null>(null);
+  const { apiClients } = useApiClients();
+
+  useEffect(() => {
+    (async () => {
+      const returnToUrl = window.location.href;
+      const req = new GetAuthURLRequest({ returnToUrl: returnToUrl });
+      try {
+        const res = await apiClients?.auth.getAuthURL(req);
+        if (!res || !res.authUrl) {
+          return;
+        }
+        setAuthURL(res?.authUrl);
+      } catch (err) {
+        console.log(err);
+      }
+    })();
+  }, [apiClients?.auth]);
 
   const demoString = `humanlog --help`;
 
@@ -48,9 +67,7 @@ export default function Page() {
           <h1 className="text-center text-4xl font-bold">
             Hi {user.firstName!}!
           </h1>
-          <p className="mt-4 text-center text-slate-500">
-            {"You're logged in!"}
-          </p>
+          <p className="mt-4 text-center text-slate-500">You're logged in!</p>
         </div>
         <div className="flex flex-row items-center gap-2">
           <span>You can go back in your terminal :)</span>
