@@ -140,7 +140,7 @@ export default function UserAddonsPage() {
 
   if (user === "not-logged-in") {
     return (
-      <div className="container-min-h-full container flex flex-grow flex-col items-center justify-center gap-8">
+      <div className="container flex h-full flex-grow flex-col items-center justify-center gap-8">
         <h1 className="text-center text-4xl font-bold">You need to login.</h1>
       </div>
     );
@@ -148,7 +148,7 @@ export default function UserAddonsPage() {
 
   if (user === "loading") {
     return (
-      <div className="container-min-h-full container flex flex-grow flex-col items-center justify-center gap-8">
+      <div className="container flex h-full flex-grow flex-col items-center justify-center gap-8">
         <h1 className="text-center text-4xl font-bold">
           Verifying your identity...
         </h1>
@@ -159,14 +159,14 @@ export default function UserAddonsPage() {
 
   if (!stripePromise || !price || !products) {
     return (
-      <div className="container-min-h-full container py-6">
+      <div className="container h-full py-6">
         <Loader className="animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="container-min-h-full container py-6">
+    <div className="container h-full py-6">
       <h1 className="mb-6 text-3xl font-bold">Subscribe</h1>
       <Elements
         stripe={stripePromise}
