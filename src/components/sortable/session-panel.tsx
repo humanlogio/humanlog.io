@@ -30,7 +30,9 @@ const EDGE_SENSITIVITY = 30;
 const SessionPanel = ({ logEventGroup }: SessionPanelProps) => {
   const [currentPage, setCurrentPage] = useState(0);
   const [blockRetrigger, setBlocker] = useState(false);
+  const [contentHeight, setContentHeight] = useState<number>(0);
   const containerRef = useRef<HTMLDivElement>(null);
+  const metaColumnRef = useRef<HTMLDivElement>(null);
 
   const totalPages = Math.ceil(
     ((logEventGroup?.logs.length || 0) - OVERLAP) / (PAGE_SIZE - OVERLAP),
@@ -52,6 +54,12 @@ const SessionPanel = ({ logEventGroup }: SessionPanelProps) => {
       }
       callback();
     },
+    [],
+    100,
+  );
+
+  const updateContentHeight = useDebouncer(
+    (height: number) => setContentHeight(height),
     [],
     100,
   );
@@ -83,6 +91,25 @@ const SessionPanel = ({ logEventGroup }: SessionPanelProps) => {
       (timestamp?.nanos ? timestamp?.nanos / 1e6 : 0);
     return dayjs(milliseconds).toISOString();
   };
+
+  useEffect(() => {
+    const updateHeight = () => {
+      if (metaColumnRef.current) {
+        updateContentHeight(metaColumnRef.current.scrollHeight);
+      }
+    };
+
+    updateHeight();
+
+    const resizeObserver = new ResizeObserver(updateHeight);
+    if (metaColumnRef.current) {
+      resizeObserver.observe(metaColumnRef.current);
+    }
+
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, [currentPage, updateContentHeight]);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -120,86 +147,114 @@ const SessionPanel = ({ logEventGroup }: SessionPanelProps) => {
       </div>
       <div
         ref={containerRef}
-        className="flex flex-grow flex-col overflow-x-auto bg-gradient-to-r from-slate-300 via-slate-200 via-10% to-slate-200 text-sm dark:from-slate-900 dark:via-slate-950 dark:to-slate-950"
+        className="flex flex-grow overflow-y-auto bg-gradient-to-r from-slate-300 via-slate-200 via-10% to-slate-200 text-sm dark:from-slate-900 dark:via-slate-950 dark:to-slate-950"
       >
-        {currentLogs?.map((log, index) => (
-          <div
-            key={log.id ?? index}
-            className="group flex flex-row items-start hover:bg-slate-400/20 hover:dark:bg-slate-700/20"
-          >
-            <div className="flex w-full flex-row items-start gap-2 px-4 py-2">
-              <div className="flex-none">
-                <code>{formatTimestamp(log)}</code>
-              </div>
-
-              <div className="flex-none">
-                <code>
-                  {log.structured?.lvl ? (
-                    <span
-                      className={
-                        log.structured.lvl === "ERROR"
-                          ? "text-red-600 dark:text-red-500"
-                          : log.structured.lvl === "WARN"
-                            ? "text-yellow-600 dark:text-yellow-500"
-                            : log.structured.lvl === "INFO"
-                              ? "text-blue-600 dark:text-blue-500"
-                              : "text-slate-600 dark:text-slate-500"
-                      }
-                    >
-                      [{log.structured.lvl}]
-                    </span>
-                  ) : (
-                    <span className="text-slate-400">[empty]</span>
-                  )}
-                </code>
-              </div>
-
-              {log.structured ? (
-                <PanelGroup
-                  direction="horizontal"
-                  className="inline-flex min-w-0"
+        <PanelGroup
+          direction="horizontal"
+          className="group h-full min-w-0 flex-1 !overflow-y-auto"
+        >
+          <div className="flex min-w-0 flex-1">
+            <div ref={metaColumnRef} className="flex flex-none flex-col">
+              {currentLogs?.map((log, index) => (
+                <div
+                  key={`${log.id ?? index}-meta`}
+                  className="flex gap-2 px-4 py-2"
                 >
-                  <Panel defaultSize={30}>
-                    <div className="h-full overflow-x-scroll scrollbar-hide">
-                      <code className="whitespace-nowrap">
-                        {`${log.structured?.msg}` || (
-                          <span className="text-slate-400">no message</span>
-                        )}
-                      </code>
-                    </div>
-                  </Panel>
+                  <div className="flex-none">
+                    <code>{formatTimestamp(log)}</code>
+                  </div>
 
-                  <ResizableHandle />
-                  <Panel>
-                    <div className="h-full">
-                      <code className="flex items-center gap-2 overflow-x-scroll whitespace-nowrap scrollbar-hide">
-                        {log.structured?.kvs.map((kv, kvIndex) => (
-                          <span
-                            key={`${log.id ?? index}-${kv.key}`}
-                            className="flex-none"
-                          >
-                            <span className="text-green-700 dark:text-green-400">
-                              {kv.key}
-                            </span>
-                            ={valueToJSX(kv.value)}
-                            {kvIndex < (log.structured?.kvs.length || 0) - 1 &&
-                              " "}
-                          </span>
-                        ))}
-                      </code>
-                    </div>
-                  </Panel>
-                </PanelGroup>
-              ) : (
-                <code>
-                  {log.raw || (
-                    <span className="text-slate-400">no message</span>
-                  )}
-                </code>
-              )}
+                  <div className="flex-none">
+                    <code>
+                      {log.structured?.lvl ? (
+                        <span
+                          className={
+                            log.structured.lvl === "ERROR"
+                              ? "text-red-600 dark:text-red-500"
+                              : log.structured.lvl === "WARN"
+                                ? "text-yellow-600 dark:text-yellow-500"
+                                : log.structured.lvl === "INFO"
+                                  ? "text-blue-600 dark:text-blue-500"
+                                  : "text-slate-600 dark:text-slate-500"
+                          }
+                        >
+                          [{log.structured.lvl}]
+                        </span>
+                      ) : (
+                        <span className="text-slate-400">[empty]</span>
+                      )}
+                    </code>
+                  </div>
+                </div>
+              ))}
             </div>
+
+            <Panel defaultSize={40} style={{ height: `${contentHeight}px` }}>
+              <div className="scrollbar-hide flex w-full flex-col overflow-x-auto">
+                {currentLogs?.map((log, index) => (
+                  <div
+                    key={`${log.id ?? index}-msg`}
+                    className="h-[37px] hover:bg-slate-400/20 hover:dark:bg-slate-700/20"
+                  >
+                    <div className="h-full px-4 py-2">
+                      {log.structured ? (
+                        <div className="scrollbar-hide h-full">
+                          <code className="whitespace-nowrap">
+                            {`${log.structured?.msg}` || (
+                              <span className="text-slate-400">no message</span>
+                            )}
+                          </code>
+                        </div>
+                      ) : (
+                        <code>
+                          {log.raw || (
+                            <span className="text-slate-400">no message</span>
+                          )}
+                        </code>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Panel>
+
+            <ResizableHandle
+              className="my-auto w-[0.1px] rounded-full bg-slate-700 opacity-0 group-hover:opacity-50"
+              style={{ height: `${contentHeight}px` }}
+            />
+
+            <Panel style={{ height: `${contentHeight}px` }}>
+              <div className="scrollbar-hide flex w-full flex-col overflow-x-auto">
+                {currentLogs?.map((log, index) => (
+                  <div
+                    key={`${log.id ?? index}-kvs`}
+                    className="h-[37px] hover:bg-slate-400/20 hover:dark:bg-slate-700/20"
+                  >
+                    <div className="h-full px-4 py-2">
+                      {log.structured && (
+                        <code className="flex items-center gap-2 whitespace-nowrap">
+                          {log.structured?.kvs.map((kv, kvIndex) => (
+                            <span
+                              key={`${log.id ?? index}-${kv.key}`}
+                              className="flex-none"
+                            >
+                              <span className="text-green-700 dark:text-green-400">
+                                {kv.key}
+                              </span>
+                              ={valueToJSX(kv.value)}
+                              {kvIndex <
+                                (log.structured?.kvs.length || 0) - 1 && ""}
+                            </span>
+                          ))}
+                        </code>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Panel>
           </div>
-        ))}
+        </PanelGroup>
       </div>
     </div>
   );
