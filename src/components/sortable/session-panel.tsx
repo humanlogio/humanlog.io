@@ -190,7 +190,7 @@ const SessionPanel = ({ logEventGroup }: SessionPanelProps) => {
             </div>
 
             <Panel defaultSize={40} style={{ height: `${contentHeight}px` }}>
-              <div className="scrollbar-hide flex w-full flex-col overflow-x-auto">
+              <div className="flex w-full flex-col overflow-x-auto scrollbar-hide">
                 {currentLogs?.map((log, index) => (
                   <div
                     key={`${log.id ?? index}-msg`}
@@ -198,7 +198,7 @@ const SessionPanel = ({ logEventGroup }: SessionPanelProps) => {
                   >
                     <div className="h-full px-4 py-2">
                       {log.structured ? (
-                        <div className="scrollbar-hide h-full">
+                        <div className="h-full scrollbar-hide">
                           <code className="whitespace-nowrap">
                             {`${log.structured?.msg}` || (
                               <span className="text-slate-400">no message</span>
@@ -224,7 +224,7 @@ const SessionPanel = ({ logEventGroup }: SessionPanelProps) => {
             />
 
             <Panel style={{ height: `${contentHeight}px` }}>
-              <div className="scrollbar-hide flex w-full flex-col overflow-x-auto">
+              <div className="flex w-full flex-col overflow-x-auto scrollbar-hide">
                 {currentLogs?.map((log, index) => (
                   <div
                     key={`${log.id ?? index}-kvs`}
