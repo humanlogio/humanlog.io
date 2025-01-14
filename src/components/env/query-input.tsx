@@ -92,7 +92,6 @@ const QueryInput = ({
     (signal: AbortSignal) =>
       async (...args: unknown[][]) => {
         const [[editorContent]] = args;
-        console.log("editorContent", editorContent);
         if (
           typeof editorContent !== "string" ||
           !editorContent ||
