@@ -51,37 +51,18 @@ const SessionContainer = (props: { sessions: LogEventGroup[] | null }) => {
 
   useEffect(() => {
     if (!sessions) {
+      setItems({}); // Reset items when sessions is null
       return;
     }
 
-    const current = items["root"] ?? [];
-
+    // Replace completely with new sessions
     setItems({
-      root: current.concat(
-        sessions
-          .map((newItem) => {
-            const newId = `${newItem.machineId}-${newItem.sessionId}`;
-            const match = current.find((existing) => existing.id === newId);
-            if (match) {
-              const max = 1000; // temp max before pagination, TODO: remove
-              match.logs = newItem.isStreaming
-                ? [...newItem.logs, ...match.logs]
-                : newItem.logs;
-              match.logs.length =
-                match.logs.length > max ? max : match.logs.length;
-              return null as unknown as LogEventGroup & {
-                id: UniqueIdentifier;
-              };
-            }
-            return {
-              ...newItem,
-              id: newItem.id ?? newId,
-            };
-          })
-          .filter((newItem) => newItem),
-      ),
+      root: sessions.map((session) => ({
+        ...session,
+        id: session.id ?? `${session.machineId}-${session.sessionId}`,
+      })),
     });
-  }, [sessions]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [sessions]);
 
   const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null);
   const lastOverId = useRef<UniqueIdentifier | null>(null);
