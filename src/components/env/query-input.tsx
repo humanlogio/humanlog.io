@@ -15,7 +15,7 @@ import {
   convertToGraphDataPoints,
   convertToTimestamp,
 } from "@/components/env/graph-utils";
-import MonacoEditor from "../editor/monaco-editor";
+import MonacoEditor from "@/components/editor/monaco-editor";
 import type { OnMount } from "@monaco-editor/react";
 
 const QueryInput = ({
