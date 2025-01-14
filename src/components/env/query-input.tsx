@@ -256,7 +256,6 @@ const QueryInput = ({
               value={queryString}
               onChange={(value) => setQueryString(value || "")}
               options={{
-                automaticLayout: true,
                 minimap: { enabled: false },
               }}
               onMount={handleEditorDidMount}
