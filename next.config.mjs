@@ -7,6 +7,17 @@ const nextConfig = {
   transpilePackages: ["api"],
   pageExtensions: ["js", "jsx", "mdx", "ts", "tsx"],
   reactStrictMode: false,
+  webpack: (config, { isServer }) => {
+    //plugin setting for monaco editor webpack
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        path: false,
+      };
+    }
+    return config;
+  },
 };
 
 const withMDX = createMDX({
