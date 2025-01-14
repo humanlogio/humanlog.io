@@ -255,9 +255,6 @@ const QueryInput = ({
             <MonacoEditor
               value={queryString}
               onChange={(value) => setQueryString(value || "")}
-              options={{
-                minimap: { enabled: false },
-              }}
               onMount={handleEditorDidMount}
             />
           </div>

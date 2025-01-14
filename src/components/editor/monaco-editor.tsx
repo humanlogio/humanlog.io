@@ -3,7 +3,7 @@
 import { useTheme } from "next-themes";
 import Editor, { EditorProps, OnMount } from "@monaco-editor/react";
 import type { editor } from "monaco-editor";
-import { useRef } from "react";
+import { useRef, useEffect, useCallback } from "react";
 
 interface MonacoEditorProps extends Omit<EditorProps, "theme"> {
   width?: number | string;
@@ -15,13 +15,13 @@ interface MonacoEditorProps extends Omit<EditorProps, "theme"> {
 }
 
 const defaultOptions: editor.IStandaloneEditorConstructionOptions = {
+  automaticLayout: false,
   minimap: { enabled: false },
   lineNumbers: "off",
   overviewRulerBorder: false,
   overviewRulerLanes: 0,
   hideCursorInOverviewRuler: true,
   renderLineHighlight: "none",
-  automaticLayout: false,
   scrollbar: {
     vertical: "auto",
     horizontal: "auto",
@@ -48,12 +48,22 @@ const MonacoEditor = ({
     ...options,
   };
 
+  const handleResize = useCallback(() => {
+    if (editorRef.current) {
+      editorRef.current.layout();
+    }
+  }, []);
+
   const handleEditorDidMount: OnMount = (editor, monaco) => {
     editorRef.current = editor;
+
     editor.getModel()?.updateOptions({ tabSize: 2 });
     editor.updateOptions(defaultOptions);
 
-    // editor theme for dark mode
+    // initialize the layout
+    editor.layout();
+
+    // set the theme for dark mode
     monaco.editor.defineTheme("my-dark", {
       base: "vs-dark",
       inherit: true,
@@ -62,10 +72,18 @@ const MonacoEditor = ({
         "editor.background": "#0F172A",
       },
     });
-    monaco.editor.setTheme("my-dark");
+    monaco.editor.setTheme(theme === "dark" ? "my-dark" : "vs-light");
 
     onMount?.(editor, monaco);
   };
+
+  // detect resizing event
+  useEffect(() => {
+    window.addEventListener("resize", handleResize);
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, [handleResize]);
 
   return (
     <Editor
