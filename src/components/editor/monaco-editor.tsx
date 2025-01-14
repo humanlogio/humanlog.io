@@ -21,6 +21,7 @@ const defaultOptions: editor.IStandaloneEditorConstructionOptions = {
   overviewRulerLanes: 0,
   hideCursorInOverviewRuler: true,
   renderLineHighlight: "none",
+  automaticLayout: false,
   scrollbar: {
     vertical: "auto",
     horizontal: "auto",
@@ -52,6 +53,17 @@ const MonacoEditor = ({
     editor.getModel()?.updateOptions({ tabSize: 2 });
     editor.updateOptions(defaultOptions);
 
+    // editor theme for dark mode
+    monaco.editor.defineTheme("my-dark", {
+      base: "vs-dark",
+      inherit: true,
+      rules: [],
+      colors: {
+        "editor.background": "#0F172A",
+      },
+    });
+    monaco.editor.setTheme("my-dark");
+
     onMount?.(editor, monaco);
   };
 
@@ -60,7 +72,7 @@ const MonacoEditor = ({
       width={width}
       height={height}
       defaultLanguage="sql"
-      theme={theme === "dark" ? "vs-dark" : "vs-light"}
+      theme={theme === "dark" ? "my-dark" : "vs-light"}
       defaultValue="-- let's write some broken query 😈"
       value={value}
       onChange={onChange}
