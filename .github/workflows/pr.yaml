@@ -9,7 +9,7 @@ jobs:
     if: github.event.pull_request.draft == false
     steps:
       - uses: actions/checkout@v4
-      - uses: pkgxdev/setup@v1
+      - uses: pkgxdev/setup@v2
 
       - name: Cache Node Modules
         uses: actions/cache@v3
