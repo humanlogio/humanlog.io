@@ -1,8 +1,7 @@
 "use client";
 
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Share } from "lucide-react";
-import { AutosizeTextarea } from "@/components/ui/autosize-textarea";
 import { Button } from "@/components/ui/button";
 import { LogEventGroup } from "@/components/sortable/session-container";
 import Graph, { DataPoint, ZoomType } from "@/components/ui/graph/graph";
@@ -16,6 +15,8 @@ import {
   convertToGraphDataPoints,
   convertToTimestamp,
 } from "@/components/env/graph-utils";
+import MonacoEditor from "@/components/editor/monaco-editor";
+import type { OnMount } from "@monaco-editor/react";
 
 const QueryInput = ({
   setSessions,
@@ -39,6 +40,7 @@ const QueryInput = ({
     endDate: Date;
   }>({ startDate, endDate: new Date() });
   const [queryString, setQueryString] = useState<string>("");
+  const isFirstFocusRef = useRef(true);
 
   const updateGraphRange = useCallback(
     (
@@ -87,38 +89,50 @@ const QueryInput = ({
   );
 
   const createNewSession = useAbortable(
-    (signal: AbortSignal) => async () => {
-      if (!queryString || !apiClients?.query) return;
+    (signal: AbortSignal) =>
+      async (...args: unknown[][]) => {
+        const [[editorContent]] = args;
+        if (
+          typeof editorContent !== "string" ||
+          !editorContent ||
+          !apiClients?.query
+        ) {
+          console.log("Invalid content or missing API client:", {
+            editorContent,
+            hasApiClient: !!apiClients?.query,
+          });
+          return;
+        }
 
-      const stream = apiClients.query.watchQuery({
-        environmentId: activeEnvironment?.id,
-        // TODO: move back to the parsed query expression when a typescript parser exists
-        // query: {
-        //   from: convertToTimestamp(startDate),
-        //   to: endDate ? convertToTimestamp(endDate) : undefined,
-        //   query: parseString(queryString),
-        // },
-        plaintextQuery: {
-          from: convertToTimestamp(startDate),
-          to: endDate ? convertToTimestamp(endDate) : undefined,
-          query: queryString,
-        },
-      });
+        const stream = apiClients.query.watchQuery({
+          environmentId: activeEnvironment?.id,
+          // TODO: move back to the parsed query expression when a typescript parser exists
+          // query: {
+          //   from: convertToTimestamp(startDate),
+          //   to: endDate ? convertToTimestamp(endDate) : undefined,
+          //   query: parseString(queryString),
+          // },
+          plaintextQuery: {
+            from: convertToTimestamp(startDate),
+            to: endDate ? convertToTimestamp(endDate) : undefined,
+            query: editorContent,
+          },
+        });
 
-      if (!stream) return;
+        if (!stream) return;
 
-      for await (const response of stream) {
-        if (signal.aborted) break;
-        if (!response.events.length) continue;
+        for await (const response of stream) {
+          if (signal.aborted) break;
+          if (!response.events.length) continue;
 
-        setSessions(
-          response.events.map((event) => ({
-            ...event,
-            isStreaming: !endDate,
-          })),
-        );
-      }
-    },
+          setSessions(
+            response.events.map((event) => ({
+              ...event,
+              isStreaming: !endDate,
+            })),
+          );
+        }
+      },
     [activeEnvironment, apiClients?.query, endDate, startDate, queryString],
   );
 
@@ -209,6 +223,20 @@ const QueryInput = ({
     ],
   );
 
+  const handleEditorDidMount: OnMount = (editor, monaco) => {
+    editor.onDidFocusEditorText(() => {
+      if (isFirstFocusRef.current) {
+        editor.setValue("");
+        isFirstFocusRef.current = false;
+      }
+    });
+
+    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, () => {
+      const currentValue = editor.getValue();
+      createNewSession([currentValue]);
+    });
+  };
+
   useEffect(() => {
     if (!eventsList) {
       updateGraphRange(startDate, endDate);
@@ -223,19 +251,19 @@ const QueryInput = ({
         </h1>
         <p className="mt-2 text-slate-500">subtitle</p>
         <div className="ml-[4px] mt-4 flex flex-row gap-2">
-          <AutosizeTextarea
-            maxHeight={160}
-            placeholder="Type to search"
-            value={queryString}
-            onChange={(event) => setQueryString(event.target.value)}
-            onKeyDown={(event) => {
-              if (event.key === "Enter" && !event.shiftKey) {
-                event.preventDefault();
-                createNewSession();
-              }
-            }}
-          />
-          <Button size="icon" className="h-8" onClick={createNewSession}>
+          <div className="w-11/12 rounded-base border-2 border-border py-3">
+            <MonacoEditor
+              value={queryString}
+              onChange={(value) => setQueryString(value || "")}
+              onMount={handleEditorDidMount}
+            />
+          </div>
+
+          <Button
+            size="icon"
+            className="h-8"
+            onClick={() => createNewSession([queryString])}
+          >
             <Share size={14} />
           </Button>
         </div>
