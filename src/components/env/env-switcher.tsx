@@ -1,8 +1,8 @@
 "use client";
 
-import { ReactNode } from "react";
+import { ReactNode, useEffect } from "react";
 import { useApiClients } from "@/context/api-provider";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import { getEnvironment } from "api/js/svc/organization/v1/service-OrganizationService_connectquery";
 import { useSuspenseQuery } from "@connectrpc/connect-query";
 import { Loader } from "lucide-react";
@@ -24,6 +24,12 @@ const EnvSwitcher = ({
     },
   });
 
+  useEffect(() => {
+    if (data.environment) {
+      setActiveEnvironment(data.environment);
+    }
+  }, []);
+
   if (isFetching) {
     return <Loader className="animate-spin" />;
   }
@@ -38,8 +44,6 @@ const EnvSwitcher = ({
       </div>
     );
   }
-
-  setActiveEnvironment(data.environment);
 
   return children;
 };
