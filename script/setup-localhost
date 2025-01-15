@@ -18,6 +18,25 @@ function require_being_root() {
     fi
 }
 
+function run_mkcert() {
+    if [ -x "$(command -v mkcert)" ]; then
+        mkcert "$@"
+        return
+    fi
+    if [ -x "$(command -v pkgx)" ]; then
+        pkgx mkcert "$@"
+        return
+    fi
+    if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+        echo "installing mkcert"
+        curl -JLO "https://dl.filippo.io/mkcert/latest?for=linux/amd64"
+        chmod +x mkcert-v*-linux-amd64
+        sudo cp mkcert-v*-linux-amd64 /usr/local/bin/mkcert
+    fi
+    mkcert  "$@"
+    return
+}
+
 function hostfile_has_dev_domain() {
     grep < ${hostfile} "127.0.0.1 ${dev_domain}" > /dev/null
 }
@@ -28,9 +47,9 @@ function install_dev_domain_in_hostfile() {
 
 function generate_and_install_self_signed_tls() {
     mkdir -p ${certdir}
-    pkgx mkcert -install
-    pkgx mkcert -cert-file ${certfile} -key-file ${keyfile} ${dev_domain} "*.${dev_domain}" localhost 127.0.0.1 ::1
-    cp "$(pkgx mkcert -CAROOT)/rootCA.pem" ${cafile}
+    run_mkcert -install
+    run_mkcert -cert-file ${certfile} -key-file ${keyfile} ${dev_domain} "*.${dev_domain}" localhost 127.0.0.1 ::1
+    cp "$(run_mkcert -CAROOT)/rootCA.pem" ${cafile}
     chown -R $SUDO_USER ${certdir}
 }
 
