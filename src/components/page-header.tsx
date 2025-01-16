@@ -181,7 +181,7 @@ const PageHeader: React.FC = () => {
               <span>Settings</span>
             </DropdownMenuItem>
           </Link>
-          <DropdownMenuItem onClick={doLogout}>
+          <DropdownMenuItem onClick={doLogout} aria-label="logout">
             <LogOut size={16} className="mr-2" />
             <span>Log out</span>
             <DropdownMenuShortcut>⇧⌘Q</DropdownMenuShortcut>
