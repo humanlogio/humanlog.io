@@ -5,7 +5,7 @@ import { createClient, Client, Transport } from "@connectrpc/connect";
 import { Interceptor } from "@connectrpc/connect";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createConnectTransport } from "@connectrpc/connect-web";
-import { TransportProvider } from "@connectrpc/connect-query";
+import { TransportProvider, useQuery } from "@connectrpc/connect-query";
 import { AuthService } from "api/js/svc/auth/v1/service_connect";
 import { EnvironmentService } from "api/js/svc/environment/v1/service_connect";
 import { OrganizationService } from "api/js/svc/organization/v1/service_connect";
@@ -13,10 +13,11 @@ import { UserService } from "api/js/svc/user/v1/service_connect";
 import { LocalhostService } from "api/js/svc/localhost/v1/service_connect";
 import { QueryService } from "api/js/svc/query/v1/service_connect";
 import { ProductService } from "api/js/svc/product/v1/service_connect";
-import { getAPIURL } from "@/lib/envs";
+import { getAPIURL, getSelfURL } from "@/lib/envs";
 import { useCookies } from "react-cookie";
 import { Environment } from "api/js/types/v1/environment_pb";
 import { useRouter } from "next/navigation";
+import config from "@/features/config";
 
 type ApiProviderType = {
   apiClients: ApiClients | null;
@@ -58,12 +59,23 @@ export function ApiClientsProvider({
   const router = useRouter();
 
   const humanlogSessionCookie = cookies["hlog_session"];
-  const doLogout = () => {
-    removeCookie("hlog_session");
-    console.log("removed cookies");
-    router.push(
-      `/login?redirect=${encodeURIComponent(window.location.pathname)}`,
-    );
+
+  const doLogout = async () => {
+    removeCookie("hlog_session", {
+      path: "/",
+      domain: `.humanlog${config.TLD}`,
+    });
+
+    try {
+      const { logoutUrl } = await apiClients.user.getLogoutURL({
+        returnTo: getSelfURL(),
+      });
+
+      router.push(logoutUrl);
+    } catch (error) {
+      console.error("Failed to get logout URL:", error);
+      router.push("/login");
+    }
   };
 
   const apiClients = useMemo((): ApiClients => {
