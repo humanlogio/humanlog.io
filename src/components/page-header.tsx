@@ -46,8 +46,6 @@ import { PingResponse } from "api/js/svc/localhost/v1/service_pb";
 import { gravatarURL, getEnvUrl, getUserSettingsUrl } from "@/lib/utils";
 import { useAllEnvironments, UserState } from "@/context/list-environments";
 import { Button } from "@/components/ui/button";
-import { useQuery } from "@connectrpc/connect-query";
-import { getLogoutURL } from "api/js/svc/user/v1/service-UserService_connectquery";
 import config from "@/features/config";
 import dynamic from "next/dynamic";
 
@@ -146,8 +144,6 @@ const PageHeader: React.FC = () => {
     ],
   );
 
-  const logoutURL = useQuery(getLogoutURL).data?.logoutUrl!;
-
   const renderAvatarBlock = (user: UserState) => {
     if (user === "loading" || !authURL) {
       return <Loader className="animate-spin md:text-white" />;
@@ -185,13 +181,11 @@ const PageHeader: React.FC = () => {
               <span>Settings</span>
             </DropdownMenuItem>
           </Link>
-          <Link href={logoutURL} aria-label="logout">
-            <DropdownMenuItem onClick={doLogout}>
-              <LogOut size={16} className="mr-2" />
-              <span>Log out</span>
-              <DropdownMenuShortcut>⇧⌘Q</DropdownMenuShortcut>
-            </DropdownMenuItem>
-          </Link>
+          <DropdownMenuItem onClick={doLogout}>
+            <LogOut size={16} className="mr-2" />
+            <span>Log out</span>
+            <DropdownMenuShortcut>⇧⌘Q</DropdownMenuShortcut>
+          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
     );
