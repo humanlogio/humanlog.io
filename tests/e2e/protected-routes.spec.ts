@@ -94,7 +94,7 @@ test("should log out and redirect to login page", async ({ page }) => {
 
   await page.goto("/env/new");
   await page.click('div[aria-label="user-dropdown"]');
-  await page.click('a[aria-label="logout"]');
+  await page.click('div[aria-label="logout"]');
 
   await page.route("**/svc.user.v1.UserService/Whoami", (route) => {
     route.fulfill({
