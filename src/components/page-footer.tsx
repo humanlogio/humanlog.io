@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 
 import Logo from "@/components/logo";
+import dayjs from "dayjs";
 
 const iconSocialLinks = [
   {
@@ -38,7 +39,7 @@ const PageFooter = () => {
           <div className="flex flex-col items-center gap-4 text-center md:col-span-8 md:items-start md:text-start">
             <Logo sm />
             <p className="text-white">
-              WebScale LLC, 2024.
+              WebScale LLC, 2024-{dayjs().year()}.
               <br />
               Humanlog.io © All rights reserved.
             </p>
