@@ -287,12 +287,6 @@ const valueToJSX = (val: Val | undefined): ReactNode => {
           {JSON.stringify(val.kind.value)}
         </span>
       );
-    case "obj":
-      return (
-        <span className="text-red-600 dark:text-red-400">
-          {JSON.stringify(val.kind.value)}
-        </span>
-      );
     case "ts":
       return (
         <span className="text-red-600 dark:text-red-400">
@@ -305,6 +299,20 @@ const valueToJSX = (val: Val | undefined): ReactNode => {
           {durationToString(val.kind.value)}
         </span>
       );
+    case "obj":
+      return (
+        <span className="text-red-600 dark:text-red-400">
+          {JSON.stringify(val.kind.value)}
+        </span>
+      );
+    case "map":
+      return (
+        <span className="text-red-600 dark:text-red-400">
+          {JSON.stringify(val.kind.value)}
+        </span>
+      );
+    case "null":
+      return <span className="text-red-600 dark:text-red-400">null</span>;
   }
   return (
     <span className="text-red-600 dark:text-red-400">
