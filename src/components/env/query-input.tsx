@@ -28,10 +28,9 @@ const QueryInput = ({
   const [bucketCount, setBucketCount] = useState<number>(100);
   const [startDate, setStartDate] = useState<Date>(
     // starting from one week ago
-    // new Date(new Date().valueOf() - 1000 * 60 * 60 * 24 * 7),
-    new Date(new Date().valueOf() - 1000 * 60 * 10),
+    new Date(new Date().valueOf() - 1000 * 60 * 60 * 24 * 7),
   );
-  const [endDate, setEndDate] = useState<Date | null>(null);
+  const [endDate, setEndDate] = useState<Date>(new Date(new Date().valueOf()));
   const [zoom, setZoom] = useState<{ startIndex?: number; endIndex?: number }>(
     {},
   );
@@ -53,8 +52,8 @@ const QueryInput = ({
         try {
           const events = await apiClients?.query.summarizeEvents({
             environmentId: activeEnvironment?.id,
-            from: convertToTimestamp(targetStart ?? graphRange.startDate),
-            to: convertToTimestamp(targetEnd ?? graphRange.endDate),
+            from: convertToTimestamp(targetStart ?? startDate),
+            to: convertToTimestamp(targetEnd ?? endDate),
             bucketCount,
           });
           if (events) {
@@ -238,10 +237,8 @@ const QueryInput = ({
   };
 
   useEffect(() => {
-    if (!eventsList) {
-      updateGraphRange(startDate, endDate);
-    }
-  }, [eventsList, startDate, endDate, updateGraphRange]);
+    updateGraphRange(startDate, endDate);
+  }, [startDate, endDate]);
 
   return (
     <div className="container grid grid-cols-2 gap-8">
