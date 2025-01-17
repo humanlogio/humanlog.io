@@ -89,6 +89,8 @@ export function ApiClientsProvider({
         res.header.get("content-type");
         const cookies = res.header.getSetCookie();
         if (cookies.length > 1) {
+          // new token is in cookies[""]
+          console.error("received a new cookie, need to handle it!", cookies);
           // setCookie // update the cookie when the api returns a refresh token
         }
         return res;
