@@ -31,20 +31,38 @@ const NewQueryOutput = ({
   setFetchNext,
   isFetching,
 }: NewQueryOutputProps) => {
+  const [output, setOutput] = useState<ReactNode>();
   const { case: dataCase, value } = logData;
 
-  if (dataCase === "tabular" && value instanceof Tabular) {
-    const { case: shapeCase, value: shapeValue } = value.shape;
-    if (shapeCase === "logEvents") {
-      return (
-        <SessionPanel
-          logData={shapeValue.events}
-          setFetchNext={setFetchNext}
-          isFetching={isFetching}
-        />
+  useEffect(() => {
+    if (!logData.case && !logData.value) {
+      setOutput(
+        <div className="w-full">
+          <p className="mt-1 rounded-md border bg-slate-200 p-4 text-sm font-medium leading-tight text-slate-800 dark:bg-slate-800 dark:text-slate-200">
+            No logs were found given that query.
+            <br />
+            <br />
+            Try adjusting your query or time range. If still no data is coming
+            through, please check that the log source is configured correctly.
+          </p>
+        </div>,
       );
     }
-  }
+    if (dataCase === "tabular" && value instanceof Tabular) {
+      const { case: shapeCase, value: shapeValue } = value.shape;
+      if (shapeCase === "logEvents") {
+        setOutput(
+          <SessionPanel
+            logData={shapeValue.events}
+            setFetchNext={setFetchNext}
+            isFetching={isFetching}
+          />,
+        );
+      }
+    }
+  }, [logData]);
+
+  return <div className="container">{output}</div>;
 };
 
 export default NewQueryOutput;
