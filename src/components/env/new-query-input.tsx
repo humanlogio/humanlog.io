@@ -23,7 +23,7 @@ import {
 import MonacoEditor from "@/components/editor/monaco-editor";
 import type { OnMount } from "@monaco-editor/react";
 import { QueryRequest } from "api/js/svc/query/v1/service_pb";
-import { LogData } from "./log-interface";
+import { LogData } from "@/components/env/log-interface";
 import { Cursor } from "api/js/types/v1/cursor_pb";
 import { LogEvents, Tabular } from "api/js/types/v1/query_pb";
 

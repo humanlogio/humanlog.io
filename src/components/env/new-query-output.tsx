@@ -1,7 +1,7 @@
 import { LogEvents, Tabular } from "api/js/types/v1/query_pb";
-import { LogData } from "./log-interface";
-import { DragHandle } from "../sortable/sortable-item";
-import { Button } from "../ui/button";
+import { LogData } from "@/components/env/log-interface";
+import { DragHandle } from "@/components/sortable/sortable-item";
+import { Button } from "@/components/ui/button";
 import { Loader, Search } from "lucide-react";
 import {
   Dispatch,
@@ -15,7 +15,7 @@ import { Panel, PanelGroup } from "react-resizable-panels";
 import { IngestedLogEvent } from "api/js/types/v1/logevent_pb";
 import dayjs from "dayjs";
 import { useDebouncer } from "@/lib/utils/useDebouncer";
-import { ResizableHandle } from "../ui/resizable";
+import { ResizableHandle } from "@/components/ui/resizable";
 import { Val } from "api/js/types/v1/types_pb";
 import { Duration } from "@bufbuild/protobuf";
 import { useInView } from "react-intersection-observer";

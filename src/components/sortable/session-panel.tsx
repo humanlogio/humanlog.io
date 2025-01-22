@@ -306,11 +306,11 @@ const valueToJSX = (val: Val | undefined): ReactNode => {
         </span>
       );
   }
-  return (
-    <span className="text-red-600 dark:text-red-400">
-      buggy UI is buggy: {val.kind.value}
-    </span>
-  );
+  // return (
+  //   <span className="text-red-600 dark:text-red-400">
+  //     buggy UI is buggy: {val.kind.value}
+  //   </span>
+  // );
 };
 
 const durationToString = (dur: Duration): string => {
