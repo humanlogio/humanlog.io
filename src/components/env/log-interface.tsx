@@ -15,8 +15,8 @@ import {
   VectorTimeseries,
 } from "api/js/types/v1/query_pb";
 import { Val } from "api/js/types/v1/types_pb";
-import NewQueryOutput from "./new-query-output";
-import NewQueryInput from "./new-query-input";
+import NewQueryOutput from "@/components/env/new-query-output";
+import NewQueryInput from "@/components/env/new-query-input";
 
 export interface LogData {
   case:
