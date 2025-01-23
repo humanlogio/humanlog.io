@@ -17,22 +17,27 @@ import {
 import { Val } from "api/js/types/v1/types_pb";
 import NewQueryOutput from "@/components/env/new-query-output";
 import NewQueryInput from "@/components/env/new-query-input";
+import { LogQuery } from "api/js/types/v1/logquery_pb";
+
+export type DataCase =
+  | "subqueries"
+  | "tabular"
+  | "singleValue"
+  | "scalarTimeseries"
+  | "vectorTimeseries"
+  | undefined;
+
+export type DataValue =
+  | Data_SubQueries
+  | Tabular
+  | Val
+  | ScalarTimeseries
+  | VectorTimeseries
+  | undefined;
 
 export interface LogData {
-  case:
-    | "subqueries"
-    | "tabular"
-    | "singleValue"
-    | "scalarTimeseries"
-    | "vectorTimeseries"
-    | undefined;
-  value:
-    | Data_SubQueries
-    | Tabular
-    | Val
-    | ScalarTimeseries
-    | VectorTimeseries
-    | undefined;
+  case: DataCase;
+  value?: DataValue;
 }
 
 const LogInterface = () => {
@@ -42,8 +47,7 @@ const LogInterface = () => {
     case: undefined,
     value: undefined,
   });
-  const [isFetching, setIsFetching] = useState(false);
-  const [fetchNext, setFetchNext] = useState(false);
+  const [parsedQuery, setParsedQuery] = useState<LogQuery>();
 
   return (
     <section>
@@ -55,16 +59,10 @@ const LogInterface = () => {
       ) : (
         <div className="container-h-full flex flex-col gap-4 overflow-y-hidden py-8">
           <NewQueryInput
+            setParsedQuery={setParsedQuery}
             setLogData={setLogData}
-            fetchNext={fetchNext}
-            setIsFetching={setIsFetching}
           />
-          <NewQueryOutput
-            logData={logData}
-            setFetchNext={setFetchNext}
-            isFetching={isFetching}
-          />
-          {/* <QueryOutput shapeCase={shapeCase} sessions={sessions} /> */}
+          <NewQueryOutput parsedQuery={parsedQuery} logData={logData} />
         </div>
       )}
     </section>

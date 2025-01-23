@@ -1,16 +1,9 @@
-import { LogEvents, Tabular } from "api/js/types/v1/query_pb";
+import { Data_SubQueries, Tabular } from "api/js/types/v1/query_pb";
 import { LogData } from "@/components/env/log-interface";
 import { DragHandle } from "@/components/sortable/sortable-item";
 import { Button } from "@/components/ui/button";
 import { Loader, Search } from "lucide-react";
-import {
-  Dispatch,
-  ReactNode,
-  SetStateAction,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { ReactNode, useEffect, useRef, useState } from "react";
 import { Panel, PanelGroup } from "react-resizable-panels";
 import { IngestedLogEvent } from "api/js/types/v1/logevent_pb";
 import dayjs from "dayjs";
@@ -19,18 +12,17 @@ import { ResizableHandle } from "@/components/ui/resizable";
 import { Val } from "api/js/types/v1/types_pb";
 import { Duration } from "@bufbuild/protobuf";
 import { useInView } from "react-intersection-observer";
+import { QueryRequest } from "api/js/svc/query/v1/service_pb";
+import { LogQuery } from "api/js/types/v1/logquery_pb";
+import { useApiClients } from "@/context/api-provider";
+import { Cursor } from "api/js/types/v1/cursor_pb";
 
 interface NewQueryOutputProps {
+  parsedQuery: LogQuery | undefined;
   logData: LogData;
-  setFetchNext: Dispatch<SetStateAction<boolean>>;
-  isFetching: boolean;
 }
 
-const NewQueryOutput = ({
-  logData,
-  setFetchNext,
-  isFetching,
-}: NewQueryOutputProps) => {
+const NewQueryOutput = ({ parsedQuery, logData }: NewQueryOutputProps) => {
   const [output, setOutput] = useState<ReactNode>();
   const { case: dataCase, value } = logData;
 
@@ -49,40 +41,44 @@ const NewQueryOutput = ({
       );
     }
     if (dataCase === "tabular" && value instanceof Tabular) {
-      const { case: shapeCase, value: shapeValue } = value.shape;
+      const { case: shapeCase } = value.shape;
       if (shapeCase === "logEvents") {
-        setOutput(
-          <SessionPanel
-            logData={shapeValue.events}
-            setFetchNext={setFetchNext}
-            isFetching={isFetching}
-          />,
-        );
+        setOutput(<SessionPanel query={parsedQuery} />);
       }
+    }
+
+    if (dataCase === "subqueries" && value instanceof Data_SubQueries) {
+      const { queries } = value;
+      setOutput(
+        <>
+          {queries?.map((query, i) => {
+            return <SessionPanel key={i} query={query} />;
+          })}
+        </>,
+      );
     }
   }, [logData]);
 
-  return <div className="container">{output}</div>;
+  return <div className="container flex flex-1 overflow-auto">{output}</div>;
 };
 
 export default NewQueryOutput;
 
 interface SessionPanelProps {
-  logData: IngestedLogEvent[];
-  setFetchNext: Dispatch<SetStateAction<boolean>>;
-  isFetching: boolean;
+  query: LogQuery | undefined;
 }
 
-const SessionPanel = ({
-  logData,
-  setFetchNext,
-  isFetching,
-}: SessionPanelProps) => {
+const SessionPanel = ({ query }: SessionPanelProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const metaColumnRef = useRef<HTMLDivElement>(null);
+  const { apiClients, activeEnvironment } = useApiClients();
 
   // state
   const [contentHeight, setContentHeight] = useState<number>(0);
+  const [fetchNextLogEvents, setFetchNextLogEvents] = useState(false);
+  const [isFetching, setIsFetching] = useState(false);
+  const [next, setNext] = useState<Cursor | null>();
+  const [logs, setLogs] = useState<IngestedLogEvent[]>();
 
   const { ref: targetRef, inView } = useInView({ threshold: 0.9 });
 
@@ -99,6 +95,58 @@ const SessionPanel = ({
     [],
     100,
   );
+
+  const getLogData = async () => {
+    try {
+      setIsFetching(true);
+      const queryReq = new QueryRequest({
+        environmentId: activeEnvironment?.id,
+        query,
+        ...(next && { cursor: next }), // Only when next value exists
+        limit: 30, // TODO:
+      });
+
+      const queryRes = await apiClients?.query.query(queryReq);
+
+      if (queryRes?.next) {
+        setNext(queryRes.next);
+      } else {
+        setNext(null);
+      }
+
+      if (queryRes?.data) {
+        const { case: shapeCase, value } = queryRes.data.shape;
+        if (shapeCase === "tabular" && value instanceof Tabular) {
+          const { case: shapeCase, value: shapeValue } = value.shape;
+          if (shapeCase === "logEvents") {
+            const newLogs = shapeValue.events;
+            setLogs((prev) => {
+              if (prev) {
+                return [...prev, ...newLogs];
+              } else {
+                return newLogs;
+              }
+            });
+          }
+        }
+
+        setIsFetching(false);
+      }
+    } catch (error: any) {
+      console.error(error);
+      setIsFetching(false);
+    }
+  };
+
+  useEffect(() => {
+    getLogData();
+  }, []);
+
+  useEffect(() => {
+    if (fetchNextLogEvents && next) {
+      getLogData();
+    }
+  }, [fetchNextLogEvents]);
 
   useEffect(() => {
     const updateHeight = () => {
@@ -117,14 +165,15 @@ const SessionPanel = ({
     return () => {
       resizeObserver.disconnect();
     };
-  }, [updateContentHeight, logData]);
+  }, [updateContentHeight]);
 
   useEffect(() => {
-    setFetchNext(inView);
+    // setFetchNext(inView);
+    setFetchNextLogEvents(inView);
   }, [inView]);
 
   return (
-    <div className="flex h-full flex-col overflow-hidden rounded-base border-2 border-border">
+    <div className="flex h-full w-full flex-col rounded-base border-2 border-border">
       <div className="flex flex-none flex-row items-center justify-between bg-slate-900 px-4 py-2 dark:bg-slate-800">
         <div className="flex w-1/3 justify-start">
           <h4 className="flex flex-row items-center gap-3 truncate font-bold text-white">
@@ -155,11 +204,11 @@ const SessionPanel = ({
         >
           <div className="flex min-w-0 flex-1">
             <div className="flex flex-none flex-col">
-              {logData.map((log, index) => {
+              {logs?.map((log, index) => {
                 return (
                   <div
                     key={`${log.machineId}-${log.sessionId}-${log.eventId}-${index}`}
-                    className="flex gap-2 px-4 py-2"
+                    className="flex gap-2 px-2 py-2"
                   >
                     [{log.machineId}]
                   </div>
@@ -168,11 +217,11 @@ const SessionPanel = ({
               <div ref={targetRef}>-</div>
             </div>
             <div className="flex flex-none flex-col">
-              {logData.map((log, index) => {
+              {logs?.map((log, index) => {
                 return (
                   <div
                     key={`${log.machineId}-${log.sessionId}-${log.eventId}-${index}`}
-                    className="flex gap-2 px-4 py-2"
+                    className="flex gap-2 px-2 py-2"
                   >
                     [{log.sessionId}]
                   </div>
@@ -180,7 +229,7 @@ const SessionPanel = ({
               })}
             </div>
             <div ref={metaColumnRef} className="flex flex-none flex-col">
-              {logData?.map((log, index) => (
+              {logs?.map((log, index) => (
                 <div
                   key={`${log.machineId}-${log.sessionId}-${log.eventId}-${index}`}
                   className="flex gap-2 px-4 py-2"
@@ -216,7 +265,7 @@ const SessionPanel = ({
 
             <Panel defaultSize={40} style={{ height: `${contentHeight}px` }}>
               <div className="flex w-full flex-col overflow-x-auto scrollbar-hide">
-                {logData?.map((log, index) => (
+                {logs?.map((log, index) => (
                   <div
                     key={`${log.machineId}-${log.sessionId}-${log.eventId}-${index}`}
                     className="hover:bg-slate-400/20 hover:dark:bg-slate-700/20"
@@ -250,7 +299,7 @@ const SessionPanel = ({
 
             <Panel style={{ height: `${contentHeight}px` }}>
               <div className="flex w-full flex-col overflow-x-auto scrollbar-hide">
-                {logData?.map((log, index) => (
+                {logs?.map((log, index) => (
                   <div
                     key={`${log.machineId}-${log.sessionId}-${log.eventId}-${index}`}
                     className="h-[37px] hover:bg-slate-400/20 hover:dark:bg-slate-700/20"
@@ -282,6 +331,7 @@ const SessionPanel = ({
   );
 };
 
+// TODO: 이 밑으로 util함수로 분리
 const valueToJSX = (val: Val | undefined): ReactNode => {
   if (!val) {
     return <>null</>;
