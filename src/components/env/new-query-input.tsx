@@ -23,21 +23,17 @@ import {
 import MonacoEditor from "@/components/editor/monaco-editor";
 import type { OnMount } from "@monaco-editor/react";
 import { QueryRequest } from "api/js/svc/query/v1/service_pb";
-import { LogData } from "@/components/env/log-interface";
+import { DataCase, DataValue, LogData } from "@/components/env/log-interface";
 import { Cursor } from "api/js/types/v1/cursor_pb";
 import { LogEvents, Tabular } from "api/js/types/v1/query_pb";
+import { LogQuery } from "api/js/types/v1/logquery_pb";
 
 interface NewQueryInputProps {
+  setParsedQuery: Dispatch<SetStateAction<LogQuery | undefined>>;
   setLogData: Dispatch<SetStateAction<LogData>>;
-  fetchNext: boolean;
-  setIsFetching: Dispatch<SetStateAction<boolean>>;
 }
 
-const NewQueryInput = ({
-  setLogData,
-  fetchNext,
-  setIsFetching,
-}: NewQueryInputProps) => {
+const NewQueryInput = ({ setParsedQuery, setLogData }: NewQueryInputProps) => {
   const { apiClients, activeEnvironment } = useApiClients();
   const [eventsList, setEvents] = useState<DataPoint[] | null>(null);
   const [bucketCount, setBucketCount] = useState<number>(100);
@@ -45,6 +41,7 @@ const NewQueryInput = ({
     // starting from one week ago
     new Date(new Date().valueOf() - 1000 * 60 * 60 * 24 * 7),
   );
+  const [queryString, setQueryString] = useState<string>("");
   const [endDate, setEndDate] = useState<Date>(new Date(new Date().valueOf()));
   const [zoom, setZoom] = useState<{ startIndex?: number; endIndex?: number }>(
     {},
@@ -53,8 +50,7 @@ const NewQueryInput = ({
     startDate: Date;
     endDate: Date;
   }>({ startDate, endDate: new Date() });
-  const [queryString, setQueryString] = useState<string>("");
-  const [next, setNext] = useState<Cursor | null>();
+
   const isFirstFocusRef = useRef(true);
 
   const updateGraphRange = useCallback(
@@ -115,13 +111,11 @@ const NewQueryInput = ({
 
   const getLogData = useCallback(
     async (editorContent: string) => {
-      setIsFetching(true);
       if (!editorContent || !apiClients?.query) {
         console.log("Invalid content or missing API client:", {
           editorContent,
           hasApiClient: !!apiClients?.query,
         });
-        setIsFetching(false);
         return;
       }
 
@@ -130,71 +124,24 @@ const NewQueryInput = ({
         const parseRes = await pasrseQuery(parseReq);
 
         if (parseRes) {
+          setParsedQuery(parseRes.query);
           const queryReq = new QueryRequest({
             environmentId: activeEnvironment?.id,
             query: parseRes.query,
-            ...(next && { cursor: next }), // Only when next value exists
             limit: 30,
           });
 
           const queryRes = await apiClients.query.query(queryReq);
 
-          if (queryRes.next) {
-            setNext(queryRes.next);
-          } else {
-            setNext(null);
-          }
-
           if (queryRes.data) {
-            const { case: dataCase, value } = queryRes.data.shape;
-
-            if (dataCase === "tabular" && value instanceof Tabular) {
-              const { case: shapeCase, value: shapeValue } = value.shape;
-              if (shapeCase === "logEvents") {
-                setLogData((prev) => {
-                  if (prev.value && prev.value instanceof Tabular) {
-                    const { value: prevShapeValue } = prev.value.shape;
-
-                    if (prevShapeValue && prevShapeValue instanceof LogEvents) {
-                      const newValue = new Tabular({
-                        shape: {
-                          case: shapeCase,
-                          value: {
-                            events: [
-                              ...prevShapeValue.events,
-                              ...shapeValue.events,
-                            ],
-                          },
-                        },
-                      });
-
-                      return {
-                        case: dataCase,
-                        value: newValue,
-                      };
-                    }
-                  }
-
-                  return { case: dataCase, value };
-                });
-              }
-            }
+            setLogData(queryRes.data.shape);
           }
         }
-        setIsFetching(false);
       } catch (error: any) {
-        setIsFetching(false);
         console.error(error);
       }
     },
-    [
-      activeEnvironment,
-      apiClients?.query,
-      endDate,
-      startDate,
-      queryString,
-      next,
-    ],
+    [activeEnvironment, apiClients?.query, endDate, startDate, queryString],
   );
 
   const updateTimeFrame = useDebouncer(
@@ -296,10 +243,10 @@ const NewQueryInput = ({
       const currentValue = editor.getValue();
 
       // initialize
-      setNext(null);
       setLogData({ case: undefined, value: undefined });
 
       getLogData(currentValue);
+      setQueryString(currentValue);
     });
   };
 
@@ -307,11 +254,11 @@ const NewQueryInput = ({
     updateGraphRange(startDate, endDate);
   }, [startDate, endDate]);
 
-  useEffect(() => {
-    if (fetchNext && next) {
-      getLogData(queryString);
-    }
-  }, [fetchNext]);
+  // useEffect(() => {
+  //   if (fetchNext && next) {
+  //     getLogData(queryString);
+  //   }
+  // }, [fetchNext]);
 
   return (
     <div className="container grid grid-cols-2 gap-8">
@@ -333,7 +280,6 @@ const NewQueryInput = ({
             size="icon"
             className="h-8"
             onClick={() => {
-              setNext(null);
               getLogData(queryString);
             }}
           >
