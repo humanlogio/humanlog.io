@@ -1,62 +1,30 @@
-import { Loader, Search, Share } from "lucide-react";
-import React, {
-  useState,
-  useEffect,
-  useRef,
-  useCallback,
-  ReactNode,
-} from "react";
-import { Button } from "@/components/ui/button";
-import { DragHandle } from "@/components/sortable/sortable-item";
-import {
-  LogEvent,
-  LogEventGroup,
-} from "@/components/sortable/session-container";
+import { formatTimestamp, useInfiniteQuery } from "@/lib/utils";
 import { useDebouncer } from "@/lib/utils/useDebouncer";
-import { Val } from "api/js/types/v1/types_pb";
-import { Duration, Timestamp } from "@bufbuild/protobuf";
-import dayjs from "dayjs";
+import { IngestedLogEvent } from "api/js/types/v1/logevent_pb";
+import { LogQuery } from "api/js/types/v1/logquery_pb";
+import { Loader, Search } from "lucide-react";
+import { ReactNode, useEffect, useRef, useState } from "react";
 import { Panel, PanelGroup } from "react-resizable-panels";
+import { DragHandle } from "@/components/sortable/sortable-item";
+import { Button } from "@/components/ui/button";
+import { Duration, Timestamp } from "@bufbuild/protobuf";
 import { ResizableHandle } from "@/components/ui/resizable";
+import { Val } from "api/js/types/v1/types_pb";
 
-type SessionPanelProps = {
-  logEventGroup: LogEventGroup | undefined;
-};
+interface NewSessionPanelProps {
+  query: LogQuery | undefined;
+}
 
-const PAGE_SIZE = 100;
-const OVERLAP = 50;
-const EDGE_SENSITIVITY = 30;
-
-const SessionPanel = ({ logEventGroup }: SessionPanelProps) => {
-  const [currentPage, setCurrentPage] = useState(0);
-  const [blockRetrigger, setBlocker] = useState(false);
-  const [contentHeight, setContentHeight] = useState<number>(0);
+const NewSessionPanel = ({ query }: NewSessionPanelProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const metaColumnRef = useRef<HTMLDivElement>(null);
 
-  const totalPages = Math.ceil(
-    ((logEventGroup?.logs.length || 0) - OVERLAP) / (PAGE_SIZE - OVERLAP),
-  );
+  const { targetRef, isFetching, fetchNext, fetchData } =
+    useInfiniteQuery(query);
 
-  const currentLogs = logEventGroup?.logs.slice(
-    currentPage * (PAGE_SIZE - OVERLAP),
-    currentPage * (PAGE_SIZE - OVERLAP) + PAGE_SIZE,
-  );
-
-  const resetScroll = useDebouncer(
-    (callback: () => void) => {
-      setBlocker(false);
-      if (containerRef.current) {
-        containerRef.current.scrollTop =
-          (containerRef.current.scrollHeight -
-            containerRef.current.clientHeight) /
-          2;
-      }
-      callback();
-    },
-    [],
-    100,
-  );
+  // state
+  const [contentHeight, setContentHeight] = useState<number>(0);
+  const [logs, setLogs] = useState<IngestedLogEvent[]>();
 
   const updateContentHeight = useDebouncer(
     (height: number) => setContentHeight(height),
@@ -64,33 +32,15 @@ const SessionPanel = ({ logEventGroup }: SessionPanelProps) => {
     100,
   );
 
-  const handleScroll = useCallback(() => {
-    if (!containerRef.current) return;
-    if (blockRetrigger) return;
-    const { scrollTop, scrollHeight, clientHeight } = containerRef.current;
-
-    if (
-      scrollTop + clientHeight * 2 >= scrollHeight - EDGE_SENSITIVITY &&
-      currentPage < totalPages - 1
-    ) {
-      setBlocker(true);
-      resetScroll(() => setCurrentPage((prevPage) => prevPage + 1));
-      return;
-    }
-
-    if (scrollTop <= EDGE_SENSITIVITY + clientHeight && currentPage > 0) {
-      setBlocker(true);
-      resetScroll(() => setCurrentPage((prevPage) => prevPage - 1));
-    }
-  }, [blockRetrigger, currentPage, resetScroll, totalPages]);
-
-  const formatTimestamp = (log: LogEvent) => {
-    const timestamp = log.structured?.timestamp ?? log.parsedAt;
-    const milliseconds =
-      Number(timestamp?.seconds) * 1000 +
-      (timestamp?.nanos ? timestamp?.nanos / 1e6 : 0);
-    return dayjs(milliseconds).toISOString();
-  };
+  useEffect(() => {
+    fetchData(({ case: shapeCase, value: shapeValue }) => {
+      if (shapeCase === "logEvents") {
+        setLogs((prev) =>
+          prev ? [...prev, ...shapeValue.events] : shapeValue.events,
+        );
+      }
+    });
+  }, [fetchNext]);
 
   useEffect(() => {
     const updateHeight = () => {
@@ -109,30 +59,18 @@ const SessionPanel = ({ logEventGroup }: SessionPanelProps) => {
     return () => {
       resizeObserver.disconnect();
     };
-  }, [currentPage, updateContentHeight]);
-
-  useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
-
-    container.addEventListener("scroll", handleScroll);
-
-    return () => container.removeEventListener("scroll", handleScroll);
-  }, [currentPage, totalPages, handleScroll]);
+  }, [updateContentHeight]);
 
   return (
-    <div className="flex h-full flex-col overflow-hidden rounded-base border-2 border-border">
+    <div className="flex h-full w-full flex-col rounded-base border-2 border-border">
       <div className="flex flex-none flex-row items-center justify-between bg-slate-900 px-4 py-2 dark:bg-slate-800">
         <div className="flex w-1/3 justify-start">
           <h4 className="flex flex-row items-center gap-3 truncate font-bold text-white">
-            Session {logEventGroup?.sessionId.toString() ?? "#"}
-            {blockRetrigger ? (
+            {isFetching && (
               <div className="contents" title="Fetching more log data...">
                 <Loader className="animate-spin"></Loader>
                 <span className="sr-only">Loading...</span>
               </div>
-            ) : (
-              ""
             )}
           </h4>
         </div>
@@ -154,14 +92,44 @@ const SessionPanel = ({ logEventGroup }: SessionPanelProps) => {
           className="group h-full min-w-0 flex-1 !overflow-y-auto"
         >
           <div className="flex min-w-0 flex-1">
+            <div className="flex flex-none flex-col">
+              {logs?.map((log, index) => {
+                return (
+                  <div
+                    key={`${log.machineId}-${log.sessionId}-${log.eventId}-${index}`}
+                    className="flex gap-2 px-2 py-2"
+                  >
+                    [{log.machineId}]
+                  </div>
+                );
+              })}
+              <div ref={targetRef}>-</div>
+            </div>
+            <div className="flex flex-none flex-col">
+              {logs?.map((log, index) => {
+                return (
+                  <div
+                    key={`${log.machineId}-${log.sessionId}-${log.eventId}-${index}`}
+                    className="flex gap-2 px-2 py-2"
+                  >
+                    [{log.sessionId}]
+                  </div>
+                );
+              })}
+            </div>
             <div ref={metaColumnRef} className="flex flex-none flex-col">
-              {currentLogs?.map((log, index) => (
+              {logs?.map((log, index) => (
                 <div
-                  key={`${log.id ?? index}-meta`}
+                  key={`${log.machineId}-${log.sessionId}-${log.eventId}-${index}`}
                   className="flex gap-2 px-4 py-2"
                 >
                   <div className="flex-none">
-                    <code>{formatTimestamp(log)}</code>
+                    <code>
+                      {formatTimestamp(
+                        log.structured?.timestamp ??
+                          (log.parsedAt as Timestamp),
+                      )}
+                    </code>
                   </div>
 
                   <div className="flex-none">
@@ -191,10 +159,10 @@ const SessionPanel = ({ logEventGroup }: SessionPanelProps) => {
 
             <Panel defaultSize={40} style={{ height: `${contentHeight}px` }}>
               <div className="flex w-full flex-col overflow-x-auto scrollbar-hide">
-                {currentLogs?.map((log, index) => (
+                {logs?.map((log, index) => (
                   <div
-                    key={`${log.id ?? index}-msg`}
-                    className="h-[37px] hover:bg-slate-400/20 hover:dark:bg-slate-700/20"
+                    key={`${log.machineId}-${log.sessionId}-${log.eventId}-${index}`}
+                    className="hover:bg-slate-400/20 hover:dark:bg-slate-700/20"
                   >
                     <div className="h-full px-4 py-2">
                       {log.structured ? (
@@ -225,19 +193,16 @@ const SessionPanel = ({ logEventGroup }: SessionPanelProps) => {
 
             <Panel style={{ height: `${contentHeight}px` }}>
               <div className="flex w-full flex-col overflow-x-auto scrollbar-hide">
-                {currentLogs?.map((log, index) => (
+                {logs?.map((log, index) => (
                   <div
-                    key={`${log.id ?? index}-kvs`}
+                    key={`${log.machineId}-${log.sessionId}-${log.eventId}-${index}`}
                     className="h-[37px] hover:bg-slate-400/20 hover:dark:bg-slate-700/20"
                   >
                     <div className="h-full px-4 py-2">
                       {log.structured && (
                         <code className="flex items-center gap-2 whitespace-nowrap">
                           {log.structured?.kvs.map((kv, kvIndex) => (
-                            <span
-                              key={`${log.id ?? index}-${kv.key}`}
-                              className="flex-none"
-                            >
+                            <span key={log.eventId} className="flex-none">
                               <span className="text-green-700 dark:text-green-400">
                                 {kv.key}
                               </span>
@@ -260,6 +225,7 @@ const SessionPanel = ({ logEventGroup }: SessionPanelProps) => {
   );
 };
 
+// TODO: 이 밑으로 util함수로 분리
 const valueToJSX = (val: Val | undefined): ReactNode => {
   if (!val) {
     return <>null</>;
@@ -306,11 +272,11 @@ const valueToJSX = (val: Val | undefined): ReactNode => {
         </span>
       );
   }
-  // return (
-  //   <span className="text-red-600 dark:text-red-400">
-  //     buggy UI is buggy: {val.kind.value}
-  //   </span>
-  // );
+  return (
+    <span className="dark:text-redqu-400 text-red-600">
+      {/* buggy UI is buggy: {val.kind.value} */}
+    </span>
+  );
 };
 
 const durationToString = (dur: Duration): string => {
@@ -356,4 +322,4 @@ const wholeOrSingleDecimal = (
   return Math.round((10 * num) / orderOfMagnitude) / 10;
 };
 
-export default SessionPanel;
+export default NewSessionPanel;

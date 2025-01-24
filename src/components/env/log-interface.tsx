@@ -3,16 +3,49 @@
 import { useState } from "react";
 import SetupGuide from "@/components/setup-guide";
 import { useAllEnvironments } from "@/context/list-environments";
-import QueryOutput from "@/components/env/query-output";
-import QueryInput from "@/components/env/query-input";
-import { LogEventGroup } from "@/components/sortable/session-container";
 import PreviewCode from "@/components/env/previewCode";
 import config from "@/features/config";
+import {
+  Data_SubQueries,
+  ScalarTimeseries,
+  Tabular,
+  VectorTimeseries,
+} from "api/js/types/v1/query_pb";
+import { Val } from "api/js/types/v1/types_pb";
+import NewQueryOutput from "@/components/env/new-query-output";
+import NewQueryInput from "@/components/env/new-query-input";
+import { LogQuery } from "api/js/types/v1/logquery_pb";
+
+export type DataCase =
+  | "subqueries"
+  | "tabular"
+  | "singleValue"
+  | "scalarTimeseries"
+  | "vectorTimeseries"
+  | undefined;
+
+export type DataValue =
+  | Data_SubQueries
+  | Tabular
+  | Val
+  | ScalarTimeseries
+  | VectorTimeseries
+  | undefined;
+
+export interface LogData {
+  case: DataCase;
+  value?: DataValue;
+}
 
 const LogInterface = () => {
   const signupOnly = config.NEXT_PUBLIC_SIGNUP_ONLY;
   const { hasLocalhost, listEnvironments } = useAllEnvironments();
-  const [sessions, setSessions] = useState<LogEventGroup[] | null>(null);
+  const [logData, setLogData] = useState<LogData>({
+    case: undefined,
+    value: undefined,
+  });
+  const [parsedQuery, setParsedQuery] = useState<LogQuery>();
+  const [splitByDefault, setSplitByDefault] = useState(true);
 
   return (
     <section>
@@ -23,8 +56,17 @@ const LogInterface = () => {
         </div>
       ) : (
         <div className="container-h-full flex flex-col gap-4 overflow-y-hidden py-8">
-          <QueryInput setSessions={setSessions} />
-          <QueryOutput sessions={sessions} />
+          <NewQueryInput
+            setParsedQuery={setParsedQuery}
+            setLogData={setLogData}
+            splitByDefault={splitByDefault}
+          />
+          <NewQueryOutput
+            parsedQuery={parsedQuery}
+            logData={logData}
+            splitByDefault={splitByDefault}
+            setSplitByDefault={setSplitByDefault}
+          />
         </div>
       )}
     </section>
