@@ -23,17 +23,25 @@ import {
 import MonacoEditor from "@/components/editor/monaco-editor";
 import type { OnMount } from "@monaco-editor/react";
 import { QueryRequest } from "api/js/svc/query/v1/service_pb";
-import { DataCase, DataValue, LogData } from "@/components/env/log-interface";
-import { Cursor } from "api/js/types/v1/cursor_pb";
-import { LogEvents, Tabular } from "api/js/types/v1/query_pb";
-import { LogQuery } from "api/js/types/v1/logquery_pb";
+import { LogData } from "@/components/env/log-interface";
+import {
+  LogQuery,
+  RenderStatement,
+  SplitOperator,
+  SplitOperator_ByOperator,
+} from "api/js/types/v1/logquery_pb";
 
 interface NewQueryInputProps {
   setParsedQuery: Dispatch<SetStateAction<LogQuery | undefined>>;
   setLogData: Dispatch<SetStateAction<LogData>>;
+  splitByDefault: boolean;
 }
 
-const NewQueryInput = ({ setParsedQuery, setLogData }: NewQueryInputProps) => {
+const NewQueryInput = ({
+  splitByDefault,
+  setParsedQuery,
+  setLogData,
+}: NewQueryInputProps) => {
   const { apiClients, activeEnvironment } = useApiClients();
   const [eventsList, setEvents] = useState<DataPoint[] | null>(null);
   const [bucketCount, setBucketCount] = useState<number>(100);
@@ -99,7 +107,7 @@ const NewQueryInput = ({ setParsedQuery, setLogData }: NewQueryInputProps) => {
     ],
   );
 
-  const pasrseQuery = async (parseReq: { query: string }) => {
+  const parseQuery = async (parseReq: { query: string }) => {
     try {
       const parsedQuery = await apiClients?.query.parse(parseReq);
       return parsedQuery;
@@ -110,7 +118,7 @@ const NewQueryInput = ({ setParsedQuery, setLogData }: NewQueryInputProps) => {
   };
 
   const getLogData = useCallback(
-    async (editorContent: string) => {
+    async (editorContent: string, splitByDefault?: boolean) => {
       if (!editorContent || !apiClients?.query) {
         console.log("Invalid content or missing API client:", {
           editorContent,
@@ -121,9 +129,42 @@ const NewQueryInput = ({ setParsedQuery, setLogData }: NewQueryInputProps) => {
 
       try {
         const parseReq = { query: editorContent };
-        const parseRes = await pasrseQuery(parseReq);
+        const parseRes = await parseQuery(parseReq);
 
         if (parseRes) {
+          const q = parseRes.query;
+
+          if (
+            q?.query?.statements?.some(
+              (stmt) => stmt.stmt?.case === "filter",
+            ) &&
+            splitByDefault
+          ) {
+            q!.query!.render = new RenderStatement({
+              stmt: {
+                case: "split",
+                value: new SplitOperator({
+                  by: new SplitOperator_ByOperator({
+                    scalars: [
+                      {
+                        expr: {
+                          case: "identifier",
+                          value: { name: "session" },
+                        },
+                      },
+                      {
+                        expr: {
+                          case: "identifier",
+                          value: { name: "machine" },
+                        },
+                      },
+                    ],
+                  }),
+                }),
+              },
+            });
+          }
+
           setParsedQuery(parseRes.query);
           const queryReq = new QueryRequest({
             environmentId: activeEnvironment?.id,
@@ -141,7 +182,14 @@ const NewQueryInput = ({ setParsedQuery, setLogData }: NewQueryInputProps) => {
         console.error(error);
       }
     },
-    [activeEnvironment, apiClients?.query, endDate, startDate, queryString],
+    [
+      activeEnvironment,
+      apiClients?.query,
+      endDate,
+      startDate,
+      queryString,
+      splitByDefault,
+    ],
   );
 
   const updateTimeFrame = useDebouncer(
@@ -245,7 +293,7 @@ const NewQueryInput = ({ setParsedQuery, setLogData }: NewQueryInputProps) => {
       // initialize
       setLogData({ case: undefined, value: undefined });
 
-      getLogData(currentValue);
+      getLogData(currentValue, splitByDefault);
       setQueryString(currentValue);
     });
   };
@@ -254,11 +302,9 @@ const NewQueryInput = ({ setParsedQuery, setLogData }: NewQueryInputProps) => {
     updateGraphRange(startDate, endDate);
   }, [startDate, endDate]);
 
-  // useEffect(() => {
-  //   if (fetchNext && next) {
-  //     getLogData(queryString);
-  //   }
-  // }, [fetchNext]);
+  useEffect(() => {
+    getLogData(queryString, splitByDefault);
+  }, [splitByDefault]);
 
   return (
     <div className="container grid grid-cols-2 gap-8">

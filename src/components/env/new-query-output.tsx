@@ -1,16 +1,32 @@
 import { Data_SubQueries, Tabular } from "api/js/types/v1/query_pb";
 import { LogData } from "@/components/env/log-interface";
-import { ReactNode, useEffect, useState } from "react";
+import {
+  Dispatch,
+  ReactNode,
+  SetStateAction,
+  useEffect,
+  useState,
+} from "react";
 import { LogQuery } from "api/js/types/v1/logquery_pb";
 import NewSessionPanel from "@/components/sortable/new-session-panel";
 import TableContainer from "@/components/sortable/table-container";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/utils";
 
 interface NewQueryOutputProps {
   parsedQuery: LogQuery | undefined;
   logData: LogData;
+  splitByDefault: boolean;
+  setSplitByDefault: Dispatch<SetStateAction<boolean>>;
 }
 
-const NewQueryOutput = ({ parsedQuery, logData }: NewQueryOutputProps) => {
+const NewQueryOutput = ({
+  parsedQuery,
+  logData,
+  splitByDefault,
+  setSplitByDefault,
+}: NewQueryOutputProps) => {
   const [output, setOutput] = useState<ReactNode>();
 
   const { case: dataCase, value } = logData;
@@ -32,11 +48,25 @@ const NewQueryOutput = ({ parsedQuery, logData }: NewQueryOutputProps) => {
       const { case: shapeCase } = value.shape;
       switch (shapeCase) {
         case "logEvents":
-          setOutput(<NewSessionPanel query={parsedQuery} />);
+          setOutput(
+            <>
+              <ToggleSplit
+                splitByDefault={splitByDefault}
+                setSplitByDefault={setSplitByDefault}
+              />
+              <div className="container flex-1 overflow-auto">
+                <NewSessionPanel query={parsedQuery} />
+              </div>
+            </>,
+          );
           break;
 
         case "freeForm":
-          setOutput(<TableContainer query={parsedQuery} />);
+          setOutput(
+            <div className="container flex-1 overflow-auto">
+              <TableContainer query={parsedQuery} />
+            </div>,
+          );
           break;
       }
       return;
@@ -46,15 +76,57 @@ const NewQueryOutput = ({ parsedQuery, logData }: NewQueryOutputProps) => {
       const { queries } = value;
       setOutput(
         <>
-          {queries?.map((query, i) => {
-            return <NewSessionPanel key={i} query={query} />;
-          })}
+          <ToggleSplit
+            splitByDefault={splitByDefault}
+            setSplitByDefault={setSplitByDefault}
+          />
+          <div className="container flex-1 overflow-auto">
+            {queries?.map((query, i) => {
+              return <NewSessionPanel key={i} query={query} />;
+            })}
+          </div>
         </>,
       );
     }
   }, [logData]);
 
-  return <div className="container flex-1 overflow-auto">{output}</div>;
+  return output;
 };
 
 export default NewQueryOutput;
+
+interface ToggleSplitProps {
+  splitByDefault: boolean;
+  setSplitByDefault: Dispatch<SetStateAction<boolean>>;
+}
+
+const ToggleSplit = ({
+  splitByDefault,
+  setSplitByDefault,
+}: ToggleSplitProps) => {
+  return (
+    <div className="flex-end container mb-3 flex items-center gap-1">
+      <Label
+        htmlFor="billed-monthly"
+        className={cn("transition-colors duration-200", {
+          "text-slate-500": splitByDefault,
+        })}
+      >
+        View Combined Logs
+      </Label>
+      <Switch
+        id="billed-monthly"
+        checked={splitByDefault}
+        onCheckedChange={setSplitByDefault}
+      />
+      <Label
+        htmlFor="billed-monthly"
+        className={cn("relative transition-colors duration-200", {
+          "text-slate-500": !splitByDefault,
+        })}
+      >
+        Split by Default
+      </Label>
+    </div>
+  );
+};
