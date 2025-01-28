@@ -51,6 +51,10 @@ const config = {
         boxShadowY: "4px",
         reverseBoxShadowX: "-4px",
         reverseBoxShadowY: "-4px",
+        defaultActiveX: "6px",
+        defaultActiveY: "6px",
+        variantActiveX: "2px",
+        variantActiveY: "2px",
       },
       fontWeight: {
         base: "500",
