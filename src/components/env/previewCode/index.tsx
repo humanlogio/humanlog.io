@@ -19,14 +19,11 @@ export default function PreviewCode() {
         <p className="mt-4 text-center text-slate-500">
           Messy logs? No problem. <br />
           This is how Humanlog transforms raw, chaotic logs into clean,
-          human-readable insights.{" "}
+          human-readable insights.
         </p>
       </div>
 
-      <div
-        className="flex flex-col justify-center gap-7 sm:flex-row"
-        style={{ padding: "5rem 0 11rem" }}
-      >
+      <div className="mx-auto flex max-w-screen-xl flex-col justify-center gap-7 py-16 sm:flex-row">
         <div className="w-full sm:w-1/2">
           <AsciinemaPlayer src={rowLogSrc} />
         </div>

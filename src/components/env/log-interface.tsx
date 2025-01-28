@@ -55,7 +55,7 @@ const LogInterface = () => {
           <PreviewCode />
         </div>
       ) : (
-        <div className="container-h-full flex flex-col gap-4 overflow-y-hidden py-8">
+        <div className="container-min-h-full flex flex-col gap-4 overflow-y-hidden py-8">
           <NewQueryInput
             setParsedQuery={setParsedQuery}
             setLogData={setLogData}

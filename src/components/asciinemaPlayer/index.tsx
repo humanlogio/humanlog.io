@@ -10,9 +10,11 @@ const AsciinemaPlayer = ({ src }: AsciinemaPlayerProps) => {
   const playerRef = useRef<HTMLDivElement>(null);
 
   const options = {
+    fit: "width",
     autoplay: true,
     loop: true,
     theme: "solarized-dark",
+    controls: false,
   };
 
   useEffect(() => {
@@ -41,7 +43,7 @@ const AsciinemaPlayer = ({ src }: AsciinemaPlayerProps) => {
       style.textContent = `
       .ap-player{
         background-color: #121212 !important; 
-        border-radius: 0 0 4px 4px !important;
+        padding: 8px !important;
       }
 
       .ap-terminal {
@@ -75,19 +77,7 @@ const AsciinemaPlayer = ({ src }: AsciinemaPlayerProps) => {
       document.head.appendChild(style);
     }
   }, []);
-  return (
-    <div style={{ borderRadius: "7px", border: "2px solid" }}>
-      <div
-        className="rounded-t-sm font-bold text-white"
-        style={{
-          backgroundColor: "#3A3D4D",
-          borderRadius: "4px 4px 0 0",
-          padding: "8px 10px",
-        }}
-      />
-      <div ref={playerRef} />
-    </div>
-  );
+  return <div ref={playerRef} />;
 };
 
 export default AsciinemaPlayer;

@@ -33,7 +33,7 @@ export function SettingsShell({
   }
   if (user == "loading") {
     return (
-      <div className="container-h-full container flex items-center justify-center">
+      <div className="container-min-h-full container flex items-center justify-center">
         Checking user...
         <Loader className="animate-spin" />
       </div>
@@ -43,7 +43,7 @@ export function SettingsShell({
   if (!currentOrg) {
     // todo redirect to login
     return (
-      <div className="container-h-full container flex items-center justify-center">
+      <div className="container-min-h-full container flex items-center justify-center">
         <div>You need to login (org)</div>
         <Loader className="animate-spin" />
       </div>
