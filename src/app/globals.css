@@ -11,7 +11,7 @@
   min-height: calc(100dvh - 56px);
 }
 
-.container-h-full {
+.container-min-h-full {
   height: calc(100dvh - 56px);
 }
 
