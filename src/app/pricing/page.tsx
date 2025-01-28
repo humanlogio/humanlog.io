@@ -74,7 +74,14 @@ export default function Page() {
               </Label>
             </div>
 
-            <div className="grid w-full grid-cols-1 gap-8 pt-16 lg:grid-cols-2 xl:grid-cols-4">
+            <div
+              className={cn(
+                "grid w-full grid-cols-1 gap-8 pt-16",
+                products?.length === 1
+                  ? "place-items-center" // Center a single item
+                  : "lg:grid-cols-2 xl:grid-cols-4",
+              )}
+            >
               {products?.map((product) => {
                 const monthly = product.prices.find(
                   (p) => p.recurring?.interval === "month",
