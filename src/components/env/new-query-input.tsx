@@ -307,36 +307,30 @@ const NewQueryInput = ({
   }, [splitByDefault]);
 
   return (
-    <div className="container grid grid-cols-2 gap-8">
-      <div className="col-span-2 md:col-span-1">
-        <h1 className="text-2xl font-bold">
-          Lorem ipsum dolor sit amet consectetur
-        </h1>
-        <p className="mt-2 text-slate-500">subtitle</p>
-        <div className="ml-[4px] mt-4 flex flex-row gap-2">
-          <div className="w-11/12 rounded-base border-2 border-border py-3">
-            <MonacoEditor
-              value={queryString}
-              onChange={(value) => setQueryString(value || "")}
-              onMount={handleEditorDidMount}
-            />
-          </div>
-
-          <Button
-            size="icon"
-            className="h-8"
-            onClick={() => {
-              getLogData(queryString);
-            }}
-          >
-            <Share size={14} />
-          </Button>
+    <div className="container grid grid-cols-2 items-start gap-8">
+      {/* TEXT INPUT */}
+      <div className="col-span-2 ml-[4px] flex flex-row gap-2 md:col-span-1">
+        <div className="w-full overflow-hidden rounded-base border-2 border-border py-3">
+          <MonacoEditor
+            value={queryString}
+            onChange={(value) => setQueryString(value || "")}
+            onMount={handleEditorDidMount}
+          />
         </div>
+        <Button
+          size="icon"
+          className="h-8"
+          onClick={() => {
+            getLogData(queryString);
+          }}
+        >
+          <Share size={14} />
+        </Button>
       </div>
 
+      {/* CHART */}
       <div className="col-span-2 space-y-8 md:col-span-1">
         <Graph data={eventsList} zoom={zoom} onZoom={updateTimeFrame} />
-
         <DateRangePicker
           dateFrom={startDate}
           dateTo={endDate}

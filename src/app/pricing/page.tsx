@@ -33,7 +33,7 @@ export default function Page() {
   const defaultProduct = data?.defaultProduct;
 
   return (
-    <div className="flex w-full flex-col items-center justify-center bg-[linear-gradient(to_right,#80808033_1px,transparent_1px),linear-gradient(to_bottom,#80808033_1px,transparent_1px)] bg-[size:64px_64px]">
+    <div className="flex w-full grow flex-col items-center justify-center bg-[linear-gradient(to_right,#80808033_1px,transparent_1px),linear-gradient(to_bottom,#80808033_1px,transparent_1px)] bg-[size:64px_64px]">
       <div className="container flex flex-col items-center justify-center py-8">
         {isLoading ? (
           <Loader className="animate-spin" />
@@ -74,7 +74,14 @@ export default function Page() {
               </Label>
             </div>
 
-            <div className="grid w-full grid-cols-1 gap-8 pt-16 lg:grid-cols-2 xl:grid-cols-4">
+            <div
+              className={cn(
+                "grid w-full grid-cols-1 gap-8 pt-16",
+                products?.length === 1
+                  ? "place-items-center" // Center a single item
+                  : "lg:grid-cols-2 xl:grid-cols-4",
+              )}
+            >
               {products?.map((product) => {
                 const monthly = product.prices.find(
                   (p) => p.recurring?.interval === "month",
