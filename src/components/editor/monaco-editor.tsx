@@ -33,7 +33,7 @@ const defaultOptions: editor.IStandaloneEditorConstructionOptions = {
 
 const MonacoEditor = ({
   width = "100%",
-  height = 100,
+  height = 80,
   value,
   onChange,
   onMount,
@@ -96,7 +96,7 @@ const MonacoEditor = ({
       onChange={onChange}
       options={mergedOptions}
       onMount={handleEditorDidMount}
-      loading={<div>Loading Editor...</div>}
+      loading={<>Loading Editor...</>}
       {...props}
     />
   );
