@@ -9,7 +9,7 @@ interface TableProps {
 }
 
 const TableContainer = ({ query }: TableProps) => {
-  const { targetRef, isFetching, fetchNext, fetchData } =
+  const { targetRef, isFetching, fetchNext, fetchData, next } =
     useInfiniteQuery(query);
 
   const [tableColumns, setTableColumns] = useState<TableType_Column[]>();
@@ -20,43 +20,45 @@ const TableContainer = ({ query }: TableProps) => {
       if (shapeCase === "freeForm") {
         setTableColumns(shapeValue.type?.columns);
         setTableRows((prev) =>
-          prev ? [...prev, ...shapeValue.rows] : shapeValue.rows,
+          prev && next ? [...prev, ...shapeValue.rows] : shapeValue.rows,
         );
       }
     });
   }, [fetchNext]);
 
   return (
-    <table className="mt-4 w-full border">
-      <thead className="border">
-        <tr>
-          {tableColumns?.map((col, i) => {
-            return <td key={i}>{col?.name}</td>;
+    tableRows && (
+      <table className="mt-4 w-full border">
+        <thead className="border">
+          <tr>
+            {tableColumns?.map((col, i) => {
+              return <td key={i}>{col?.name}</td>;
+            })}
+          </tr>
+        </thead>
+        <tbody>
+          {tableRows.map((row, i) => {
+            return (
+              <tr key={i}>
+                {row.items?.map((item, i) => {
+                  return (
+                    <td key={`${item.kind.case}-${i}`}>
+                      {item.kind.value instanceof Timestamp ||
+                      item.kind.value instanceof Duration
+                        ? formatTimestamp(item.kind.value)
+                        : item.kind.value}
+                    </td>
+                  );
+                })}
+              </tr>
+            );
           })}
-        </tr>
-      </thead>
-      <tbody>
-        {tableRows?.map((row, i) => {
-          return (
-            <tr key={i}>
-              {row.items?.map((item, i) => {
-                return (
-                  <td key={`${item.kind.case}-${i}`}>
-                    {item.kind.value instanceof Timestamp ||
-                    item.kind.value instanceof Duration
-                      ? formatTimestamp(item.kind.value)
-                      : item.kind.value}
-                  </td>
-                );
-              })}
-            </tr>
-          );
-        })}
-        <tr ref={targetRef}>
-          <td>-</td>
-        </tr>
-      </tbody>
-    </table>
+          <tr ref={targetRef}>
+            <td>-</td>
+          </tr>
+        </tbody>
+      </table>
+    )
   );
 };
 

@@ -49,8 +49,11 @@ export const useInfiniteQuery = (query: LogQuery | undefined) => {
   useEffect(() => {
     if (fetchNext && next) {
       fetchData();
+    } else {
+      setNext(null);
+      setFetchNext(false);
     }
   }, [fetchNext]);
 
-  return { targetRef, isFetching, fetchNext, fetchData };
+  return { targetRef, isFetching, fetchNext, fetchData, next };
 };
