@@ -19,12 +19,21 @@ const TableContainer = ({ query }: TableProps) => {
     fetchData(({ case: shapeCase, value: shapeValue }) => {
       if (shapeCase === "freeForm") {
         setTableColumns(shapeValue.type?.columns);
-        setTableRows((prev) =>
-          prev && next ? [...prev, ...shapeValue.rows] : shapeValue.rows,
-        );
+
+        setTableRows((prev) => {
+          if (!prev) {
+            return shapeValue.rows;
+          }
+          if (prev && next) {
+            return [...prev, ...shapeValue.rows];
+          }
+          if (!next) {
+            return prev;
+          }
+        });
       }
     });
-  }, [fetchNext]);
+  }, [fetchNext, query]);
 
   return (
     tableRows && (
