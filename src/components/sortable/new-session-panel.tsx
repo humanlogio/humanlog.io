@@ -19,7 +19,7 @@ const NewSessionPanel = ({ query }: NewSessionPanelProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const metaColumnRef = useRef<HTMLDivElement>(null);
 
-  const { targetRef, isFetching, fetchNext, fetchData } =
+  const { targetRef, isFetching, fetchNext, fetchData, next } =
     useInfiniteQuery(query);
 
   // state
@@ -35,12 +35,20 @@ const NewSessionPanel = ({ query }: NewSessionPanelProps) => {
   useEffect(() => {
     fetchData(({ case: shapeCase, value: shapeValue }) => {
       if (shapeCase === "logEvents") {
-        setLogs((prev) =>
-          prev ? [...prev, ...shapeValue.events] : shapeValue.events,
-        );
+        setLogs((prev) => {
+          if (!prev) {
+            return shapeValue.events;
+          }
+          if (prev && next) {
+            return [...prev, ...shapeValue.events];
+          }
+          if (!next) {
+            return prev;
+          }
+        });
       }
     });
-  }, [fetchNext]);
+  }, [fetchNext, query]);
 
   useEffect(() => {
     const updateHeight = () => {
@@ -59,7 +67,7 @@ const NewSessionPanel = ({ query }: NewSessionPanelProps) => {
     return () => {
       resizeObserver.disconnect();
     };
-  }, [updateContentHeight]);
+  }, [updateContentHeight, metaColumnRef.current, next]);
 
   return (
     <div className="flex h-full w-full flex-col rounded-base border-2 border-border">
@@ -87,139 +95,143 @@ const NewSessionPanel = ({ query }: NewSessionPanelProps) => {
         ref={containerRef}
         className="flex flex-grow overflow-y-auto bg-gradient-to-r from-slate-300 via-slate-200 via-10% to-slate-200 text-sm dark:from-slate-900 dark:via-slate-950 dark:to-slate-950"
       >
-        <PanelGroup
-          direction="horizontal"
-          className="group h-full min-w-0 flex-1 !overflow-y-auto"
-        >
-          <div className="flex min-w-0 flex-1">
-            <div className="flex flex-none flex-col">
-              {logs?.map((log, index) => {
-                return (
+        {logs && (
+          <PanelGroup
+            direction="horizontal"
+            className="group h-full min-w-0 flex-1 !overflow-y-auto"
+          >
+            <div className="flex min-w-0 flex-1">
+              <div className="flex flex-none flex-col">
+                {logs.map((log, index) => {
+                  return (
+                    <div
+                      key={`${log.machineId}-${log.sessionId}-${log.eventId}-${index}`}
+                      className="flex gap-2 px-2 py-2"
+                    >
+                      [{log.machineId}]
+                    </div>
+                  );
+                })}
+                <div ref={targetRef}>-</div>
+              </div>
+              <div className="flex flex-none flex-col">
+                {logs.map((log, index) => {
+                  return (
+                    <div
+                      key={`${log.machineId}-${log.sessionId}-${log.eventId}-${index}`}
+                      className="flex gap-2 px-2 py-2"
+                    >
+                      [{log.sessionId}]
+                    </div>
+                  );
+                })}
+              </div>
+              <div ref={metaColumnRef} className="flex flex-none flex-col">
+                {logs.map((log, index) => (
                   <div
                     key={`${log.machineId}-${log.sessionId}-${log.eventId}-${index}`}
-                    className="flex gap-2 px-2 py-2"
+                    className="flex gap-2 px-4 py-2"
                   >
-                    [{log.machineId}]
-                  </div>
-                );
-              })}
-              <div ref={targetRef}>-</div>
-            </div>
-            <div className="flex flex-none flex-col">
-              {logs?.map((log, index) => {
-                return (
-                  <div
-                    key={`${log.machineId}-${log.sessionId}-${log.eventId}-${index}`}
-                    className="flex gap-2 px-2 py-2"
-                  >
-                    [{log.sessionId}]
-                  </div>
-                );
-              })}
-            </div>
-            <div ref={metaColumnRef} className="flex flex-none flex-col">
-              {logs?.map((log, index) => (
-                <div
-                  key={`${log.machineId}-${log.sessionId}-${log.eventId}-${index}`}
-                  className="flex gap-2 px-4 py-2"
-                >
-                  <div className="flex-none">
-                    <code>
-                      {formatTimestamp(
-                        log.structured?.timestamp ??
-                          (log.parsedAt as Timestamp),
-                      )}
-                    </code>
-                  </div>
+                    <div className="flex-none">
+                      <code>
+                        {formatTimestamp(
+                          log.structured?.timestamp ??
+                            (log.parsedAt as Timestamp),
+                        )}
+                      </code>
+                    </div>
 
-                  <div className="flex-none">
-                    <code>
-                      {log.structured?.lvl ? (
-                        <span
-                          className={
-                            log.structured.lvl === "ERROR"
-                              ? "text-red-600 dark:text-red-500"
-                              : log.structured.lvl === "WARN"
-                                ? "text-yellow-600 dark:text-yellow-500"
-                                : log.structured.lvl === "INFO"
-                                  ? "text-blue-600 dark:text-blue-500"
-                                  : "text-slate-600 dark:text-slate-500"
-                          }
-                        >
-                          [{log.structured.lvl}]
-                        </span>
-                      ) : (
-                        <span className="text-slate-400">[empty]</span>
-                      )}
-                    </code>
+                    <div className="flex-none">
+                      <code>
+                        {log.structured?.lvl ? (
+                          <span
+                            className={
+                              log.structured.lvl === "ERROR"
+                                ? "text-red-600 dark:text-red-500"
+                                : log.structured.lvl === "WARN"
+                                  ? "text-yellow-600 dark:text-yellow-500"
+                                  : log.structured.lvl === "INFO"
+                                    ? "text-blue-600 dark:text-blue-500"
+                                    : "text-slate-600 dark:text-slate-500"
+                            }
+                          >
+                            [{log.structured.lvl}]
+                          </span>
+                        ) : (
+                          <span className="text-slate-400">[empty]</span>
+                        )}
+                      </code>
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
 
-            <Panel defaultSize={40} style={{ height: `${contentHeight}px` }}>
-              <div className="flex w-full flex-col overflow-x-auto scrollbar-hide">
-                {logs?.map((log, index) => (
-                  <div
-                    key={`${log.machineId}-${log.sessionId}-${log.eventId}-${index}`}
-                    className="hover:bg-slate-400/20 hover:dark:bg-slate-700/20"
-                  >
-                    <div className="h-full px-4 py-2">
-                      {log.structured ? (
-                        <div className="h-full scrollbar-hide">
-                          <code className="whitespace-nowrap">
-                            {`${log.structured?.msg}` || (
+              <Panel defaultSize={40} style={{ height: `${contentHeight}px` }}>
+                <div className="flex w-full flex-col overflow-x-auto scrollbar-hide">
+                  {logs.map((log, index) => (
+                    <div
+                      key={`${log.machineId}-${log.sessionId}-${log.eventId}-${index}`}
+                      className="hover:bg-slate-400/20 hover:dark:bg-slate-700/20"
+                    >
+                      <div className="h-full px-4 py-2">
+                        {log.structured ? (
+                          <div className="h-full scrollbar-hide">
+                            <code className="whitespace-nowrap">
+                              {`${log.structured.msg}` || (
+                                <span className="text-slate-400">
+                                  no message
+                                </span>
+                              )}
+                            </code>
+                          </div>
+                        ) : (
+                          <code>
+                            {log.raw || (
                               <span className="text-slate-400">no message</span>
                             )}
                           </code>
-                        </div>
-                      ) : (
-                        <code>
-                          {log.raw || (
-                            <span className="text-slate-400">no message</span>
-                          )}
-                        </code>
-                      )}
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-            </Panel>
+                  ))}
+                </div>
+              </Panel>
 
-            <ResizableHandle
-              className="my-auto w-[0.1px] rounded-full bg-slate-700 opacity-0 group-hover:opacity-50"
-              style={{ height: `${contentHeight}px` }}
-            />
+              <ResizableHandle
+                className="my-auto w-[0.1px] rounded-full bg-slate-700 opacity-0 group-hover:opacity-50"
+                style={{ height: `${contentHeight}px` }}
+              />
 
-            <Panel style={{ height: `${contentHeight}px` }}>
-              <div className="flex w-full flex-col overflow-x-auto scrollbar-hide">
-                {logs?.map((log, index) => (
-                  <div
-                    key={`${log.machineId}-${log.sessionId}-${log.eventId}-${index}`}
-                    className="h-[37px] hover:bg-slate-400/20 hover:dark:bg-slate-700/20"
-                  >
-                    <div className="h-full px-4 py-2">
-                      {log.structured && (
-                        <code className="flex items-center gap-2 whitespace-nowrap">
-                          {log.structured?.kvs.map((kv, kvIndex) => (
-                            <span key={log.eventId} className="flex-none">
-                              <span className="text-green-700 dark:text-green-400">
-                                {kv.key}
+              <Panel style={{ height: `${contentHeight}px` }}>
+                <div className="flex w-full flex-col overflow-x-auto scrollbar-hide">
+                  {logs.map((log, index) => (
+                    <div
+                      key={`${log.machineId}-${log.sessionId}-${log.eventId}-${index}`}
+                      className="h-[37px] hover:bg-slate-400/20 hover:dark:bg-slate-700/20"
+                    >
+                      <div className="h-full px-4 py-2">
+                        {log.structured && (
+                          <code className="flex items-center gap-2 whitespace-nowrap">
+                            {log.structured?.kvs.map((kv, kvIndex) => (
+                              <span key={log.eventId} className="flex-none">
+                                <span className="text-green-700 dark:text-green-400">
+                                  {kv.key}
+                                </span>
+                                ={valueToJSX(kv.value)}
+                                {kvIndex <
+                                  (log.structured?.kvs.length || 0) - 1 && ""}
                               </span>
-                              ={valueToJSX(kv.value)}
-                              {kvIndex <
-                                (log.structured?.kvs.length || 0) - 1 && ""}
-                            </span>
-                          ))}
-                        </code>
-                      )}
+                            ))}
+                          </code>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-            </Panel>
-          </div>
-        </PanelGroup>
+                  ))}
+                </div>
+              </Panel>
+            </div>
+          </PanelGroup>
+        )}
       </div>
     </div>
   );
