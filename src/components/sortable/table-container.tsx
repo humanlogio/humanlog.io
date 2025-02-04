@@ -16,27 +16,23 @@ const TableContainer = ({ query }: TableProps) => {
   const [tableRows, setTableRows] = useState<FlatArr[]>();
 
   useEffect(() => {
-    fetchData(({ case: shapeCase, value: shapeValue }) => {
-      if (shapeCase === "freeForm") {
-        setTableColumns(shapeValue.type?.columns);
-        setTableRows(shapeValue.rows);
-      }
+    fetchData(({ value: shapeValue }) => {
+      setTableColumns(shapeValue.type?.columns);
+      setTableRows(shapeValue.rows);
     });
-  }, []);
+  }, [query]);
 
   useEffect(() => {
     next &&
       fetchNext &&
-      fetchData(({ case: shapeCase, value: shapeValue }) => {
-        if (shapeCase === "freeForm") {
-          setTableRows((prev) => {
-            if (prev) {
-              return [...prev, ...shapeValue.rows];
-            }
-          });
-        }
+      fetchData(({ value: shapeValue }) => {
+        setTableRows((prev) => {
+          if (prev) {
+            return [...prev, ...shapeValue.rows];
+          }
+        });
       });
-  }, [next]);
+  }, [fetchNext]);
 
   return (
     tableRows && (

@@ -1,13 +1,6 @@
 "use client";
 
-import React, {
-  Dispatch,
-  SetStateAction,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Share } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Graph, { DataPoint, ZoomType } from "@/components/ui/graph/graph";
@@ -22,26 +15,13 @@ import {
 } from "@/components/env/graph-utils";
 import MonacoEditor from "@/components/editor/monaco-editor";
 import type { OnMount } from "@monaco-editor/react";
-import { QueryRequest } from "api/js/svc/query/v1/service_pb";
-import { LogData } from "@/components/env/log-interface";
-import {
-  LogQuery,
-  RenderStatement,
-  SplitOperator,
-  SplitOperator_ByOperator,
-} from "api/js/types/v1/logquery_pb";
+import { useRouter, useSearchParams } from "next/navigation";
 
-interface NewQueryInputProps {
-  setParsedQuery: Dispatch<SetStateAction<LogQuery | undefined>>;
-  setLogData: Dispatch<SetStateAction<LogData>>;
-  splitByDefault: boolean;
-}
+const NewQueryInput = () => {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const queryString = searchParams.get("query");
 
-const NewQueryInput = ({
-  splitByDefault,
-  setParsedQuery,
-  setLogData,
-}: NewQueryInputProps) => {
   const { apiClients, activeEnvironment } = useApiClients();
   const [eventsList, setEvents] = useState<DataPoint[] | null>(null);
   const [bucketCount, setBucketCount] = useState<number>(100);
@@ -49,7 +29,7 @@ const NewQueryInput = ({
     // starting from one week ago
     new Date(new Date().valueOf() - 1000 * 60 * 60 * 24 * 7),
   );
-  const [queryString, setQueryString] = useState<string>("");
+  const [editorContent, setEditorContent] = useState<string>("");
   const [endDate, setEndDate] = useState<Date>(new Date(new Date().valueOf()));
   const [zoom, setZoom] = useState<{ startIndex?: number; endIndex?: number }>(
     {},
@@ -104,91 +84,6 @@ const NewQueryInput = ({
       graphRange.endDate,
       startDate,
       endDate,
-    ],
-  );
-
-  const parseQuery = async (parseReq: { query: string }) => {
-    try {
-      const parsedQuery = await apiClients?.query.parse(parseReq);
-      return parsedQuery;
-    } catch (error) {
-      alert("Query parsing failed. Please check your query syntax.");
-      console.error("Query parsing error:", error);
-    }
-  };
-
-  const getLogData = useCallback(
-    async (editorContent: string, splitByDefault?: boolean) => {
-      if (!editorContent || !apiClients?.query) {
-        console.log("Invalid content or missing API client:", {
-          editorContent,
-          hasApiClient: !!apiClients?.query,
-        });
-        return;
-      }
-
-      try {
-        const parseReq = { query: editorContent };
-        const parseRes = await parseQuery(parseReq);
-
-        if (parseRes) {
-          const q = parseRes.query;
-
-          if (
-            q?.query?.statements?.some(
-              (stmt) => stmt.stmt?.case === "filter",
-            ) &&
-            splitByDefault
-          ) {
-            q!.query!.render = new RenderStatement({
-              stmt: {
-                case: "split",
-                value: new SplitOperator({
-                  by: new SplitOperator_ByOperator({
-                    scalars: [
-                      {
-                        expr: {
-                          case: "identifier",
-                          value: { name: "session" },
-                        },
-                      },
-                      {
-                        expr: {
-                          case: "identifier",
-                          value: { name: "machine" },
-                        },
-                      },
-                    ],
-                  }),
-                }),
-              },
-            });
-          }
-
-          setParsedQuery(parseRes.query);
-          const queryReq = new QueryRequest({
-            environmentId: activeEnvironment?.id,
-            query: parseRes.query,
-            limit: 30,
-          });
-
-          const queryRes = await apiClients.query.query(queryReq);
-
-          if (queryRes.data) {
-            setLogData(queryRes.data.shape);
-          }
-        }
-      } catch (error: any) {
-        console.error(error);
-      }
-    },
-    [
-      activeEnvironment,
-      apiClients?.query,
-      endDate,
-      startDate,
-      queryString,
-      splitByDefault,
     ],
   );
 
@@ -282,19 +177,16 @@ const NewQueryInput = ({
   const handleEditorDidMount: OnMount = (editor, monaco) => {
     editor.onDidFocusEditorText(() => {
       if (isFirstFocusRef.current) {
-        editor.setValue("");
+        !queryString && editor.setValue("");
         isFirstFocusRef.current = false;
       }
     });
 
     editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, () => {
       const currentValue = editor.getValue();
+      router.push(`/query?query=${encodeURIComponent(currentValue)}`);
 
-      // initialize
-      setLogData({ case: undefined, value: undefined });
-
-      getLogData(currentValue, splitByDefault);
-      setQueryString(currentValue);
+      setEditorContent(currentValue);
     });
   };
 
@@ -303,8 +195,12 @@ const NewQueryInput = ({
   }, [startDate, endDate]);
 
   useEffect(() => {
-    getLogData(queryString, splitByDefault);
-  }, [splitByDefault]);
+    if (queryString) {
+      setEditorContent(decodeURIComponent(queryString as string));
+    } else {
+      setEditorContent("");
+    }
+  }, [queryString]);
 
   return (
     <div className="container grid grid-cols-2 items-start gap-8">
@@ -312,8 +208,8 @@ const NewQueryInput = ({
       <div className="col-span-2 ml-[4px] flex flex-row gap-2 md:col-span-1">
         <div className="w-full overflow-hidden rounded-base border-2 border-border py-3">
           <MonacoEditor
-            value={queryString}
-            onChange={(value) => setQueryString(value || "")}
+            value={editorContent}
+            onChange={(value) => setEditorContent(value || "")}
             onMount={handleEditorDidMount}
           />
         </div>
@@ -321,7 +217,7 @@ const NewQueryInput = ({
           size="icon"
           className="h-8"
           onClick={() => {
-            getLogData(queryString);
+            router.push(`/query?query=${encodeURIComponent(editorContent)}`);
           }}
         >
           <Share size={14} />
