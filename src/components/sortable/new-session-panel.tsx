@@ -126,6 +126,18 @@ const NewSessionPanel = ({ query }: NewSessionPanelProps) => {
                   );
                 })}
               </div>
+              <div className="flex flex-none flex-col">
+                {logs.map((log, index) => {
+                  return (
+                    <div
+                      key={`${log.machineId}-${log.sessionId}-${log.eventId}-${index}`}
+                      className="flex gap-2 px-2 py-2"
+                    >
+                      [{log.eventId}]
+                    </div>
+                  );
+                })}
+              </div>
               <div ref={metaColumnRef} className="flex flex-none flex-col">
                 {logs.map((log, index) => (
                   <div
