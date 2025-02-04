@@ -8,6 +8,7 @@ import {
 } from "api/js/types/v1/query_pb";
 import {
   Dispatch,
+  Fragment,
   ReactNode,
   SetStateAction,
   useCallback,
@@ -29,6 +30,7 @@ import { Val } from "api/js/types/v1/types_pb";
 import { useSearchParams } from "next/navigation";
 import { useApiClients } from "@/context/api-provider";
 import { QueryRequest } from "api/js/svc/query/v1/service_pb";
+import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 
 export type DataCase =
   | "subqueries"
@@ -199,11 +201,25 @@ const NewQueryOutput = () => {
             splitByDefault={splitByDefault}
             setSplitByDefault={setSplitByDefault}
           />
-          <div className="container flex-1 overflow-auto">
+          <PanelGroup
+            direction="horizontal"
+            className="container flex flex-1 overflow-y-auto"
+          >
             {queries?.map((query, i) => {
-              return <NewSessionPanel key={i} query={query} />;
+              return (
+                <Fragment key={i}>
+                  <Panel>
+                    <NewSessionPanel key={i} query={query} />
+                  </Panel>
+                  {i !== queries.length - 1 && (
+                    <PanelResizeHandle className="flex h-full items-center justify-center px-1">
+                      <div className="h-12 w-1 rounded-full bg-slate-700" />
+                    </PanelResizeHandle>
+                  )}
+                </Fragment>
+              );
             })}
-          </div>
+          </PanelGroup>
         </>,
       );
     }
