@@ -16,7 +16,7 @@ const LogInterface = () => {
   useEffect(() => {
     if (signupOnly || (!hasLocalhost && !listEnvironments.length)) return;
     router.push("/query");
-  }, []);
+  }, [signupOnly, hasLocalhost, listEnvironments]);
 
   return (
     <section>
