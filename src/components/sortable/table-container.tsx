@@ -9,54 +9,64 @@ interface TableProps {
 }
 
 const TableContainer = ({ query }: TableProps) => {
-  const { targetRef, isFetching, fetchNext, fetchData } =
+  const { targetRef, isFetching, fetchNext, fetchData, next } =
     useInfiniteQuery(query);
 
   const [tableColumns, setTableColumns] = useState<TableType_Column[]>();
   const [tableRows, setTableRows] = useState<FlatArr[]>();
 
   useEffect(() => {
-    fetchData(({ case: shapeCase, value: shapeValue }) => {
-      if (shapeCase === "freeForm") {
-        setTableColumns(shapeValue.type?.columns);
-        setTableRows((prev) =>
-          prev ? [...prev, ...shapeValue.rows] : shapeValue.rows,
-        );
-      }
+    fetchData(({ value: shapeValue }) => {
+      setTableColumns(shapeValue.type?.columns);
+      setTableRows(shapeValue.rows);
     });
+  }, [query]);
+
+  useEffect(() => {
+    next &&
+      fetchNext &&
+      fetchData(({ value: shapeValue }) => {
+        setTableRows((prev) => {
+          if (prev) {
+            return [...prev, ...shapeValue.rows];
+          }
+        });
+      });
   }, [fetchNext]);
 
   return (
-    <table className="mt-4 w-full border">
-      <thead className="border">
-        <tr>
-          {tableColumns?.map((col, i) => {
-            return <td key={i}>{col?.name}</td>;
+    tableRows && (
+      <table className="mt-4 w-full border">
+        <thead className="border">
+          <tr>
+            {tableColumns?.map((col, i) => {
+              return <td key={i}>{col?.name}</td>;
+            })}
+          </tr>
+        </thead>
+        <tbody>
+          {tableRows.map((row, i) => {
+            return (
+              <tr key={i}>
+                {row.items?.map((item, i) => {
+                  return (
+                    <td key={`${item.kind.case}-${i}`}>
+                      {item.kind.value instanceof Timestamp ||
+                      item.kind.value instanceof Duration
+                        ? formatTimestamp(item.kind.value)
+                        : item.kind.value}
+                    </td>
+                  );
+                })}
+              </tr>
+            );
           })}
-        </tr>
-      </thead>
-      <tbody>
-        {tableRows?.map((row, i) => {
-          return (
-            <tr key={i}>
-              {row.items?.map((item, i) => {
-                return (
-                  <td key={`${item.kind.case}-${i}`}>
-                    {item.kind.value instanceof Timestamp ||
-                    item.kind.value instanceof Duration
-                      ? formatTimestamp(item.kind.value)
-                      : item.kind.value}
-                  </td>
-                );
-              })}
-            </tr>
-          );
-        })}
-        <tr ref={targetRef}>
-          <td>-</td>
-        </tr>
-      </tbody>
-    </table>
+          <tr ref={targetRef}>
+            <td />
+          </tr>
+        </tbody>
+      </table>
+    )
   );
 };
 
