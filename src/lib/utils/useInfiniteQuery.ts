@@ -9,6 +9,8 @@ import { useEffect, useState } from "react";
 import { useInView } from "react-intersection-observer";
 
 export const useInfiniteQuery = (query: LogQuery | undefined) => {
+  const limit = 100;
+
   const { apiClients, activeEnvironment } = useApiClients();
   const [isFetching, setIsFetching] = useState(false);
   const [next, setNext] = useState<Cursor | null>();
@@ -22,11 +24,10 @@ export const useInfiniteQuery = (query: LogQuery | undefined) => {
         environmentId: activeEnvironment?.id,
         query,
         ...(next && { cursor: next }),
-        limit: 30,
+        limit,
       });
 
       const queryRes = await apiClients?.query.query(queryReq);
-      setNext(queryRes?.next ?? null);
 
       if (queryRes?.data) {
         const { case: shapeCase, value } = queryRes.data.shape;
@@ -34,20 +35,13 @@ export const useInfiniteQuery = (query: LogQuery | undefined) => {
           callback?.(value.shape);
         }
       }
-      setIsFetching(false);
+      setNext(queryRes?.next ?? null);
     } catch (error) {
       console.error(error);
+    } finally {
       setIsFetching(false);
     }
   };
-
-  useEffect(() => {
-    if (fetchNext && next) {
-      fetchData();
-    } else {
-      setNext(null);
-    }
-  }, [fetchNext]);
 
   return { targetRef, isFetching, fetchNext, fetchData, next };
 };
