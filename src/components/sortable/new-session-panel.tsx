@@ -35,20 +35,24 @@ const NewSessionPanel = ({ query }: NewSessionPanelProps) => {
   useEffect(() => {
     fetchData(({ case: shapeCase, value: shapeValue }) => {
       if (shapeCase === "logEvents") {
-        setLogs((prev) => {
-          if (!prev) {
-            return shapeValue.events;
-          }
-          if (prev && next) {
-            return [...prev, ...shapeValue.events];
-          }
-          if (!next) {
-            return prev;
-          }
-        });
+        setLogs(shapeValue.events);
       }
     });
-  }, [fetchNext, query]);
+  }, []);
+
+  useEffect(() => {
+    next &&
+      fetchNext &&
+      fetchData(({ case: shapeCase, value: shapeValue }) => {
+        if (shapeCase === "logEvents") {
+          setLogs((prev) => {
+            if (prev) {
+              return [...prev, ...shapeValue.events];
+            }
+          });
+        }
+      });
+  }, [next]);
 
   useEffect(() => {
     const updateHeight = () => {

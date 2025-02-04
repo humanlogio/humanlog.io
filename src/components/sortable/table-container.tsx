@@ -19,21 +19,24 @@ const TableContainer = ({ query }: TableProps) => {
     fetchData(({ case: shapeCase, value: shapeValue }) => {
       if (shapeCase === "freeForm") {
         setTableColumns(shapeValue.type?.columns);
-
-        setTableRows((prev) => {
-          if (!prev) {
-            return shapeValue.rows;
-          }
-          if (prev && next) {
-            return [...prev, ...shapeValue.rows];
-          }
-          if (!next) {
-            return prev;
-          }
-        });
+        setTableRows(shapeValue.rows);
       }
     });
-  }, [fetchNext, query]);
+  }, []);
+
+  useEffect(() => {
+    next &&
+      fetchNext &&
+      fetchData(({ case: shapeCase, value: shapeValue }) => {
+        if (shapeCase === "freeForm") {
+          setTableRows((prev) => {
+            if (prev) {
+              return [...prev, ...shapeValue.rows];
+            }
+          });
+        }
+      });
+  }, [next]);
 
   return (
     tableRows && (
@@ -63,7 +66,7 @@ const TableContainer = ({ query }: TableProps) => {
             );
           })}
           <tr ref={targetRef}>
-            <td>-</td>
+            <td />
           </tr>
         </tbody>
       </table>

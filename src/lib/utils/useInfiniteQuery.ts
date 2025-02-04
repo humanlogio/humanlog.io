@@ -10,11 +10,10 @@ import { useInView } from "react-intersection-observer";
 
 export const useInfiniteQuery = (query: LogQuery | undefined) => {
   const { apiClients, activeEnvironment } = useApiClients();
-  const [fetchNext, setFetchNext] = useState(false);
   const [isFetching, setIsFetching] = useState(false);
   const [next, setNext] = useState<Cursor | null>();
 
-  const { ref: targetRef, inView } = useInView({ threshold: 0.9 });
+  const { ref: targetRef, inView: fetchNext } = useInView();
 
   const fetchData = async (callback?: (res: any) => void) => {
     try {
@@ -43,15 +42,10 @@ export const useInfiniteQuery = (query: LogQuery | undefined) => {
   };
 
   useEffect(() => {
-    setFetchNext(inView);
-  }, [inView]);
-
-  useEffect(() => {
     if (fetchNext && next) {
       fetchData();
     } else {
       setNext(null);
-      setFetchNext(false);
     }
   }, [fetchNext]);
 
