@@ -16,7 +16,7 @@ const DateRangePicker = (props: {
     false;
 
   return (
-    <div className="ml-[40px] flex w-max items-center rounded-lg border bg-slate-200 p-1 dark:border-darkBorder dark:bg-darkBg dark:text-darkText">
+    <div className="ml-[40px] flex w-max items-center rounded-lg bg-slate-200 p-1 dark:bg-slate-700 dark:text-darkText">
       <DatePicker
         styles="block w-full border text-sm"
         hideDate={sameDate}
