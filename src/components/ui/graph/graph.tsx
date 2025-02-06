@@ -77,26 +77,14 @@ const Graph = (props: {
       onProcessed={updateGraph}
     >
       <ResponsiveContainer>
-        <BarChart
-          width={500}
-          height={300}
-          data={data}
-          margin={{
-            top: 5,
-            right: 30,
-            left: 20,
-            bottom: 5,
-          }}
-        >
+        <BarChart data={data}>
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="name" />
-          <YAxis />
+          <YAxis width={40} />
           <Tooltip
-            wrapperClassName="dark:bg-bg bg-darkBg"
-            labelClassName="dark:text-text text-darkText"
-            contentStyle={{ background: "currentColor" }}
+            labelClassName="text-xs text-white dark:text-slate-500"
+            contentStyle={{ background: "currentColor", fontSize: "0.75rem" }}
           />
-          <Legend />
           <Bar
             type="monotone"
             dataKey="amt"
@@ -110,7 +98,6 @@ const Graph = (props: {
             height={16}
             dataKey={"name"}
             type="number"
-            travellerWidth={15}
             gap={data.length / 100}
             onChange={(zoom) => updateGraph(zoom, activeAnimations)}
             startIndex={startIndex}
