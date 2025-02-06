@@ -11,7 +11,7 @@ const DatePicker = (props: {
 }) => {
   const { styles, hideDate, date, maxDate, minDate, setDate } = props;
   const className =
-    "inline-block flex-1 rounded-md border-gray-300 text-sm focus:border-blue-500 focus:ring-blue-500 dark:border-darkBorder dark:bg-darkBg dark:text-darkText" +
+    "inline-block flex-1 rounded border-slate-400 p-1 focus:border-main dark:border-darkBorder dark:bg-darkBg dark:text-darkText" +
     styles;
 
   return (
