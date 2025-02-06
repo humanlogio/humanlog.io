@@ -219,7 +219,7 @@ const Scroller = (props: {
   }, [handleKeyPress, handleWheelScrolling]);
 
   return (
-    <div ref={graphRef} className="h-64 w-full">
+    <div ref={graphRef} className="h-48 w-full">
       {children}
     </div>
   );
