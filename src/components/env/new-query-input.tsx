@@ -225,7 +225,7 @@ const NewQueryInput = () => {
       </div>
 
       {/* CHART */}
-      <div className="flex flex-col items-center gap-2">
+      <div className="col-span-2 flex flex-col items-center gap-2 md:col-span-1">
         <Graph data={eventsList} zoom={zoom} onZoom={updateTimeFrame} />
         <DateRangePicker
           dateFrom={startDate}
