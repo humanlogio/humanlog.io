@@ -240,7 +240,7 @@ const ToggleSplit = ({
   setSplitByDefault,
 }: ToggleSplitProps) => {
   return (
-    <div className="flex-end container mb-3 flex items-center gap-1">
+    <div className="flex-end container flex items-center gap-2">
       <Label
         htmlFor="billed-monthly"
         className={cn("transition-colors duration-200", {
