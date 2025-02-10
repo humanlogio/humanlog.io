@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+
+set -e
+
+root=$(git rev-parse --show-toplevel)
+
+repo=registry.digitalocean.com/humanlog/humanlogio
+tag=$(echo "${GITHUB_SHA:-$(git rev-parse HEAD)}" | head -c7)
+
+set -u
+
+function build_container_image() {
+    docker build -t ${repo}/${tag} .
+}
+
+function main() {
+    build_container_image
+}
+
+main
