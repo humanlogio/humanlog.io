@@ -1,7 +1,7 @@
 "use client";
 
-import NewQueryInput from "./new-query-input";
-import NewQueryOutput from "./new-query-output";
+import NewQueryInput from "@/components/env/new-query-input";
+import NewQueryOutput from "@/components/env/new-query-output";
 
 const LogInterface = () => {
   return (

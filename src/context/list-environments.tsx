@@ -20,8 +20,8 @@ export type UserState = User | "loading" | "not-logged-in";
 type AllEnvironments = {
   user: UserState;
   localhostInfo: PingResponse | undefined;
-  currentOrg: Organization | undefined;
-  defaultOrg: Organization | undefined;
+  currentOrg: Organization | null;
+  defaultOrg: Organization | null;
   listEnvironments: ListEnvironmentResponse_ListItem[];
   doLogin: () => void;
 };
@@ -29,8 +29,8 @@ type AllEnvironments = {
 const ListEnvironmentContext = createContext<AllEnvironments>({
   user: "loading",
   localhostInfo: undefined,
-  currentOrg: undefined,
-  defaultOrg: undefined,
+  currentOrg: null,
+  defaultOrg: null,
   listEnvironments: [],
   doLogin: () => {},
 });
@@ -49,12 +49,8 @@ export function ListEnvironmentsProvider({
   const [localhostValid, setLocalhostValid] = useState(false);
   const [localhostInfo, setLocalhostInfo] = useState<PingResponse>();
   const [user, setUser] = useState<UserState>("loading");
-  const [currentOrg, setCurrentOrg] = useState<Organization | undefined>(
-    undefined,
-  );
-  const [defaultOrg, setDefaultOrg] = useState<Organization | undefined>(
-    undefined,
-  );
+  const [currentOrg, setCurrentOrg] = useState<Organization | null>(null);
+  const [defaultOrg, setDefaultOrg] = useState<Organization | null>(null);
   const [listEnvironments, setListEnvironments] = useState<
     ListEnvironmentResponse_ListItem[]
   >([]);
@@ -179,8 +175,8 @@ export function ListEnvironmentsProvider({
     }
 
     setUser(_user);
-    setCurrentOrg(_currentOrg);
-    setDefaultOrg(_defaultOrg);
+    setCurrentOrg(_currentOrg ?? null);
+    setDefaultOrg(_defaultOrg ?? null);
   };
 
   useEffect(() => {

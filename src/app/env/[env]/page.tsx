@@ -1,13 +1,12 @@
 import EnvSwitcher from "@/components/env/env-switcher";
 import LogInterface from "@/components/env/log-interface";
 
-export default function EnvironmentPage({
+export default async function EnvironmentPage({
   params,
 }: {
-  params: { env: string };
+  params: Promise<{ env: string }>;
 }) {
-  const env = params.env;
-
+  const env = (await params).env;
   return (
     <main>
       <EnvSwitcher env={env}>
