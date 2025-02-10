@@ -184,7 +184,7 @@ const NewQueryInput = () => {
 
     editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, () => {
       const currentValue = editor.getValue();
-      router.push(`/query?query=${encodeURIComponent(currentValue)}`);
+      router.push(`?query=${encodeURIComponent(currentValue)}`);
 
       setEditorContent(currentValue);
     });
@@ -217,7 +217,7 @@ const NewQueryInput = () => {
           size="icon"
           className="h-8"
           onClick={() => {
-            router.push(`/query?query=${encodeURIComponent(editorContent)}`);
+            router.push(`?query=${encodeURIComponent(editorContent)}`);
           }}
         >
           <Share size={14} />

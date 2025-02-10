@@ -31,6 +31,7 @@ import { useSearchParams } from "next/navigation";
 import { useApiClients } from "@/context/api-provider";
 import { QueryRequest } from "api/js/svc/query/v1/service_pb";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
+import { ConnectError } from "@connectrpc/connect";
 import { MessageCircleWarning } from "lucide-react";
 
 export type DataCase =
@@ -73,8 +74,22 @@ const NewQueryOutput = () => {
       const parsedQuery = await apiClients?.query.parse(parseReq);
       return parsedQuery;
     } catch (error) {
-      alert("Query parsing failed. Please check your query syntax.");
-      console.error("Query parsing error:", error);
+      if (error instanceof ConnectError) {
+        let alertMsg = "Query parsing failed. Please check your query syntax.";
+        const { code, rawMessage, message } = error;
+
+        // unimplemented
+        if (code === 12) {
+          alertMsg = message;
+        }
+        //parsing error
+        if (code === 3) {
+          alertMsg = `${alertMsg} \n ${rawMessage}`;
+        }
+
+        alert(alertMsg);
+        console.error("Query parsing error:", error);
+      }
     }
   };
 
