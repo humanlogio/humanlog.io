@@ -139,15 +139,18 @@ const PageHeader: React.FC = () => {
 
   useEffect(() => {
     let _sources: { name: string; path: string; value: string }[] = [];
-    _sources.push({
-      name: `localhost ${
-        localhostInfo
-          ? localhostVersion(localhostInfo)
-          : "unavailable :( -> install it?"
-      }`,
-      path: "/localhost",
-      value: "localhost",
-    });
+    const path = localhostInfo
+      ? {
+          name: `localhost ${localhostVersion(localhostInfo)}`,
+          path: "/localhost",
+          value: "localhost",
+        }
+      : {
+          name: `localhost unavailable :( -> install it?`,
+          path: "/install",
+          value: "install",
+        };
+    _sources.push(path);
 
     if (listEnvironments.length > 0) {
       listEnvironments.forEach((list, i) => {
