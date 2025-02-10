@@ -45,4 +45,4 @@ jobs:
         run: npm run test:e2e
 
       - name: Build Container Image
-        run: docker build -t registry.digitalocean.com/humanlog/humanlogio:$(echo $GITHUB_SHA | head -c7) .
+        run: script/build
