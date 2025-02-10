@@ -18,6 +18,7 @@ import { useCookies } from "react-cookie";
 import { Environment } from "api/js/types/v1/environment_pb";
 import { useRouter } from "next/navigation";
 import config from "@/features/config";
+import { GetAuthURLRequest } from "api/js/svc/auth/v1/service_pb";
 
 type ApiProviderType = {
   apiClients: ApiClients | null;
@@ -25,6 +26,8 @@ type ApiProviderType = {
   setActiveEnvironment: React.Dispatch<
     React.SetStateAction<Environment | undefined>
   >;
+  // doBrowerLogin: (req: GetAuthURLRequest) => void;
+  // doLocalhostLogin: () => void;
   doLogout: () => void;
 };
 
@@ -51,14 +54,16 @@ export function ApiClientsProvider({
 }: {
   children: React.ReactNode;
 }) {
-  const [cookies, setCookie, removeCookie] = useCookies(["hlog_session"]);
+  const returnToURL = getSelfURL();
+
+  const [cookies, removeCookie] = useCookies(["hlog_session"]);
   const [apiTransport, setApiTransport] = useState<Transport>();
   const [activeEnvironment, setActiveEnvironment] = useState<
     Environment | undefined
   >();
   const router = useRouter();
 
-  const humanlogSessionCookie = cookies["hlog_session"];
+  let humanlogSessionCookie = cookies["hlog_session"];
 
   const doLogout = async () => {
     removeCookie("hlog_session", {
@@ -67,14 +72,12 @@ export function ApiClientsProvider({
     });
 
     try {
-      const { logoutUrl } = await apiClients.user.getLogoutURL({
-        returnTo: getSelfURL(),
+      await apiClients.localhost.doLogout({
+        returnToURL,
       });
-
-      router.push(logoutUrl);
     } catch (error) {
       console.error("Failed to get logout URL:", error);
-      router.push("/login");
+      // router.push("/login");
     }
   };
 
@@ -134,6 +137,8 @@ export function ApiClientsProvider({
             apiClients,
             activeEnvironment,
             setActiveEnvironment,
+            // doBrowerLogin,
+            // doLocalhostLogin,
             doLogout,
           }}
         >

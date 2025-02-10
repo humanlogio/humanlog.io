@@ -1,54 +1,28 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { Copy, Loader } from "lucide-react";
 import { copyToClipboard } from "@/lib/utils/clipboard";
 import { useAllEnvironments } from "@/context/list-environments";
-import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { GetAuthURLRequest } from "api/js/svc/auth/v1/service_pb";
-import { useApiClients } from "@/context/api-provider";
 
 export default function Page() {
-  const { user } = useAllEnvironments();
-  const [authURL, setAuthURL] = useState<string | null>(null);
-  const { apiClients } = useApiClients();
-
-  useEffect(() => {
-    (async () => {
-      const returnToUrl = window.location.href;
-      const req = new GetAuthURLRequest({ returnToUrl: returnToUrl });
-      try {
-        const res = await apiClients?.auth.getAuthURL(req);
-        if (!res || !res.authUrl) {
-          return;
-        }
-        setAuthURL(res?.authUrl);
-      } catch (err) {
-        console.log(err);
-      }
-    })();
-  }, [apiClients?.auth]);
+  const { user, doLogin } = useAllEnvironments();
 
   const demoString = `humanlog --help`;
 
   let content;
-  if (!authURL) {
+  if (user === "not-logged-in") {
     content = (
       <div className="container flex flex-grow flex-col items-center justify-center gap-8">
-        <Loader className="animate-spin md:text-white" />
-
-        <p>Loading login interface...</p>
-      </div>
-    );
-  } else if (user === "not-logged-in") {
-    content = (
-      <div className="container flex flex-grow flex-col items-center justify-center gap-8">
-        <Link href={authURL}>
-          <Button variant="noShadowNeutral" className="w-full">
+        <div>
+          <Button
+            onClick={doLogin}
+            variant="noShadowNeutral"
+            className="w-full"
+          >
             Sign up
           </Button>
-        </Link>
+        </div>
       </div>
     );
   } else if (user === "loading") {

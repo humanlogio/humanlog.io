@@ -8,23 +8,31 @@ import { ListEnvironmentResponse_ListItem } from "api/js/svc/organization/v1/ser
 import { User } from "api/js/types/v1/user_pb";
 import { Organization } from "api/js/types/v1/organization_pb";
 import { Cursor } from "api/js/types/v1/cursor_pb";
+import {
+  GetAuthURLRequest,
+  LocalhostViaBrowser,
+} from "api/js/svc/auth/v1/service_pb";
+import { getSelfURL } from "@/lib/envs";
+import { useRouter } from "next/navigation";
 
 export type UserState = User | "loading" | "not-logged-in";
 
 type AllEnvironments = {
   user: UserState;
-  currentOrg: Organization | null;
-  defaultOrg: Organization | null;
-  hasLocalhost: PingResponse | null;
+  localhostInfo: PingResponse | undefined;
+  currentOrg: Organization | undefined;
+  defaultOrg: Organization | undefined;
   listEnvironments: ListEnvironmentResponse_ListItem[];
+  doLogin: () => void;
 };
 
 const ListEnvironmentContext = createContext<AllEnvironments>({
   user: "loading",
-  currentOrg: null,
-  defaultOrg: null,
-  hasLocalhost: null,
+  localhostInfo: undefined,
+  currentOrg: undefined,
+  defaultOrg: undefined,
   listEnvironments: [],
+  doLogin: () => {},
 });
 
 export function ListEnvironmentsProvider({
@@ -32,42 +40,148 @@ export function ListEnvironmentsProvider({
 }: {
   children: React.ReactNode;
 }) {
+  const router = useRouter();
+
+  const returnToURL = getSelfURL();
+
   const { apiClients, setActiveEnvironment } = useApiClients();
-  const [hasLocalhost, setHasLocalhost] = useState<PingResponse | null>(null);
+  const [browserValid, setBrowserValid] = useState(false);
+  const [localhostValid, setLocalhostValid] = useState(false);
+  const [localhostInfo, setLocalhostInfo] = useState<PingResponse>();
   const [user, setUser] = useState<UserState>("loading");
-  const [currentOrg, setCurrentOrg] = useState<Organization | null>(null);
-  const [defaultOrg, setDefaultOrg] = useState<Organization | null>(null);
+  const [currentOrg, setCurrentOrg] = useState<Organization | undefined>(
+    undefined,
+  );
+  const [defaultOrg, setDefaultOrg] = useState<Organization | undefined>(
+    undefined,
+  );
   const [listEnvironments, setListEnvironments] = useState<
     ListEnvironmentResponse_ListItem[]
   >([]);
-
   const [environmentPage, setEnvironmentPage] = useState<Cursor>(new Cursor());
 
-  useEffect(() => {
-    (async () => {
-      try {
-        const res = await apiClients?.user.whoami({});
-        if (
-          !res ||
-          !res.user ||
-          !res.currentOrganization ||
-          !res.defaultOrganization
-        ) {
-          return;
-        }
-        setUser(res.user);
-        setCurrentOrg(res.currentOrganization);
-        setDefaultOrg(res.defaultOrganization);
-      } catch (err) {
-        setUser("not-logged-in");
-        if (err instanceof ConnectError && err.code == Code.Unauthenticated) {
-          console.log("need to auth");
-        } else {
-          console.error(err);
+  const checkBrowser = async () => {
+    try {
+      const res = await apiClients?.user.whoami({});
+      if (!res) {
+        setBrowserValid(false);
+        return;
+      }
+      setBrowserValid(true);
+      return res;
+    } catch (err) {
+      setBrowserValid(false);
+      if (err instanceof ConnectError) {
+        console.log("need to auth");
+      } else {
+        console.error(err);
+      }
+    }
+  };
+
+  const checkLocalhost = async () => {
+    try {
+      const res = await apiClients?.localhost.ping({});
+      if (!res) {
+        setLocalhostValid(false);
+        return;
+      }
+      setLocalhostInfo(res);
+      setLocalhostValid(true);
+      return res;
+    } catch (err) {
+      setLocalhostValid(false);
+      if (err instanceof ConnectError) {
+        console.log("localhost isn't running humanlog");
+      } else {
+        console.error(err);
+      }
+    }
+  };
+
+  const doBrowerLogin = async () => {
+    try {
+      const req = new GetAuthURLRequest({ returnToUrl: returnToURL });
+      if (localhostInfo?.meta) {
+        req.localhost = new LocalhostViaBrowser({
+          architecture: localhostInfo.architecture,
+          operatingSystem: localhostInfo.operatingSystem,
+          usingVersion: localhostInfo.clientVersion,
+        });
+        const res = await apiClients?.auth.getAuthURL(req);
+
+        if (res) {
+          router.push(res.authUrl);
         }
       }
-    })();
-  }, [apiClients?.user]);
+    } catch (error) {
+      console.log("failed to Login at the browser");
+    }
+  };
+
+  const doLocalhostLogin = async () => {
+    try {
+      await apiClients?.localhost.doLogin({ returnToURL });
+    } catch (error) {
+      console.log("failed to Login at the cli");
+    }
+  };
+
+  const doLogin = async () => {
+    if (browserValid && localhostValid) {
+      return;
+    }
+    if (localhostValid && !localhostInfo?.loggedInUser) {
+      doLocalhostLogin();
+      getUserInfo();
+      return;
+    }
+    if (!browserValid) {
+      doBrowerLogin();
+      getUserInfo();
+      return;
+    }
+  };
+
+  const getUserInfo = async () => {
+    let _user: UserState = "not-logged-in";
+    let _currentOrg;
+    let _defaultOrg;
+
+    if (!localhostValid && !browserValid) {
+    }
+
+    if (localhostValid) {
+      const localhostAuthRes = await checkLocalhost();
+
+      const req = new GetAuthURLRequest({ returnToUrl: returnToURL });
+      if (localhostAuthRes?.meta) {
+        req.localhost = new LocalhostViaBrowser({
+          architecture: localhostAuthRes.architecture,
+          operatingSystem: localhostAuthRes.operatingSystem,
+          usingVersion: localhostAuthRes.clientVersion,
+        });
+      }
+
+      if (localhostAuthRes?.loggedInUser) {
+        const { user, currentOrganization, defaultOrganization } =
+          localhostAuthRes.loggedInUser;
+        _user = user ?? "not-logged-in";
+        _currentOrg = currentOrganization;
+        _defaultOrg = defaultOrganization;
+      }
+    }
+    if (browserValid) {
+      const browserAuthRes = await checkBrowser();
+      _user = browserAuthRes?.user ?? "not-logged-in";
+      _currentOrg = browserAuthRes?.currentOrganization;
+      _defaultOrg = browserAuthRes?.defaultOrganization;
+    }
+
+    setUser(_user);
+    setCurrentOrg(_currentOrg);
+    setDefaultOrg(_defaultOrg);
+  };
 
   useEffect(() => {
     (async () => {
@@ -93,27 +207,33 @@ export function ListEnvironmentsProvider({
   }, [apiClients?.org, currentOrg, environmentPage, setActiveEnvironment]);
 
   useEffect(() => {
-    (async () => {
-      try {
-        const res = await apiClients?.localhost.ping({});
-        if (!res) {
-          setHasLocalhost(null);
-          return;
-        }
-        setHasLocalhost(res);
-      } catch (err) {
-        if (err instanceof ConnectError && err.code == Code.Unknown) {
-          console.log("localhost isn't running humanlog");
-        } else {
-          console.error(err);
-        }
-      }
-    })();
-  }, [apiClients?.localhost]);
+    // Initial execution
+    checkBrowser();
+    checkLocalhost();
+
+    const checkBrowserIntervalId = setInterval(checkBrowser, 60000); // 1m
+    const checkLocalhostIntervalId = setInterval(checkLocalhost, 5000); // 5s
+
+    return () => {
+      clearInterval(checkBrowserIntervalId);
+      clearInterval(checkLocalhostIntervalId);
+    };
+  }, []);
+
+  useEffect(() => {
+    getUserInfo();
+  }, [browserValid, localhostValid]);
 
   return (
     <ListEnvironmentContext.Provider
-      value={{ user, currentOrg, defaultOrg, hasLocalhost, listEnvironments }}
+      value={{
+        localhostInfo,
+        user,
+        currentOrg,
+        defaultOrg,
+        listEnvironments,
+        doLogin,
+      }}
     >
       {children}
     </ListEnvironmentContext.Provider>

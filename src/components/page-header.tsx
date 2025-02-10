@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import {
@@ -16,7 +16,6 @@ import {
   SelectContent,
   SelectGroup,
   SelectItem,
-  SelectSeparator,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
@@ -38,123 +37,70 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ModeToggle } from "@/components/mode-toggle";
 import { useApiClients } from "@/context/api-provider";
 import { useFullWidth } from "@/context/full-width-provider";
-import {
-  GetAuthURLRequest,
-  LocalhostViaBrowser,
-} from "api/js/svc/auth/v1/service_pb";
 import { PingResponse } from "api/js/svc/localhost/v1/service_pb";
 import { gravatarURL, getEnvUrl, getUserSettingsUrl } from "@/lib/utils";
 import { useAllEnvironments, UserState } from "@/context/list-environments";
 import { Button } from "@/components/ui/button";
 import config from "@/features/config";
 import dynamic from "next/dynamic";
+import { getSelfURL } from "@/lib/envs";
 
 const WidthToggle = dynamic(() => import("@/components/width-toggle"), {
   ssr: false,
 });
 
+interface Source {
+  name: string;
+  path: string;
+  value: string;
+}
+
 const PageHeader: React.FC = () => {
-  const signupOnly = config.NEXT_PUBLIC_SIGNUP_ONLY;
-  const [authURL, setAuthURL] = useState<string | null>(null);
-  const { apiClients, activeEnvironment, setActiveEnvironment, doLogout } =
-    useApiClients();
-  const { isFullWidth, setIsFullWidth } = useFullWidth();
   const pathname = usePathname();
-  const { user, currentOrg, defaultOrg, hasLocalhost, listEnvironments } =
-    useAllEnvironments();
-  const localhostValue = "localhost";
-  const addNewValue = "add-new";
+  const signupOnly = config.NEXT_PUBLIC_SIGNUP_ONLY;
+  const returnToUrl = getSelfURL();
+
+  const { setActiveEnvironment, doLogout } = useApiClients();
+  const { isFullWidth, setIsFullWidth } = useFullWidth();
+
+  const {
+    user,
+    localhostInfo,
+    currentOrg,
+    defaultOrg,
+    listEnvironments,
+    doLogin,
+  } = useAllEnvironments();
+
+  const [sources, setSources] = useState<Source[]>();
+  const [selected, setSelected] = useState<Source>();
+
   const router = useRouter();
 
-  useEffect(() => {
-    (async () => {
-      const returnToUrl = window.location.href;
-      const req = new GetAuthURLRequest({ returnToUrl: returnToUrl });
-      if (hasLocalhost?.meta) {
-        req.localhost = new LocalhostViaBrowser({
-          architecture: hasLocalhost.architecture,
-          operatingSystem: hasLocalhost.operatingSystem,
-          usingVersion: hasLocalhost.clientVersion,
-        });
-      }
-      try {
-        const res = await apiClients?.auth.getAuthURL(req);
-        if (!res || !res.authUrl) {
-          return;
-        }
-        setAuthURL(res.authUrl);
-      } catch (err) {
-        console.log(err);
-      }
-    })();
-  }, [
-    apiClients?.auth,
-    hasLocalhost,
-    hasLocalhost?.meta,
-    hasLocalhost?.meta?.machineId,
-    hasLocalhost?.architecture,
-    hasLocalhost?.operatingSystem,
-    hasLocalhost?.clientVersion,
-  ]);
+  const updateSelection = (value: string) => {
+    const _selected = sources?.find((source) => source.value === value);
+    if (_selected) {
+      const selectedEnv = listEnvironments.find(
+        (env) => `${env.environment?.id}` === _selected.value,
+      );
 
-  const updateSelection = useCallback(
-    (selectValue: string) => {
-      if (selectValue === localhostValue) {
-        setActiveEnvironment(undefined);
-        if (!hasLocalhost) {
-          router.push("/install");
-        } else {
-          router.push("/");
-        }
-        return;
-      }
-      if (selectValue === addNewValue) {
-        if (!defaultOrg && !currentOrg) {
-          router.push("/pricing");
-          return;
-        }
-        setActiveEnvironment(undefined);
-        router.push("/env/new");
-        return;
-      }
-      try {
-        const selectedEnv = listEnvironments.find(
-          (env) => `${env.environment?.id}` === selectValue,
-        );
-        if (selectedEnv?.environment) {
-          setActiveEnvironment(selectedEnv.environment);
-          const orgName =
-            currentOrg?.id && currentOrg?.id !== defaultOrg?.id
-              ? currentOrg.name
-              : undefined;
-          router.push(getEnvUrl(selectedEnv.environment.name, orgName));
-        }
-      } catch (e) {
-        console.error("Error attempting to parse environment ID:", selectValue);
-        console.error(e);
-      }
-    },
-    [
-      router,
-      hasLocalhost,
-      currentOrg,
-      defaultOrg,
-      listEnvironments,
-      setActiveEnvironment,
-    ],
-  );
+      selectedEnv
+        ? setActiveEnvironment(selectedEnv.environment)
+        : setActiveEnvironment(undefined);
+      setSelected(_selected);
+      router.push(_selected?.path);
+    }
+  };
 
   const renderAvatarBlock = (user: UserState) => {
-    if (user === "loading" || !authURL) {
+    if (user === "loading") {
       return <Loader className="animate-spin md:text-white" />;
     }
     if (user === "not-logged-in") {
       return (
-        <Link href={authURL}>
-          <Button variant="noShadowNeutral" className="w-full">
-            Sign up
-          </Button>
-        </Link>
+        <Button onClick={doLogin} variant="noShadowNeutral" className="w-full">
+          Sign up
+        </Button>
       );
     }
     return (
@@ -191,15 +137,56 @@ const PageHeader: React.FC = () => {
     );
   };
 
+  useEffect(() => {
+    let _sources: { name: string; path: string; value: string }[] = [];
+    _sources.push({
+      name: `localhost ${
+        localhostInfo
+          ? localhostVersion(localhostInfo)
+          : "unavailable :( -> install it?"
+      }`,
+      path: "/localhost",
+      value: "localhost",
+    });
+
+    if (listEnvironments.length > 0) {
+      listEnvironments.forEach((list, i) => {
+        if (list.environment) {
+          const orgName =
+            currentOrg?.id && currentOrg?.id !== defaultOrg?.id
+              ? currentOrg.name
+              : undefined;
+
+          _sources.push({
+            name: list.environment.name,
+            path: getEnvUrl(list?.environment?.name as string, orgName),
+            value: `${list.environment.id}`,
+          });
+        }
+      });
+    }
+
+    _sources.push({
+      name: "+ Add new",
+      path: !defaultOrg && !currentOrg ? "/pricing" : "/env/new",
+      value: "add-new",
+    });
+
+    setSources(_sources);
+  }, [listEnvironments, localhostInfo, pathname, user]);
+
+  useEffect(() => {
+    if (pathname === "/") {
+      setSelected(undefined);
+      return;
+    }
+    const _selected = sources?.find((source) => source.path === pathname);
+    setSelected(_selected);
+  }, [pathname, sources]);
+
   const renderSourceSelectorBlock = () => (
     <div title="Environment Selector" className="w-full md:min-w-52">
-      <Select
-        value={
-          activeEnvironment?.id.toString() ??
-          (hasLocalhost ? localhostValue : undefined)
-        }
-        onValueChange={updateSelection}
-      >
+      <Select value={selected?.value || ""} onValueChange={updateSelection}>
         <SelectTrigger className="w-full">
           <div className="flex flex-row items-center gap-2">
             <SquareCode size={16} />
@@ -208,31 +195,17 @@ const PageHeader: React.FC = () => {
         </SelectTrigger>
         <SelectContent>
           <SelectGroup>
-            <SelectItem className="cursor-pointer" value={localhostValue}>
-              localhost{" "}
-              {hasLocalhost
-                ? localhostVersion(hasLocalhost)
-                : "unavailable :( -> install it?"}
-            </SelectItem>
-          </SelectGroup>
-          <SelectGroup>
-            {listEnvironments.map((item) =>
-              item.environment?.id ? (
+            {sources?.map((source, i) => {
+              return (
                 <SelectItem
                   className="cursor-pointer"
-                  value={`${item.environment.id}`}
-                  key={`${item.environment.name}-${item.environment.id}`}
+                  key={i}
+                  value={source?.value || ""}
                 >
-                  {item.environment?.name}
+                  {source.name}
                 </SelectItem>
-              ) : (
-                <></>
-              ),
-            )}
-            <SelectSeparator />
-            <SelectItem className="cursor-pointer" value={addNewValue}>
-              + Add new
-            </SelectItem>
+              );
+            })}
           </SelectGroup>
         </SelectContent>
       </Select>
