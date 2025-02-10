@@ -84,6 +84,7 @@ export function ListEnvironmentsProvider({
       }
       setLocalhostInfo(res);
       setLocalhostValid(true);
+
       return res;
     } catch (err) {
       setLocalhostValid(false);
@@ -95,7 +96,7 @@ export function ListEnvironmentsProvider({
     }
   };
 
-  const doBrowerLogin = async () => {
+  const doBrowserLogin = async () => {
     try {
       const req = new GetAuthURLRequest({ returnToUrl: returnToURL });
       if (localhostInfo?.meta) {
@@ -133,7 +134,7 @@ export function ListEnvironmentsProvider({
       return;
     }
     if (!browserValid) {
-      doBrowerLogin();
+      doBrowserLogin();
       getUserInfo();
       return;
     }
@@ -143,9 +144,6 @@ export function ListEnvironmentsProvider({
     let _user: UserState = "not-logged-in";
     let _currentOrg;
     let _defaultOrg;
-
-    if (!localhostValid && !browserValid) {
-    }
 
     if (localhostValid) {
       const localhostAuthRes = await checkLocalhost();
