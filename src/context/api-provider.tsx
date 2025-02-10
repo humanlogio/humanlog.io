@@ -18,7 +18,6 @@ import { useCookies } from "react-cookie";
 import { Environment } from "api/js/types/v1/environment_pb";
 import { useRouter } from "next/navigation";
 import config from "@/features/config";
-import { GetAuthURLRequest } from "api/js/svc/auth/v1/service_pb";
 
 type ApiProviderType = {
   apiClients: ApiClients | null;
@@ -26,8 +25,6 @@ type ApiProviderType = {
   setActiveEnvironment: React.Dispatch<
     React.SetStateAction<Environment | undefined>
   >;
-  // doBrowerLogin: (req: GetAuthURLRequest) => void;
-  // doLocalhostLogin: () => void;
   doLogout: () => void;
 };
 
@@ -56,7 +53,7 @@ export function ApiClientsProvider({
 }) {
   const returnToURL = getSelfURL();
 
-  const [cookies, removeCookie] = useCookies(["hlog_session"]);
+  const [cookies] = useCookies();
   const [apiTransport, setApiTransport] = useState<Transport>();
   const [activeEnvironment, setActiveEnvironment] = useState<
     Environment | undefined
@@ -66,10 +63,7 @@ export function ApiClientsProvider({
   let humanlogSessionCookie = cookies["hlog_session"];
 
   const doLogout = async () => {
-    removeCookie("hlog_session", {
-      path: "/",
-      domain: `.humanlog${config.TLD}`,
-    });
+    document.cookie = `hlog_session=; path=/; domain=.humanlog${config.TLD}; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
 
     try {
       await apiClients.localhost.doLogout({
@@ -88,7 +82,7 @@ export function ApiClientsProvider({
           req.header.set("Browser-Authorization", token);
         }
         const res = await next(req);
-        // console.log("res", res);
+
         res.header.get("content-type");
         const cookies = res.header.getSetCookie();
         if (cookies.length > 1) {
@@ -137,8 +131,6 @@ export function ApiClientsProvider({
             apiClients,
             activeEnvironment,
             setActiveEnvironment,
-            // doBrowerLogin,
-            // doLocalhostLogin,
             doLogout,
           }}
         >
