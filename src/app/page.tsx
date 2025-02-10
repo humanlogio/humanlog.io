@@ -1,11 +1,17 @@
 "use client";
 
-import LogInterface from "@/components/env/log-interface";
+import SetupGuide from "@/components/setup-guide";
+import PreviewCode from "@/components/env/previewCode";
 
 export default function Home() {
   return (
     <main>
-      <LogInterface />
+      <section>
+        <div className="flex w-full flex-col gap-48 py-44 lg:gap-72 lg:py-60">
+          <SetupGuide />
+          <PreviewCode />
+        </div>
+      </section>
     </main>
   );
 }
