@@ -103,36 +103,38 @@ const LogInterface = () => {
 
         if (parseRes) {
           const q = parseRes.query;
+          if (parseRes.dataType) {
+            const { type } = parseRes.dataType;
 
-          if (
-            q?.query?.statements?.some(
-              (stmt) => stmt.stmt?.case === "filter",
-            ) &&
-            splitByDefault
-          ) {
-            q!.query!.render = new RenderStatement({
-              stmt: {
-                case: "split",
-                value: new SplitOperator({
-                  by: new SplitOperator_ByOperator({
-                    scalars: [
-                      {
-                        expr: {
-                          case: "identifier",
-                          value: { name: "session" },
+            if (
+              type.case === "tabular" &&
+              type.value?.type?.case === "logEvents" &&
+              splitByDefault
+            ) {
+              q!.query!.render = new RenderStatement({
+                stmt: {
+                  case: "split",
+                  value: new SplitOperator({
+                    by: new SplitOperator_ByOperator({
+                      scalars: [
+                        {
+                          expr: {
+                            case: "identifier",
+                            value: { name: "session" },
+                          },
                         },
-                      },
-                      {
-                        expr: {
-                          case: "identifier",
-                          value: { name: "machine" },
+                        {
+                          expr: {
+                            case: "identifier",
+                            value: { name: "machine" },
+                          },
                         },
-                      },
-                    ],
+                      ],
+                    }),
                   }),
-                }),
-              },
-            });
+                },
+              });
+            }
           }
 
           setParsedQuery(parseRes.query);
