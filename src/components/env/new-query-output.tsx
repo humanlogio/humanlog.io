@@ -19,7 +19,7 @@ import { Val } from "api/js/types/v1/types_pb";
 import { useSearchParams } from "next/navigation";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import { MessageCircleWarning } from "lucide-react";
-import { LogData } from "./log-interface";
+import { LogData } from "@/components/env/log-interface";
 
 interface NewQueryOutputProps {
   logData: LogData;
