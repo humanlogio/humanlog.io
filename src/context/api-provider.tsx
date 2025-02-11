@@ -18,6 +18,7 @@ import { useCookies } from "react-cookie";
 import { Environment } from "api/js/types/v1/environment_pb";
 import { useRouter } from "next/navigation";
 import config from "@/features/config";
+import { v4 as uuidv4 } from "uuid";
 
 type ApiProviderType = {
   apiClients: ApiClients | null;
@@ -51,9 +52,10 @@ export function ApiClientsProvider({
 }: {
   children: React.ReactNode;
 }) {
+  const isProd = config.NEXT_PUBLIC_SIGNUP_ONLY;
   const returnToURL = getSelfURL();
 
-  const [cookies] = useCookies();
+  const [cookies, setCookie] = useCookies();
   const [apiTransport, setApiTransport] = useState<Transport>();
   const [activeEnvironment, setActiveEnvironment] = useState<
     Environment | undefined
@@ -81,14 +83,21 @@ export function ApiClientsProvider({
         if (token && token != "") {
           req.header.set("Browser-Authorization", token);
         }
-        const res = await next(req);
+        req.header.set("Request-Id", uuidv4());
 
-        res.header.get("content-type");
-        const cookies = res.header.getSetCookie();
-        if (cookies.length > 1) {
-          // new token is in cookies[""]
-          console.error("received a new cookie, need to handle it!", cookies);
-          // setCookie // update the cookie when the api returns a refresh token
+        const res = await next(req);
+        const newToken = res.header.get("UseAuthorization");
+
+        !isProd && console.log("res.header", res.header);
+
+        if (newToken) {
+          console.log("Received new authorization token");
+          setCookie("hlog_session", newToken, {
+            path: "/",
+            domain: `.humanlog${config.TLD}`,
+            secure: true,
+            sameSite: "strict",
+          });
         }
         return res;
       };
