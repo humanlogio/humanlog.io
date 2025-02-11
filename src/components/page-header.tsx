@@ -188,7 +188,10 @@ const PageHeader: React.FC = () => {
   }, [pathname, sources]);
 
   const renderSourceSelectorBlock = () => (
-    <div title="Environment Selector" className="w-full md:min-w-52">
+    <div
+      title="Environment Selector"
+      className="flex w-full items-center gap-2 md:min-w-52"
+    >
       <Select value={selected?.value || ""} onValueChange={updateSelection}>
         <SelectTrigger className="w-full">
           <div className="flex flex-row items-center gap-2">
@@ -212,6 +215,9 @@ const PageHeader: React.FC = () => {
           </SelectGroup>
         </SelectContent>
       </Select>
+      <div
+        className={`h-4 w-4 shrink-0 animate-pulse rounded-full ${localhostInfo ? "bg-green-500" : "bg-red-500"}`}
+      />
     </div>
   );
 
