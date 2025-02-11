@@ -2,21 +2,25 @@ import { expect, test, vi } from "vitest";
 import { fireEvent, screen, within, waitFor } from "@testing-library/react";
 import { render } from "tests/setup/custom-render";
 import Home from "@/app/page";
+import { ReactNode } from "react";
 
-// Mock window object if needed
-vi.mock("@/context/list-environments", () => ({
-  useAllEnvironments: () => ({
-    localhostInfo: null,
-    localhostValid: false,
-    checkLocalhost: vi.fn(),
-    user: null,
-    listEnvironments: [],
-    activeEnvironment: null,
-    currentOrg: null,
-    defaultOrg: null,
-    doLogin: vi.fn(),
-  }),
-}));
+vi.mock("@/context/list-environments", async () => {
+  return {
+    useAllEnvironments: () => ({
+      localhostInfo: null,
+      localhostValid: false,
+      checkLocalhost: vi.fn(),
+      user: null,
+      listEnvironments: [],
+      activeEnvironment: null,
+      currentOrg: null,
+      defaultOrg: null,
+      doLogin: vi.fn(),
+    }),
+    ListEnvironmentsProvider: ({ children }: { children: ReactNode }) =>
+      children,
+  };
+});
 
 test("pages render", async () => {
   render(<Home />);
