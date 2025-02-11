@@ -158,9 +158,8 @@ export function ListEnvironmentsProvider({
       }
 
       if (localhostAuthRes?.loggedInUser) {
-        const { user, currentOrganization, defaultOrganization } =
+        const { currentOrganization, defaultOrganization } =
           localhostAuthRes.loggedInUser;
-        _user = user ?? "not-logged-in";
         _currentOrg = currentOrganization;
         _defaultOrg = defaultOrganization;
       }
