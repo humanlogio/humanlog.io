@@ -1,26 +1,15 @@
 "use client";
 
-import {
-  Data_SubQueries,
-  ScalarTimeseries,
-  Tabular,
-  VectorTimeseries,
-} from "api/js/types/v1/query_pb";
+import { Data_SubQueries, Tabular } from "api/js/types/v1/query_pb";
 import {
   Dispatch,
   Fragment,
   ReactNode,
   SetStateAction,
-  useCallback,
   useEffect,
   useState,
 } from "react";
-import {
-  LogQuery,
-  RenderStatement,
-  SplitOperator,
-  SplitOperator_ByOperator,
-} from "api/js/types/v1/logquery_pb";
+import { LogQuery } from "api/js/types/v1/logquery_pb";
 import NewSessionPanel from "@/components/sortable/new-session-panel";
 import TableContainer from "@/components/sortable/table-container";
 import { Switch } from "@/components/ui/switch";
@@ -28,148 +17,32 @@ import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { Val } from "api/js/types/v1/types_pb";
 import { useSearchParams } from "next/navigation";
-import { useApiClients } from "@/context/api-provider";
-import { QueryRequest } from "api/js/svc/query/v1/service_pb";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
-import { ConnectError } from "@connectrpc/connect";
 import { MessageCircleWarning } from "lucide-react";
+import { LogData } from "@/components/env/log-interface";
 
-export type DataCase =
-  | "subqueries"
-  | "tabular"
-  | "singleValue"
-  | "scalarTimeseries"
-  | "vectorTimeseries"
-  | undefined;
-
-export type DataValue =
-  | Data_SubQueries
-  | Tabular
-  | Val
-  | ScalarTimeseries
-  | VectorTimeseries
-  | undefined;
-
-export interface LogData {
-  case: DataCase;
-  value?: DataValue;
+interface NewQueryOutputProps {
+  logData: LogData;
+  splitByDefault: boolean;
+  setSplitByDefault: Dispatch<SetStateAction<boolean>>;
+  parsedQuery: LogQuery | undefined;
 }
 
-const NewQueryOutput = () => {
-  const limit = 100;
-
-  const { apiClients, activeEnvironment } = useApiClients();
+const NewQueryOutput = ({
+  logData,
+  splitByDefault,
+  setSplitByDefault,
+  parsedQuery,
+}: NewQueryOutputProps) => {
   const searchParams = useSearchParams();
   const queryString = searchParams.get("query");
+
   const [output, setOutput] = useState<ReactNode>();
-  const [logData, setLogData] = useState<LogData>({
-    case: undefined,
-    value: undefined,
-  });
-  const [parsedQuery, setParsedQuery] = useState<LogQuery>();
-  const [splitByDefault, setSplitByDefault] = useState(true);
-
-  const parseQuery = async (parseReq: { query: string }) => {
-    try {
-      const parsedQuery = await apiClients?.query.parse(parseReq);
-      return parsedQuery;
-    } catch (error) {
-      if (error instanceof ConnectError) {
-        let alertMsg = "Query parsing failed. Please check your query syntax.";
-        const { code, rawMessage, message } = error;
-
-        // unimplemented
-        if (code === 12) {
-          alertMsg = message;
-        }
-        //parsing error
-        if (code === 3) {
-          alertMsg = `${alertMsg} \n ${rawMessage}`;
-        }
-
-        alert(alertMsg);
-        console.error("Query parsing error:", error);
-      }
-    }
-  };
-
-  const getLogData = useCallback(
-    async (editorContent: string) => {
-      if (!editorContent || !apiClients?.query) {
-        console.log("Invalid content or missing API client:", {
-          editorContent,
-          hasApiClient: !!apiClients?.query,
-        });
-        return;
-      }
-
-      try {
-        const parseReq = { query: editorContent };
-        const parseRes = await parseQuery(parseReq);
-
-        if (parseRes) {
-          const q = parseRes.query;
-
-          if (
-            q?.query?.statements?.some(
-              (stmt) => stmt.stmt?.case === "filter",
-            ) &&
-            splitByDefault
-          ) {
-            q!.query!.render = new RenderStatement({
-              stmt: {
-                case: "split",
-                value: new SplitOperator({
-                  by: new SplitOperator_ByOperator({
-                    scalars: [
-                      {
-                        expr: {
-                          case: "identifier",
-                          value: { name: "session" },
-                        },
-                      },
-                      {
-                        expr: {
-                          case: "identifier",
-                          value: { name: "machine" },
-                        },
-                      },
-                    ],
-                  }),
-                }),
-              },
-            });
-          }
-
-          setParsedQuery(parseRes.query);
-
-          const queryReq = new QueryRequest({
-            environmentId: activeEnvironment?.id,
-            query: parseRes.query,
-            limit,
-          });
-
-          const queryRes = await apiClients.query.query(queryReq);
-
-          if (queryRes.data) {
-            setLogData(queryRes.data.shape);
-          }
-        }
-      } catch (error: any) {
-        console.error(error);
-      }
-    },
-    [activeEnvironment, apiClients?.query, queryString, splitByDefault],
-  );
-
-  useEffect(() => {
-    queryString && getLogData(decodeURIComponent(queryString));
-  }, [queryString, splitByDefault]);
 
   useEffect(() => {
     const { case: dataCase, value } = logData;
 
-    if (!logData.case && !logData.value) {
+    if (!dataCase && !logData.value) {
       setOutput(
         <div className="container flex flex-1 items-center justify-center">
           <div className="rounded-md bg-slate-200 p-4 text-slate-800 dark:bg-slate-800 dark:text-slate-200">
