@@ -17,7 +17,11 @@ import MonacoEditor from "@/components/editor/monaco-editor";
 import type { OnMount } from "@monaco-editor/react";
 import { useRouter, useSearchParams } from "next/navigation";
 
-const NewQueryInput = () => {
+interface NewQueryInputProps {
+  errMsg: string;
+}
+
+const NewQueryInput = ({ errMsg }: NewQueryInputProps) => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const queryString = searchParams.get("query");
@@ -205,23 +209,26 @@ const NewQueryInput = () => {
   return (
     <div className="container grid grid-cols-2 items-start gap-8">
       {/* TEXT INPUT */}
-      <div className="col-span-2 ml-[4px] flex flex-row gap-2 md:col-span-1">
-        <div className="w-full overflow-hidden rounded-base border-2 border-border py-3">
-          <MonacoEditor
-            value={editorContent}
-            onChange={(value) => setEditorContent(value || "")}
-            onMount={handleEditorDidMount}
-          />
+      <div>
+        <div className="col-span-2 ml-[4px] flex flex-row gap-2 md:col-span-1">
+          <div className="w-full overflow-hidden rounded-base border-2 border-border py-3">
+            <MonacoEditor
+              value={editorContent}
+              onChange={(value) => setEditorContent(value || "")}
+              onMount={handleEditorDidMount}
+            />
+          </div>
+          <Button
+            size="icon"
+            className="h-8"
+            onClick={() => {
+              router.push(`?query=${encodeURIComponent(editorContent)}`);
+            }}
+          >
+            <Share size={14} />
+          </Button>
         </div>
-        <Button
-          size="icon"
-          className="h-8"
-          onClick={() => {
-            router.push(`?query=${encodeURIComponent(editorContent)}`);
-          }}
-        >
-          <Share size={14} />
-        </Button>
+        <p className="mt-2 text-xs text-[red]">{errMsg}</p>
       </div>
 
       {/* CHART */}

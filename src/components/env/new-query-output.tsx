@@ -33,6 +33,8 @@ import { QueryRequest } from "api/js/svc/query/v1/service_pb";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import { ConnectError } from "@connectrpc/connect";
 import { MessageCircleWarning } from "lucide-react";
+import { Code } from "@connectrpc/connect";
+import { toast } from "sonner";
 
 export type DataCase =
   | "subqueries"
@@ -55,7 +57,11 @@ export interface LogData {
   value?: DataValue;
 }
 
-const NewQueryOutput = () => {
+interface NewQueryOutputProps {
+  setErrMsg: Dispatch<SetStateAction<string>>;
+}
+
+const NewQueryOutput = ({ setErrMsg }: NewQueryOutputProps) => {
   const limit = 100;
 
   const { apiClients, activeEnvironment } = useApiClients();
@@ -72,22 +78,23 @@ const NewQueryOutput = () => {
   const parseQuery = async (parseReq: { query: string }) => {
     try {
       const parsedQuery = await apiClients?.query.parse(parseReq);
+      setErrMsg("");
       return parsedQuery;
     } catch (error) {
       if (error instanceof ConnectError) {
         let alertMsg = "Query parsing failed. Please check your query syntax.";
         const { code, rawMessage, message } = error;
 
-        // unimplemented
-        if (code === 12) {
-          alertMsg = message;
-        }
-        //parsing error
-        if (code === 3) {
-          alertMsg = `${alertMsg} \n ${rawMessage}`;
+        if (code === Code.Unimplemented) {
+          toast.error(message);
         }
 
-        alert(alertMsg);
+        if (code === Code.InvalidArgument) {
+          toast.error(`Your query is invalid: ${alertMsg}`);
+
+          setErrMsg(`${rawMessage}`);
+        }
+
         console.error("Query parsing error:", error);
       }
     }
