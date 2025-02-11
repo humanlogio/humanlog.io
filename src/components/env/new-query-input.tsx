@@ -19,9 +19,10 @@ import { useRouter, useSearchParams } from "next/navigation";
 
 interface NewQueryInputProps {
   errMsg: string;
+  onExecuteQuery: (query: string) => void;
 }
 
-const NewQueryInput = ({ errMsg }: NewQueryInputProps) => {
+const NewQueryInput = ({ errMsg, onExecuteQuery }: NewQueryInputProps) => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const queryString = searchParams.get("query");
@@ -188,6 +189,7 @@ const NewQueryInput = ({ errMsg }: NewQueryInputProps) => {
 
     editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, () => {
       const currentValue = editor.getValue();
+      onExecuteQuery(currentValue);
       router.push(`?query=${encodeURIComponent(currentValue)}`);
 
       setEditorContent(currentValue);
@@ -209,8 +211,8 @@ const NewQueryInput = ({ errMsg }: NewQueryInputProps) => {
   return (
     <div className="container grid grid-cols-2 items-start gap-8">
       {/* TEXT INPUT */}
-      <div>
-        <div className="col-span-2 ml-[4px] flex flex-row gap-2 md:col-span-1">
+      <div className="col-span-2 md:col-span-1">
+        <div className="flex w-full flex-row gap-2">
           <div className="w-full overflow-hidden rounded-base border-2 border-border py-3">
             <MonacoEditor
               value={editorContent}
@@ -222,6 +224,7 @@ const NewQueryInput = ({ errMsg }: NewQueryInputProps) => {
             size="icon"
             className="h-8"
             onClick={() => {
+              onExecuteQuery(editorContent);
               router.push(`?query=${encodeURIComponent(editorContent)}`);
             }}
           >
