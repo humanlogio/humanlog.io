@@ -1,7 +1,13 @@
 "use client";
 
 import React, { createContext, useContext, useMemo, useState } from "react";
-import { createClient, Client, Transport } from "@connectrpc/connect";
+import {
+  createClient,
+  Client,
+  Transport,
+  ConnectError,
+  Code,
+} from "@connectrpc/connect";
 import { Interceptor } from "@connectrpc/connect";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createConnectTransport } from "@connectrpc/connect-web";
@@ -19,6 +25,7 @@ import { Environment } from "api/js/types/v1/environment_pb";
 import { useRouter } from "next/navigation";
 import config from "@/features/config";
 import { v4 as uuidv4 } from "uuid";
+import { refreshClient } from "./refresh-provider";
 
 type ApiProviderType = {
   apiClients: ApiClients | null;
@@ -52,17 +59,20 @@ export function ApiClientsProvider({
 }: {
   children: React.ReactNode;
 }) {
-  const isProd = config.NEXT_PUBLIC_SIGNUP_ONLY;
   const returnToURL = getSelfURL();
 
   const [cookies, setCookie] = useCookies();
+
+  let humanlogSessionCookie = cookies["hlog_session"];
+
   const [apiTransport, setApiTransport] = useState<Transport>();
   const [activeEnvironment, setActiveEnvironment] = useState<
     Environment | undefined
   >();
+  const [authToken, setAuthToken] = useState<string>(
+    humanlogSessionCookie || "",
+  );
   const router = useRouter();
-
-  let humanlogSessionCookie = cookies["hlog_session"];
 
   const doLogout = async () => {
     document.cookie = `hlog_session=; path=/; domain=.humanlog${config.TLD}; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
@@ -77,38 +87,75 @@ export function ApiClientsProvider({
     }
   };
 
+  const getRefreshToken = async () => {
+    try {
+      const res = await refreshClient?.refreshUserToken({});
+      return res;
+    } catch (err) {
+      if (err instanceof ConnectError) {
+        if (err.code === Code.Unauthenticated) {
+          doLogout();
+        }
+      }
+      return null;
+    }
+  };
+
   const apiClients = useMemo((): ApiClients => {
-    const auther = (token: string): Interceptor => {
+    let refreshPromise: Promise<string | null> | null = null;
+
+    const auther = (
+      token: string,
+      setToken: (token: string) => void,
+    ): Interceptor => {
       return (next) => async (req) => {
         if (token && token != "") {
           req.header.set("Browser-Authorization", token);
         }
-        req.header.set("Request-Id", uuidv4());
 
-        const res = await next(req);
-        const newToken = res.header.get("UseAuthorization");
+        try {
+          return await next(req);
+        } catch (error: any) {
+          if (!refreshPromise) {
+            refreshPromise = getRefreshToken()
+              .then((refreshRes) => {
+                if (refreshRes?.token) {
+                  console.log("Token refreshed successfully");
+                  setToken(refreshRes.token);
+                  return refreshRes.token;
+                } else {
+                  throw new Error("No refresh token received");
+                }
+              })
+              .finally(() => {
+                refreshPromise = null;
+              });
+          }
 
-        !isProd && console.log("res.header", res.header);
+          const newToken = await refreshPromise;
 
-        if (newToken) {
-          console.log("Received new authorization token");
-          setCookie("hlog_session", newToken, {
-            path: "/",
-            domain: `.humanlog${config.TLD}`,
-            secure: true,
-            sameSite: "strict",
-          });
+          if (newToken) {
+            req.header.set("Browser-Authorization", newToken);
+            return await next(req);
+          }
+
+          throw error;
         }
-        return res;
       };
     };
 
     const localhostTransport = createConnectTransport({
       baseUrl: "http://localhost:32764",
     });
+
     const apiTpt = createConnectTransport({
       baseUrl: getAPIURL(),
-      interceptors: [auther(humanlogSessionCookie)],
+      interceptors: [
+        auther(authToken, (newToken) => {
+          setAuthToken(newToken);
+          setCookie("hlog_session", newToken);
+        }),
+      ],
     });
     setApiTransport(apiTpt);
 
@@ -130,7 +177,7 @@ export function ApiClientsProvider({
       localhostTransport: localhostTransport,
       activeTransport: activeTransport,
     };
-  }, [humanlogSessionCookie, activeEnvironment]);
+  }, [humanlogSessionCookie, authToken, activeEnvironment]);
 
   return (
     <TransportProvider transport={apiTransport!}>
