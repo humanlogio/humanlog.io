@@ -112,6 +112,7 @@ export function ApiClientsProvider({
         if (token && token != "") {
           req.header.set("Browser-Authorization", token);
         }
+        req.header.set("Request-Id", uuidv4());
 
         try {
           return await next(req);
