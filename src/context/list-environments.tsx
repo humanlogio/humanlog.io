@@ -67,6 +67,7 @@ export function ListEnvironmentsProvider({
       return res;
     } catch (err) {
       setBrowserValid(false);
+      setUser("not-logged-in");
       if (err instanceof ConnectError) {
         console.log("need to auth");
       } else {
