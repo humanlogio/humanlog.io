@@ -92,11 +92,6 @@ export function ApiClientsProvider({
       const res = await refreshClient?.refreshUserToken({});
       return res;
     } catch (err) {
-      if (err instanceof ConnectError) {
-        if (err.code === Code.Unauthenticated) {
-          doLogout();
-        }
-      }
       return null;
     }
   };
