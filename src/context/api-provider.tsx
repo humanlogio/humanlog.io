@@ -1,7 +1,19 @@
 "use client";
 
-import React, { createContext, useContext, useMemo, useState } from "react";
-import { createClient, Client, Transport } from "@connectrpc/connect";
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
+import {
+  createClient,
+  Client,
+  Transport,
+  ConnectError,
+  Code,
+} from "@connectrpc/connect";
 import { Interceptor } from "@connectrpc/connect";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createConnectTransport } from "@connectrpc/connect-web";
@@ -19,6 +31,10 @@ import { Environment } from "api/js/types/v1/environment_pb";
 import { useRouter } from "next/navigation";
 import config from "@/features/config";
 import { v4 as uuidv4 } from "uuid";
+import dayjs from "dayjs";
+import { RefreshUserTokenResponse } from "api/js/svc/user/v1/service_pb";
+import { Timestamp } from "@bufbuild/protobuf";
+import { toast } from "sonner";
 
 type ApiProviderType = {
   apiClients: ApiClients | null;
@@ -60,12 +76,19 @@ export function ApiClientsProvider({
   const [activeEnvironment, setActiveEnvironment] = useState<
     Environment | undefined
   >();
+  const [refreshToken, setRefreshToken] =
+    useState<RefreshUserTokenResponse | null>();
+
   const router = useRouter();
 
   let humanlogSessionCookie = cookies["hlog_session"];
 
-  const doLogout = async () => {
+  const deleteCookie = () => {
     document.cookie = `hlog_session=; path=/; domain=.humanlog${config.TLD}; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
+  };
+
+  const doLogout = async () => {
+    deleteCookie();
 
     try {
       await apiClients.localhost.doLogout({
@@ -131,6 +154,66 @@ export function ApiClientsProvider({
       activeTransport: activeTransport,
     };
   }, [humanlogSessionCookie, activeEnvironment]);
+
+  const getRefreshToken = async () => {
+    try {
+      const res = await apiClients.user.refreshUserToken({});
+
+      setRefreshToken(res);
+
+      setCookie("hlog_session", res.token, {
+        path: "/",
+        domain: `.humanlog${config.TLD}`,
+        secure: true,
+        sameSite: "strict",
+      });
+
+      return res;
+    } catch (err) {
+      if (err instanceof ConnectError) {
+        if (err.code === Code.Unauthenticated) {
+          setRefreshToken(null);
+          deleteCookie();
+          toast.info(
+            "Your session has expired. Please log in again to continue.",
+          );
+          router.push("/login");
+        }
+        throw err;
+      }
+    }
+  };
+
+  useEffect(() => {
+    // initial execute
+    if (humanlogSessionCookie) {
+      getRefreshToken();
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!refreshToken) return;
+
+    const targetTime = dayjs(refreshToken?.refreshAt?.toDate());
+    const now = dayjs();
+
+    const timeUntilRefresh = targetTime.diff(now);
+
+    if (timeUntilRefresh <= 5000) {
+      getRefreshToken();
+    }
+
+    // Wait until next refresh time
+    const timer = setTimeout(async () => {
+      try {
+        await getRefreshToken();
+      } catch (error) {
+        console.error("Token refresh failed:", error);
+      }
+    }, timeUntilRefresh);
+
+    return () => clearTimeout(timer);
+  }, [refreshToken]);
 
   return (
     <TransportProvider transport={apiTransport!}>
