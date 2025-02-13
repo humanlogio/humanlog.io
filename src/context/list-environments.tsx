@@ -105,11 +105,11 @@ export function ListEnvironmentsProvider({
           operatingSystem: localhostInfo.operatingSystem,
           usingVersion: localhostInfo.clientVersion,
         });
-        const res = await apiClients?.auth.getAuthURL(req);
+      }
+      const res = await apiClients?.auth.getAuthURL(req);
 
-        if (res) {
-          router.push(res.authUrl);
-        }
+      if (res) {
+        router.push(res.authUrl);
       }
     } catch (error) {
       console.log("failed to Login at the browser");

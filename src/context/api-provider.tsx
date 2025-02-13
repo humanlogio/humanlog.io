@@ -25,7 +25,7 @@ import { Environment } from "api/js/types/v1/environment_pb";
 import { useRouter } from "next/navigation";
 import config from "@/features/config";
 import { v4 as uuidv4 } from "uuid";
-import { refreshClient } from "./refresh-provider";
+import { refreshClient } from "@/context/refresh-provider";
 
 type ApiProviderType = {
   apiClients: ApiClients | null;
