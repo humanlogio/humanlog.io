@@ -151,12 +151,19 @@ const LogInterface = () => {
             setLogData(queryRes.data.shape);
           }
         }
-      } catch (error: any) {
-        setLogData({
-          case: undefined,
-          value: undefined,
-        });
-        console.error(error);
+      } catch (error) {
+        if (error instanceof ConnectError) {
+          const { code, rawMessage, message } = error;
+          if (code === Code.Unauthenticated) {
+            toast.error(message);
+          }
+
+          setLogData({
+            case: undefined,
+            value: undefined,
+          });
+          console.error(error);
+        }
       }
     },
     [activeEnvironment, apiClients?.query, queryString, splitByDefault],
