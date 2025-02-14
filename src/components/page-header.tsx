@@ -216,7 +216,7 @@ const PageHeader: React.FC = () => {
         </SelectContent>
       </Select>
       <div
-        className={`h-4 w-4 shrink-0 animate-pulse rounded-full ${localhostInfo ? "bg-green-500" : "bg-red-500"}`}
+        className={`h-4 w-4 shrink-0 rounded-full ${localhostInfo ? "bg-green-500" : "bg-red-500"}`}
       />
     </div>
   );
