@@ -10,6 +10,11 @@ export default defineConfig({
     environment: "jsdom",
     setupFiles: "tests/setup/setup-unit.ts",
     globals: true,
+    environmentOptions: {
+      jsdom: {
+        resources: "usable",
+      },
+    },
   },
   resolve: {
     alias: {

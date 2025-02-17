@@ -184,36 +184,37 @@ export function ApiClientsProvider({
     }
   };
 
-  // useEffect(() => {
-  //   // initial execute
-  //   if (humanlogSessionCookie) {
-  //     getRefreshToken();
-  //   }
-  // }, []);
+  useEffect(() => {
+    // initial execute
+    if (humanlogSessionCookie) {
+      getRefreshToken();
+    }
+  }, []);
 
-  // useEffect(() => {
-  //   if (!refreshToken) return;
+  useEffect(() => {
+    if (!refreshToken) return;
 
-  //   const targetTime = dayjs(refreshToken?.refreshAt?.toDate());
-  //   const now = dayjs();
+    const targetTime = dayjs(refreshToken?.refreshAt?.toDate());
+    const now = dayjs();
 
-  //   const timeUntilRefresh = targetTime.diff(now);
+    const timeUntilRefresh = targetTime.diff(now);
 
-  //   if (timeUntilRefresh <= 5000) {
-  //     getRefreshToken();
-  //   }
+    if (timeUntilRefresh <= 5000) {
+      getRefreshToken();
+      return;
+    }
 
-  //   // Wait until next refresh time
-  //   const timer = setTimeout(async () => {
-  //     try {
-  //       await getRefreshToken();
-  //     } catch (error) {
-  //       console.error("Token refresh failed:", error);
-  //     }
-  //   }, timeUntilRefresh);
+    // Wait until next refresh time
+    const timer = setTimeout(async () => {
+      try {
+        await getRefreshToken();
+      } catch (error) {
+        console.error("Token refresh failed:", error);
+      }
+    }, timeUntilRefresh);
 
-  //   return () => clearTimeout(timer);
-  // }, [refreshToken]);
+    return () => clearTimeout(timer);
+  }, [refreshToken]);
 
   return (
     <TransportProvider transport={apiTransport!}>
