@@ -155,67 +155,6 @@ export function ApiClientsProvider({
     };
   }, [humanlogSessionCookie, activeEnvironment]);
 
-  const getRefreshToken = async () => {
-    try {
-      const res = await apiClients.user.refreshUserToken({});
-
-      setRefreshToken(res);
-
-      setCookie("hlog_session", res.token, {
-        path: "/",
-        domain: `.humanlog${config.TLD}`,
-        secure: true,
-        sameSite: "strict",
-      });
-
-      return res;
-    } catch (err) {
-      if (err instanceof ConnectError) {
-        if (err.code === Code.Unauthenticated) {
-          setRefreshToken(null);
-          deleteCookie();
-          toast.info(
-            "Your session has expired. Please log in again to continue.",
-          );
-          router.push("/login");
-        }
-        throw err;
-      }
-    }
-  };
-
-  useEffect(() => {
-    // initial execute
-    if (humanlogSessionCookie) {
-      getRefreshToken();
-    }
-  }, []);
-
-  useEffect(() => {
-    if (!refreshToken) return;
-
-    const targetTime = dayjs(refreshToken?.refreshAt?.toDate());
-    const now = dayjs();
-
-    const timeUntilRefresh = targetTime.diff(now);
-
-    if (timeUntilRefresh <= 5000) {
-      getRefreshToken();
-      return;
-    }
-
-    // Wait until next refresh time
-    const timer = setTimeout(async () => {
-      try {
-        await getRefreshToken();
-      } catch (error) {
-        console.error("Token refresh failed:", error);
-      }
-    }, timeUntilRefresh);
-
-    return () => clearTimeout(timer);
-  }, [refreshToken]);
-
   return (
     <TransportProvider transport={apiTransport!}>
       <QueryClientProvider client={queryClient}>

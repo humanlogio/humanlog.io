@@ -14,6 +14,9 @@ import {
 } from "api/js/svc/auth/v1/service_pb";
 import { getSelfURL } from "@/lib/envs";
 import { useRouter } from "next/navigation";
+import { useCookies } from "react-cookie";
+import { toast } from "sonner";
+import config from "@/features/config";
 
 export type UserState = User | "loading" | "not-logged-in";
 
@@ -55,6 +58,35 @@ export function ListEnvironmentsProvider({
     ListEnvironmentResponse_ListItem[]
   >([]);
   const [environmentPage, setEnvironmentPage] = useState<Cursor>(new Cursor());
+  const [cookies, setCookie] = useCookies();
+
+  const getRefreshToken = async () => {
+    try {
+      const res = await apiClients?.user.refreshUserToken({});
+
+      setCookie("hlog_session", res?.token, {
+        path: "/",
+        domain: `.humanlog${config.TLD}`,
+        secure: true,
+        sameSite: "strict",
+      });
+
+      return res;
+    } catch (err) {
+      if (err instanceof ConnectError) {
+        if (err.code === Code.Unauthenticated) {
+          document.cookie = `hlog_session=; path=/; domain=.humanlog${config.TLD}; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
+          setBrowserValid(false);
+          setUser("not-logged-in");
+          toast.info(
+            "Your session has expired. Please log in again to continue.",
+          );
+          router.push("/login");
+        }
+        throw err;
+      }
+    }
+  };
 
   const checkBrowser = async () => {
     try {
@@ -66,13 +98,7 @@ export function ListEnvironmentsProvider({
       setBrowserValid(true);
       return res;
     } catch (err) {
-      setBrowserValid(false);
-      setUser("not-logged-in");
-      if (err instanceof ConnectError) {
-        console.log("need to auth");
-      } else {
-        console.error(err);
-      }
+      getRefreshToken();
     }
   };
 
