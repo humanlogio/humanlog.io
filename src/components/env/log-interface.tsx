@@ -10,6 +10,7 @@ import {
   RenderStatement,
   SplitOperator,
   SplitOperator_ByOperator,
+  Statements,
 } from "api/js/types/v1/logquery_pb";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
@@ -103,16 +104,16 @@ const LogInterface = () => {
         const parseRes = await parseQuery(parseReq);
 
         if (parseRes) {
-          const q = parseRes.query;
           if (parseRes.dataType) {
             const { type } = parseRes.dataType;
 
             if (
+              parseRes.query &&
               type.case === "tabular" &&
               type.value?.type?.case === "logEvents" &&
               splitByDefault
             ) {
-              q!.query!.render = new RenderStatement({
+              const renderStmt = new RenderStatement({
                 stmt: {
                   case: "split",
                   value: new SplitOperator({
@@ -121,13 +122,13 @@ const LogInterface = () => {
                         {
                           expr: {
                             case: "identifier",
-                            value: { name: "session" },
+                            value: { name: "machine" },
                           },
                         },
                         {
                           expr: {
                             case: "identifier",
-                            value: { name: "machine" },
+                            value: { name: "session" },
                           },
                         },
                       ],
@@ -135,6 +136,16 @@ const LogInterface = () => {
                   }),
                 },
               });
+
+              if (parseRes.query.query) {
+                parseRes.query.query!.render = renderStmt;
+              } else {
+                // TODO: Uncomment after backend's update
+                // parseRes.query.query = new Statements({
+                //   statements: [],
+                //   render: renderStmt,
+                // });
+              }
             }
           }
 
