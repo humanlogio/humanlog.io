@@ -1,42 +1,31 @@
 "use client";
 
 import { Data_SubQueries, Tabular } from "api/js/types/v1/query_pb";
-import {
-  Dispatch,
-  Fragment,
-  ReactNode,
-  SetStateAction,
-  useEffect,
-  useState,
-} from "react";
+import { Fragment, ReactNode, useEffect, useState } from "react";
 import { LogQuery } from "api/js/types/v1/logquery_pb";
 import NewSessionPanel from "@/components/sortable/new-session-panel";
 import TableContainer from "@/components/sortable/table-container";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
-import { Val } from "api/js/types/v1/types_pb";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import { MessageCircleWarning } from "lucide-react";
 import { LogData } from "@/components/env/log-interface";
 
 interface NewQueryOutputProps {
   logData: LogData;
-  splitByDefault: boolean;
-  setSplitByDefault: Dispatch<SetStateAction<boolean>>;
+
   parsedQuery: LogQuery | undefined;
 }
 
 const NewQueryOutput = ({
   logData,
-  splitByDefault,
-  setSplitByDefault,
+
   parsedQuery,
 }: NewQueryOutputProps) => {
   const searchParams = useSearchParams();
   const queryString = searchParams.get("query");
-
   const [output, setOutput] = useState<ReactNode>();
 
   useEffect(() => {
@@ -67,10 +56,8 @@ const NewQueryOutput = ({
         case "logEvents":
           setOutput(
             <>
-              <ToggleSplit
-                splitByDefault={splitByDefault}
-                setSplitByDefault={setSplitByDefault}
-              />
+              {/* TODO: Remove condition after backend's update */}
+              {queryString ? <ToggleSplit /> : <div className="h-6" />}
               <div className="container flex-1 overflow-auto">
                 <NewSessionPanel query={parsedQuery} />
               </div>
@@ -93,10 +80,7 @@ const NewQueryOutput = ({
       const { queries } = value;
       setOutput(
         <>
-          <ToggleSplit
-            splitByDefault={splitByDefault}
-            setSplitByDefault={setSplitByDefault}
-          />
+          <ToggleSplit />
           <PanelGroup
             direction="horizontal"
             className="container flex flex-1 overflow-y-auto"
@@ -126,34 +110,42 @@ const NewQueryOutput = ({
 
 export default NewQueryOutput;
 
-interface ToggleSplitProps {
-  splitByDefault: boolean;
-  setSplitByDefault: Dispatch<SetStateAction<boolean>>;
-}
+const ToggleSplit = () => {
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
-const ToggleSplit = ({
-  splitByDefault,
-  setSplitByDefault,
-}: ToggleSplitProps) => {
+  const split = searchParams.get("splitByDefault");
+
+  const onCheckedChange = (checked: boolean) => {
+    const params = new URLSearchParams(searchParams);
+    if (checked) {
+      params.set("splitByDefault", "true");
+      router.push(`?${params}`);
+    } else {
+      params.delete("splitByDefault");
+      router.push(`?${params}`);
+    }
+  };
+
   return (
     <div className="flex-end container flex items-center gap-2">
       <Label
         htmlFor="billed-monthly"
         className={cn("transition-colors duration-200", {
-          "text-slate-500": splitByDefault,
+          "text-slate-500": split ? true : false,
         })}
       >
         View Combined Logs
       </Label>
       <Switch
         id="billed-monthly"
-        checked={splitByDefault}
-        onCheckedChange={setSplitByDefault}
+        checked={split ? true : false}
+        onCheckedChange={(e) => onCheckedChange(e)}
       />
       <Label
         htmlFor="billed-monthly"
         className={cn("relative transition-colors duration-200", {
-          "text-slate-500": !splitByDefault,
+          "text-slate-500": !(split ? true : false),
         })}
       >
         Split by Default

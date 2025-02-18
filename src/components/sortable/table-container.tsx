@@ -1,4 +1,5 @@
 import { formatTimestamp, useInfiniteQuery } from "@/lib/utils";
+import { valueToJSX } from "@/lib/utils/valueFormatters";
 import { Duration, Timestamp } from "@bufbuild/protobuf";
 import { LogQuery } from "api/js/types/v1/logquery_pb";
 import { FlatArr, TableType_Column } from "api/js/types/v1/types_pb";
@@ -36,11 +37,15 @@ const TableContainer = ({ query }: TableProps) => {
 
   return (
     tableRows && (
-      <table className="mt-4 w-full border">
+      <table className="mt-4 w-full table-auto border">
         <thead className="border">
           <tr>
             {tableColumns?.map((col, i) => {
-              return <td key={i}>{col?.name}</td>;
+              return (
+                <td key={i} className="px-2">
+                  {col?.name}
+                </td>
+              );
             })}
           </tr>
         </thead>
@@ -49,12 +54,11 @@ const TableContainer = ({ query }: TableProps) => {
             return (
               <tr key={i}>
                 {row.items?.map((item, i) => {
+                  // console.log("item.kind", item.kind);
+                  console.log("item.kind.value", item.kind.value);
                   return (
-                    <td key={`${item.kind.case}-${i}`}>
-                      {item.kind.value instanceof Timestamp ||
-                      item.kind.value instanceof Duration
-                        ? formatTimestamp(item.kind.value)
-                        : item.kind.value}
+                    <td key={`${item.kind.case}-${i}`} className="px-2">
+                      {valueToJSX(item)}
                     </td>
                   );
                 })}
