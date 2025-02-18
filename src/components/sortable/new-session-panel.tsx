@@ -3,13 +3,13 @@ import { useDebouncer } from "@/lib/utils/useDebouncer";
 import { IngestedLogEvent } from "api/js/types/v1/logevent_pb";
 import { LogQuery } from "api/js/types/v1/logquery_pb";
 import { Loader, Search } from "lucide-react";
-import { ReactNode, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Panel, PanelGroup } from "react-resizable-panels";
 import { DragHandle } from "@/components/sortable/sortable-item";
 import { Button } from "@/components/ui/button";
-import { Duration, Timestamp } from "@bufbuild/protobuf";
+import { Timestamp } from "@bufbuild/protobuf";
 import { ResizableHandle } from "@/components/ui/resizable";
-import { Val } from "api/js/types/v1/types_pb";
+import { valueToJSX } from "@/lib/utils/valueFormatters";
 
 interface NewSessionPanelProps {
   query: LogQuery | undefined;
@@ -247,103 +247,6 @@ const NewSessionPanel = ({ query }: NewSessionPanelProps) => {
       </div>
     </div>
   );
-};
-
-// TODO: 이 밑으로 util함수로 분리
-const valueToJSX = (val: Val | undefined): ReactNode => {
-  if (!val) {
-    return <>null</>;
-  }
-  switch (val.kind.case) {
-    case "str":
-      return (
-        <span className="text-red-600 dark:text-red-400">{val.kind.value}</span>
-      );
-    case "f64":
-      return (
-        <span className="text-red-600 dark:text-red-400">{val.kind.value}</span>
-      );
-    case "i64":
-      return (
-        <span className="text-red-600 dark:text-red-400">{val.kind.value}</span>
-      );
-    case "bool":
-      return (
-        <span className="text-red-600 dark:text-red-400">{val.kind.value}</span>
-      );
-    case "arr":
-      return (
-        <span className="text-red-600 dark:text-red-400">
-          {JSON.stringify(val.kind.value)}
-        </span>
-      );
-    case "obj":
-      return (
-        <span className="text-red-600 dark:text-red-400">
-          {JSON.stringify(val.kind.value)}
-        </span>
-      );
-    case "ts":
-      return (
-        <span className="text-red-600 dark:text-red-400">
-          {val.kind.value.toDate().toISOString()}
-        </span>
-      );
-    case "dur":
-      return (
-        <span className="text-red-600 dark:text-red-400">
-          {durationToString(val.kind.value)}
-        </span>
-      );
-  }
-  return (
-    <span className="dark:text-redqu-400 text-red-600">
-      {/* buggy UI is buggy: {val.kind.value} */}
-    </span>
-  );
-};
-
-const durationToString = (dur: Duration): string => {
-  if (dur.seconds === BigInt(0)) {
-    // sub-second duration
-    if (dur.nanos > 1e6) {
-      return wholeOrSingleDecimal(dur.nanos, 1e6) + "ms";
-    } else if (dur.nanos > 1e3) {
-      return wholeOrSingleDecimal(dur.nanos, 1e3) + "µs";
-    } else {
-      return dur.nanos + "ns";
-    }
-  }
-  if (dur.seconds < 10) {
-    if (dur.nanos > 0) {
-      // note that "1s == 1e9ns" and thus "0.1s == 1e8ns"
-      const decisecond = wholeOrSingleDecimal(dur.nanos, 1e8);
-      return Number(dur.seconds) + "." + decisecond + "s";
-    }
-    return Number(dur.seconds) + "s";
-  }
-  if (dur.seconds < 120) {
-    return Number(dur.seconds) + "s";
-  }
-  if (dur.seconds < 60 * 60) {
-    return wholeOrSingleDecimal(Number(dur.seconds), 60) + "m";
-  }
-  if (dur.seconds < 24 * 60 * 60) {
-    return wholeOrSingleDecimal(Number(dur.seconds), 60 * 60) + "m";
-  }
-  return dur.toJsonString();
-};
-
-const wholeOrSingleDecimal = (
-  num: number,
-  orderOfMagnitude: number,
-): number => {
-  if (num % orderOfMagnitude === 0) {
-    // wholly divisible by millisecond
-    return num / orderOfMagnitude;
-  }
-  // scale up and down to keep 1 decimal
-  return Math.round((10 * num) / orderOfMagnitude) / 10;
 };
 
 export default NewSessionPanel;
