@@ -11,7 +11,7 @@ import {
   SplitOperator,
   SplitOperator_ByOperator,
 } from "api/js/types/v1/logquery_pb";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import {
@@ -47,8 +47,10 @@ const LogInterface = () => {
   const limit = 100;
 
   const { apiClients, activeEnvironment } = useApiClients();
+  const router = useRouter();
   const searchParams = useSearchParams();
   const queryString = searchParams.get("query");
+  const splitByDefault = searchParams.get("splitByDefault");
 
   const [errMsg, setErrMsg] = useState("");
   const [parsedQuery, setParsedQuery] = useState<LogQuery>();
@@ -56,7 +58,6 @@ const LogInterface = () => {
     case: undefined,
     value: undefined,
   });
-  const [splitByDefault, setSplitByDefault] = useState(true);
 
   const parseQuery = async (parseReq: { query: string }) => {
     try {
@@ -171,28 +172,25 @@ const LogInterface = () => {
 
   const executeQuery = useCallback(
     async (query: string) => {
+      const params = new URLSearchParams(searchParams);
       const parseRes = await parseQuery({ query });
+      params.set("query", encodeURIComponent(query));
+      router.push(`?${params}`);
       if (!parseRes) return;
-
       await getLogData(query);
     },
-    [apiClients?.query, parseQuery, getLogData],
+    [apiClients?.query, parseQuery, getLogData, splitByDefault],
   );
 
   useEffect(() => {
-    if (queryString != null) executeQuery(queryString);
+    if (queryString != null) executeQuery(decodeURIComponent(queryString));
   }, [splitByDefault]);
 
   return (
     <section>
       <div className="container-min-h-full flex flex-col gap-4 overflow-y-hidden py-8">
         <NewQueryInput errMsg={errMsg} onExecuteQuery={executeQuery} />
-        <NewQueryOutput
-          logData={logData}
-          splitByDefault={splitByDefault}
-          setSplitByDefault={setSplitByDefault}
-          parsedQuery={parsedQuery}
-        />
+        <NewQueryOutput logData={logData} parsedQuery={parsedQuery} />
       </div>
     </section>
   );

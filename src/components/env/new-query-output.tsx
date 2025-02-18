@@ -16,28 +16,42 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { Val } from "api/js/types/v1/types_pb";
-import { useSearchParams } from "next/navigation";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import { MessageCircleWarning } from "lucide-react";
 import { LogData } from "@/components/env/log-interface";
 
 interface NewQueryOutputProps {
   logData: LogData;
-  splitByDefault: boolean;
-  setSplitByDefault: Dispatch<SetStateAction<boolean>>;
+
   parsedQuery: LogQuery | undefined;
 }
 
 const NewQueryOutput = ({
   logData,
-  splitByDefault,
-  setSplitByDefault,
+
   parsedQuery,
 }: NewQueryOutputProps) => {
+  const router = useRouter();
   const searchParams = useSearchParams();
+  const pathname = usePathname();
+
   const queryString = searchParams.get("query");
+  const split = searchParams.get("splitByDefault");
 
   const [output, setOutput] = useState<ReactNode>();
+  const [splitByDefault, setSplitByDefault] = useState(!!split);
+
+  useEffect(() => {
+    const params = new URLSearchParams(searchParams);
+    if (splitByDefault) {
+      params.set("splitByDefault", "true");
+      router.push(`?${params}`);
+    } else {
+      params.delete("splitByDefault");
+      router.push(`?${params}`);
+    }
+  }, [split, splitByDefault]);
 
   useEffect(() => {
     const { case: dataCase, value } = logData;
