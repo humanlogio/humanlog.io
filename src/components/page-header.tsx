@@ -43,7 +43,6 @@ import { useAllEnvironments, UserState } from "@/context/list-environments";
 import { Button } from "@/components/ui/button";
 import config from "@/features/config";
 import dynamic from "next/dynamic";
-import { getSelfURL } from "@/lib/envs";
 
 const WidthToggle = dynamic(() => import("@/components/width-toggle"), {
   ssr: false,
@@ -57,8 +56,7 @@ interface Source {
 
 const PageHeader: React.FC = () => {
   const pathname = usePathname();
-  const signupOnly = config.NEXT_PUBLIC_SIGNUP_ONLY;
-  const returnToUrl = getSelfURL();
+  const isProd = config.NEXT_PUBLIC_SIGNUP_ONLY;
 
   const { setActiveEnvironment, doLogout } = useApiClients();
   const { isFullWidth, setIsFullWidth } = useFullWidth();
@@ -152,29 +150,30 @@ const PageHeader: React.FC = () => {
         };
     _sources.push(path);
 
-    if (listEnvironments.length > 0) {
-      listEnvironments.forEach((list, i) => {
-        if (list.environment) {
-          const orgName =
-            currentOrg?.id && currentOrg?.id !== defaultOrg?.id
-              ? currentOrg.name
-              : undefined;
+    if (!isProd) {
+      if (listEnvironments.length > 0) {
+        listEnvironments.forEach((list, i) => {
+          if (list.environment) {
+            const orgName =
+              currentOrg?.id && currentOrg?.id !== defaultOrg?.id
+                ? currentOrg.name
+                : undefined;
 
-          _sources.push({
-            name: list.environment.name,
-            path: getEnvUrl(list?.environment?.name as string, orgName),
-            value: `${list.environment.id}`,
-          });
-        }
+            _sources.push({
+              name: list.environment.name,
+              path: getEnvUrl(list?.environment?.name as string, orgName),
+              value: `${list.environment.id}`,
+            });
+          }
+        });
+      }
+
+      _sources.push({
+        name: "+ Add new",
+        path: !defaultOrg && !currentOrg ? "/pricing" : "/env/new",
+        value: "add-new",
       });
     }
-
-    _sources.push({
-      name: "+ Add new",
-      path: !defaultOrg && !currentOrg ? "/pricing" : "/env/new",
-      value: "add-new",
-    });
-
     setSources(_sources);
   }, [listEnvironments, localhostInfo, pathname, user]);
 
@@ -227,7 +226,7 @@ const PageHeader: React.FC = () => {
         <div className="hidden w-full flex-row items-center justify-between gap-8 md:flex">
           <div className="flex flex-row items-center gap-8">
             <Logo />
-            {!signupOnly && renderSourceSelectorBlock()}
+            {renderSourceSelectorBlock()}
           </div>
 
           <div className="flex flex-row items-center gap-6">
@@ -257,7 +256,7 @@ const PageHeader: React.FC = () => {
               <SheetTitle>Menu</SheetTitle>
             </SheetHeader>
             <div className="mt-4 flex w-full grow flex-col gap-8">
-              {!signupOnly && renderSourceSelectorBlock()}
+              {renderSourceSelectorBlock()}
               {renderAvatarBlock(user)}
             </div>
             <ModeToggle />
