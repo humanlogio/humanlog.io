@@ -10,14 +10,24 @@ import { Button } from "@/components/ui/button";
 import { Timestamp } from "@bufbuild/protobuf";
 import { ResizableHandle } from "@/components/ui/resizable";
 import { valueToJSX } from "@/lib/utils/valueFormatters";
+import {
+  FormatConfig_Style,
+  FormatConfig_Themes,
+} from "api/js/types/v1/localhost_config_pb";
+import { useTheme } from "next-themes";
+import { useThemeColors } from "@/lib/utils/useThemeColors";
 
 interface NewSessionPanelProps {
   query: LogQuery | undefined;
+  themes?: FormatConfig_Themes;
 }
 
-const NewSessionPanel = ({ query }: NewSessionPanelProps) => {
+const NewSessionPanel = ({ query, themes }: NewSessionPanelProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const metaColumnRef = useRef<HTMLDivElement>(null);
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
+  const { getColor, getLevelColor } = useThemeColors(isDark, themes);
 
   const { targetRef, isFetching, fetchNext, fetchData, next } =
     useInfiniteQuery(query);
@@ -145,7 +155,11 @@ const NewSessionPanel = ({ query }: NewSessionPanelProps) => {
                     className="flex gap-2 px-4 py-2"
                   >
                     <div className="flex-none">
-                      <code>
+                      <code
+                        style={{
+                          color: getColor("time"),
+                        }}
+                      >
                         {formatTimestamp(
                           log.structured?.timestamp ??
                             (log.parsedAt as Timestamp),
@@ -157,15 +171,9 @@ const NewSessionPanel = ({ query }: NewSessionPanelProps) => {
                       <code>
                         {log.structured?.lvl ? (
                           <span
-                            className={
-                              log.structured.lvl === "ERROR"
-                                ? "text-red-600 dark:text-red-500"
-                                : log.structured.lvl === "WARN"
-                                  ? "text-yellow-600 dark:text-yellow-500"
-                                  : log.structured.lvl === "INFO"
-                                    ? "text-blue-600 dark:text-blue-500"
-                                    : "text-slate-600 dark:text-slate-500"
-                            }
+                            style={{
+                              color: getLevelColor(log.structured.lvl),
+                            }}
                           >
                             [{log.structured.lvl}]
                           </span>
@@ -185,7 +193,12 @@ const NewSessionPanel = ({ query }: NewSessionPanelProps) => {
                       key={`${log.machineId}-${log.sessionId}-${log.eventId}-${index}`}
                       className="hover:bg-slate-400/20 hover:dark:bg-slate-700/20"
                     >
-                      <div className="h-full px-4 py-2">
+                      <div
+                        className="h-full px-4 py-2"
+                        style={{
+                          color: getColor("msg"),
+                        }}
+                      >
                         {log.structured ? (
                           <div className="h-full scrollbar-hide">
                             <code className="whitespace-nowrap">
@@ -219,7 +232,7 @@ const NewSessionPanel = ({ query }: NewSessionPanelProps) => {
                   {logs.map((log, index) => (
                     <div
                       key={`${log.machineId}-${log.sessionId}-${log.eventId}-${index}`}
-                      className="h-[37px] hover:bg-slate-400/20 hover:dark:bg-slate-700/20"
+                      className="hover:bg-slate-400/20 hover:dark:bg-slate-700/20"
                     >
                       <div className="h-full px-4 py-2">
                         {log.structured && (
