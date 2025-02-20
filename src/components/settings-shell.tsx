@@ -13,14 +13,15 @@ import { useAllEnvironments } from "@/context/list-environments";
 import { useApiClients } from "@/context/api-provider";
 
 interface SettingsShellProps {
-  activeSection: "user" | "organization" | "environment";
+  activeSection: "user" | "localhost" | "organization" | "environment";
 }
 
 export function SettingsShell({
   activeSection,
   children,
 }: PropsWithChildren<SettingsShellProps>) {
-  const { user, currentOrg, defaultOrg } = useAllEnvironments();
+  const { user, localhostInfo, currentOrg, defaultOrg } = useAllEnvironments();
+
   const { activeEnvironment } = useApiClients();
 
   if (user == "not-logged-in") {
@@ -61,6 +62,16 @@ export function SettingsShell({
       active: activeSection === "user",
     },
   ];
+
+  if (localhostInfo) {
+    sections.push({
+      name: "Localhost Settings",
+      icon: <Building size={16} />,
+      href: "/localhost/edit",
+      active: activeSection === "localhost",
+    });
+  }
+
   if (orgName) {
     sections.push({
       name: "Organization Settings",
