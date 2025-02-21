@@ -10,10 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Timestamp } from "@bufbuild/protobuf";
 import { ResizableHandle } from "@/components/ui/resizable";
 import { valueToJSX } from "@/lib/utils/valueFormatters";
-import {
-  FormatConfig_Style,
-  FormatConfig_Themes,
-} from "api/js/types/v1/localhost_config_pb";
+import { FormatConfig_Themes } from "api/js/types/v1/localhost_config_pb";
 import { useTheme } from "next-themes";
 import { useThemeColors } from "@/lib/utils/useThemeColors";
 
@@ -129,7 +126,7 @@ const NewSessionPanel = ({ query, themes }: NewSessionPanelProps) => {
                   return (
                     <div
                       key={`${log.machineId}-${log.sessionId}-${log.eventId}-${index}`}
-                      className="flex gap-2 px-2 py-2"
+                      className="flex gap-2 px-2 py-1"
                     >
                       [{log.sessionId}]
                     </div>
@@ -141,7 +138,7 @@ const NewSessionPanel = ({ query, themes }: NewSessionPanelProps) => {
                   return (
                     <div
                       key={`${log.machineId}-${log.sessionId}-${log.eventId}-${index}`}
-                      className="flex gap-2 px-2 py-2"
+                      className="flex gap-2 px-2 py-1"
                     >
                       [{log.eventId}]
                     </div>
@@ -152,7 +149,7 @@ const NewSessionPanel = ({ query, themes }: NewSessionPanelProps) => {
                 {logs.map((log, index) => (
                   <div
                     key={`${log.machineId}-${log.sessionId}-${log.eventId}-${index}`}
-                    className="flex gap-2 px-4 py-2"
+                    className="flex gap-2 px-4 py-1"
                   >
                     <div className="flex-none">
                       <code
@@ -194,7 +191,7 @@ const NewSessionPanel = ({ query, themes }: NewSessionPanelProps) => {
                       className="hover:bg-slate-400/20 hover:dark:bg-slate-700/20"
                     >
                       <div
-                        className="h-full px-4 py-2"
+                        className="h-full px-4 py-1"
                         style={{
                           color: getColor("msg"),
                         }}
@@ -234,7 +231,7 @@ const NewSessionPanel = ({ query, themes }: NewSessionPanelProps) => {
                       key={`${log.machineId}-${log.sessionId}-${log.eventId}-${index}`}
                       className="hover:bg-slate-400/20 hover:dark:bg-slate-700/20"
                     >
-                      <div className="h-full px-4 py-2">
+                      <div className="h-full px-4 py-1">
                         {log.structured && (
                           <code className="flex items-center gap-2 whitespace-nowrap">
                             {log.structured?.kvs.map((kv, kvIndex) => (

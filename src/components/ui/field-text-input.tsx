@@ -2,7 +2,7 @@ import React from "react";
 import { X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { FormLabel } from "./form";
+import { FormLabel } from "@/components/ui/form";
 
 interface FieldTagsInputProps {
   /** 필드의 레이블 */

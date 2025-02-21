@@ -21,7 +21,6 @@ export function SettingsShell({
   children,
 }: PropsWithChildren<SettingsShellProps>) {
   const { user, localhostInfo, currentOrg, defaultOrg } = useAllEnvironments();
-
   const { activeEnvironment } = useApiClients();
 
   if (user == "not-logged-in") {
@@ -67,7 +66,7 @@ export function SettingsShell({
     sections.push({
       name: "Localhost Settings",
       icon: <Building size={16} />,
-      href: "/localhost/edit",
+      href: "/settings/localhost",
       active: activeSection === "localhost",
     });
   }
