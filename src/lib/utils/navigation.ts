@@ -1,6 +1,6 @@
 // User
 export function getUserSettingsUrl() {
-  return `/user/edit`;
+  return `/settings/users`;
 }
 
 // Org
