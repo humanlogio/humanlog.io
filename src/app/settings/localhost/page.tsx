@@ -1,12 +1,7 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  ControllerRenderProps,
-  useForm,
-  useFormContext,
-} from "react-hook-form";
+import { useForm } from "react-hook-form";
 import * as z from "zod";
 import {
   Form,
@@ -16,7 +11,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+
 import { Button } from "@/components/ui/button";
 import { useApiClients } from "@/context/api-provider";
 import { SquareCode, User as UserIcon } from "lucide-react";
@@ -28,55 +23,27 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { SettingsShell } from "@/components/settings-shell";
-import { ColorPicker, useColor } from "react-color-palette";
 import "react-color-palette/css";
 import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
-import { GetConfigResponse } from "api/js/svc/localhost/v1/service_pb";
-import {
+  FormatConfig,
   FormatConfig_ColorMode,
-  FormatConfig_Theme,
   FormatConfig_Themes,
+  FormatConfig_Time,
   LocalhostConfig,
+  ParseConfig,
+  ParseConfig_Level,
+  ParseConfig_Message,
+  ParseConfig_Time,
+  RuntimeConfig,
 } from "api/js/types/v1/localhost_config_pb";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { cn } from "@/lib/utils";
+import { cn, TIME_FORMAT } from "@/lib/utils";
 import FieldTagsInput from "@/components/ui/field-text-input";
-import NewSessionPanel from "@/components/sortable/new-session-panel";
-import { LogQuery } from "api/js/types/v1/logquery_pb";
-import { config } from "process";
-import { Panel, PanelGroup } from "react-resizable-panels";
-import { ResizableHandle } from "@/components/ui/resizable";
-import { valueToJSX } from "@/lib/utils/valueFormatters";
-import { useThemeColors } from "@/lib/utils/useThemeColors";
-import { useInfiniteQuery } from "@connectrpc/connect-query";
-import { useDebouncer } from "@/lib/utils/useDebouncer";
-import { Preview } from "@/components/edit/Preview";
-
-const TIME_FORMAT = {
-  "MMM D HH:mm:ss": "Jan _2 15:04:05",
-  "YYYY-MM-DDTHH:mm:ssZ": "2006-01-02T15:04:05Z07:00",
-  "YYYY-MM-DD HH:mm:ss": "2006-01-02 15:04:05",
-  "ddd MMM D HH:mm:ss YYYY": "Mon Jan _2 15:04:05 2006",
-  "ddd MMM D HH:mm:ss z YYYY": "Mon Jan _2 15:04:05 MST 2006",
-  "ddd MMM DD HH:mm:ss ZZ YYYY": "Mon Jan 02 15:04:05 -0700 2006",
-  "h:mmA": "3:04PM",
-  "YYYY/MM/DD HH:mm:ss": "2006/01/02 15:04:05",
-  "DD/MM/YYYY HH:mm:ss": "02/01/2006 15:04:05",
-  "MM/DD/YYYY HH:mm:ss": "01/02/2006 15:04:05",
-  "MM-DD HH:mm:ss": "01-02 15:04:05",
-  "HH:mm:ss": "15:04:05",
-  "HH:mm:ss.SSS": "15:04:05.000",
-};
+import { toast } from "sonner";
+import { ThemeEditor } from "@/components/settings/ThemeEditor";
 
 const COLOR_MODE_OPTIONS = [
   { value: FormatConfig_ColorMode.COLORMODE_AUTO.toString(), label: "Auto" },
@@ -90,42 +57,36 @@ const COLOR_MODE_OPTIONS = [
   },
 ];
 
-const Edit = () => {
+const formSchema = z.object({
+  //runtime
+  skipCheckForUpdates: z.boolean().optional(),
+  interrupt: z.boolean().optional(),
+  //parser
+  timestamp: z.array(z.string()).default([]),
+  message: z.array(z.string()).default([]),
+  level: z.array(z.string()).default([]),
+  // formatter
+  skipFields: z.array(z.string()).default([]),
+  keepFields: z.array(z.string()).default([]),
+  sortLongest: z.boolean().optional(),
+  skipUnchanged: z.boolean().optional(),
+  format: z.string(),
+  timezone: z.string().optional(),
+  themes: z.custom<FormatConfig_Themes>(),
+  terminalColorMode: z.string(),
+});
+
+export type FormValues = z.infer<typeof formSchema>;
+
+const LocalhostSettings = () => {
   const { apiClients } = useApiClients();
 
   const [initialConfig, setInitialConfig] = useState<LocalhostConfig>();
-
-  // 폼 스키마 정의
-  // const formSchema = z.custom<LocalhostConfig>
-  const formSchema = z.object({
-    //runtime
-    skipCheckForUpdates: z.boolean().optional(),
-    interrupt: z.boolean().optional(),
-    //parser
-    timestamp: z.array(z.string()).default([]),
-    message: z.array(z.string()).default([]),
-    level: z.array(z.string()).default([]),
-    // formatter
-    skipFields: z.array(z.string()).default([]), // 기본값으로 빈 배열 설정
-    keepFields: z.array(z.string()).default([]),
-    sortLongest: z.boolean().optional(),
-    skipUnchanged: z.boolean().optional(),
-    format: z.string(),
-    timezone: z.string().optional(),
-    themes: z.object({
-      light: z.custom<FormatConfig_Theme>(),
-      dark: z.custom<FormatConfig_Theme>(),
-    }),
-    terminalColorMode: z.string(),
-  });
-
-  type FormValues = z.infer<typeof formSchema>;
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
   });
 
-  // 모든 필드 감시
   const formValues = form.watch();
 
   const getConfig = async () => {
@@ -162,78 +123,100 @@ const Edit = () => {
   };
 
   const submitConfig = async (config: LocalhostConfig) => {
-    await apiClients?.localhost.setConfig({
-      config,
-    });
+    try {
+      await apiClients?.localhost.setConfig({
+        config,
+      });
+      toast.success("Configuration has been successfully updated");
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to update configuration. Please try again");
+    }
   };
 
   /** huamnlog version update */
   const doUpdate = async () => {
     try {
-      const res = await apiClients?.localhost.doUpdate({});
-      console.log("doUpdate res", res);
-    } catch (err) {
-      console.log("err", err);
+      await apiClients?.localhost.doUpdate({});
+      toast.success("Humanlog has been successfully updated");
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to update Humanlog. Please try again");
     }
   };
 
   /** humanlog service restart */
   const doRestart = async () => {
     try {
-      const res = await apiClients?.localhost.doRestart({});
-      console.log("doRestart res", res);
-    } catch (err) {
-      console.log("err", err);
+      await apiClients?.localhost.doRestart({});
+      toast.success("Humanlog service has been successfully restarted");
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to restart Humanlog service. Please try again");
+    }
+  };
+
+  const onSubmit = async (data: FormValues) => {
+    try {
+      const {
+        //runtime
+        skipCheckForUpdates,
+        interrupt,
+        //parser
+        timestamp,
+        message,
+        level,
+        // formatter
+        skipFields,
+        keepFields,
+        sortLongest,
+        skipUnchanged,
+        format,
+        timezone,
+        themes,
+        terminalColorMode,
+      } = data;
+
+      const _config = new LocalhostConfig({
+        version: initialConfig?.version,
+        runtime: new RuntimeConfig({
+          interrupt,
+          skipCheckForUpdates,
+          features: initialConfig?.runtime?.features,
+          experimentalFeatures: initialConfig?.runtime?.experimentalFeatures,
+        }),
+        parser: new ParseConfig({
+          timestamp: new ParseConfig_Time({ fieldNames: timestamp }),
+          message: new ParseConfig_Message({ fieldNames: message }),
+          level: new ParseConfig_Level({ fieldNames: level }),
+        }),
+        formatter: new FormatConfig({
+          sortLongest,
+          skipUnchanged,
+          skipFields,
+          keepFields,
+          themes,
+          time: new FormatConfig_Time({
+            timezone,
+            format,
+          }),
+          ...(terminalColorMode && {
+            terminalColorMode: parseInt(
+              terminalColorMode,
+            ) as FormatConfig_ColorMode,
+          }),
+        }),
+      });
+
+      submitConfig(_config);
+    } catch (error) {
+      console.error("Error submitting form:", error);
     }
   };
 
   useEffect(() => {
     getConfig();
   }, []);
-  console.log("initialConfig", initialConfig);
-
-  const onSubmit = async (data: FormValues) => {
-    try {
-      // API 호출 등 필요한 로직
-      console.log("⭐️Form submitted:", data);
-      const {
-        sortLongest,
-        skipUnchanged,
-        format,
-        timezone,
-        terminalColorMode,
-        timestamp,
-        message,
-        level,
-      } = data;
-      // const _config: LocalhostConfig = {
-      //   version: initialConfig?.version as bigint,
-      //   parser: {
-      //     timestamp: {
-      //       fieldNames: timestamp,
-      //     },
-      //     message: {
-      //       fieldNames: message,
-      //     },
-      //     level: {
-      //       fieldNames: level,
-      //     },
-      //   },
-      //   formatter: {
-      //     sortLongest,
-      //     skipUnchanged,
-      //     time: {
-      //       format,
-      //       timezone,
-      //     },
-      //     ...(terminalColorMode && { terminalColorMode }),
-      //   },
-      // };
-      // submitConfig(_config);
-    } catch (error) {
-      console.error("Error submitting form:", error);
-    }
-  };
 
   return (
     <SettingsShell activeSection="localhost">
@@ -244,6 +227,7 @@ const Edit = () => {
               className="flex flex-col gap-3"
               onSubmit={form.handleSubmit(onSubmit)}
             >
+              <Label className="mb-2 text-lg">Runtime</Label>
               <FormField
                 control={form.control}
                 name="skipCheckForUpdates"
@@ -273,7 +257,18 @@ const Edit = () => {
                   </FormItem>
                 )}
               />
-              <div className="my-5 w-full border-b" />
+
+              {/* TODO: broken */}
+              {/* <div className="flex gap-2">
+                <Button onClick={doUpdate} type="button">
+                  Do Update
+                </Button>
+                <Button onClick={doRestart} type="button">
+                  Restart
+                </Button>
+              </div> */}
+
+              <Label className="mt-8 border-t py-3 text-xl">Parser</Label>
 
               <FormField
                 control={form.control}
@@ -284,7 +279,7 @@ const Edit = () => {
                       label="Timestamp"
                       values={field.value}
                       onChange={field.onChange}
-                      placeholder="Add field to skip..."
+                      placeholder="Add timestamp field name..."
                     />
                     <FormMessage />
                   </FormItem>
@@ -299,7 +294,7 @@ const Edit = () => {
                       label="Message"
                       values={field.value}
                       onChange={field.onChange}
-                      placeholder="Add field to skip..."
+                      placeholder="Add message field name..."
                     />
                     <FormMessage />
                   </FormItem>
@@ -314,14 +309,14 @@ const Edit = () => {
                       label="Level"
                       values={field.value}
                       onChange={field.onChange}
-                      placeholder="Add field to skip..."
+                      placeholder="Add log level field name..."
                     />
                     <FormMessage />
                   </FormItem>
                 )}
               />
 
-              <div className="my-5 w-full border-b" />
+              <Label className="mt-8 border-t py-3 text-xl">Formatter</Label>
 
               <FormField
                 control={form.control}
@@ -362,7 +357,7 @@ const Edit = () => {
                       label="Skip Fields"
                       values={field.value}
                       onChange={field.onChange}
-                      placeholder="Add field to skip..."
+                      placeholder="Add field to skip from output..."
                     />
                     <FormMessage />
                   </FormItem>
@@ -377,7 +372,7 @@ const Edit = () => {
                       label="Keep Fields"
                       values={field.value}
                       onChange={field.onChange}
-                      placeholder="Add field to skip..."
+                      placeholder="Add field to keep in output..."
                     />
                     <FormMessage />
                   </FormItem>
@@ -434,11 +429,13 @@ const Edit = () => {
                       </FormControl>
                       <SelectContent>
                         <SelectGroup>
-                          {Object.values(TIME_FORMAT).map((format) => (
-                            <SelectItem key={format} value={format}>
-                              {format}
-                            </SelectItem>
-                          ))}
+                          {Object.entries(TIME_FORMAT).map(
+                            ([format, value]) => (
+                              <SelectItem key={format} value={value}>
+                                {value}
+                              </SelectItem>
+                            ),
+                          )}
                         </SelectGroup>
                       </SelectContent>
                     </Select>
@@ -507,160 +504,18 @@ const Edit = () => {
                 )}
               />
 
-              <div className="my-5 w-full border-b" />
-
-              <Button type="submit">submit</Button>
+              <Button type="submit" className="mt-10">
+                Save
+              </Button>
             </form>
           </Form>
-          {/* <div className="my-5 w-full border-b" />
-          <div className="flex gap-4">
-            <Button onClick={doUpdate}>Do Update</Button>
-            <Button onClick={doRestart}>Restart</Button>
-          </div> */}
         </div>
       )}
     </SettingsShell>
   );
 };
 
-export default Edit;
-
-interface ThemeColorPickerProps {
-  label: string;
-  value: string;
-  onChange: (color: string) => void;
-  description?: string;
-}
-
-const ThemeColorPicker = ({
-  label,
-  value,
-  onChange,
-  description,
-}: ThemeColorPickerProps) => {
-  const [isColorPickerOpen, setIsColorPickerOpen] = useState(false);
-  const [color, setColor] = useColor(value ?? "");
-
-  return (
-    <>
-      <div className="relative flex flex-col gap-2">
-        <div className="flex w-60 items-center justify-between">
-          <Label>{label}</Label>
-          <div className="relative flex gap-2">
-            {color.hex}
-            <button
-              onClick={() => setIsColorPickerOpen((prev) => !prev)}
-              className="h-6 w-6 rounded border"
-              style={{ backgroundColor: color.hex }}
-            />
-          </div>
-        </div>
-
-        {isColorPickerOpen && (
-          <div>
-            <ColorPicker
-              color={color}
-              onChange={(newColor) => {
-                setColor(newColor);
-                onChange(newColor.hex);
-              }}
-            />
-          </div>
-        )}
-
-        {description && (
-          <p className="text-muted-foreground text-sm">{description}</p>
-        )}
-      </div>
-    </>
-  );
-};
-
-interface ThemeEditorProps {
-  mode: "light" | "dark";
-  formValues: any;
-}
-
-const ThemeEditor = ({ mode, formValues }: ThemeEditorProps) => {
-  const { control } = useFormContext();
-
-  return (
-    <div className="flex gap-12 space-y-4">
-      <div className="grid gap-4">
-        {/* Base colors */}
-        <div className="mt-2 space-y-2">
-          <h4 className="text-sm font-medium">{"<Base Colors>"}</h4>
-          <FormField
-            control={control}
-            name={`themes.${mode}.key.foreground.htmlHexColor`}
-            render={({ field }) => (
-              <ThemeColorPicker
-                label="Key"
-                value={field.value}
-                onChange={field.onChange}
-              />
-            )}
-          />
-          <FormField
-            control={control}
-            name={`themes.${mode}.value.foreground.htmlHexColor`}
-            render={({ field }) => (
-              <ThemeColorPicker
-                label="Value"
-                value={field.value}
-                onChange={field.onChange}
-              />
-            )}
-          />
-          <FormField
-            control={control}
-            name={`themes.${mode}.time.foreground.htmlHexColor`}
-            render={({ field }) => (
-              <ThemeColorPicker
-                label="Time"
-                value={field.value}
-                onChange={field.onChange}
-              />
-            )}
-          />
-          <FormField
-            control={control}
-            name={`themes.${mode}.msg.foreground.htmlHexColor`}
-            render={({ field }) => (
-              <ThemeColorPicker
-                label="Message"
-                value={field.value}
-                onChange={field.onChange}
-              />
-            )}
-          />
-        </div>
-
-        {/* Log Levels */}
-        <div className="mt-2 space-y-2">
-          <h4 className="text-sm font-medium">{"<Log Levels>"}</h4>
-          {["debug", "info", "warn", "error", "panic", "fatal", "unknown"].map(
-            (level) => (
-              <FormField
-                key={level}
-                control={control}
-                name={`themes.${mode}.levels.${level}.foreground.htmlHexColor`}
-                render={({ field }) => (
-                  <ThemeColorPicker
-                    label={level.charAt(0).toUpperCase() + level.slice(1)}
-                    value={field.value}
-                    onChange={field.onChange}
-                  />
-                )}
-              />
-            ),
-          )}
-        </div>
-      </div>
-      <Preview themes={formValues.themes} isDark={mode === "dark"} />
-    </div>
-  );
-};
+export default LocalhostSettings;
 
 interface ToggleProps {
   name: string;

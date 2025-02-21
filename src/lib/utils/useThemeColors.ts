@@ -1,7 +1,6 @@
 import {
   FormatConfig_Themes,
   FormatConfig_Style,
-  FormatConfig_LevelStyle,
 } from "api/js/types/v1/localhost_config_pb";
 
 type LogLevel =
@@ -26,9 +25,11 @@ export const useThemeColors = (
 
     if (type === "levels" && level) {
       return currentTheme.levels?.[level]?.foreground?.htmlHexColor ?? "";
+    } else {
+      if (currentTheme[type] instanceof FormatConfig_Style) {
+        return currentTheme[type]?.foreground?.htmlHexColor ?? "";
+      }
     }
-
-    return currentTheme[type]?.foreground?.htmlHexColor ?? "";
   };
 
   const getLevelColor = (logLevel: string) => {

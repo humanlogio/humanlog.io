@@ -3,16 +3,18 @@ import { useThemeColors } from "@/lib/utils/useThemeColors";
 import { FormatConfig_Themes } from "api/js/types/v1/localhost_config_pb";
 import { useEffect, useRef, useState } from "react";
 import { Panel, PanelGroup } from "react-resizable-panels";
-import { ResizableHandle } from "../ui/resizable";
-import { FormLabel } from "../ui/form";
+import { ResizableHandle } from "@/components/ui/resizable";
 import { twJoin } from "tailwind-merge";
+import { formatTimestamp } from "@/lib/utils";
+import { Timestamp } from "@bufbuild/protobuf";
 
 interface PreviewProps {
   themes: FormatConfig_Themes;
   isDark: boolean;
+  timeformat: string;
 }
 
-export const Preview = ({ themes, isDark }: PreviewProps) => {
+export const Preview = ({ themes, isDark, timeformat }: PreviewProps) => {
   const SAMPLE_LOGS = [
     {
       sessionId: "1739262397660164001",
@@ -214,6 +216,12 @@ export const Preview = ({ themes, isDark }: PreviewProps) => {
     },
   ];
 
+  // 날짜 문자열을 Timestamp로 변환하는 헬퍼 함수
+  function stringToTimestamp(dateString: string): Timestamp {
+    const date = new Date(dateString);
+    return Timestamp.fromDate(date);
+  }
+
   const containerRef = useRef<HTMLDivElement>(null);
   const metaColumnRef = useRef<HTMLDivElement>(null);
   // Preview 컴포넌트에서 사용할 때도 순서 변경
@@ -248,7 +256,7 @@ export const Preview = ({ themes, isDark }: PreviewProps) => {
   }, [updateContentHeight, metaColumnRef.current]);
 
   return (
-    <div className="flex h-[500px] w-full flex-col rounded-base border-2 border-border">
+    <div className="flex w-full flex-col rounded-base border-2 border-border">
       <div
         ref={containerRef}
         className={twJoin(
@@ -266,7 +274,7 @@ export const Preview = ({ themes, isDark }: PreviewProps) => {
                 {SAMPLE_LOGS.map((log, index) => (
                   <div
                     key={`${log.sessionId}-${log.eventId}-${index}`}
-                    className="flex gap-2 px-4 py-2"
+                    className="flex gap-2 px-4 py-1"
                   >
                     <div className="flex-none">
                       <code
@@ -274,7 +282,12 @@ export const Preview = ({ themes, isDark }: PreviewProps) => {
                           color: getColor("time"),
                         }}
                       >
-                        {log.structured?.timestamp ?? log.parsedAt}
+                        {formatTimestamp(
+                          stringToTimestamp(
+                            log.structured?.timestamp ?? log.parsedAt,
+                          ),
+                          timeformat,
+                        )}
                       </code>
                     </div>
 
@@ -305,7 +318,7 @@ export const Preview = ({ themes, isDark }: PreviewProps) => {
                       className="hover:bg-slate-400/20 hover:dark:bg-slate-700/20"
                     >
                       <div
-                        className="h-full px-4 py-2"
+                        className="h-full px-4 py-1"
                         style={{
                           color: getColor("msg"),
                         }}
@@ -335,7 +348,7 @@ export const Preview = ({ themes, isDark }: PreviewProps) => {
                       key={`${log.sessionId}-${log.eventId}-${index}`}
                       className="hover:bg-slate-400/20 hover:dark:bg-slate-700/20"
                     >
-                      <div className="h-full px-4 py-2">
+                      <div className="h-full px-4 py-1">
                         {log.structured?.kvs.map((kv, kvIndex) => (
                           <span
                             key={`${log.sessionId}-${log.eventId}-${kvIndex}`}
