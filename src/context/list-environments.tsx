@@ -120,6 +120,7 @@ export function ListEnvironmentsProvider({
       } else {
         console.error(err);
       }
+      setLocalhostInfo(undefined);
     }
   };
 
