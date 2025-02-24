@@ -20,28 +20,6 @@ export const ThemeEditor = ({ mode, formValues }: ThemeEditorProps) => {
           <h4 className="text-sm font-medium">{"<Base Colors>"}</h4>
           <FormField
             control={control}
-            name={`themes.${mode}.key.foreground.htmlHexColor`}
-            render={({ field }) => (
-              <ThemeColorPicker
-                label="Key"
-                value={field.value}
-                onChange={field.onChange}
-              />
-            )}
-          />
-          <FormField
-            control={control}
-            name={`themes.${mode}.value.foreground.htmlHexColor`}
-            render={({ field }) => (
-              <ThemeColorPicker
-                label="Value"
-                value={field.value}
-                onChange={field.onChange}
-              />
-            )}
-          />
-          <FormField
-            control={control}
             name={`themes.${mode}.time.foreground.htmlHexColor`}
             render={({ field }) => (
               <ThemeColorPicker
@@ -57,6 +35,28 @@ export const ThemeEditor = ({ mode, formValues }: ThemeEditorProps) => {
             render={({ field }) => (
               <ThemeColorPicker
                 label="Message"
+                value={field.value}
+                onChange={field.onChange}
+              />
+            )}
+          />
+          <FormField
+            control={control}
+            name={`themes.${mode}.key.foreground.htmlHexColor`}
+            render={({ field }) => (
+              <ThemeColorPicker
+                label="Key"
+                value={field.value}
+                onChange={field.onChange}
+              />
+            )}
+          />
+          <FormField
+            control={control}
+            name={`themes.${mode}.value.foreground.htmlHexColor`}
+            render={({ field }) => (
+              <ThemeColorPicker
+                label="Value"
                 value={field.value}
                 onChange={field.onChange}
               />
