@@ -105,7 +105,7 @@ const NewSessionPanel = ({ query }: NewSessionPanelProps) => {
                 >
                   <TooltipProvider>
                     <Tooltip>
-                      <TooltipTrigger>
+                      <TooltipTrigger asChild>
                         <code
                           style={{
                             color: getColor("time"),
@@ -178,17 +178,19 @@ const NewSessionPanel = ({ query }: NewSessionPanelProps) => {
                       return (
                         <span
                           key={`${log.sessionId}-${log.eventId}-${kvIndex}`}
-                          className="flex-none"
+                          className="mr-1 flex-none"
                         >
                           <TooltipProvider>
                             <Tooltip>
-                              <TooltipTrigger>
-                                <span style={{ color: getColor("key") }}>
-                                  {kv.key}=
-                                </span>
-                                <span style={{ color: getColor("value") }}>
-                                  {kv.value?.kind.value?.toString()}
-                                </span>
+                              <TooltipTrigger asChild>
+                                <code>
+                                  <span style={{ color: getColor("key") }}>
+                                    {kv.key}=
+                                  </span>
+                                  <span style={{ color: getColor("value") }}>
+                                    {kv.value?.kind.value?.toString()}
+                                  </span>
+                                </code>
                               </TooltipTrigger>
                               <TooltipContent className="bg-transparent bg-white dark:bg-secondaryBlack">
                                 <KeyValueRow label="Key" value={kv.key} />
