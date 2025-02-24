@@ -58,22 +58,22 @@ const COLOR_MODE_OPTIONS = [
 ];
 
 const formSchema = z.object({
-  //runtime
-  skipCheckForUpdates: z.boolean().optional(),
-  interrupt: z.boolean().optional(),
-  //parser
-  timestamp: z.array(z.string()).default([]),
-  message: z.array(z.string()).default([]),
-  level: z.array(z.string()).default([]),
   // formatter
+  themes: z.custom<FormatConfig_Themes>(),
+  format: z.string(),
+  timezone: z.string().optional(),
   skipFields: z.array(z.string()).default([]),
   keepFields: z.array(z.string()).default([]),
   sortLongest: z.boolean().optional(),
   skipUnchanged: z.boolean().optional(),
-  format: z.string(),
-  timezone: z.string().optional(),
-  themes: z.custom<FormatConfig_Themes>(),
   terminalColorMode: z.string(),
+  //parser
+  timestamp: z.array(z.string()).default([]),
+  message: z.array(z.string()).default([]),
+  level: z.array(z.string()).default([]),
+  //runtime
+  skipCheckForUpdates: z.boolean().optional(),
+  interrupt: z.boolean().optional(),
 });
 
 export type FormValues = z.infer<typeof formSchema>;
@@ -159,52 +159,52 @@ const LocalhostSettings = () => {
   const onSubmit = async (data: FormValues) => {
     try {
       const {
-        //runtime
-        skipCheckForUpdates,
-        interrupt,
-        //parser
-        timestamp,
-        message,
-        level,
         // formatter
+        themes,
+        format,
+        timezone,
         skipFields,
         keepFields,
         sortLongest,
         skipUnchanged,
-        format,
-        timezone,
-        themes,
         terminalColorMode,
+        //parser
+        timestamp,
+        message,
+        level,
+        //runtime
+        skipCheckForUpdates,
+        interrupt,
       } = data;
 
       const _config = new LocalhostConfig({
         version: initialConfig?.version,
-        runtime: new RuntimeConfig({
-          interrupt,
-          skipCheckForUpdates,
-          features: initialConfig?.runtime?.features,
-          experimentalFeatures: initialConfig?.runtime?.experimentalFeatures,
+        formatter: new FormatConfig({
+          themes,
+          time: new FormatConfig_Time({
+            timezone,
+            format,
+          }),
+          sortLongest,
+          skipUnchanged,
+          skipFields,
+          keepFields,
+          ...(terminalColorMode && {
+            terminalColorMode: parseInt(
+              terminalColorMode,
+            ) as FormatConfig_ColorMode,
+          }),
         }),
         parser: new ParseConfig({
           timestamp: new ParseConfig_Time({ fieldNames: timestamp }),
           message: new ParseConfig_Message({ fieldNames: message }),
           level: new ParseConfig_Level({ fieldNames: level }),
         }),
-        formatter: new FormatConfig({
-          sortLongest,
-          skipUnchanged,
-          skipFields,
-          keepFields,
-          themes,
-          time: new FormatConfig_Time({
-            timezone,
-            format,
-          }),
-          ...(terminalColorMode && {
-            terminalColorMode: parseInt(
-              terminalColorMode,
-            ) as FormatConfig_ColorMode,
-          }),
+        runtime: new RuntimeConfig({
+          interrupt,
+          skipCheckForUpdates,
+          features: initialConfig?.runtime?.features,
+          experimentalFeatures: initialConfig?.runtime?.experimentalFeatures,
         }),
       });
 
@@ -227,152 +227,66 @@ const LocalhostSettings = () => {
               className="flex flex-col gap-3"
               onSubmit={form.handleSubmit(onSubmit)}
             >
-              <Label className="mb-2 text-lg">Runtime</Label>
-              <FormField
-                control={form.control}
-                name="skipCheckForUpdates"
-                render={({ field }) => (
-                  <FormItem>
-                    <Toggle
-                      name="Skip Check For Updates"
-                      isChecked={!!field.value}
-                      onChange={(checked) => field.onChange(checked)}
-                    />
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="interrupt"
-                render={({ field }) => (
-                  <FormItem>
-                    <Toggle
-                      name="Interrupt"
-                      isChecked={!!field.value}
-                      onChange={(checked) => field.onChange(checked)}
-                    />
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <div className="flex gap-2">
-                <Button onClick={doUpdate} type="button">
-                  Do Update
-                </Button>
-                <Button onClick={doRestart} type="button">
-                  Restart
-                </Button>
-              </div>
-
-              <Label className="mt-8 border-t py-3 text-xl">Parser</Label>
-
-              <FormField
-                control={form.control}
-                name="timestamp"
-                render={({ field }) => (
-                  <FormItem>
-                    <FieldTagsInput
-                      label="Timestamp"
-                      values={field.value}
-                      onChange={field.onChange}
-                      placeholder="Add timestamp field name..."
-                    />
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="message"
-                render={({ field }) => (
-                  <FormItem>
-                    <FieldTagsInput
-                      label="Message"
-                      values={field.value}
-                      onChange={field.onChange}
-                      placeholder="Add message field name..."
-                    />
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="level"
-                render={({ field }) => (
-                  <FormItem>
-                    <FieldTagsInput
-                      label="Level"
-                      values={field.value}
-                      onChange={field.onChange}
-                      placeholder="Add log level field name..."
-                    />
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
               <Label className="mt-8 border-t py-3 text-xl">Formatter</Label>
 
               <FormField
                 control={form.control}
-                name="sortLongest"
+                name="themes"
                 render={({ field }) => (
-                  <FormItem>
-                    <Toggle
-                      name="Sort Longest"
-                      isChecked={!!field.value}
-                      onChange={(checked) => field.onChange(checked)}
-                    />
-                    <FormMessage />
+                  <FormItem className="flex flex-col">
+                    <FormControl>
+                      <div className="mt-6">
+                        {/* Light Theme */}
+                        <div>
+                          <h3 className="mb-4 text-lg font-medium">
+                            Light Theme
+                          </h3>
+                          <ThemeEditor mode="light" formValues={formValues} />
+                        </div>
+
+                        {/* Dark Theme */}
+                        <div className="mt-10">
+                          <h3 className="mb-4 text-lg font-medium">
+                            Dark Theme
+                          </h3>
+                          <ThemeEditor mode="dark" formValues={formValues} />
+                        </div>
+                      </div>
+                    </FormControl>
                   </FormItem>
                 )}
               />
 
               <FormField
                 control={form.control}
-                name="skipUnchanged"
+                name="format"
                 render={({ field }) => (
                   <FormItem>
-                    <Toggle
-                      name="Skip Unchanged"
-                      isChecked={!!field.value}
-                      onChange={(checked) => field.onChange(checked)}
-                    />
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="skipFields"
-                render={({ field }) => (
-                  <FormItem>
-                    <FieldTagsInput
-                      label="Skip Fields"
-                      values={field.value}
-                      onChange={field.onChange}
-                      placeholder="Add field to skip from output..."
-                    />
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="keepFields"
-                render={({ field }) => (
-                  <FormItem>
-                    <FieldTagsInput
-                      label="Keep Fields"
-                      values={field.value}
-                      onChange={field.onChange}
-                      placeholder="Add field to keep in output..."
-                    />
+                    <FormLabel>Time Format</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <div className="flex flex-row items-center gap-2">
+                            <SquareCode size={16} />
+                            <SelectValue placeholder="Select a time format" />
+                          </div>
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectGroup>
+                          {Object.entries(TIME_FORMAT).map(
+                            ([format, value]) => (
+                              <SelectItem key={format} value={value}>
+                                {value}
+                              </SelectItem>
+                            ),
+                          )}
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -410,34 +324,61 @@ const LocalhostSettings = () => {
 
               <FormField
                 control={form.control}
-                name="format"
+                name="sortLongest"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Time Format</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <div className="flex flex-row items-center gap-2">
-                            <SquareCode size={16} />
-                            <SelectValue placeholder="Select format" />
-                          </div>
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectGroup>
-                          {Object.entries(TIME_FORMAT).map(
-                            ([format, value]) => (
-                              <SelectItem key={format} value={value}>
-                                {value}
-                              </SelectItem>
-                            ),
-                          )}
-                        </SelectGroup>
-                      </SelectContent>
-                    </Select>
+                    <Toggle
+                      name="Sort key-values by longest first"
+                      isChecked={!!field.value}
+                      onChange={(checked) => field.onChange(checked)}
+                    />
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="skipUnchanged"
+                render={({ field }) => (
+                  <FormItem>
+                    <Toggle
+                      name="Skip unchanged key-values"
+                      isChecked={!!field.value}
+                      onChange={(checked) => field.onChange(checked)}
+                    />
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="skipFields"
+                render={({ field }) => (
+                  <FormItem>
+                    <FieldTagsInput
+                      label="Skip Fields"
+                      values={field.value}
+                      onChange={field.onChange}
+                      placeholder="Add fields to skip from output..."
+                    />
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="keepFields"
+                render={({ field }) => (
+                  <FormItem>
+                    <FieldTagsInput
+                      label="Keep Fields"
+                      values={field.value}
+                      onChange={field.onChange}
+                      placeholder="Add fields to keep in output..."
+                    />
                     <FormMessage />
                   </FormItem>
                 )}
@@ -475,33 +416,95 @@ const LocalhostSettings = () => {
                   </FormItem>
                 )}
               />
+
+              <Label className="mt-8 border-t py-3 text-xl">Parser</Label>
+
               <FormField
                 control={form.control}
-                name="themes"
+                name="timestamp"
                 render={({ field }) => (
-                  <FormItem className="flex flex-col">
-                    <FormControl>
-                      <div className="mt-6">
-                        {/* Light Theme */}
-                        <div>
-                          <h3 className="mb-4 text-lg font-medium">
-                            Light Theme
-                          </h3>
-                          <ThemeEditor mode="light" formValues={formValues} />
-                        </div>
-
-                        {/* Dark Theme */}
-                        <div className="mt-10">
-                          <h3 className="mb-4 text-lg font-medium">
-                            Dark Theme
-                          </h3>
-                          <ThemeEditor mode="dark" formValues={formValues} />
-                        </div>
-                      </div>
-                    </FormControl>
+                  <FormItem>
+                    <FieldTagsInput
+                      label="Timestamp"
+                      values={field.value}
+                      onChange={field.onChange}
+                      placeholder="Add timestamp field name..."
+                    />
+                    <FormMessage />
                   </FormItem>
                 )}
               />
+              <FormField
+                control={form.control}
+                name="level"
+                render={({ field }) => (
+                  <FormItem>
+                    <FieldTagsInput
+                      label="Level"
+                      values={field.value}
+                      onChange={field.onChange}
+                      placeholder="Add log level field name..."
+                    />
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="message"
+                render={({ field }) => (
+                  <FormItem>
+                    <FieldTagsInput
+                      label="Message"
+                      values={field.value}
+                      onChange={field.onChange}
+                      placeholder="Add message field name..."
+                    />
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <Label className="mb-2 text-lg">Runtime</Label>
+
+              <FormField
+                control={form.control}
+                name="interrupt"
+                render={({ field }) => (
+                  <FormItem>
+                    <Toggle
+                      name="Ignore interrupts (when parsing from stdin)"
+                      isChecked={!!field.value}
+                      onChange={(checked) => field.onChange(checked)}
+                    />
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="skipCheckForUpdates"
+                render={({ field }) => (
+                  <FormItem>
+                    <Toggle
+                      name="Disable update checks"
+                      isChecked={!!field.value}
+                      onChange={(checked) => field.onChange(checked)}
+                    />
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="flex gap-2">
+                <Button onClick={doUpdate} type="button">
+                  Do Update
+                </Button>
+                <Button onClick={doRestart} type="button">
+                  Restart
+                </Button>
+              </div>
 
               <Button type="submit" className="mt-10">
                 Save
