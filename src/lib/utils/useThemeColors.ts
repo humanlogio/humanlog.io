@@ -32,9 +32,10 @@ export const useThemeColors = (
     }
   };
 
-  const getLevelColor = (logLevel: string) => {
-    const normalizedLevel = logLevel.toLowerCase() as LogLevel;
-    return getColor("levels", normalizedLevel);
+  const getLevelColor = (logLevel?: string) => {
+    const normalizedLevel = logLevel?.toLowerCase() as LogLevel;
+
+    return logLevel ? getColor("levels", normalizedLevel) : "auto";
   };
 
   return {
