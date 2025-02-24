@@ -119,6 +119,7 @@ const LocalhostSettings = () => {
       }
     } catch (error) {
       console.error(error);
+      toast.error("Failed to load settings. Please try again.");
     }
   };
 
@@ -227,7 +228,7 @@ const LocalhostSettings = () => {
               className="flex flex-col gap-3"
               onSubmit={form.handleSubmit(onSubmit)}
             >
-              <Label className="mt-8 border-t py-3 text-xl">Formatter</Label>
+              <Label className="border-t py-3 text-xl">Formatter</Label>
 
               <FormField
                 control={form.control}
@@ -465,7 +466,7 @@ const LocalhostSettings = () => {
                 )}
               />
 
-              <Label className="mb-2 text-lg">Runtime</Label>
+              <Label className="mt-8 border-t py-3 text-xl">Runtime</Label>
 
               <FormField
                 control={form.control}
