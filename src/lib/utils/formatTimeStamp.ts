@@ -1,6 +1,9 @@
 import { Duration, Timestamp } from "@bufbuild/protobuf";
+import { timeStamp } from "console";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
+
+dayjs.extend(utc);
 
 export const TIME_FORMAT = {
   "MMM D HH:mm:ss.SSS": "Jan _2 15:04:05.000",
@@ -27,7 +30,8 @@ export const findTimeFormatKey = (formatValue: string) => {
 
 export const formatTimestamp = (
   timestamp: Timestamp | Duration,
-  formatValue?: string,
+  formatValue: string,
+  isUtc?: boolean,
 ) => {
   let dayjsObj;
 
@@ -38,8 +42,19 @@ export const formatTimestamp = (
 
   if (formatValue) {
     const format = findTimeFormatKey(formatValue);
-    return dayjs(dayjsObj).format(format);
+    return isUtc
+      ? dayjs.utc(dayjsObj).format(format)
+      : dayjs(dayjsObj).format(format);
   }
 
-  return dayjs(dayjsObj).format(Object.keys(TIME_FORMAT)[0]);
+  return isUtc
+    ? dayjs.utc(dayjsObj).format(Object.keys(TIME_FORMAT)[0])
+    : dayjs(dayjsObj).format(Object.keys(TIME_FORMAT)[0]);
+};
+
+export const getUnixTimestamp = (timestamp: Timestamp) => {
+  const seconds = Number(timestamp.seconds);
+  const milliseconds = Math.floor(timestamp.nanos / 1_000_000);
+
+  return seconds * 1000 + milliseconds;
 };

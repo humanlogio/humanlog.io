@@ -1,49 +1,61 @@
-import { formatTimestamp, useInfiniteQuery } from "@/lib/utils";
-import { useDebouncer } from "@/lib/utils/useDebouncer";
+import {
+  formatTimestamp,
+  getUnixTimestamp,
+  useInfiniteQuery,
+} from "@/lib/utils";
 import { IngestedLogEvent } from "api/js/types/v1/logevent_pb";
 import { LogQuery } from "api/js/types/v1/logquery_pb";
 import { Loader, Search } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
-import { Panel, PanelGroup } from "react-resizable-panels";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { DragHandle } from "@/components/sortable/sortable-item";
 import { Button } from "@/components/ui/button";
 import { Timestamp } from "@bufbuild/protobuf";
-import { ResizableHandle } from "@/components/ui/resizable";
-import { valueToJSX } from "@/lib/utils/valueFormatters";
-import { FormatConfig_Themes } from "api/js/types/v1/localhost_config_pb";
+import { LocalhostConfig } from "api/js/types/v1/localhost_config_pb";
 import { useTheme } from "next-themes";
 import { useThemeColors } from "@/lib/utils/useThemeColors";
+import { useApiClients } from "@/context/api-provider";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface NewSessionPanelProps {
   query: LogQuery | undefined;
-  themes?: FormatConfig_Themes;
 }
 
-const NewSessionPanel = ({ query, themes }: NewSessionPanelProps) => {
+const NewSessionPanel = ({ query }: NewSessionPanelProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const metaColumnRef = useRef<HTMLDivElement>(null);
   const { theme } = useTheme();
   const isDark = theme === "dark";
-  const { getColor, getLevelColor } = useThemeColors(isDark, themes);
+  const { apiClients } = useApiClients();
 
   const { targetRef, isFetching, fetchNext, fetchData, next } =
     useInfiniteQuery(query);
 
   // state
-  const [contentHeight, setContentHeight] = useState<number>(0);
   const [logs, setLogs] = useState<IngestedLogEvent[]>();
-
-  const updateContentHeight = useDebouncer(
-    (height: number) => setContentHeight(height),
-    [],
-    100,
+  const [config, setConfig] = useState<LocalhostConfig>();
+  const { getColor, getLevelColor } = useThemeColors(
+    isDark,
+    config?.formatter?.themes,
   );
+
+  const getConfig = useCallback(async () => {
+    const res = await apiClients?.localhost.getConfig({});
+    setConfig(res?.config);
+  }, []);
+
+  useEffect(() => {
+    getConfig();
+  }, []);
 
   useEffect(() => {
     fetchData(({ value: shapeValue }) => {
       setLogs(shapeValue.events);
     });
-  }, []);
+  }, [query]);
 
   useEffect(() => {
     next &&
@@ -56,25 +68,6 @@ const NewSessionPanel = ({ query, themes }: NewSessionPanelProps) => {
         });
       });
   }, [fetchNext]);
-
-  useEffect(() => {
-    const updateHeight = () => {
-      if (metaColumnRef.current) {
-        updateContentHeight(metaColumnRef.current.scrollHeight);
-      }
-    };
-
-    updateHeight();
-
-    const resizeObserver = new ResizeObserver(updateHeight);
-    if (metaColumnRef.current) {
-      resizeObserver.observe(metaColumnRef.current);
-    }
-
-    return () => {
-      resizeObserver.disconnect();
-    };
-  }, [updateContentHeight, metaColumnRef.current, next]);
 
   return (
     <div className="flex h-[500px] w-full flex-col rounded-base border-2 border-border">
@@ -100,163 +93,143 @@ const NewSessionPanel = ({ query, themes }: NewSessionPanelProps) => {
       </div>
       <div
         ref={containerRef}
-        className="flex flex-grow overflow-y-auto bg-gradient-to-r from-slate-300 via-slate-200 via-10% to-slate-200 text-sm dark:from-slate-900 dark:via-slate-950 dark:to-slate-950"
+        className="flex flex-grow overflow-auto bg-gradient-to-r from-slate-300 via-slate-200 via-10% to-slate-200 text-sm dark:from-slate-900 dark:via-slate-950 dark:to-slate-950"
       >
-        {logs && (
-          <PanelGroup
-            direction="horizontal"
-            className="group h-full min-w-0 flex-1 !overflow-y-auto"
-          >
-            <div className="flex min-w-0 flex-1">
-              <div className="flex flex-none flex-col">
-                {logs.map((log, index) => {
-                  return (
-                    <div
-                      key={`${log.machineId}-${log.sessionId}-${log.eventId}-${index}`}
-                      className="flex gap-2 px-2 py-2"
-                    >
-                      [{log.machineId}]
-                    </div>
-                  );
-                })}
-                <div ref={targetRef}>-</div>
-              </div>
-              <div className="flex flex-none flex-col">
-                {logs.map((log, index) => {
-                  return (
-                    <div
-                      key={`${log.machineId}-${log.sessionId}-${log.eventId}-${index}`}
-                      className="flex gap-2 px-2 py-1"
-                    >
-                      [{log.sessionId}]
-                    </div>
-                  );
-                })}
-              </div>
-              <div className="flex flex-none flex-col">
-                {logs.map((log, index) => {
-                  return (
-                    <div
-                      key={`${log.machineId}-${log.sessionId}-${log.eventId}-${index}`}
-                      className="flex gap-2 px-2 py-1"
-                    >
-                      [{log.eventId}]
-                    </div>
-                  );
-                })}
-              </div>
-              <div ref={metaColumnRef} className="flex flex-none flex-col">
-                {logs.map((log, index) => (
-                  <div
-                    key={`${log.machineId}-${log.sessionId}-${log.eventId}-${index}`}
-                    className="flex gap-2 px-4 py-1"
-                  >
-                    <div className="flex-none">
-                      <code
-                        style={{
-                          color: getColor("time"),
-                        }}
-                      >
-                        {formatTimestamp(
-                          log.structured?.timestamp ??
-                            (log.parsedAt as Timestamp),
-                        )}
-                      </code>
-                    </div>
+        <div className="border-separate p-1">
+          {logs &&
+            logs.map((log, i) => {
+              return (
+                <div
+                  className="flex gap-1 whitespace-nowrap py-[1px]"
+                  key={`${i + 1}-${log.machineId}-${log.sessionId}-${log.eventId}`}
+                >
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger>
+                        <code
+                          style={{
+                            color: getColor("time"),
+                          }}
+                        >
+                          {formatTimestamp(
+                            (log.structured?.timestamp as Timestamp) ??
+                              log.parsedAt,
+                            config?.formatter?.time?.format ?? "",
+                          )}
+                        </code>
+                      </TooltipTrigger>
+                      <TooltipContent className="bg-white dark:bg-secondaryBlack">
+                        <div>
+                          <KeyValueRow
+                            label="Machine Id"
+                            value={log.machineId}
+                          />
 
-                    <div className="flex-none">
-                      <code>
-                        {log.structured?.lvl ? (
-                          <span
-                            style={{
-                              color: getLevelColor(log.structured.lvl),
-                            }}
-                          >
-                            [{log.structured.lvl}]
-                          </span>
-                        ) : (
-                          <span className="text-slate-400">[empty]</span>
-                        )}
-                      </code>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <Panel defaultSize={40} style={{ height: `${contentHeight}px` }}>
-                <div className="flex w-full flex-col overflow-x-auto scrollbar-hide">
-                  {logs.map((log, index) => (
-                    <div
-                      key={`${log.machineId}-${log.sessionId}-${log.eventId}-${index}`}
-                      className="hover:bg-slate-400/20 hover:dark:bg-slate-700/20"
-                    >
-                      <div
-                        className="h-full px-4 py-1"
-                        style={{
-                          color: getColor("msg"),
-                        }}
-                      >
-                        {log.structured ? (
-                          <div className="h-full scrollbar-hide">
-                            <code className="whitespace-nowrap">
-                              {`${log.structured.msg}` || (
-                                <span className="text-slate-400">
-                                  no message
-                                </span>
-                              )}
-                            </code>
-                          </div>
-                        ) : (
-                          <code>
-                            {log.raw || (
-                              <span className="text-slate-400">no message</span>
+                          <KeyValueRow
+                            label="Session Id"
+                            value={log.sessionId}
+                          />
+                          <KeyValueRow
+                            label="Local"
+                            value={formatTimestamp(
+                              (log.structured?.timestamp as Timestamp) ??
+                                log.parsedAt,
+                              "Jan _2 15:04:05.000",
                             )}
-                          </code>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </Panel>
+                          />
+                          <KeyValueRow
+                            label="UTC"
+                            value={formatTimestamp(
+                              (log.structured?.timestamp as Timestamp) ??
+                                log.parsedAt,
+                              "Jan _2 15:04:05.000",
+                              true,
+                            )}
+                          />
+                          <KeyValueRow
+                            label="Timestamp"
+                            value={getUnixTimestamp(
+                              (log.structured?.timestamp as Timestamp) ??
+                                log.parsedAt,
+                            ).toString()}
+                          />
+                        </div>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
 
-              <ResizableHandle
-                className="my-auto w-[0.1px] rounded-full bg-slate-700 opacity-0 group-hover:opacity-50"
-                style={{ height: `${contentHeight}px` }}
-              />
+                  <code>
+                    <span className="text-gray-400">
+                      |
+                      <span
+                        style={{
+                          color: getLevelColor(log?.structured?.lvl),
+                        }}
+                      >
+                        {log?.structured?.lvl || "EMPTY"}
+                      </span>
+                      |
+                    </span>
+                  </code>
 
-              <Panel style={{ height: `${contentHeight}px` }}>
-                <div className="flex w-full flex-col overflow-x-auto scrollbar-hide">
-                  {logs.map((log, index) => (
-                    <div
-                      key={`${log.machineId}-${log.sessionId}-${log.eventId}-${index}`}
-                      className="hover:bg-slate-400/20 hover:dark:bg-slate-700/20"
-                    >
-                      <div className="h-full px-4 py-1">
-                        {log.structured && (
-                          <code className="flex items-center gap-2 whitespace-nowrap">
-                            {log.structured?.kvs.map((kv, kvIndex) => (
-                              <span key={log.eventId} className="flex-none">
-                                <span className="text-green-700 dark:text-green-400">
-                                  {kv.key}
+                  <code style={{ color: getColor("msg") }}>
+                    {log.structured?.msg || "no message"}{" "}
+                    {log.structured?.kvs.map((kv, kvIndex) => {
+                      return (
+                        <span
+                          key={`${log.sessionId}-${log.eventId}-${kvIndex}`}
+                          className="flex-none"
+                        >
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger>
+                                <span style={{ color: getColor("key") }}>
+                                  {kv.key}=
                                 </span>
-                                ={valueToJSX(kv.value)}
-                                {kvIndex <
-                                  (log.structured?.kvs.length || 0) - 1 && ""}
-                              </span>
-                            ))}
-                          </code>
-                        )}
-                      </div>
-                    </div>
-                  ))}
+                                <span style={{ color: getColor("value") }}>
+                                  {kv.value?.kind.value?.toString()}
+                                </span>
+                              </TooltipTrigger>
+                              <TooltipContent className="bg-transparent bg-white dark:bg-secondaryBlack">
+                                <KeyValueRow label="Key" value={kv.key} />
+                                <KeyValueRow
+                                  label="Type"
+                                  value={kv.value?.kind.case?.toString() ?? ""}
+                                />
+                                <KeyValueRow
+                                  label="Value"
+                                  value={kv.value?.kind.value?.toString() ?? ""}
+                                />
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </span>
+                      );
+                    })}
+                  </code>
                 </div>
-              </Panel>
-            </div>
-          </PanelGroup>
-        )}
+              );
+            })}
+
+          <div>{next && <div ref={targetRef} className="h-4" />}</div>
+        </div>
       </div>
     </div>
   );
 };
 
 export default NewSessionPanel;
+
+interface KeyValueRowProps {
+  label: string;
+  value: string | bigint;
+}
+
+const KeyValueRow = ({ label, value }: KeyValueRowProps) => {
+  return value ? (
+    <div className="flex">
+      <span className="w-28 text-gray-400">{label} </span>
+      <span>{value}</span>
+    </div>
+  ) : null;
+};
