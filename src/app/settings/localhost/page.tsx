@@ -258,15 +258,14 @@ const LocalhostSettings = () => {
                 )}
               />
 
-              {/* TODO: broken */}
-              {/* <div className="flex gap-2">
+              <div className="flex gap-2">
                 <Button onClick={doUpdate} type="button">
                   Do Update
                 </Button>
                 <Button onClick={doRestart} type="button">
                   Restart
                 </Button>
-              </div> */}
+              </div>
 
               <Label className="mt-8 border-t py-3 text-xl">Parser</Label>
 
