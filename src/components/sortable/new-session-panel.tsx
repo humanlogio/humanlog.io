@@ -20,15 +20,23 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { NoLogsView } from "@/components/env/no-logs-view";
+import { twJoin } from "tailwind-merge";
 
 interface NewSessionPanelProps {
   query: LogQuery | undefined;
+  fakeData?: IngestedLogEvent[];
+  darkMode?: boolean;
 }
 
-const NewSessionPanel = ({ query }: NewSessionPanelProps) => {
+const NewSessionPanel = ({
+  query,
+  fakeData,
+  darkMode,
+}: NewSessionPanelProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const { theme } = useTheme();
-  const isDark = theme === "dark";
+  const isDark = darkMode ? darkMode : theme === "dark";
   const { apiClients } = useApiClients();
 
   const { targetRef, isFetching, fetchNext, fetchData, next } =
@@ -52,6 +60,10 @@ const NewSessionPanel = ({ query }: NewSessionPanelProps) => {
   }, []);
 
   useEffect(() => {
+    if (fakeData) {
+      setLogs(fakeData);
+      return;
+    }
     fetchData(({ value: shapeValue }) => {
       setLogs(shapeValue.events);
     });
@@ -70,8 +82,8 @@ const NewSessionPanel = ({ query }: NewSessionPanelProps) => {
   }, [fetchNext]);
 
   return (
-    <div className="flex h-full w-full flex-col overflow-x-scroll rounded-base border-2 border-border">
-      <div className="flex flex-none flex-row items-center justify-between bg-slate-900 px-4 py-2 dark:bg-slate-800">
+    <div className="flex h-full w-full flex-col rounded-base border-2 border-border">
+      <div className="sticky left-0 right-0 top-0 z-10 flex w-full flex-none flex-row items-center justify-between bg-slate-900 px-4 py-2 dark:bg-slate-800">
         <div className="flex w-1/3 justify-start">
           <h4 className="flex flex-row items-center gap-3 truncate font-bold text-white">
             {isFetching && (
@@ -91,12 +103,16 @@ const NewSessionPanel = ({ query }: NewSessionPanelProps) => {
           </Button>
         </div>
       </div>
+
       <div
         ref={containerRef}
-        className="flex flex-grow bg-gradient-to-r from-slate-300 via-slate-200 via-10% to-slate-200 text-sm dark:from-slate-900 dark:via-slate-950 dark:to-slate-950"
+        className={twJoin(
+          "flex flex-grow bg-gradient-to-r from-slate-300 via-slate-200 via-10% to-slate-200 text-sm dark:from-slate-900 dark:via-slate-950 dark:to-slate-950",
+          darkMode && "from-slate-900 via-slate-950 to-slate-950",
+        )}
       >
-        <div className="border-separate p-1">
-          {logs &&
+        <div className="border-separate overflow-x-auto p-1">
+          {logs && logs.length > 0 ? (
             logs.map((log, i) => {
               return (
                 <div
@@ -211,7 +227,10 @@ const NewSessionPanel = ({ query }: NewSessionPanelProps) => {
                   </code>
                 </div>
               );
-            })}
+            })
+          ) : (
+            <NoLogsView />
+          )}
 
           <div>{next && <div ref={targetRef} className="h-4" />}</div>
         </div>
