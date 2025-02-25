@@ -229,7 +229,6 @@ export const Preview = ({ themes, isDark, timeformat }: PreviewProps) => {
     },
   ];
 
-  // 날짜 문자열을 Timestamp로 변환하는 헬퍼 함수
   function stringToTimestamp(dateString: string): Timestamp {
     const date = new Date(dateString);
     return Timestamp.fromDate(date);
@@ -237,7 +236,7 @@ export const Preview = ({ themes, isDark, timeformat }: PreviewProps) => {
 
   const containerRef = useRef<HTMLDivElement>(null);
   const metaColumnRef = useRef<HTMLDivElement>(null);
-  // Preview 컴포넌트에서 사용할 때도 순서 변경
+
   const { getColor, getLevelColor } = useThemeColors(isDark, themes);
 
   // state
