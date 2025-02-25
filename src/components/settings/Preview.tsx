@@ -5,7 +5,7 @@ import {
   StructuredLogEvent,
 } from "api/js/types/v1/logevent_pb";
 import { KV, Val } from "api/js/types/v1/types_pb";
-import NewSessionPanel from "../sortable/new-session-panel";
+import NewSessionPanel from "@/components/sortable/new-session-panel";
 
 const SAMPLE_LOGS = [
   {
