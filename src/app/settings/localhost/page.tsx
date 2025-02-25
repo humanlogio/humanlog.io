@@ -44,6 +44,7 @@ import { cn, TIME_FORMAT } from "@/lib/utils";
 import FieldTagsInput from "@/components/ui/field-text-input";
 import { toast } from "sonner";
 import { ThemeEditor } from "@/components/settings/ThemeEditor";
+import { ConnectError } from "@connectrpc/connect";
 
 const COLOR_MODE_OPTIONS = [
   { value: FormatConfig_ColorMode.COLORMODE_AUTO.toString(), label: "Auto" },
@@ -119,7 +120,10 @@ const LocalhostSettings = () => {
       }
     } catch (error) {
       console.error(error);
-      toast.error("Failed to load settings. Please try again.");
+      if (error instanceof ConnectError) {
+        const { message } = error;
+        toast.error(`Failed to load settings.\n Error: ${message}`);
+      }
     }
   };
 
@@ -242,7 +246,11 @@ const LocalhostSettings = () => {
                           <h3 className="mb-4 text-lg font-medium">
                             Light Theme
                           </h3>
-                          <ThemeEditor mode="light" formValues={formValues} />
+                          <ThemeEditor
+                            mode="light"
+                            formValues={formValues}
+                            setValue={form.setValue}
+                          />
                         </div>
 
                         {/* Dark Theme */}
@@ -250,7 +258,11 @@ const LocalhostSettings = () => {
                           <h3 className="mb-4 text-lg font-medium">
                             Dark Theme
                           </h3>
-                          <ThemeEditor mode="dark" formValues={formValues} />
+                          <ThemeEditor
+                            mode="dark"
+                            formValues={formValues}
+                            setValue={form.setValue}
+                          />
                         </div>
                       </div>
                     </FormControl>
