@@ -1,22 +1,39 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ColorPicker, useColor } from "react-color-palette";
 import { Label } from "@/components/ui/label";
+import { useThemeColors } from "@/lib/utils/useThemeColors";
+import { UseFormReturn } from "react-hook-form";
+import { FormValues } from "@/app/settings/localhost/page";
 
 interface ThemeColorPickerProps {
   label: string;
+  name: string;
   value: string;
   onChange: (color: string) => void;
   description?: string;
+  mode: "light" | "dark";
+  setValue: UseFormReturn<FormValues>["setValue"];
 }
 
 export const ThemeColorPicker = ({
   label,
+  name,
   value,
   onChange,
   description,
+  mode,
+  setValue,
 }: ThemeColorPickerProps) => {
+  const isDark = mode === "dark";
+  const { hexToRgb, defaultColors } = useThemeColors(isDark);
+  const initialColor = hexToRgb(value) ? value : defaultColors[mode];
+
   const [isColorPickerOpen, setIsColorPickerOpen] = useState(false);
-  const [color, setColor] = useColor(value ?? "");
+  const [color, setColor] = useColor(initialColor);
+
+  useEffect(() => {
+    setValue(name as keyof FormValues, initialColor);
+  }, []);
 
   return (
     <>
