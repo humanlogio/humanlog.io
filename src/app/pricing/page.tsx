@@ -83,6 +83,8 @@ export default function Page() {
               )}
             >
               {products?.map((product) => {
+                const ctaLink = product.product.ctaLink;
+
                 const monthly = product.prices.find(
                   (p) => p.recurring?.interval === "month",
                 );
@@ -98,6 +100,37 @@ export default function Page() {
                 // to replace with stripe data
                 const featured =
                   product.product.stripeId == defaultProduct?.stripeId;
+
+                let ctaMessage = `Get ${product.product.name}`;
+                let onCtaClick = () => {};
+                switch (ctaLink) {
+                  case "personal_use":
+                    ctaMessage = "Go!";
+                    onCtaClick = () => {
+                      router.push(`/localhost`);
+                    };
+                    break;
+                  case "checkout_localhost":
+                    ctaMessage = `Get ${product.product.name}`;
+                    onCtaClick = () => {
+                      router.push(
+                        `/user/purchase?plan=${product.product.stripeId}`,
+                      );
+                    };
+                    break;
+                  case "create_env":
+                    ctaMessage = `Create an environment`;
+                    onCtaClick = () => {
+                      router.push(`/env/new?plan=${product.product.stripeId}`);
+                    };
+                    break;
+                  case "contact_us":
+                    ctaMessage = "Contact us";
+                    onCtaClick = () => {
+                      window.location.href = "mailto:antoine@webscale.lol";
+                    };
+                    break;
+                }
 
                 return (
                   <div
@@ -150,17 +183,9 @@ export default function Page() {
                     <Button
                       size={featured ? "lg" : "default"}
                       className={cn("mt-12 w-full", featured && "bg-success")}
-                      onClick={() => {
-                        if (price) {
-                          router.push(
-                            `/env/new?plan=${product.product.stripeId}`,
-                          );
-                        } else {
-                          window.location.href = "mailto:antoine@webscale.lol";
-                        }
-                      }}
+                      onClick={onCtaClick}
                     >
-                      {price ? "Get Started" : "Contact Us"}
+                      {ctaMessage}
                     </Button>
                   </div>
                 );
