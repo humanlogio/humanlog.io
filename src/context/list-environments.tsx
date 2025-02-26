@@ -78,10 +78,12 @@ export function ListEnvironmentsProvider({
           document.cookie = `hlog_session=; path=/; domain=.humanlog${config.TLD}; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
           setBrowserValid(false);
           setUser("not-logged-in");
+
           toast.info(
             "Your session has expired. Please log in again to continue.",
           );
-          router.push("/login");
+          // router.push("/login");
+          doLogin();
         }
         throw err;
       }
