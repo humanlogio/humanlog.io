@@ -36,7 +36,11 @@ const NewSessionPanel = ({
 }: NewSessionPanelProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const { theme } = useTheme();
-  const isDark = darkMode ? darkMode : theme === "dark";
+  const isDark = darkMode
+    ? darkMode
+    : theme === "dark" ||
+      (theme === "system" &&
+        window.matchMedia("(prefers-color-scheme: dark)").matches);
   const { apiClients } = useApiClients();
 
   const { targetRef, isFetching, fetchNext, fetchData, next } =
