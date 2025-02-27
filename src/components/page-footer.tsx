@@ -10,6 +10,11 @@ const iconSocialLinks = [
     icon: "/icons/github-mark-white.svg",
     alt: "GitHub",
   },
+  {
+    href: "https://discord.gg/BdvXuCZNtT",
+    icon: "/icons/discord-mark-white.svg",
+    alt: "Discord",
+  },
 ];
 
 const footerLinks = [
@@ -57,7 +62,7 @@ const PageFooter = () => {
             ))}
           </div>
 
-          <div className="flex items-start justify-center gap-4 md:col-span-2 md:justify-end">
+          <div className="flex items-start items-center justify-center gap-4 md:col-span-2 md:justify-end">
             {Object.values(iconSocialLinks).map((link) => (
               <Link
                 className="contents"
