@@ -23,7 +23,7 @@ import {
 } from "api/js/types/v1/query_pb";
 import { Val } from "api/js/types/v1/types_pb";
 import { useAllEnvironments } from "@/context/list-environments";
-import { NoLocalhostView } from "../sortable/no-localhost-view";
+import { NoLocalhostView } from "@/components/sortable/no-localhost-view";
 
 export type DataCase =
   | "subqueries"

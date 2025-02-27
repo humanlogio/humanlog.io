@@ -1,7 +1,7 @@
 "use client";
 
 import { copyToClipboard } from "@/lib/utils";
-import { Copy, MessageCircleWarning } from "lucide-react";
+import { Copy } from "lucide-react";
 
 export const NoLocalhostView = () => {
   const setUpCommand = "humanlog config enable query-engine";
@@ -11,8 +11,8 @@ export const NoLocalhostView = () => {
   return (
     <div className="max-w-2xl text-center">
       <h1 className="text-center text-2xl font-bold">
-        Uh oh! It looks like you're not running
-        <br /> the localhost query engine.
+        {"Uh oh! It looks like you're not running"}
+        <br /> {"the localhost query engine."}
       </h1>
       <div className="mt-10 flex flex-col items-center gap-2">
         Set up with:
