@@ -45,6 +45,8 @@ import FieldTagsInput from "@/components/ui/field-text-input";
 import { toast } from "sonner";
 import { ThemeEditor } from "@/components/settings/ThemeEditor";
 import { ConnectError } from "@connectrpc/connect";
+import { useAllEnvironments } from "@/context/list-environments";
+import { NoLocalhostView } from "@/components/sortable/no-localhost-view";
 
 const COLOR_MODE_OPTIONS = [
   { value: FormatConfig_ColorMode.COLORMODE_AUTO.toString(), label: "Auto" },
@@ -81,6 +83,7 @@ export type FormValues = z.infer<typeof formSchema>;
 
 const LocalhostSettings = () => {
   const { apiClients } = useApiClients();
+  const { localhostInfo } = useAllEnvironments();
 
   const [initialConfig, setInitialConfig] = useState<LocalhostConfig>();
 
@@ -222,6 +225,14 @@ const LocalhostSettings = () => {
   useEffect(() => {
     getConfig();
   }, []);
+
+  if (!localhostInfo) {
+    return (
+      <div className="mt-36 flex items-center justify-center">
+        <NoLocalhostView />
+      </div>
+    );
+  }
 
   return (
     <SettingsShell activeSection="localhost">
