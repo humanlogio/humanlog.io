@@ -22,6 +22,9 @@ import {
 } from "@/components/ui/tooltip";
 import { NoLogsView } from "@/components/env/no-logs-view";
 import { twJoin } from "tailwind-merge";
+import { useSearchParams } from "next/navigation";
+import { escape } from "querystring";
+import { decodeUint8Array } from "@/lib/utils/decode";
 
 interface NewSessionPanelProps {
   ids?: { machineId?: string; sessionId?: string };
@@ -36,6 +39,7 @@ const NewSessionPanel = ({
   fakeData,
   darkMode,
 }: NewSessionPanelProps) => {
+  const searchParams = useSearchParams();
   const containerRef = useRef<HTMLDivElement>(null);
   const { theme } = useTheme();
   const isDark = darkMode
@@ -43,6 +47,7 @@ const NewSessionPanel = ({
     : theme === "dark" ||
       (theme === "system" &&
         window.matchMedia("(prefers-color-scheme: dark)").matches);
+  const pretty = searchParams.get("pretty") !== "false";
   const { apiClients } = useApiClients();
 
   const { targetRef, isFetching, fetchNext, fetchData, next } =
@@ -125,6 +130,16 @@ const NewSessionPanel = ({
         <div className="border-separate overflow-x-auto p-1">
           {logs && logs.length > 0 ? (
             logs.map((log, i) => {
+              if (!pretty) {
+                return (
+                  <div
+                    className="flex gap-1 whitespace-nowrap py-[1px]"
+                    key={`${i + 1}-${log.machineId}-${log.sessionId}-${log.eventId}`}
+                  >
+                    {decodeUint8Array(log.raw)}
+                  </div>
+                );
+              }
               return (
                 <div
                   className="flex gap-1 whitespace-nowrap py-[1px]"
