@@ -42,6 +42,7 @@ const MonacoEditor = ({
 }: MonacoEditorProps) => {
   const { theme } = useTheme();
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
+  const monacoRef = useRef<typeof import("monaco-editor") | null>(null);
 
   const mergedOptions = {
     ...defaultOptions,
@@ -56,6 +57,7 @@ const MonacoEditor = ({
 
   const handleEditorDidMount: OnMount = (editor, monaco) => {
     editorRef.current = editor;
+    monacoRef.current = monaco;
 
     editor.getModel()?.updateOptions({ tabSize: 2 });
     editor.updateOptions(defaultOptions);
@@ -72,10 +74,24 @@ const MonacoEditor = ({
         "editor.background": "#0F172A",
       },
     });
-    monaco.editor.setTheme(theme === "dark" ? "my-dark" : "vs-light");
 
     onMount?.(editor, monaco);
   };
+
+  useEffect(() => {
+    if (!monacoRef.current || !editorRef.current) return;
+
+    const isDarkMode =
+      theme === "dark" ||
+      (theme === "system" &&
+        window.matchMedia("(prefers-color-scheme: dark)").matches);
+    console.log(
+      "matches",
+      window.matchMedia("(prefers-color-scheme: dark)").matches,
+    );
+
+    monacoRef.current.editor.setTheme(isDarkMode ? "my-dark" : "vs-light");
+  }, [theme]);
 
   // detect resizing event
   useEffect(() => {
