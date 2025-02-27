@@ -20,8 +20,8 @@ export const extractQueryIds = (query: LogQuery) => {
       const {
         kind: { value: _machineId },
       } = machineValue.rhs?.expr.value;
-      sessionId = _sessionId;
-      machineId = _machineId;
+      sessionId = _sessionId?.toString();
+      machineId = _machineId?.toString();
     }
   }
   return { sessionId, machineId };

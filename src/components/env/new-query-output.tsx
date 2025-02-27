@@ -12,6 +12,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { LogData } from "@/components/env/log-interface";
 import { NoLogsView } from "@/components/env/no-logs-view";
 import { SubQueriesContainer } from "@/components/sortable/subqueries-container";
+import { extractQueryIds } from "@/lib/utils/extractQueryIds";
 
 interface NewQueryOutputProps {
   logData: LogData;
@@ -47,7 +48,10 @@ const NewQueryOutput = ({
               {/* TODO: Remove condition after backend's update */}
               <div className="mt-2">{queryString ? <ToggleSplit /> : null}</div>
               <div className="container flex-1 overflow-auto">
-                <NewSessionPanel query={parsedQuery} />
+                <NewSessionPanel
+                  query={parsedQuery}
+                  ids={extractQueryIds(parsedQuery as LogQuery)}
+                />
               </div>
             </>,
           );
