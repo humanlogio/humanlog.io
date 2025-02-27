@@ -12,7 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { CircleX, SquareCode } from "lucide-react";
+import { SquareCode, X } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 
 interface SubQueriesContainerProps {
@@ -80,12 +80,13 @@ export const SubQueriesContainer = ({ queries }: SubQueriesContainerProps) => {
   };
 
   return (
-    sessionList && (
+    selectedSessions && (
       <>
         <div className="container mt-2 flex">
           <ToggleSplit />
-          {queries.length > 4 && (
+          {sessionList && sessionList.length > 0 && (
             <Select
+              value=""
               onValueChange={(value) => {
                 updateSelection(value);
               }}
@@ -119,10 +120,13 @@ export const SubQueriesContainer = ({ queries }: SubQueriesContainerProps) => {
             {selectedSessions?.map((list, i) => {
               return (
                 <Fragment key={list.value}>
-                  <Panel>
+                  <Panel className="relative">
                     {selectedSessions.length > 1 && (
-                      <button onClick={() => deleteSession(list.value)}>
-                        <CircleX />
+                      <button
+                        onClick={() => deleteSession(list.value)}
+                        className="absolute right-2 top-2 z-20"
+                      >
+                        <X color="white" size={15} />
                       </button>
                     )}
                     <NewSessionPanel
@@ -131,7 +135,7 @@ export const SubQueriesContainer = ({ queries }: SubQueriesContainerProps) => {
                     />
                   </Panel>
 
-                  {i !== queries.length - 1 && (
+                  {i !== selectedSessions.length - 1 && (
                     <PanelResizeHandle className="flex h-full items-center justify-center px-1">
                       <div className="h-12 w-1 rounded-full bg-slate-700" />
                     </PanelResizeHandle>
