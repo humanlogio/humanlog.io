@@ -1,7 +1,7 @@
 "use client";
 
 import { Data_SubQueries, Tabular } from "api/js/types/v1/query_pb";
-import { Fragment, ReactNode, useEffect, useState } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { LogQuery } from "api/js/types/v1/logquery_pb";
 import NewSessionPanel from "@/components/sortable/new-session-panel";
 import TableContainer from "@/components/sortable/table-container";
@@ -9,14 +9,13 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
-import { MessageCircleWarning } from "lucide-react";
 import { LogData } from "@/components/env/log-interface";
 import { NoLogsView } from "@/components/env/no-logs-view";
+import { SubQueriesContainer } from "@/components/sortable/subqueries-container";
+import { extractQueryIds } from "@/lib/utils/extractQueryIds";
 
 interface NewQueryOutputProps {
   logData: LogData;
-
   parsedQuery: LogQuery | undefined;
 }
 
@@ -47,9 +46,12 @@ const NewQueryOutput = ({
           setOutput(
             <>
               {/* TODO: Remove condition after backend's update */}
-              {queryString ? <ToggleSplit /> : <div className="h-6" />}
+              <div className="mt-2">{queryString ? <ToggleSplit /> : null}</div>
               <div className="container flex-1 overflow-auto">
-                <NewSessionPanel query={parsedQuery} />
+                <NewSessionPanel
+                  query={parsedQuery}
+                  ids={extractQueryIds(parsedQuery as LogQuery)}
+                />
               </div>
             </>,
           );
@@ -69,29 +71,11 @@ const NewQueryOutput = ({
     if (dataCase === "subqueries" && value instanceof Data_SubQueries) {
       const { queries } = value;
       setOutput(
-        <>
-          <ToggleSplit />
-          <PanelGroup
-            direction="horizontal"
-            className="container flex flex-1 overflow-y-auto"
-          >
-            {queries?.map((query, i) => {
-              return (
-                <Fragment key={i}>
-                  <Panel>
-                    <NewSessionPanel key={i} query={query} />
-                  </Panel>
-                  {i !== queries.length - 1 && (
-                    <PanelResizeHandle className="flex h-full items-center justify-center px-1">
-                      <div className="h-12 w-1 rounded-full bg-slate-700" />
-                    </PanelResizeHandle>
-                  )}
-                </Fragment>
-              );
-            })}
-          </PanelGroup>
-        </>,
+        <div className="container flex-1 overflow-auto">
+          <SubQueriesContainer queries={queries} />
+        </div>,
       );
+      return;
     }
   }, [logData, queryString]);
 
@@ -100,7 +84,7 @@ const NewQueryOutput = ({
 
 export default NewQueryOutput;
 
-const ToggleSplit = () => {
+export const ToggleSplit = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -118,9 +102,9 @@ const ToggleSplit = () => {
   };
 
   return (
-    <div className="flex-end container flex items-center gap-2">
+    <div className="container flex items-center gap-2">
       <Label
-        htmlFor="billed-monthly"
+        htmlFor="split-by-default"
         className={cn("transition-colors duration-200", {
           "text-slate-500": split ? true : false,
         })}
@@ -128,12 +112,12 @@ const ToggleSplit = () => {
         View Combined Logs
       </Label>
       <Switch
-        id="billed-monthly"
+        id="split-by-default"
         checked={split ? true : false}
         onCheckedChange={(e) => onCheckedChange(e)}
       />
       <Label
-        htmlFor="billed-monthly"
+        htmlFor="split-by-default"
         className={cn("relative transition-colors duration-200", {
           "text-slate-500": !(split ? true : false),
         })}
