@@ -51,7 +51,7 @@ const LogInterface = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const queryString = searchParams.get("query");
-  const splitByDefault = searchParams.get("splitByDefault");
+  const splitByDefault = searchParams.get("splitByDefault") !== "false";
 
   const [errMsg, setErrMsg] = useState("");
   const [parsedQuery, setParsedQuery] = useState<LogQuery>();

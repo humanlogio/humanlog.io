@@ -1,6 +1,5 @@
 import { LogQuery } from "api/js/types/v1/logquery_pb";
 import { Fragment, useEffect, useState } from "react";
-import { ToggleSplit } from "@/components/env/new-query-output";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import NewSessionPanel from "@/components/sortable/new-session-panel";
 import { extractQueryIds } from "@/lib/utils/extractQueryIds";
@@ -14,6 +13,10 @@ import {
 } from "@/components/ui/select";
 import { SquareCode, X } from "lucide-react";
 import { useSearchParams } from "next/navigation";
+import {
+  ToggleShowPretty,
+  ToggleSplit,
+} from "@/components/sortable/log-viewer-settings";
 
 interface SubQueriesContainerProps {
   queries: LogQuery[];
@@ -82,34 +85,39 @@ export const SubQueriesContainer = ({ queries }: SubQueriesContainerProps) => {
   return (
     selectedSessions && (
       <>
-        <div className="container mt-2 flex">
-          <ToggleSplit />
+        <div className="container mt-2 flex w-full items-end justify-between">
+          <div className="flex flex-col gap-1">
+            <ToggleShowPretty />
+            <ToggleSplit />
+          </div>
           {sessionList && sessionList.length > 0 && (
-            <Select
-              value=""
-              onValueChange={(value) => {
-                updateSelection(value);
-              }}
-            >
-              <SelectTrigger>
-                <SquareCode size={16} />
-                <SelectValue placeholder="+ Add New" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  {sessionList.map((list) => {
-                    return (
-                      <SelectItem key={list.value} value={list.value}>
-                        <span className="mr-1">
-                          machineId: {list.machineId}
-                        </span>
-                        <span>sessonId: {list.sessionId}</span>
-                      </SelectItem>
-                    );
-                  })}
-                </SelectGroup>
-              </SelectContent>
-            </Select>
+            <div className="w-1/3">
+              <Select
+                value=""
+                onValueChange={(value) => {
+                  updateSelection(value);
+                }}
+              >
+                <SelectTrigger>
+                  <SquareCode size={16} />
+                  <SelectValue placeholder="+ Add New" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    {sessionList.map((list) => {
+                      return (
+                        <SelectItem key={list.value} value={list.value}>
+                          <span className="mr-1">
+                            machineId: {list.machineId}
+                          </span>
+                          <span>sessonId: {list.sessionId}</span>
+                        </SelectItem>
+                      );
+                    })}
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+            </div>
           )}
         </div>
         <div className="mt-3 flex">
