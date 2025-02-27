@@ -12,24 +12,33 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { SquareCode } from "lucide-react";
+import { CircleX, SquareCode } from "lucide-react";
+import { useSearchParams } from "next/navigation";
 
 interface SubQueriesContainerProps {
   queries: LogQuery[];
 }
 
-interface SelectType {
+interface SelectedSessionsType {
   value: string;
   sessionId: any;
   machineId: any;
+  query: LogQuery;
 }
 
 export const SubQueriesContainer = ({ queries }: SubQueriesContainerProps) => {
-  const [selectList, setSelectList] = useState<SelectType[]>();
-  const [selectedSession, setSelectedSession] = useState<SelectType>();
+  const searchParams = useSearchParams();
+  const queryString = searchParams.get("query");
+  const [originalSessionList, setOriginalSessionList] = useState<
+    SelectedSessionsType[]
+  >([]);
+  const [sessionList, setSessionList] = useState<SelectedSessionsType[]>();
+  const [selectedSessions, setSelectedSessions] =
+    useState<SelectedSessionsType[]>();
 
   useEffect(() => {
-    const _selectList: SelectType[] = [];
+    const _selectList: SelectedSessionsType[] = [];
+
     queries.forEach((query, i) => {
       const { sessionId, machineId } = extractQueryIds(query);
 
@@ -37,37 +46,60 @@ export const SubQueriesContainer = ({ queries }: SubQueriesContainerProps) => {
         value: `${i}-${machineId}-${sessionId}`,
         machineId,
         sessionId,
+        query,
       });
     });
-    setSelectList(_selectList);
-    setSelectedSession(_selectList[0]);
-  }, []);
 
-  const updateSelection = (value: string) => {
-    const _selected = selectList?.find((select) => select.value === value);
-    setSelectedSession(_selected);
+    setOriginalSessionList(_selectList);
+    setSessionList(_selectList);
+    setSelectedSessions(_selectList.slice(0, 4));
+  }, [queryString]);
+
+  useEffect(() => {
+    const availableSessions = originalSessionList.filter(
+      (session) =>
+        !selectedSessions?.some(
+          (selectedSession) => selectedSession.value === session.value,
+        ),
+    );
+    console.log("availableSessions", availableSessions);
+    availableSessions && setSessionList(availableSessions);
+  }, [selectedSessions, originalSessionList]);
+
+  const deleteSession = (value: string) => {
+    const filtered = selectedSessions?.filter(
+      (select) => select.value !== value,
+    );
+
+    setSelectedSessions(filtered);
   };
 
-  if (queries.length > 4) {
-    return (
-      selectList && (
-        <>
-          <div className="mt-2 flex">
-            <ToggleSplit />
+  const updateSelection = (value: string) => {
+    const selected = sessionList?.find((select) => select.value === value);
+    selected && setSelectedSessions((prev) => [...(prev || []), selected]);
+  };
+
+  return (
+    sessionList && (
+      <>
+        <div className="container mt-2 flex">
+          <ToggleSplit />
+          {queries.length > 4 && (
             <Select
-              value={selectedSession?.value}
-              onValueChange={updateSelection}
+              onValueChange={(value) => {
+                updateSelection(value);
+              }}
             >
               <SelectTrigger>
                 <SquareCode size={16} />
-                <SelectValue placeholder="Select session" />
+                <SelectValue placeholder="+ Add New" />
               </SelectTrigger>
               <SelectContent>
                 <SelectGroup>
-                  {selectList.map((list) => {
+                  {sessionList.map((list) => {
                     return (
                       <SelectItem key={list.value} value={list.value}>
-                        <span className="mr-2">
+                        <span className="mr-1">
                           machineId: {list.machineId}
                         </span>
                         <span>sessonId: {list.sessionId}</span>
@@ -77,45 +109,39 @@ export const SubQueriesContainer = ({ queries }: SubQueriesContainerProps) => {
                 </SelectGroup>
               </SelectContent>
             </Select>
-          </div>
-          <div className="mt-3">
-            <NewSessionPanel
-              query={queries.find(
-                (query) =>
-                  extractQueryIds(query).machineId ===
-                    selectedSession?.machineId &&
-                  extractQueryIds(query).sessionId ===
-                    selectedSession?.sessionId,
-              )}
-            />
-          </div>
-        </>
-      )
-    );
-  }
+          )}
+        </div>
+        <div className="mt-3 flex">
+          <PanelGroup
+            direction="horizontal"
+            className="container flex flex-1 overflow-y-auto"
+          >
+            {selectedSessions?.map((list, i) => {
+              return (
+                <Fragment key={list.value}>
+                  <Panel>
+                    {selectedSessions.length > 1 && (
+                      <button onClick={() => deleteSession(list.value)}>
+                        <CircleX />
+                      </button>
+                    )}
+                    <NewSessionPanel
+                      ids={extractQueryIds(list.query)}
+                      query={list.query}
+                    />
+                  </Panel>
 
-  return (
-    <>
-      <ToggleSplit />
-      <PanelGroup
-        direction="horizontal"
-        className="container flex flex-1 overflow-y-auto"
-      >
-        {queries?.map((query, i) => {
-          return (
-            <Fragment key={i}>
-              <Panel>
-                <NewSessionPanel key={i} query={query} />
-              </Panel>
-              {i !== queries.length - 1 && (
-                <PanelResizeHandle className="flex h-full items-center justify-center px-1">
-                  <div className="h-12 w-1 rounded-full bg-slate-700" />
-                </PanelResizeHandle>
-              )}
-            </Fragment>
-          );
-        })}
-      </PanelGroup>
-    </>
+                  {i !== queries.length - 1 && (
+                    <PanelResizeHandle className="flex h-full items-center justify-center px-1">
+                      <div className="h-12 w-1 rounded-full bg-slate-700" />
+                    </PanelResizeHandle>
+                  )}
+                </Fragment>
+              );
+            })}
+          </PanelGroup>
+        </div>
+      </>
+    )
   );
 };
