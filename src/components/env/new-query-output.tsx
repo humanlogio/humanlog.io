@@ -5,14 +5,15 @@ import { ReactNode, useEffect, useState } from "react";
 import { LogQuery } from "api/js/types/v1/logquery_pb";
 import NewSessionPanel from "@/components/sortable/new-session-panel";
 import TableContainer from "@/components/sortable/table-container";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
-import { cn } from "@/lib/utils";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { LogData } from "@/components/env/log-interface";
 import { NoLogsView } from "@/components/env/no-logs-view";
 import { SubQueriesContainer } from "@/components/sortable/subqueries-container";
 import { extractQueryIds } from "@/lib/utils/extractQueryIds";
+import {
+  ToggleShowPretty,
+  ToggleSplit,
+} from "@/components/sortable/log-viewer-settings";
 
 interface NewQueryOutputProps {
   logData: LogData;
@@ -46,7 +47,10 @@ const NewQueryOutput = ({
           setOutput(
             <>
               {/* TODO: Remove condition after backend's update */}
-              <div className="mt-2">{queryString ? <ToggleSplit /> : null}</div>
+              <div className="mt-2 flex flex-col gap-1">
+                <ToggleShowPretty />
+                {queryString ? <ToggleSplit /> : null}
+              </div>
               <div className="container flex-1 overflow-auto">
                 <NewSessionPanel
                   query={parsedQuery}
@@ -83,47 +87,3 @@ const NewQueryOutput = ({
 };
 
 export default NewQueryOutput;
-
-export const ToggleSplit = () => {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-
-  const split = searchParams.get("splitByDefault");
-
-  const onCheckedChange = (checked: boolean) => {
-    const params = new URLSearchParams(searchParams);
-    if (checked) {
-      params.set("splitByDefault", "true");
-      router.push(`?${params}`);
-    } else {
-      params.delete("splitByDefault");
-      router.push(`?${params}`);
-    }
-  };
-
-  return (
-    <div className="container flex items-center gap-2">
-      <Label
-        htmlFor="split-by-default"
-        className={cn("transition-colors duration-200", {
-          "text-slate-500": split ? true : false,
-        })}
-      >
-        View Combined Logs
-      </Label>
-      <Switch
-        id="split-by-default"
-        checked={split ? true : false}
-        onCheckedChange={(e) => onCheckedChange(e)}
-      />
-      <Label
-        htmlFor="split-by-default"
-        className={cn("relative transition-colors duration-200", {
-          "text-slate-500": !(split ? true : false),
-        })}
-      >
-        Split by Default
-      </Label>
-    </div>
-  );
-};
