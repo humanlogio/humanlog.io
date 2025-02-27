@@ -20,7 +20,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { NoLogsView } from "@/components/env/no-logs-view";
+import { NoLogsView } from "@/components/sortable/no-logs-view";
 import { twJoin } from "tailwind-merge";
 import { useSearchParams } from "next/navigation";
 import { escape } from "querystring";
