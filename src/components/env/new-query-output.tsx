@@ -104,7 +104,7 @@ export const ToggleSplit = () => {
   return (
     <div className="container flex items-center gap-2">
       <Label
-        htmlFor="billed-monthly"
+        htmlFor="split-by-default"
         className={cn("transition-colors duration-200", {
           "text-slate-500": split ? true : false,
         })}
@@ -112,12 +112,12 @@ export const ToggleSplit = () => {
         View Combined Logs
       </Label>
       <Switch
-        id="billed-monthly"
+        id="split-by-default"
         checked={split ? true : false}
         onCheckedChange={(e) => onCheckedChange(e)}
       />
       <Label
-        htmlFor="billed-monthly"
+        htmlFor="split-by-default"
         className={cn("relative transition-colors duration-200", {
           "text-slate-500": !(split ? true : false),
         })}
