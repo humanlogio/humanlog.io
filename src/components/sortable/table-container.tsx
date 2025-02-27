@@ -54,8 +54,6 @@ const TableContainer = ({ query }: TableProps) => {
             return (
               <tr key={i}>
                 {row.items?.map((item, i) => {
-                  // console.log("item.kind", item.kind);
-                  console.log("item.kind.value", item.kind.value);
                   return (
                     <td key={`${item.kind.case}-${i}`} className="px-2">
                       {valueToJSX(item)}
