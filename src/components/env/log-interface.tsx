@@ -22,6 +22,8 @@ import {
   VectorTimeseries,
 } from "api/js/types/v1/query_pb";
 import { Val } from "api/js/types/v1/types_pb";
+import { useAllEnvironments } from "@/context/list-environments";
+import { NoLocalhostView } from "../sortable/no-localhost-view";
 
 export type DataCase =
   | "subqueries"
@@ -48,6 +50,8 @@ const LogInterface = () => {
   const limit = 100;
 
   const { apiClients, activeEnvironment } = useApiClients();
+  const { localhostInfo } = useAllEnvironments();
+
   const router = useRouter();
   const searchParams = useSearchParams();
   const queryString = searchParams.get("query");
@@ -196,6 +200,14 @@ const LogInterface = () => {
   useEffect(() => {
     if (queryString != null) executeQuery(decodeURIComponent(queryString));
   }, [splitByDefault]);
+
+  if (!localhostInfo) {
+    return (
+      <div className="mt-32 flex justify-center">
+        <NoLocalhostView />
+      </div>
+    );
+  }
 
   return (
     <section>
