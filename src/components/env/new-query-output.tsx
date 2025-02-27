@@ -7,7 +7,7 @@ import NewSessionPanel from "@/components/sortable/new-session-panel";
 import TableContainer from "@/components/sortable/table-container";
 import { useSearchParams } from "next/navigation";
 import { LogData } from "@/components/env/log-interface";
-import { NoLogsView } from "@/components/env/no-logs-view";
+import { NoLogsView } from "@/components/sortable/no-logs-view";
 import { SubQueriesContainer } from "@/components/sortable/subqueries-container";
 import { extractQueryIds } from "@/lib/utils/extractQueryIds";
 import {
