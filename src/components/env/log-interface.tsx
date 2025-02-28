@@ -10,7 +10,6 @@ import {
   RenderStatement,
   SplitOperator,
   SplitOperator_ByOperator,
-  Statements,
 } from "api/js/types/v1/logquery_pb";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
@@ -24,6 +23,10 @@ import {
 import { Val } from "api/js/types/v1/types_pb";
 import { useAllEnvironments } from "@/context/list-environments";
 import { NoLocalhostView } from "@/components/sortable/no-localhost-view";
+import { DialogDescription } from "@radix-ui/react-dialog";
+import { DialogFooter, DialogHeader } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Modal } from "@/components/ui/modal";
 
 export type DataCase =
   | "subqueries"
@@ -58,6 +61,7 @@ const LogInterface = () => {
   const splitByDefault = searchParams.get("splitByDefault") !== "false";
 
   const [errMsg, setErrMsg] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [parsedQuery, setParsedQuery] = useState<LogQuery>();
   const [logData, setLogData] = useState<LogData>({
     case: undefined,
@@ -174,6 +178,10 @@ const LogInterface = () => {
             toast.error(message);
           }
 
+          if (code === Code.FailedPrecondition) {
+            setIsModalOpen(true);
+          }
+
           setLogData({
             case: undefined,
             value: undefined,
@@ -215,6 +223,20 @@ const LogInterface = () => {
         <NewQueryInput errMsg={errMsg} onExecuteQuery={executeQuery} />
         <NewQueryOutput logData={logData} parsedQuery={parsedQuery} />
       </div>
+      <Modal open={isModalOpen}>
+        <DialogHeader>
+          <div className="text-xl font-semibold">Subscription Required</div>
+          <DialogDescription>
+            {
+              "This feature requires a subscription. But don't worry, we have a free plan for personal use."
+            }
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter className="mt-4 flex-row">
+          <Button onClick={() => setIsModalOpen(false)}>Cancel</Button>
+          <Button onClick={() => router.push("/pricing")}>Subscribe</Button>
+        </DialogFooter>
+      </Modal>
     </section>
   );
 };
