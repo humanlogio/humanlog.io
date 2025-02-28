@@ -132,10 +132,13 @@ export function EnvironmentCreationForm({
       return;
     }
     const selectedPrice = selectedProduct.prices.find((p) => {
-      if (isBilledYearly && p.lookupKey.includes("yearly")) {
+      if (isBilledYearly && p.recurring?.interval.includes("year")) {
         return true;
       }
-      if (!isBilledYearly && p.lookupKey.includes("monthly")) {
+      if (!isBilledYearly && p.recurring?.interval.includes("month")) {
+        return true;
+      }
+      if (p.lookupKey === "free_personal_use") {
         return true;
       }
       return false;
@@ -252,8 +255,12 @@ export function ProductPane({
   isBilledYearly: boolean;
   onClick: (price: APIPrice | undefined) => void;
 }) {
-  const monthly = product.prices.find((p) => p.lookupKey.includes("monthly"));
-  const yearly = product.prices.find((p) => p.lookupKey.includes("yearly"));
+  const monthly = product.prices.find((p) =>
+    p.recurring?.interval.includes("month"),
+  );
+  const yearly = product.prices.find((p) =>
+    p.recurring?.interval.includes("year"),
+  );
 
   const selectedPrice = isBilledYearly ? yearly : monthly;
   const price = isBilledYearly
@@ -280,9 +287,7 @@ export function ProductPane({
             </span>
           )}
           <span className={isSelected ? "text-white" : "text-success"}>
-            {price
-              ? `$${(Math.floor(price * 100) / 100).toFixed(2)}`
-              : "Custom"}
+            {price ? `$${(Math.floor(price * 100) / 100).toFixed(2)}` : "Free"}
           </span>
           /month
         </h5>
@@ -597,21 +602,23 @@ function CheckoutForm({
         </div>
 
         {/* Payment Section */}
-        <div>
-          <Label>Payment</Label>
-          <div className="grid grid-cols-3 gap-4">
-            <div className="col-span-3 mt-3 rounded-base border-2 border-warning bg-warning/30 p-4 dark:border-warning/50 dark:bg-warning/10 md:col-span-1">
-              <Image
-                src="/images/powered-by-stripe.svg"
-                alt="Powered by Stripe"
-                width={112}
-                height={24}
-                className="mb-4"
-              />
-              <PaymentElement />
+        {Number(price?.unitAmount) > 0 && (
+          <div>
+            <Label>Payment</Label>
+            <div className="grid grid-cols-3 gap-4">
+              <div className="col-span-3 mt-3 rounded-base border-2 border-warning bg-warning/30 p-4 dark:border-warning/50 dark:bg-warning/10 md:col-span-1">
+                <Image
+                  src="/images/powered-by-stripe.svg"
+                  alt="Powered by Stripe"
+                  width={112}
+                  height={24}
+                  className="mb-4"
+                />
+                <PaymentElement />
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
         {/* Submit Section */}
         <div className="col-span-2">

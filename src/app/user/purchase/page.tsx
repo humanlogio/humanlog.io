@@ -63,14 +63,16 @@ export default function UserAddonsPage() {
   const stripePK = useQuery(getStripePublishableKey).data?.stripePublishableKey;
 
   // fetch the product list, set the defaults
-  const listProductRes = useQuery(listProduct, {
+  const { data } = useQuery(listProduct, {
     category: "logging",
     scope: Product_Scope.Organization,
-  }).data;
-  const products = listProductRes?.items
+  });
+
+  const products = data?.items
     .filter((el) => {
       return (
         el.product?.scope == Product_Scope.Organization && el.prices.length > 0
+        // && el.prices.filter((price) => Number(price.unitAmount) !== 0).length > 0
       );
     })
     .map((el): Product => {
@@ -78,50 +80,51 @@ export default function UserAddonsPage() {
     });
 
   useMemo(() => {
-    if (selectedProduct || !listProductRes || !listProductRes.defaultProduct) {
+    if (selectedProduct || !data || !data.defaultProduct) {
       return;
     }
     if (products?.length == 1) {
       setSelectedProduct(products[0]);
       return;
     }
-    const defaultProduct = listProductRes.defaultProduct;
-    let item = listProductRes.items
+    const defaultProduct = data.defaultProduct;
+    let item = data.items
       .filter((el) => {
         return el.product?.scope == Product_Scope.Organization;
       })
       .find((el) => el.product?.stripeId === defaultProduct.stripeId);
     item && setSelectedProduct({ product: item.product!, prices: item.prices });
-  }, [products, listProductRes, selectedProduct]);
+  }, [products, data, selectedProduct]);
+
   useMemo(() => {
     if (!selectedProduct) {
-      setPrice(listProductRes?.defaultProduct?.defaultPrice);
+      setPrice(data?.defaultProduct?.defaultPrice);
       return;
     }
+
     const selectedPrice = selectedProduct.prices.find((p) => {
-      if (isBilledYearly && p.lookupKey.includes("yearly")) {
+      if (isBilledYearly && p.recurring?.interval.includes("year")) {
         return true;
       }
-      if (!isBilledYearly && p.lookupKey.includes("monthly")) {
+      if (!isBilledYearly && p.recurring?.interval.includes("month")) {
+        return true;
+      }
+      if (p.lookupKey === "free_personal_use") {
         return true;
       }
       return false;
     });
+
     setPrice(selectedPrice);
-  }, [
-    isBilledYearly,
-    selectedProduct,
-    listProductRes?.defaultProduct?.defaultPrice,
-  ]);
+  }, [isBilledYearly, selectedProduct, data?.defaultProduct?.defaultPrice]);
 
   useMemo(() => {
-    if (selectedProduct || !listProductRes) return;
+    if (selectedProduct || !data) return;
 
     const defaultProduct = urlPlanId
-      ? listProductRes.items.find((el) => el.product?.stripeId === urlPlanId)
-      : listProductRes.items.find(
-          (el) =>
-            el.product?.stripeId === listProductRes.defaultProduct?.stripeId,
+      ? data.items.find((el) => el.product?.stripeId === urlPlanId)
+      : data.items.find(
+          (el) => el.product?.stripeId === data.defaultProduct?.stripeId,
         );
 
     defaultProduct &&
@@ -129,7 +132,7 @@ export default function UserAddonsPage() {
         product: defaultProduct.product!,
         prices: defaultProduct.prices,
       });
-  }, [listProductRes, selectedProduct, urlPlanId]);
+  }, [data, selectedProduct, urlPlanId]);
 
   useMemo(() => {
     if (!stripePK) {
@@ -221,42 +224,45 @@ function CheckoutForm({
   const stripe = useStripe();
   const elements = useElements();
   const [errorMessage, setErrorMessage] = useState<string>();
-  const [loading, setLoading] = useState(false);
 
   const handleError = (error: string) => {
-    setLoading(false);
     setErrorMessage(error);
   };
 
-  const createAddonSubscriptionMutation = useMutation(createAddonSubscription);
+  const { mutateAsync, isPending } = useMutation(createAddonSubscription);
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log("uh??");
     if (!stripe || !elements || !price) {
       return;
     }
-    setLoading(true);
 
     const { error: submitError } = await elements.submit();
     if (submitError) {
+      console.log("submitError", submitError);
       handleError(submitError.message!);
       return;
     }
-    const { error, confirmationToken } = await stripe.createConfirmationToken({
-      elements,
-    });
-    if (error) {
-      handleError(error.message!);
-      return;
+    let confirmationToken;
+    if (Number(price.unitAmount > 0)) {
+      const { error, confirmationToken: _confirmationToken } =
+        await stripe.createConfirmationToken({
+          elements,
+        });
+
+      confirmationToken = _confirmationToken;
+      if (error) {
+        handleError(error.message!);
+        return;
+      }
     }
 
     let res: CreateAddonSubscriptionResponse;
     try {
-      res = await createAddonSubscriptionMutation.mutateAsync({
+      res = await mutateAsync({
         payment: {
           case: "stripe",
           value: {
-            confirmationToken: confirmationToken.id,
+            confirmationToken: confirmationToken?.id || "",
             priceId: price?.stripeId,
           },
         },
@@ -348,27 +354,29 @@ function CheckoutForm({
           </div>
         </div>
         {/* Payment Section */}
-        <div>
-          <Label>Payment</Label>
-          <div className="grid grid-cols-3 gap-4">
-            <div className="col-span-3 mt-3 rounded-base border-2 border-warning bg-warning/30 p-4 dark:border-warning/50 dark:bg-warning/10 md:col-span-1">
-              <Image
-                src="/images/powered-by-stripe.svg"
-                alt="Powered by Stripe"
-                width={112}
-                height={24}
-                className="mb-4"
-              />
-              <PaymentElement />
+        {Number(price?.unitAmount) > 0 && (
+          <div>
+            <Label>Payment</Label>
+            <div className="grid grid-cols-3 gap-4">
+              <div className="col-span-3 mt-3 rounded-base border-2 border-warning bg-warning/30 p-4 dark:border-warning/50 dark:bg-warning/10 md:col-span-1">
+                <Image
+                  src="/images/powered-by-stripe.svg"
+                  alt="Powered by Stripe"
+                  width={112}
+                  height={24}
+                  className="mb-4"
+                />
+                <PaymentElement />
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
         {/* Submit Section */}
         <div className="col-span-2">
           <Label className="text-lg font-bold">Checkout</Label>
           <div className="mt-3 flex flex-col gap-4 md:flex-row md:gap-6">
-            <Button type="submit" disabled={!stripe || !price || loading}>
+            <Button type="submit" disabled={!stripe || !price || isPending}>
               Buy!
             </Button>
             <div className="flex flex-col gap-1">
