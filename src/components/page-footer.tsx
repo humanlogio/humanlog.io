@@ -6,12 +6,12 @@ import dayjs from "dayjs";
 
 const iconSocialLinks = [
   {
-    href: "https://github.com/humanlogio/humanlog",
+    href: "/link/github",
     icon: "/icons/github-mark-white.svg",
     alt: "GitHub",
   },
   {
-    href: "https://discord.gg/BdvXuCZNtT",
+    href: "/link/discord",
     icon: "/icons/discord-mark-white.svg",
     alt: "Discord",
   },
@@ -23,8 +23,8 @@ const footerLinks = [
     text: "Pricing",
   },
   {
-    href: "mailto:antoine@webscale.lol",
-    text: "Contact Us",
+    href: "/support",
+    text: "Support",
   },
   {
     href: "/legal/siteterms",
