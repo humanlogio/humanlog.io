@@ -142,7 +142,7 @@ export function ListEnvironmentsProvider({
         router.push(res.authUrl);
       }
     } catch (error) {
-      console.log("failed to Login at the browser");
+      console.log("failed to Login at the browser", error);
     }
   };
 
@@ -150,7 +150,7 @@ export function ListEnvironmentsProvider({
     try {
       await apiClients?.localhost.doLogin({ returnToURL });
     } catch (error) {
-      console.log("failed to Login at the cli");
+      console.log("failed to Login at the cli", error);
     }
   };
 

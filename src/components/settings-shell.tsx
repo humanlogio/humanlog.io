@@ -50,7 +50,8 @@ export function SettingsShell({
     );
   }
 
-  const orgName = currentOrg.id != defaultOrg?.id && currentOrg.name;
+  const isDefaultOrg = currentOrg.id == defaultOrg?.id;
+  const orgName = !isDefaultOrg && currentOrg.name;
   const envName = activeEnvironment?.name;
 
   const sections = [

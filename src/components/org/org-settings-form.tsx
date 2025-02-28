@@ -19,6 +19,7 @@ import { useQuery } from "@connectrpc/connect-query";
 import { getAuthURL } from "api/js/svc/auth/v1/service-AuthService_connectquery";
 import { Loader } from "lucide-react";
 import Link from "next/link";
+import { useApiClients } from "@/context/api-provider";
 
 const formSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -38,8 +39,8 @@ export function OrgSettingsForm({
   defaultValues,
 }: OrgSettingsFormProps) {
   const router = useRouter();
-
-  const { currentOrg } = useAllEnvironments();
+  const { user, currentOrg, defaultOrg } = useAllEnvironments();
+  const { apiClients } = useApiClients();
   const { data } = useQuery(getAuthURL, {
     organization: { case: "byName", value: orgName },
     returnToUrl: window.location.href,
@@ -49,6 +50,33 @@ export function OrgSettingsForm({
     resolver: zodResolver(formSchema),
     defaultValues: defaultValues || { name: "", domain: "" },
   });
+
+  if (user == "not-logged-in") {
+    // todo redirect to login
+    return (
+      <div className="container-min-h-full container flex items-center justify-center">
+        <div>You need to login!</div>
+      </div>
+    );
+  }
+  if (user == "loading") {
+    return (
+      <div className="container-min-h-full container flex items-center justify-center">
+        Checking user...
+        <Loader className="animate-spin" />
+      </div>
+    );
+  }
+
+  if (!currentOrg) {
+    // todo redirect to login
+    return (
+      <div className="container-min-h-full container flex items-center justify-center">
+        <div>You need to login (org)</div>
+        <Loader className="animate-spin" />
+      </div>
+    );
+  }
 
   if (currentOrg?.name != orgName) {
     if (data && data?.authUrl) {
@@ -78,52 +106,69 @@ export function OrgSettingsForm({
     }
   }
 
+  async function onClickBillingPortal() {
+    try {
+      const res = await apiClients?.org.getStripeBillingPortal({
+        returnToUrl: window.location.href,
+      });
+      if (res) {
+        router.push(res.portalUrl);
+      }
+    } catch (error) {
+      console.log("failed to get stripe billing portal", error);
+    }
+  }
+
   return (
-    <Form {...form}>
-      <form
-        onSubmit={form.handleSubmit(onSubmit)}
-        className="flex flex-col gap-6"
-      >
-        {/* Name Field */}
-        <FormField
-          control={form.control}
-          name="name"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Organization name</FormLabel>
-              <FormControl>
-                <Input
-                  placeholder="Enter your organization name"
-                  {...field}
-                  required
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+    <>
+      <Button onClick={onClickBillingPortal}>Manage your subscriptions</Button>
 
-        {/* Domain Field */}
-        <FormField
-          control={form.control}
-          name="domain"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Organization domain (optional)</FormLabel>
-              <FormControl>
-                <Input
-                  placeholder="Enter your organization domain"
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+      <Form {...form}>
+        <form
+          onSubmit={form.handleSubmit(onSubmit)}
+          className="flex flex-col gap-6"
+        >
+          {/* Name Field */}
+          <FormField
+            control={form.control}
+            name="name"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Organization name</FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder="Enter your organization name"
+                    {...field}
+                    required
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        {/* Submit Button */}
-        <Button type="submit">Save Changes</Button>
-      </form>
-    </Form>
+          {/* Domain Field */}
+          <FormField
+            control={form.control}
+            name="domain"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Organization domain (optional)</FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder="Enter your organization domain"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {/* Submit Button */}
+          <Button type="submit">Save Changes</Button>
+        </form>
+      </Form>
+    </>
   );
 }
