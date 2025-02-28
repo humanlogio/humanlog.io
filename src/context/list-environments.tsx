@@ -60,35 +60,36 @@ export function ListEnvironmentsProvider({
   const [environmentPage, setEnvironmentPage] = useState<Cursor>(new Cursor());
   const [cookies, setCookie] = useCookies();
 
-  const getRefreshToken = async () => {
-    try {
-      const res = await apiClients?.user.refreshUserToken({});
+  // TODO: broken🛠️
+  // const getRefreshToken = async () => {
+  //   try {
+  //     const res = await apiClients?.user.refreshUserToken({});
 
-      setCookie("hlog_session", res?.token, {
-        path: "/",
-        domain: `.humanlog${config.TLD}`,
-        secure: true,
-        sameSite: "strict",
-      });
+  //     setCookie("hlog_session", res?.token, {
+  //       path: "/",
+  //       domain: `.humanlog${config.TLD}`,
+  //       secure: true,
+  //       sameSite: "strict",
+  //     });
 
-      return res;
-    } catch (err) {
-      if (err instanceof ConnectError) {
-        if (err.code === Code.Unauthenticated) {
-          document.cookie = `hlog_session=; path=/; domain=.humanlog${config.TLD}; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
-          setBrowserValid(false);
-          setUser("not-logged-in");
+  //     return res;
+  //   } catch (err) {
+  //     if (err instanceof ConnectError) {
+  //       if (err.code === Code.Unauthenticated) {
+  //         document.cookie = `hlog_session=; path=/; domain=.humanlog${config.TLD}; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
+  //         setBrowserValid(false);
+  //         setUser("not-logged-in");
 
-          toast.info(
-            "Your session has expired. Please log in again to continue.",
-          );
-          // router.push("/login");
-          doLogin();
-        }
-        throw err;
-      }
-    }
-  };
+  //         toast.info(
+  //           "Your session has expired. Please log in again to continue.",
+  //         );
+  //         // router.push("/login");
+  //         doLogin();
+  //       }
+  //       throw err;
+  //     }
+  //   }
+  // };
 
   const checkBrowser = async () => {
     try {
@@ -100,7 +101,8 @@ export function ListEnvironmentsProvider({
       setBrowserValid(true);
       return res;
     } catch (err) {
-      getRefreshToken();
+      document.cookie = `hlog_session=; path=/; domain=.humanlog${config.TLD}; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
+      // getRefreshToken();
     }
   };
 
