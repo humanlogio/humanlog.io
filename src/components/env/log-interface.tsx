@@ -233,8 +233,10 @@ const LogInterface = () => {
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="mt-4 flex-row">
+          <Button onClick={() => router.push("/user/purchase")}>
+            Subscribe
+          </Button>
           <Button onClick={() => setIsModalOpen(false)}>Cancel</Button>
-          <Button onClick={() => router.push("/pricing")}>Subscribe</Button>
         </DialogFooter>
       </Modal>
     </section>
