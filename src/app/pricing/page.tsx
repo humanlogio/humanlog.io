@@ -127,7 +127,7 @@ export default function Page() {
                   case "contact_us":
                     ctaMessage = "Contact us";
                     onCtaClick = () => {
-                      window.location.href = "mailto:support@webscale.lol";
+                      window.location.href = "mailto:antoine@webscale.lol";
                     };
                     break;
                 }
