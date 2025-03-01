@@ -374,22 +374,36 @@ function CheckoutForm({
 
         {/* Submit Section */}
         <div className="col-span-2">
-          <Label className="text-lg font-bold">Checkout</Label>
-          <div className="mt-3 flex flex-col gap-4 md:flex-row md:gap-6">
-            <Button type="submit" disabled={!stripe || !price || isPending}>
-              Buy!
-            </Button>
-            <div className="flex flex-col gap-1">
-              {/* Find the selected product */}
-              {price && (
-                <TotalPriceSummary
-                  price={price}
-                  isBilledYearly={isBilledYearly}
-                />
-              )}
-            </div>
-            {errorMessage && <div>{errorMessage}</div>}
-          </div>
+          {price?.lookupKey == "free_personal_use" && (
+            <>
+              <Label className="text-lg font-bold">Free for personal use</Label>
+              <div className="mt-3 flex flex-col gap-4 md:flex-row md:gap-6">
+                <Button type="submit" disabled={!stripe || !price || isPending}>
+                  Activate!
+                </Button>
+              </div>
+            </>
+          )}
+          {price?.lookupKey != "free_personal_use" && (
+            <>
+              <Label className="text-lg font-bold">Checkout</Label>
+              <div className="mt-3 flex flex-col gap-4 md:flex-row md:gap-6">
+                <Button type="submit" disabled={!stripe || !price || isPending}>
+                  Buy!
+                </Button>
+                <div className="flex flex-col gap-1">
+                  {/* Find the selected product */}
+                  {price && (
+                    <TotalPriceSummary
+                      price={price}
+                      isBilledYearly={isBilledYearly}
+                    />
+                  )}
+                </div>
+                {errorMessage && <div>{errorMessage}</div>}
+              </div>
+            </>
+          )}
         </div>
       </form>
     </Form>
