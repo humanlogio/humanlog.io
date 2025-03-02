@@ -17,8 +17,8 @@ import { Button } from "@/components/ui/button";
 import { useAllEnvironments } from "@/context/list-environments";
 import { Loader } from "lucide-react";
 import { useApiClients } from "@/context/api-provider";
-import { getStripeBillingPortal } from "api/js/svc/organization/v1/service-OrganizationService_connectquery";
-import { useQuery } from "@connectrpc/connect-query";
+import { useState, useEffect } from "react";
+import { toast } from "sonner";
 
 const formSchema = z.object({
   firstName: z.string().min(1, "First Name is required"),
@@ -29,79 +29,161 @@ export function UserSettingsForm() {
   const { user, currentOrg, defaultOrg } = useAllEnvironments();
   const { apiClients } = useApiClients();
   const router = useRouter();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: { firstName: "", lastName: "" },
-  });
-
-  if (user == "not-logged-in") {
-    // todo redirect to login
+  // Handle loading and not-logged-in states
+  if (user === "not-logged-in") {
+    router.push("/login"); // Implement redirect instead of showing message
     return (
       <div className="container-min-h-full container flex items-center justify-center">
-        <div>You need to login!</div>
+        <div>Redirecting to login...</div>
       </div>
     );
   }
-  if (user == "loading") {
+
+  if (user === "loading") {
     return (
       <div className="container-min-h-full container flex items-center justify-center">
-        Checking user...
+        Loading user...
         <Loader className="animate-spin" />
       </div>
     );
   }
 
   if (!currentOrg) {
-    // todo redirect to login
+    router.push("/login"); // Implement redirect instead of showing message
     return (
       <div className="container-min-h-full container flex items-center justify-center">
-        <div>You need to login (org)</div>
+        <div>Redirecting to login...</div>
         <Loader className="animate-spin" />
       </div>
     );
   }
 
+  // Initialize form with user data
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      firstName: user.firstName || "",
+      lastName: user.lastName || "",
+    },
+  });
+
+  // Track if form has been modified
+  const [formChanged, setFormChanged] = useState(false);
+
+  // Watch form values to detect changes
+  const watchedValues = form.watch();
+
+  // Check if form values have changed from initial values
+  useEffect(() => {
+    const initialValues = {
+      firstName: user.firstName || "",
+      lastName: user.lastName || "",
+    };
+
+    const hasChanged =
+      watchedValues.firstName !== initialValues.firstName ||
+      watchedValues.lastName !== initialValues.lastName;
+
+    setFormChanged(hasChanged);
+  }, [watchedValues, user.firstName, user.lastName]);
+
+  // Add navigation warning for unsaved changes
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (formChanged) {
+        e.preventDefault();
+        return "Changes you made may not be saved.";
+      }
+    };
+
+    // Add event listener
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    // Clean up
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [formChanged]);
+
+  // Reset form to initial values
+  const handleReset = () => {
+    form.reset({
+      firstName: user.firstName || "",
+      lastName: user.lastName || "",
+    });
+  };
+
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
+      setIsSubmitting(true);
       // Handle the form submission logic here
       console.log("Form submitted with values:", values);
 
-      // Redirect or show a success message if needed
+      // Show success message
+      toast.success("Settings updated", {
+        description: "Your profile information has been updated successfully.",
+      });
+
+      // Refresh the page to show updated data
       router.refresh();
     } catch (error) {
       console.error("Form submission error:", error);
+      toast.error("Error", {
+        description: "Failed to update settings. Please try again.",
+      });
+    } finally {
+      setIsSubmitting(false);
     }
   }
-  const isDefaultOrg = currentOrg.id == defaultOrg?.id;
 
-  let billingSection = <></>;
-  if (isDefaultOrg) {
-    async function onClickBillingPortal() {
-      try {
-        const res = await apiClients?.org.getStripeBillingPortal({
-          returnToUrl: window.location.href,
-        });
-        if (res) {
-          router.push(res.portalUrl);
-        }
-      } catch (error) {
-        console.log("failed to get stripe billing portal", error);
+  // Billing portal section
+  const isDefaultOrg = currentOrg.id === defaultOrg?.id;
+  const [isBillingLoading, setIsBillingLoading] = useState(false);
+
+  const handleBillingPortal = async () => {
+    try {
+      setIsBillingLoading(true);
+      const res = await apiClients?.org.getStripeBillingPortal({
+        returnToUrl: window.location.href,
+      });
+      if (res) {
+        router.push(res.portalUrl);
       }
+    } catch (error) {
+      console.error("Failed to get stripe billing portal", error);
+      toast.error("Error", {
+        description: "Failed to access billing portal. Please try again.",
+      });
+    } finally {
+      setIsBillingLoading(false);
     }
-    billingSection = (
-      <Button onClick={onClickBillingPortal}>Manage your subscriptions</Button>
-    );
-  }
+  };
+
+  const billingSection = isDefaultOrg ? (
+    <Button onClick={handleBillingPortal} disabled={isBillingLoading}>
+      {isBillingLoading ? (
+        <>
+          <Loader className="mr-2 h-4 w-4 animate-spin" />
+          Loading...
+        </>
+      ) : (
+        "Manage your subscriptions"
+      )}
+    </Button>
+  ) : null;
 
   return (
-    <>
+    <div className="flex flex-col items-start gap-6">
+      {/* Manage subscriptions */}
       {billingSection}
 
+      {/* Form */}
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}
-          className="flex flex-col gap-6"
+          className="flex w-full max-w-screen-sm flex-col gap-6"
         >
           {/* Name Field */}
           <FormField
@@ -111,19 +193,14 @@ export function UserSettingsForm() {
               <FormItem>
                 <FormLabel>First Name</FormLabel>
                 <FormControl>
-                  <Input
-                    placeholder="First Name"
-                    {...field}
-                    required
-                    value={user.firstName}
-                  />
+                  <Input placeholder="First Name" {...field} required />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
 
-          {/* Domain Field */}
+          {/* Last Name Field */}
           <FormField
             control={form.control}
             name="lastName"
@@ -131,11 +208,7 @@ export function UserSettingsForm() {
               <FormItem>
                 <FormLabel>Last Name (optional)</FormLabel>
                 <FormControl>
-                  <Input
-                    placeholder="Last Name"
-                    {...field}
-                    value={user.lastName}
-                  />
+                  <Input placeholder="Last Name" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -143,9 +216,36 @@ export function UserSettingsForm() {
           />
 
           {/* Submit Button */}
-          <Button type="submit">Save Changes</Button>
+          <div className="flex gap-3">
+            <Button
+              type="submit"
+              className="self-start"
+              disabled={isSubmitting || !formChanged}
+              variant={formChanged ? "default" : "noShadow"}
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader className="mr-2 h-4 w-4 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                "Save changes"
+              )}
+            </Button>
+
+            {formChanged && (
+              <Button
+                type="button"
+                onClick={handleReset}
+                variant="neutral"
+                disabled={isSubmitting}
+              >
+                Discard changes
+              </Button>
+            )}
+          </div>
         </form>
       </Form>
-    </>
+    </div>
   );
 }
