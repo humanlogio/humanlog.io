@@ -30,53 +30,31 @@ export function UserSettingsForm() {
   const { apiClients } = useApiClients();
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formChanged, setFormChanged] = useState(false);
+  const [isBillingLoading, setIsBillingLoading] = useState(false);
 
-  // Handle loading and not-logged-in states
-  if (user === "not-logged-in") {
-    router.push("/login"); // @yejee I am implementing redirect as well, but maybe there was a reason why you guys kept it like this
-    return (
-      <div className="container-min-h-full container flex items-center justify-center">
-        <div>Redirecting to login...</div>
-      </div>
-    );
-  }
-
-  if (user === "loading") {
-    return (
-      <div className="container-min-h-full container flex items-center justify-center">
-        Loading user...
-        <Loader className="animate-spin" />
-      </div>
-    );
-  }
-
-  if (!currentOrg) {
-    router.push("/login"); // @yejee also here implemented redirect
-    return (
-      <div className="container-min-h-full container flex items-center justify-center">
-        <div>Redirecting to login...</div>
-        <Loader className="animate-spin" />
-      </div>
-    );
-  }
-
-  // Initialize form with user data
+  // Initialize form with user data or empty values if user is not loaded yet
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      firstName: user.firstName || "",
-      lastName: user.lastName || "",
+      firstName:
+        user !== "loading" && user !== "not-logged-in"
+          ? user.firstName || ""
+          : "",
+      lastName:
+        user !== "loading" && user !== "not-logged-in"
+          ? user.lastName || ""
+          : "",
     },
   });
-
-  // Track if form has been modified
-  const [formChanged, setFormChanged] = useState(false);
 
   // Watch form values to detect changes
   const watchedValues = form.watch();
 
   // Check if form values have changed from initial values
   useEffect(() => {
+    if (user === "loading" || user === "not-logged-in") return;
+
     const initialValues = {
       firstName: user.firstName || "",
       lastName: user.lastName || "",
@@ -87,7 +65,7 @@ export function UserSettingsForm() {
       watchedValues.lastName !== initialValues.lastName;
 
     setFormChanged(hasChanged);
-  }, [watchedValues, user.firstName, user.lastName]);
+  }, [watchedValues, user]);
 
   // Add navigation warning for unsaved changes
   useEffect(() => {
@@ -106,6 +84,45 @@ export function UserSettingsForm() {
       window.removeEventListener("beforeunload", handleBeforeUnload);
     };
   }, [formChanged]);
+
+  // Update form values when user data changes
+  useEffect(() => {
+    if (user !== "loading" && user !== "not-logged-in") {
+      form.reset({
+        firstName: user.firstName || "",
+        lastName: user.lastName || "",
+      });
+    }
+  }, [user, form]);
+
+  // Handle loading and not-logged-in states
+  if (user === "not-logged-in") {
+    router.push("/login"); // @yejee I am implementing redirect here, but maybe there was a reason why you guys kept it like this
+    return (
+      <div className="container-min-h-full container flex items-center justify-center">
+        <div>Redirecting to login...</div>
+      </div>
+    );
+  }
+
+  if (user === "loading") {
+    return (
+      <div className="container-min-h-full container flex items-center justify-center">
+        Loading user...
+        <Loader className="animate-spin" />
+      </div>
+    );
+  }
+
+  if (!currentOrg) {
+    router.push("/login"); // @yejee I am implementing redirect here as well
+    return (
+      <div className="container-min-h-full container flex items-center justify-center">
+        <div>Redirecting to login...</div>
+        <Loader className="animate-spin" />
+      </div>
+    );
+  }
 
   // Reset form to initial values
   const handleReset = () => {
@@ -140,7 +157,6 @@ export function UserSettingsForm() {
 
   // Billing portal section
   const isDefaultOrg = currentOrg.id === defaultOrg?.id;
-  const [isBillingLoading, setIsBillingLoading] = useState(false);
 
   const handleBillingPortal = async () => {
     try {
