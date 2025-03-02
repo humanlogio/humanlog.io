@@ -216,10 +216,9 @@ export function UserSettingsForm() {
           />
 
           {/* Submit Button */}
-          <div className="flex gap-3">
+          <div className="flex items-center gap-3">
             <Button
               type="submit"
-              className="self-start"
               disabled={isSubmitting || !formChanged}
               variant={formChanged ? "default" : "noShadow"}
             >
