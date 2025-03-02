@@ -14,7 +14,7 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { useApiClients } from "@/context/api-provider";
-import { SquareCode, User as UserIcon } from "lucide-react";
+import { Clock, Globe, SquareCode, User as UserIcon } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -236,6 +236,7 @@ const LocalhostSettings = () => {
 
   return (
     <SettingsShell activeSection="localhost">
+      <h1 className="text-3xl font-bold">Localhost Settings</h1>
       {initialConfig && (
         <div className="mt-4 min-w-[300px]">
           <Form {...form}>
@@ -294,7 +295,7 @@ const LocalhostSettings = () => {
                       <FormControl>
                         <SelectTrigger>
                           <div className="flex flex-row items-center gap-2">
-                            <SquareCode size={16} />
+                            <Clock size={16} />
                             <SelectValue placeholder="Select a time format" />
                           </div>
                         </SelectTrigger>
@@ -329,7 +330,7 @@ const LocalhostSettings = () => {
                       <FormControl>
                         <SelectTrigger>
                           <div className="flex flex-row items-center gap-2">
-                            <SquareCode size={16} />
+                            <Globe size={16} />
                             <SelectValue placeholder="Select timezone" />
                           </div>
                         </SelectTrigger>
