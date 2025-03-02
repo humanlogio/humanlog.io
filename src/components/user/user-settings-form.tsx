@@ -33,7 +33,7 @@ export function UserSettingsForm() {
 
   // Handle loading and not-logged-in states
   if (user === "not-logged-in") {
-    router.push("/login"); // Implement redirect instead of showing message
+    router.push("/login"); // @yejee I am implementing redirect as well, but maybe there was a reason why you guys kept it like this
     return (
       <div className="container-min-h-full container flex items-center justify-center">
         <div>Redirecting to login...</div>
@@ -51,7 +51,7 @@ export function UserSettingsForm() {
   }
 
   if (!currentOrg) {
-    router.push("/login"); // Implement redirect instead of showing message
+    router.push("/login"); // @yejee also here implemented redirect
     return (
       <div className="container-min-h-full container flex items-center justify-center">
         <div>Redirecting to login...</div>
@@ -118,7 +118,7 @@ export function UserSettingsForm() {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
       setIsSubmitting(true);
-      // Handle the form submission logic here
+      // @yejee handle the form submission logic and API here
       console.log("Form submitted with values:", values);
 
       // Show success message
