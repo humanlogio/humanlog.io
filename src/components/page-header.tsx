@@ -215,7 +215,7 @@ const PageHeader: React.FC = () => {
         </SelectContent>
       </Select>
       <div
-        className={`h-4 w-4 shrink-0 rounded-full ${localhostInfo ? "bg-green-500" : "bg-red-500"}`}
+        className={`h-3 w-3 shrink-0 rounded-full ${localhostInfo ? "bg-green-500" : "bg-red-500"}`}
       />
     </div>
   );
@@ -229,7 +229,7 @@ const PageHeader: React.FC = () => {
             {renderSourceSelectorBlock()}
           </div>
 
-          <div className="flex flex-row items-center gap-6">
+          <div className="flex flex-row items-center gap-4">
             {renderAvatarBlock(user)}
             <div className="flex flex-row items-center gap-2">
               <ModeToggle />
