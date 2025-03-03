@@ -53,7 +53,6 @@ export default function UserAddonsPage() {
   const [isBilledYearly, setIsBilledYearly] = useState(true);
   const [selectedProduct, setSelectedProduct] = useState<Product>();
   const [price, setPrice] = useState<APIPrice>();
-  const { user } = useAllEnvironments();
   const [stripePromise, setStripePromise] = useState<
     Promise<Stripe | null> | undefined
   >();
@@ -140,25 +139,6 @@ export default function UserAddonsPage() {
     }
     setStripePromise(loadStripe(stripePK));
   }, [stripePK]);
-
-  if (user === "not-logged-in") {
-    return (
-      <div className="container flex h-full flex-grow flex-col items-center justify-center gap-8">
-        <h1 className="text-center text-4xl font-bold">You need to login.</h1>
-      </div>
-    );
-  }
-
-  if (user === "loading") {
-    return (
-      <div className="container flex h-full flex-grow flex-col items-center justify-center gap-8">
-        <h1 className="text-center text-4xl font-bold">
-          Verifying your identity...
-        </h1>
-        <Loader className="animate-spin"></Loader>
-      </div>
-    );
-  }
 
   if (!stripePromise || !price || !products) {
     return (

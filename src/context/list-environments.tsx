@@ -13,7 +13,7 @@ import {
   LocalhostViaBrowser,
 } from "api/js/svc/auth/v1/service_pb";
 import { getSelfURL } from "@/lib/envs";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useCookies } from "react-cookie";
 import { toast } from "sonner";
 import config from "@/features/config";
@@ -26,7 +26,7 @@ type AllEnvironments = {
   currentOrg: Organization | null;
   defaultOrg: Organization | null;
   listEnvironments: ListEnvironmentResponse_ListItem[];
-  doLogin: () => void;
+  doLogin: (returnUrl?: string) => void;
 };
 
 const ListEnvironmentContext = createContext<AllEnvironments>({
@@ -46,7 +46,7 @@ export function ListEnvironmentsProvider({
   const router = useRouter();
 
   const returnToURL = getSelfURL();
-
+  const pathname = usePathname();
   const { apiClients, setActiveEnvironment } = useApiClients();
   const [browserValid, setBrowserValid] = useState(false);
   const [localhostValid, setLocalhostValid] = useState(false);
@@ -130,9 +130,9 @@ export function ListEnvironmentsProvider({
     }
   };
 
-  const doBrowserLogin = async () => {
+  const doBrowserLogin = async (returnUrl: string) => {
     try {
-      const req = new GetAuthURLRequest({ returnToUrl: returnToURL });
+      const req = new GetAuthURLRequest({ returnToUrl: returnUrl });
       if (localhostInfo?.meta) {
         req.localhost = new LocalhostViaBrowser({
           architecture: localhostInfo.architecture,
@@ -150,25 +150,25 @@ export function ListEnvironmentsProvider({
     }
   };
 
-  const doLocalhostLogin = async () => {
+  const doLocalhostLogin = async (returnUrl: string) => {
     try {
-      await apiClients?.localhost.doLogin({ returnToURL });
+      await apiClients?.localhost.doLogin({ returnToURL: returnUrl });
     } catch (error) {
       console.log("failed to Login at the cli", error);
     }
   };
 
-  const doLogin = async () => {
+  const doLogin = async (returnUrl?: string) => {
     if (browserValid && localhostValid) {
       return;
     }
     if (localhostValid && !localhostInfo?.loggedInUser) {
-      doLocalhostLogin();
+      doLocalhostLogin(returnUrl ?? returnToURL);
       getUserInfo();
       return;
     }
     if (!browserValid) {
-      doBrowserLogin();
+      doBrowserLogin(returnUrl ?? returnToURL);
       getUserInfo();
       return;
     }
