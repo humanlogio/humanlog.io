@@ -30,7 +30,7 @@ export const NoLocalhostView = () => {
       <div className="mt-8 flex flex-col items-center gap-2">
         If you already enabled the query engine and you still see this page,
         <br />
-        make sure the service is running:
+        make sure the service is installed:
         <div
           onClick={() => copyToClipboard(installCommand)}
           tabIndex={1}
@@ -39,6 +39,8 @@ export const NoLocalhostView = () => {
           <code className="truncate">{installCommand}</code>
           <Copy size={14} className="flex-none" />
         </div>
+        <br />
+        and make sure the service is running:
         <div
           onClick={() => copyToClipboard(startCommand)}
           tabIndex={1}
