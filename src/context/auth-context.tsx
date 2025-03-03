@@ -70,8 +70,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (user === "not-logged-in" && isLoginRequired(pathname)) {
       setAuthMessage(`You need to login to access this page.`);
       setIsAuthModalOpen(true);
+    } else if (user !== "loading") {
+      setIsAuthModalOpen(false);
     }
-  }, [pathname, user, isLoginRequired]);
+  }, [pathname]);
+
+  if (user === "loading") {
+    return (
+      <div className="container flex h-full flex-grow flex-col items-center justify-center gap-8">
+        <h1 className="text-center text-4xl font-bold">
+          Verifying your identity...
+        </h1>
+        <Loader className="animate-spin"></Loader>
+      </div>
+    );
+  }
 
   return (
     <AuthContext.Provider
@@ -82,33 +95,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }}
     >
       {isAuthModalOpen ? (
-        <>
-          {user === "loading" ? (
-            <div className="container flex h-full flex-grow flex-col items-center justify-center gap-8">
-              <h1 className="text-center text-4xl font-bold">
-                Verifying your identity...
-              </h1>
-              <Loader className="animate-spin"></Loader>
-            </div>
-          ) : (
-            <Modal open={isAuthModalOpen}>
-              <DialogHeader>
-                <DialogTitle>{authMessage}</DialogTitle>
-              </DialogHeader>
-              <DialogFooter className="mt-4 flex-row">
-                <Button
-                  onClick={() => {
-                    setIsAuthModalOpen(false);
-                    doLogin(`${getSelfURL()}${pathname}`);
-                  }}
-                >
-                  Login
-                </Button>
-                <Button onClick={closeAuthModal}>Cancel</Button>
-              </DialogFooter>
-            </Modal>
-          )}
-        </>
+        <Modal open={isAuthModalOpen}>
+          <DialogHeader>
+            <DialogTitle>{authMessage}</DialogTitle>
+          </DialogHeader>
+          <DialogFooter className="mt-4 flex-row">
+            <Button
+              onClick={() => {
+                doLogin(`${getSelfURL()}${pathname}`);
+              }}
+            >
+              Login
+            </Button>
+            <Button onClick={closeAuthModal}>Cancel</Button>
+          </DialogFooter>
+        </Modal>
       ) : (
         children
       )}
