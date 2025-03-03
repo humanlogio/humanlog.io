@@ -85,52 +85,20 @@ export function UserSettingsForm() {
     };
   }, [formChanged]);
 
-  // Update form values when user data changes
-  useEffect(() => {
+  // Reset form to initial values
+  const handleReset = () => {
     if (user !== "loading" && user !== "not-logged-in") {
       form.reset({
         firstName: user.firstName || "",
         lastName: user.lastName || "",
       });
     }
-  }, [user, form]);
-
-  // Handle loading and not-logged-in states
-  if (user === "not-logged-in") {
-    router.push("/login"); // @yejee I am implementing redirect here, but maybe there was a reason why you guys kept it like this
-    return (
-      <div className="container-min-h-full container flex items-center justify-center">
-        <div>Redirecting to login...</div>
-      </div>
-    );
-  }
-
-  if (user === "loading") {
-    return (
-      <div className="container-min-h-full container flex items-center justify-center">
-        Loading user...
-        <Loader className="animate-spin" />
-      </div>
-    );
-  }
-
-  if (!currentOrg) {
-    router.push("/login"); // @yejee I am implementing redirect here as well
-    return (
-      <div className="container-min-h-full container flex items-center justify-center">
-        <div>Redirecting to login...</div>
-        <Loader className="animate-spin" />
-      </div>
-    );
-  }
-
-  // Reset form to initial values
-  const handleReset = () => {
-    form.reset({
-      firstName: user.firstName || "",
-      lastName: user.lastName || "",
-    });
   };
+
+  // Update form values when user data changes
+  useEffect(() => {
+    handleReset();
+  }, [user, form]);
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
@@ -156,7 +124,7 @@ export function UserSettingsForm() {
   }
 
   // Billing portal section
-  const isDefaultOrg = currentOrg.id === defaultOrg?.id;
+  const isDefaultOrg = currentOrg?.id === defaultOrg?.id;
 
   const handleBillingPortal = async () => {
     try {

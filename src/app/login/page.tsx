@@ -16,7 +16,7 @@ export default function Page() {
       <div className="container flex flex-grow flex-col items-center justify-center gap-8">
         <div>
           <Button
-            onClick={doLogin}
+            onClick={() => doLogin()}
             variant="noShadowNeutral"
             className="w-full"
           >
