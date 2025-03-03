@@ -94,15 +94,14 @@ export function ListEnvironmentsProvider({
   const checkBrowser = async () => {
     try {
       const res = await apiClients?.user.whoami({});
-      if (!res) {
-        setBrowserValid(false);
-        return;
+      if (res && res.user) {
+        setBrowserValid(true);
+        setUser(res?.user);
+        return res;
       }
-      setBrowserValid(true);
-      setUser(res.user || "not-logged-in");
-      return res;
     } catch (err) {
       document.cookie = `hlog_session=; path=/; domain=.humanlog${config.TLD}; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
+      setBrowserValid(false);
       setUser("not-logged-in");
       // getRefreshToken();
     }
@@ -175,10 +174,6 @@ export function ListEnvironmentsProvider({
   };
 
   const getUserInfo = async () => {
-    let _user: UserState = "not-logged-in";
-    let _currentOrg;
-    let _defaultOrg;
-
     if (localhostValid) {
       const localhostAuthRes = await checkLocalhost();
 
@@ -194,20 +189,16 @@ export function ListEnvironmentsProvider({
       if (localhostAuthRes?.loggedInUser) {
         const { currentOrganization, defaultOrganization } =
           localhostAuthRes.loggedInUser;
-        _currentOrg = currentOrganization;
-        _defaultOrg = defaultOrganization;
+        setCurrentOrg(currentOrganization ?? null);
+        setDefaultOrg(defaultOrganization ?? null);
       }
     }
     if (browserValid) {
       const browserAuthRes = await checkBrowser();
-      _user = browserAuthRes?.user ?? "not-logged-in";
-      _currentOrg = browserAuthRes?.currentOrganization;
-      _defaultOrg = browserAuthRes?.defaultOrganization;
+      setUser(browserAuthRes?.user ?? "not-logged-in");
+      setCurrentOrg(browserAuthRes?.currentOrganization ?? null);
+      setDefaultOrg(browserAuthRes?.defaultOrganization ?? null);
     }
-
-    setUser(_user);
-    setCurrentOrg(_currentOrg ?? null);
-    setDefaultOrg(_defaultOrg ?? null);
   };
 
   useEffect(() => {
