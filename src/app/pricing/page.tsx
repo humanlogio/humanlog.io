@@ -107,7 +107,9 @@ export default function Page() {
                   case "personal_use":
                     ctaMessage = "Go!";
                     onCtaClick = () => {
-                      router.push(`/localhost`);
+                      router.push(
+                        `/user/purchase?plan=${product.product.stripeId}`,
+                      );
                     };
                     break;
                   case "checkout_localhost":
@@ -127,7 +129,7 @@ export default function Page() {
                   case "contact_us":
                     ctaMessage = "Contact us";
                     onCtaClick = () => {
-                      window.location.href = "mailto:antoine@webscale.lol";
+                      window.location.href = "mailto:support@webscale.lol";
                     };
                     break;
                 }
