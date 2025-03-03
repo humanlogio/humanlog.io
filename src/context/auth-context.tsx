@@ -25,7 +25,13 @@ type AuthContextType = {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const loginRequiredPaths = ["/settings/*", "/user/*", "/env/*", "/org/*"];
+const loginRequiredPaths = [
+  "/settings/*",
+  "/user/*",
+  "/env/*",
+  "/org/*",
+  "/localhost/*",
+];
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const { doLogin, user } = useAllEnvironments();
