@@ -73,9 +73,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } else if (user !== "loading") {
       setIsAuthModalOpen(false);
     }
-  }, [pathname]);
+  }, [pathname, user]);
 
-  if (user === "loading") {
+  if (isLoginRequired(pathname) && user === "loading") {
     return (
       <div className="container flex h-full flex-grow flex-col items-center justify-center gap-8">
         <h1 className="text-center text-4xl font-bold">
