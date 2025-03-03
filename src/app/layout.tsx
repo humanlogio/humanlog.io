@@ -11,6 +11,7 @@ import PageHeader from "@/components/page-header";
 import { ListEnvironmentsProvider } from "@/context/list-environments";
 import PageFooter from "@/components/page-footer";
 import config from "@/features/config";
+import { AuthProvider } from "@/context/auth-context";
 
 export const metadata: Metadata = {
   title: "humanlog.io",
@@ -42,14 +43,16 @@ export default function RootLayout({
           <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
             <FullWidthProvider>
               <ListEnvironmentsProvider>
-                <div className="flex min-h-screen flex-col">
-                  <PageHeader />
-                  <div className="container-min-h-full flex flex-1 flex-col">
-                    {children}
+                <AuthProvider>
+                  <div className="flex min-h-screen flex-col">
+                    <PageHeader />
+                    <div className="container-min-h-full flex flex-1 flex-col">
+                      {children}
+                    </div>
+                    <PageFooter />
                   </div>
-                  <PageFooter />
-                </div>
-                <Toaster expand={true} />
+                  <Toaster expand={true} />
+                </AuthProvider>
               </ListEnvironmentsProvider>
             </FullWidthProvider>
           </ThemeProvider>

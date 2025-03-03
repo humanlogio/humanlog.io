@@ -1,6 +1,6 @@
 "use client";
 
-import { PropsWithChildren } from "react";
+import { PropsWithChildren, useEffect } from "react";
 import Link from "next/link";
 import {
   getUserSettingsUrl,
@@ -11,6 +11,8 @@ import { cn } from "@/lib/utils";
 import { Building, CodeSquareIcon, Loader, User } from "lucide-react";
 import { useAllEnvironments } from "@/context/list-environments";
 import { useApiClients } from "@/context/api-provider";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/context/auth-context";
 
 interface SettingsShellProps {
   activeSection: "user" | "localhost" | "organization" | "environment";
@@ -23,35 +25,7 @@ export function SettingsShell({
   const { user, localhostInfo, currentOrg, defaultOrg } = useAllEnvironments();
   const { activeEnvironment } = useApiClients();
 
-  if (user == "not-logged-in") {
-    // todo redirect to login
-    return (
-      <div className="container-min-h-full container flex items-center justify-center">
-        <div>You need to login!</div>
-      </div>
-    );
-  }
-  if (user == "loading") {
-    return (
-      <div className="container-min-h-full container flex items-center justify-center">
-        Checking user...
-        <Loader className="animate-spin" />
-      </div>
-    );
-  }
-
-  if (!currentOrg) {
-    // todo redirect to login
-    return (
-      <div className="container-min-h-full container flex items-center justify-center">
-        <div>You need to login (org)</div>
-        <Loader className="animate-spin" />
-      </div>
-    );
-  }
-
-  const isDefaultOrg = currentOrg.id == defaultOrg?.id;
-  const orgName = !isDefaultOrg && currentOrg.name;
+  const orgName = !(currentOrg?.id == defaultOrg?.id) && currentOrg?.name;
   const envName = activeEnvironment?.name;
 
   const sections = [

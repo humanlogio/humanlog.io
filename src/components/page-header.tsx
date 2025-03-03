@@ -96,7 +96,11 @@ const PageHeader: React.FC = () => {
     }
     if (user === "not-logged-in") {
       return (
-        <Button onClick={doLogin} variant="noShadowNeutral" className="w-full">
+        <Button
+          onClick={() => doLogin()}
+          variant="noShadowNeutral"
+          className="w-full"
+        >
           Sign up
         </Button>
       );
