@@ -10,6 +10,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
+import { useSearchParams } from "next/navigation";
 
 interface SymbolTreeNode {
   name: string;
@@ -19,7 +21,12 @@ interface SymbolTreeNode {
   isLeaf: boolean;
 }
 
-export const SymbolList = () => {
+interface SymbolListProps {
+  onClickSymbol: (symbolString: string) => void;
+}
+
+export const SymbolList = ({ onClickSymbol }: SymbolListProps) => {
+  const searchParams = useSearchParams();
   const { apiClients, activeEnvironment } = useApiClients();
   const [symbolTree, setSymbolTree] = useState<Record<string, SymbolTreeNode>>(
     {},
@@ -131,6 +138,14 @@ export const SymbolList = () => {
     const isExpanded = expandedNodes[node.fullPath] || false;
     const hasChildren = Object.keys(node.children).length > 0;
 
+    const onClickNode = (fullPath: string) => {
+      if (hasChildren) {
+        toggleNode(fullPath);
+        return;
+      }
+      onClickSymbol(fullPath);
+    };
+
     return (
       <div
         key={node.fullPath}
@@ -141,8 +156,11 @@ export const SymbolList = () => {
           <Tooltip>
             <TooltipTrigger asChild>
               <div
-                className="flex cursor-pointer items-center rounded p-1 hover:bg-gray-50 dark:hover:bg-gray-900"
-                onClick={() => hasChildren && toggleNode(node.fullPath)}
+                className={cn(
+                  "flex cursor-pointer items-center rounded p-1",
+                  node.isLeaf && "hover:bg-gray-50 dark:hover:bg-gray-800",
+                )}
+                onClick={() => onClickNode(node.fullPath)}
               >
                 {hasChildren ? (
                   isExpanded ? (

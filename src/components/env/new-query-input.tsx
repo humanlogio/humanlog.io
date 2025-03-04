@@ -15,7 +15,7 @@ import {
 } from "@/components/env/graph-utils";
 import MonacoEditor from "@/components/editor/monaco-editor";
 import type { OnMount } from "@monaco-editor/react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import {
   Sheet,
   SheetContent,
@@ -51,6 +51,7 @@ const NewQueryInput = ({ errMsg, onExecuteQuery }: NewQueryInputProps) => {
     startDate: Date;
     endDate: Date;
   }>({ startDate, endDate: new Date() });
+  const [symbol, setSymbol] = useState("");
 
   const isFirstFocusRef = useRef(true);
 
@@ -209,11 +210,20 @@ const NewQueryInput = ({ errMsg, onExecuteQuery }: NewQueryInputProps) => {
 
   useEffect(() => {
     if (queryString) {
-      setEditorContent(decodeURIComponent(queryString as string));
+      setEditorContent(decodeURIComponent(`${queryString}`));
     } else {
       setEditorContent("");
     }
-  }, [queryString]);
+  }, [queryString, symbol]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(searchParams);
+    if (symbol) {
+      const query = `${decodeURIComponent(queryString as string)}[${symbol}]`;
+      setEditorContent(query);
+      params.set("query", encodeURIComponent(query));
+    }
+  }, [symbol]);
 
   return (
     <div className="container grid grid-cols-2 items-start gap-8">
@@ -237,7 +247,9 @@ const NewQueryInput = ({ errMsg, onExecuteQuery }: NewQueryInputProps) => {
               <SheetHeader>
                 <SheetTitle>Symbols</SheetTitle>
               </SheetHeader>
-              <SymbolList />
+              <SymbolList
+                onClickSymbol={(symbolString) => setSymbol(symbolString)}
+              />
             </SheetContent>
           </Sheet>
 
