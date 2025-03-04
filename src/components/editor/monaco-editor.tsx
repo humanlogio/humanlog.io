@@ -107,7 +107,7 @@ const MonacoEditor = ({
       height={height}
       defaultLanguage="sql"
       theme={theme === "dark" ? "my-dark" : "vs-light"}
-      defaultValue="-- let's write some broken query 😈"
+      // defaultValue="-- let's write some broken query 😈"
       value={value}
       onChange={onChange}
       options={mergedOptions}
