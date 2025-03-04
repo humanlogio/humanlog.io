@@ -22,7 +22,7 @@ export type UserState = User | "loading" | "not-logged-in";
 
 type AllEnvironments = {
   user: UserState;
-  localhostInfo: PingResponse | undefined | "pending";
+  localhostInfo: PingResponse | undefined;
   currentOrg: Organization | null;
   defaultOrg: Organization | null;
   listEnvironments: ListEnvironmentResponse_ListItem[];
@@ -50,9 +50,7 @@ export function ListEnvironmentsProvider({
   const { apiClients, setActiveEnvironment } = useApiClients();
   const [browserValid, setBrowserValid] = useState(false);
   const [localhostValid, setLocalhostValid] = useState(false);
-  const [localhostInfo, setLocalhostInfo] = useState<
-    PingResponse | "pending"
-  >();
+  const [localhostInfo, setLocalhostInfo] = useState<PingResponse>();
   const [user, setUser] = useState<UserState>("loading");
   const [currentOrg, setCurrentOrg] = useState<Organization | null>(null);
   const [defaultOrg, setDefaultOrg] = useState<Organization | null>(null);
@@ -110,7 +108,6 @@ export function ListEnvironmentsProvider({
   };
 
   const checkLocalhost = async () => {
-    setLocalhostInfo("pending");
     try {
       const res = await apiClients?.localhost.ping({});
       if (!res) {
@@ -135,7 +132,7 @@ export function ListEnvironmentsProvider({
   const doBrowserLogin = async (returnUrl: string) => {
     try {
       const req = new GetAuthURLRequest({ returnToUrl: returnUrl });
-      if (localhostInfo !== "pending" && localhostInfo?.meta) {
+      if (localhostInfo?.meta) {
         req.localhost = new LocalhostViaBrowser({
           architecture: localhostInfo.architecture,
           operatingSystem: localhostInfo.operatingSystem,
@@ -164,11 +161,7 @@ export function ListEnvironmentsProvider({
     if (browserValid && localhostValid) {
       return;
     }
-    if (
-      localhostValid &&
-      localhostInfo !== "pending" &&
-      !localhostInfo?.loggedInUser
-    ) {
+    if (localhostValid && !localhostInfo?.loggedInUser) {
       doLocalhostLogin(returnUrl ?? returnToURL);
       getUserInfo();
       return;
