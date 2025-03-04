@@ -54,6 +54,21 @@ interface Source {
   value: string;
 }
 
+const navLinks = [
+  {
+    href: "/docs",
+    text: "Docs",
+  },
+  {
+    href: "/blog",
+    text: "Blog",
+  },
+  {
+    href: "/pricing",
+    text: "Pricing",
+  },
+];
+
 const PageHeader: React.FC = () => {
   const pathname = usePathname();
   const isProd = config.NEXT_PUBLIC_SIGNUP_ONLY;
@@ -225,6 +240,26 @@ const PageHeader: React.FC = () => {
     </div>
   );
 
+  const renderNavBlock = () => {
+    return (
+      !isProd && (
+        <div className="flex flex-col gap-3 md:flex-row">
+          {navLinks.map((link, i) => {
+            return (
+              <Link
+                href={link.href}
+                key={i}
+                className="transition-colors hover:underline md:text-main md:hover:text-white"
+              >
+                {link.text}
+              </Link>
+            );
+          })}
+        </div>
+      )
+    );
+  };
+
   return (
     <header className="bg-darkBg dark:bg-slate-950">
       <div className="container flex flex-row items-center justify-between gap-8 py-3">
@@ -233,7 +268,7 @@ const PageHeader: React.FC = () => {
             <Logo />
             {renderSourceSelectorBlock()}
           </div>
-
+          {renderNavBlock()}
           <div className="flex flex-row items-center gap-4">
             {renderAvatarBlock(user)}
             <div className="flex flex-row items-center gap-2">
@@ -263,6 +298,7 @@ const PageHeader: React.FC = () => {
             <div className="mt-4 flex w-full grow flex-col gap-8">
               {renderSourceSelectorBlock()}
               {renderAvatarBlock(user)}
+              {renderNavBlock()}
             </div>
             <ModeToggle />
           </SheetContent>
