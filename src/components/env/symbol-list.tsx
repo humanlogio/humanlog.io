@@ -139,7 +139,7 @@ export const SymbolList = ({ onClickSymbol }: SymbolListProps) => {
     const hasChildren = Object.keys(node.children).length > 0;
 
     const onClickNode = (fullPath: string) => {
-      if (hasChildren) {
+      if (!node.isLeaf) {
         toggleNode(fullPath);
         return;
       }
