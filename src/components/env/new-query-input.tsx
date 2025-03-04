@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { Share } from "lucide-react";
+import { ListTree, Share } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Graph, { DataPoint, ZoomType } from "@/components/ui/graph/graph";
 import { useApiClients } from "@/context/api-provider";
@@ -16,6 +16,15 @@ import {
 import MonacoEditor from "@/components/editor/monaco-editor";
 import type { OnMount } from "@monaco-editor/react";
 import { useRouter, useSearchParams } from "next/navigation";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+
+import { SymbolList } from "@/components/env/symbol-list";
 
 interface NewQueryInputProps {
   errMsg: string;
@@ -23,7 +32,6 @@ interface NewQueryInputProps {
 }
 
 const NewQueryInput = ({ errMsg, onExecuteQuery }: NewQueryInputProps) => {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const queryString = searchParams.get("query");
 
@@ -219,15 +227,27 @@ const NewQueryInput = ({ errMsg, onExecuteQuery }: NewQueryInputProps) => {
               onMount={handleEditorDidMount}
             />
           </div>
-          <Button
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button size="icon" className="h-8">
+                <ListTree size={14} />
+              </Button>
+            </SheetTrigger>
+            <SheetContent className="flex flex-col items-start dark:bg-darkBg">
+              <SheetHeader>
+                <SheetTitle>Symbols</SheetTitle>
+              </SheetHeader>
+              <SymbolList />
+            </SheetContent>
+          </Sheet>
+
+          {/* TODO: not implemented */}
+          {/* <Button
             size="icon"
-            className="h-8"
-            onClick={() => {
-              onExecuteQuery(editorContent);
-            }}
+            className="h-8"           
           >
             <Share size={14} />
-          </Button>
+          </Button> */}
         </div>
         <p className="mt-2 text-xs text-[red]">{errMsg}</p>
       </div>
