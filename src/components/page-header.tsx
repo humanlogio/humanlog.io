@@ -141,17 +141,18 @@ const PageHeader: React.FC = () => {
 
   useEffect(() => {
     let _sources: { name: string; path: string; value: string }[] = [];
-    const path = localhostInfo
-      ? {
-          name: `localhost ${localhostVersion(localhostInfo)}`,
-          path: "/localhost",
-          value: "localhost",
-        }
-      : {
-          name: `localhost unavailable :( -> install it?`,
-          path: "/install",
-          value: "install",
-        };
+    const path =
+      localhostInfo && localhostInfo !== "pending"
+        ? {
+            name: `localhost ${localhostVersion(localhostInfo)}`,
+            path: "/localhost",
+            value: "localhost",
+          }
+        : {
+            name: `localhost unavailable :( -> install it?`,
+            path: "/install",
+            value: "install",
+          };
     _sources.push(path);
 
     if (!isProd) {
@@ -219,7 +220,7 @@ const PageHeader: React.FC = () => {
         </SelectContent>
       </Select>
       <div
-        className={`h-3 w-3 shrink-0 rounded-full ${localhostInfo ? "bg-green-500" : "bg-red-500"}`}
+        className={`h-3 w-3 shrink-0 rounded-full ${!localhostInfo ? "bg-red-500" : localhostInfo === "pending" ? "bg-yellow-600" : "bg-green-500"}`}
       />
     </div>
   );
