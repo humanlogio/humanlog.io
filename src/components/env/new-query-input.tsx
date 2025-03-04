@@ -15,7 +15,7 @@ import {
 } from "@/components/env/graph-utils";
 import MonacoEditor from "@/components/editor/monaco-editor";
 import type { OnMount } from "@monaco-editor/react";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   Sheet,
   SheetContent,
@@ -32,6 +32,7 @@ interface NewQueryInputProps {
 }
 
 const NewQueryInput = ({ errMsg, onExecuteQuery }: NewQueryInputProps) => {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const queryString = searchParams.get("query");
 
@@ -219,9 +220,10 @@ const NewQueryInput = ({ errMsg, onExecuteQuery }: NewQueryInputProps) => {
   useEffect(() => {
     const params = new URLSearchParams(searchParams);
     if (symbol) {
-      const query = `${decodeURIComponent(queryString as string)}[${symbol}]`;
+      const query = `${decodeURIComponent(queryString as string)}['${symbol}']`;
       setEditorContent(query);
       params.set("query", encodeURIComponent(query));
+      router.push(`?${params}`);
     }
   }, [symbol]);
 
