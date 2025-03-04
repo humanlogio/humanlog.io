@@ -4,6 +4,12 @@ import { ListSymbolsResponse_ListItem } from "api/js/svc/query/v1/service_pb";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface SymbolTreeNode {
   name: string;
@@ -27,9 +33,6 @@ export const SymbolList = () => {
 
     symbols.forEach((item) => {
       const fullPath = item.symbol?.name || "";
-      const _parts = fullPath
-        .split(/\.|\[|\]/g)
-        .filter((part) => part.trim() !== "");
       const parts = fullPath.split(".");
 
       let currentLevel = tree;
@@ -134,30 +137,42 @@ export const SymbolList = () => {
         className={`${isRoot ? "mb-2" : ""}`}
         style={{ marginLeft: isRoot ? 0 : 16 }}
       >
-        <div
-          className="flex cursor-pointer items-center rounded p-1 hover:bg-gray-50 dark:hover:bg-gray-900"
-          onClick={() => hasChildren && toggleNode(node.fullPath)}
-        >
-          {hasChildren ? (
-            isExpanded ? (
-              <ChevronDown className="mr-1 h-3 w-3" />
-            ) : (
-              <ChevronRight className="mr-1 h-3 w-3" />
-            )
-          ) : (
-            <span className="mr-1 flex h-3 w-3 items-center justify-center text-gray-500">
-              •
-            </span>
-          )}
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div
+                className="flex cursor-pointer items-center rounded p-1 hover:bg-gray-50 dark:hover:bg-gray-900"
+                onClick={() => hasChildren && toggleNode(node.fullPath)}
+              >
+                {hasChildren ? (
+                  isExpanded ? (
+                    <ChevronDown className="mr-1 h-3 w-3" />
+                  ) : (
+                    <ChevronRight className="mr-1 h-3 w-3" />
+                  )
+                ) : (
+                  <span className="mr-1 flex h-3 w-3 items-center justify-center text-gray-500">
+                    •
+                  </span>
+                )}
 
-          <span className="font-mono text-sm">{node.name}</span>
+                <span className="font-mono text-sm">{node.name}</span>
 
-          {node.isLeaf && (
-            <span className="ml-2 rounded bg-gray-100 px-1 py-0.5 text-xs text-gray-600">
-              {getTypeString(node.type)}
-            </span>
-          )}
-        </div>
+                {node.isLeaf && (
+                  <span className="ml-2 rounded bg-gray-100 px-1 py-0.5 text-xs text-gray-600">
+                    {getTypeString(node.type)}
+                  </span>
+                )}
+              </div>
+            </TooltipTrigger>
+
+            {node.isLeaf && (
+              <TooltipContent className="bg-white dark:bg-secondaryBlack">
+                <div>{node.fullPath}</div>
+              </TooltipContent>
+            )}
+          </Tooltip>
+        </TooltipProvider>
 
         {hasChildren && isExpanded && (
           <div className="mt-1 space-y-1 border-l border-gray-200 pl-3 dark:border-gray-700">
