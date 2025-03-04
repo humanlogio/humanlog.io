@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { Share } from "lucide-react";
+import { ListTree, Share } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Graph, { DataPoint, ZoomType } from "@/components/ui/graph/graph";
 import { useApiClients } from "@/context/api-provider";
@@ -14,8 +14,18 @@ import {
   convertToTimestamp,
 } from "@/components/env/graph-utils";
 import MonacoEditor from "@/components/editor/monaco-editor";
+import { editor as monacoEditor } from "monaco-editor";
 import type { OnMount } from "@monaco-editor/react";
 import { useRouter, useSearchParams } from "next/navigation";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+
+import { SymbolList } from "@/components/env/symbol-list";
 
 interface NewQueryInputProps {
   errMsg: string;
@@ -43,8 +53,10 @@ const NewQueryInput = ({ errMsg, onExecuteQuery }: NewQueryInputProps) => {
     startDate: Date;
     endDate: Date;
   }>({ startDate, endDate: new Date() });
+  const [symbol, setSymbol] = useState("");
 
   const isFirstFocusRef = useRef(true);
+  const editorRef = useRef<monacoEditor.IStandaloneCodeEditor>();
 
   const updateGraphRange = useCallback(
     (
@@ -180,6 +192,7 @@ const NewQueryInput = ({ errMsg, onExecuteQuery }: NewQueryInputProps) => {
   );
 
   const handleEditorDidMount: OnMount = (editor, monaco) => {
+    editorRef.current = editor;
     editor.onDidFocusEditorText(() => {
       if (isFirstFocusRef.current) {
         !queryString && editor.setValue("");
@@ -201,11 +214,38 @@ const NewQueryInput = ({ errMsg, onExecuteQuery }: NewQueryInputProps) => {
 
   useEffect(() => {
     if (queryString) {
-      setEditorContent(decodeURIComponent(queryString as string));
+      setEditorContent(decodeURIComponent(queryString));
     } else {
       setEditorContent("");
     }
   }, [queryString]);
+
+  useEffect(() => {
+    if (symbol && editorRef.current) {
+      const selection = editorRef.current.getSelection();
+
+      if (selection) {
+        const position = selection.getPosition();
+
+        const operation = {
+          range: {
+            startLineNumber: position.lineNumber,
+            startColumn: position.column,
+            endLineNumber: position.lineNumber,
+            endColumn: position.column,
+          },
+          text: `['${symbol}']`,
+          forceMoveMarkers: true,
+        };
+
+        editorRef.current.executeEdits("symbol-insertion", [operation]);
+
+        setEditorContent(editorRef.current.getValue());
+
+        editorRef.current.focus();
+      }
+    }
+  }, [symbol]);
 
   return (
     <div className="container grid grid-cols-2 items-start gap-8">
@@ -219,15 +259,29 @@ const NewQueryInput = ({ errMsg, onExecuteQuery }: NewQueryInputProps) => {
               onMount={handleEditorDidMount}
             />
           </div>
-          <Button
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button size="icon" className="h-8">
+                <ListTree size={14} />
+              </Button>
+            </SheetTrigger>
+            <SheetContent className="flex flex-col items-start dark:bg-darkBg">
+              <SheetHeader>
+                <SheetTitle>Symbols</SheetTitle>
+              </SheetHeader>
+              <SymbolList
+                onClickSymbol={(symbolString) => setSymbol(symbolString)}
+              />
+            </SheetContent>
+          </Sheet>
+
+          {/* TODO: not implemented */}
+          {/* <Button
             size="icon"
-            className="h-8"
-            onClick={() => {
-              onExecuteQuery(editorContent);
-            }}
+            className="h-8"           
           >
             <Share size={14} />
-          </Button>
+          </Button> */}
         </div>
         <p className="mt-2 text-xs text-[red]">{errMsg}</p>
       </div>

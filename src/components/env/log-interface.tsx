@@ -10,6 +10,7 @@ import {
   RenderStatement,
   SplitOperator,
   SplitOperator_ByOperator,
+  Statements,
 } from "api/js/types/v1/logquery_pb";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
@@ -149,10 +150,10 @@ const LogInterface = () => {
                 parseRes.query.query!.render = renderStmt;
               } else {
                 // TODO: Uncomment after backend's update
-                // parseRes.query.query = new Statements({
-                //   statements: [],
-                //   render: renderStmt,
-                // });
+                parseRes.query.query = new Statements({
+                  statements: [],
+                  render: renderStmt,
+                });
               }
             }
           }
