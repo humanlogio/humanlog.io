@@ -14,6 +14,7 @@ import {
   convertToTimestamp,
 } from "@/components/env/graph-utils";
 import MonacoEditor from "@/components/editor/monaco-editor";
+import { editor as monacoEditor } from "monaco-editor";
 import type { OnMount } from "@monaco-editor/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
@@ -55,6 +56,7 @@ const NewQueryInput = ({ errMsg, onExecuteQuery }: NewQueryInputProps) => {
   const [symbol, setSymbol] = useState("");
 
   const isFirstFocusRef = useRef(true);
+  const editorRef = useRef<monacoEditor.IStandaloneCodeEditor>();
 
   const updateGraphRange = useCallback(
     (
@@ -190,6 +192,7 @@ const NewQueryInput = ({ errMsg, onExecuteQuery }: NewQueryInputProps) => {
   );
 
   const handleEditorDidMount: OnMount = (editor, monaco) => {
+    editorRef.current = editor;
     editor.onDidFocusEditorText(() => {
       if (isFirstFocusRef.current) {
         !queryString && editor.setValue("");
@@ -211,19 +214,36 @@ const NewQueryInput = ({ errMsg, onExecuteQuery }: NewQueryInputProps) => {
 
   useEffect(() => {
     if (queryString) {
-      setEditorContent(decodeURIComponent(`${queryString}`));
+      setEditorContent(decodeURIComponent(queryString));
     } else {
       setEditorContent("");
     }
-  }, [queryString, symbol]);
+  }, [queryString]);
 
   useEffect(() => {
-    const params = new URLSearchParams(searchParams);
-    if (symbol) {
-      const query = `${decodeURIComponent(queryString as string)}['${symbol}']`;
-      setEditorContent(query);
-      params.set("query", encodeURIComponent(query));
-      router.push(`?${params}`);
+    if (symbol && editorRef.current) {
+      const selection = editorRef.current.getSelection();
+
+      if (selection) {
+        const position = selection.getPosition();
+
+        const operation = {
+          range: {
+            startLineNumber: position.lineNumber,
+            startColumn: position.column,
+            endLineNumber: position.lineNumber,
+            endColumn: position.column,
+          },
+          text: `['${symbol}']`,
+          forceMoveMarkers: true,
+        };
+
+        editorRef.current.executeEdits("symbol-insertion", [operation]);
+
+        setEditorContent(editorRef.current.getValue());
+
+        editorRef.current.focus();
+      }
     }
   }, [symbol]);
 
