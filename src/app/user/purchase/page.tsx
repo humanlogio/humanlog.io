@@ -269,7 +269,7 @@ function CheckoutForm({
         }
     }
     console.log("checkout completed!");
-    router.push(`/user/purchase/success`);
+    router.push(`/localhost`);
   }
 
   const form = useForm<z.infer<typeof formSchema>>({
