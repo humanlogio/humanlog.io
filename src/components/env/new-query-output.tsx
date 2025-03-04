@@ -49,7 +49,7 @@ const NewQueryOutput = ({
               {/* TODO: Remove condition after backend's update */}
               <div className="mt-2 flex flex-col gap-1">
                 <ToggleShowPretty />
-                {queryString ? <ToggleSplit /> : null}
+                <ToggleSplit />
               </div>
               <div className="container flex-1 overflow-auto">
                 <NewSessionPanel
