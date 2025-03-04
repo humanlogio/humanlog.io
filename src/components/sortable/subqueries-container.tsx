@@ -144,7 +144,7 @@ export const SubQueriesContainer = ({ queries }: SubQueriesContainerProps) => {
                   </Panel>
 
                   {i !== selectedSessions.length - 1 && (
-                    <PanelResizeHandle className="flex h-full items-center justify-center px-1">
+                    <PanelResizeHandle className="flex h-auto items-center justify-center px-1">
                       <div className="h-12 w-1 rounded-full bg-slate-700" />
                     </PanelResizeHandle>
                   )}
