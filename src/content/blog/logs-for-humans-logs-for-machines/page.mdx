@@ -1,3 +1,12 @@
+---
+published: false
+title: Logs for humans, logs for machines
+date: 2024-03-01
+author: antoine
+---
+
+{/* @antoine Please update the date and remove the published field before publishing. */}
+
 # Logs for humans, logs for machines
 
 There's an age old debate that you'll see pop-up in the entrails of any company's Slack channel. Are logs for humans or are logs for machines?
@@ -634,40 +643,43 @@ In `humanlog`, we're not exactly aiming for performance. We're focused on the us
 Recently @KevRiver came up with these results:
 
 ```
-.../c-cpp-glog-8                  37.83 MB/s     7127158 B/op       37382 allocs/op
-.../c-cpp-spdlog-8               111.44 MB/s     1756341 B/op       12301 allocs/op
-.../csharp-nlog-8                 84.29 MB/s     1916528 B/op       15514 allocs/op
-.../csharp-nlog-csv-8             95.45 MB/s     1688077 B/op       10972 allocs/op
-.../csharp-nlog-json-8            49.39 MB/s   355104298 B/op     7287606 allocs/op
-.../csharp-serilog-8              96.26 MB/s     1762382 B/op       17522 allocs/op
-.../csharp-serilog-json-8         40.15 MB/s     4941686 B/op       87556 allocs/op
-.../golang-gin-8                 313.98 MB/s     1500216 B/op       11010 allocs/op
-.../golang-logrus-8               85.42 MB/s     7208972 B/op       47830 allocs/op
-.../golang-logrus-json-8          38.64 MB/s   413347736 B/op     9453455 allocs/op
-.../golang-slog-json-8            43.92 MB/s  1059153496 B/op    21780749 allocs/op
-.../golang-zap-8                  42.90 MB/s     3574186 B/op       60635 allocs/op
-.../golang-zerolog-8              55.60 MB/s     7838375 B/op       45006 allocs/op
-.../golang-zerolog-json-8         47.13 MB/s     3881025 B/op       73030 allocs/op
-.../java-log4j2-8                 93.71 MB/s     1990777 B/op       16397 allocs/op
-.../java-log4j2-json-8            48.98 MB/s     7864399 B/op      148896 allocs/op
-.../java-logback-8                93.74 MB/s     3278767 B/op       23425 allocs/op
-.../java-logback-ext-8            94.93 MB/s     3601258 B/op       24763 allocs/op
-.../java-logback-ext-json-8       39.80 MB/s    10518371 B/op      183988 allocs/op
-.../java-logback-json-8           39.66 MB/s    10478973 B/op      183176 allocs/op
-.../java-logback-mdc-8           108.45 MB/s     3657896 B/op       25277 allocs/op
-.../java-logback-mdc-json-8       39.66 MB/s    10463910 B/op      182810 allocs/op
-.../js-ts-bunyan-8                35.59 MB/s    10858449 B/op      195023 allocs/op
-.../js-ts-pino-8                  40.10 MB/s     5234243 B/op      103462 allocs/op
-.../js-ts-winston-8               38.99 MB/s    10321322 B/op      199535 allocs/op
-.../opentelemetry-8               88.49 MB/s     1468105 B/op       10010 allocs/op
-.../opentelemetry-json-8          39.27 MB/s    11917622 B/op      192876 allocs/op
-.../python-loguru-8               64.88 MB/s     7486091 B/op       32354 allocs/op
-.../python-loguru-json-8          30.18 MB/s     9208628 B/op      158421 allocs/op
-.../python-structlog-8           112.06 MB/s     1469041 B/op       10010 allocs/op
-.../ruby-semantic-logger-8       128.98 MB/s     3455192 B/op       23227 allocs/op
-.../ruby-semantic-logger-json-8   39.32 MB/s     6821616 B/op      133821 allocs/op
-.../ruby-std-logger-8             93.71 MB/s     2361975 B/op       19147 allocs/op
-.../rust-log4rs-8                 70.26 MB/s     2749869 B/op       16340 allocs/op
+...
+
+/c-cpp-glog-8 37.83 MB/s 7127158 B/op 37382 allocs/op
+.../c-cpp-spdlog-8 111.44 MB/s 1756341 B/op 12301 allocs/op
+.../csharp-nlog-8 84.29 MB/s 1916528 B/op 15514 allocs/op
+.../csharp-nlog-csv-8 95.45 MB/s 1688077 B/op 10972 allocs/op
+.../csharp-nlog-json-8 49.39 MB/s 355104298 B/op 7287606 allocs/op
+.../csharp-serilog-8 96.26 MB/s 1762382 B/op 17522 allocs/op
+.../csharp-serilog-json-8 40.15 MB/s 4941686 B/op 87556 allocs/op
+.../golang-gin-8 313.98 MB/s 1500216 B/op 11010 allocs/op
+.../golang-logrus-8 85.42 MB/s 7208972 B/op 47830 allocs/op
+.../golang-logrus-json-8 38.64 MB/s 413347736 B/op 9453455 allocs/op
+.../golang-slog-json-8 43.92 MB/s 1059153496 B/op 21780749 allocs/op
+.../golang-zap-8 42.90 MB/s 3574186 B/op 60635 allocs/op
+.../golang-zerolog-8 55.60 MB/s 7838375 B/op 45006 allocs/op
+.../golang-zerolog-json-8 47.13 MB/s 3881025 B/op 73030 allocs/op
+.../java-log4j2-8 93.71 MB/s 1990777 B/op 16397 allocs/op
+.../java-log4j2-json-8 48.98 MB/s 7864399 B/op 148896 allocs/op
+.../java-logback-8 93.74 MB/s 3278767 B/op 23425 allocs/op
+.../java-logback-ext-8 94.93 MB/s 3601258 B/op 24763 allocs/op
+.../java-logback-ext-json-8 39.80 MB/s 10518371 B/op 183988 allocs/op
+.../java-logback-json-8 39.66 MB/s 10478973 B/op 183176 allocs/op
+.../java-logback-mdc-8 108.45 MB/s 3657896 B/op 25277 allocs/op
+.../java-logback-mdc-json-8 39.66 MB/s 10463910 B/op 182810 allocs/op
+.../js-ts-bunyan-8 35.59 MB/s 10858449 B/op 195023 allocs/op
+.../js-ts-pino-8 40.10 MB/s 5234243 B/op 103462 allocs/op
+.../js-ts-winston-8 38.99 MB/s 10321322 B/op 199535 allocs/op
+.../opentelemetry-8 88.49 MB/s 1468105 B/op 10010 allocs/op
+.../opentelemetry-json-8 39.27 MB/s 11917622 B/op 192876 allocs/op
+.../python-loguru-8 64.88 MB/s 7486091 B/op 32354 allocs/op
+.../python-loguru-json-8 30.18 MB/s 9208628 B/op 158421 allocs/op
+.../python-structlog-8 112.06 MB/s 1469041 B/op 10010 allocs/op
+.../ruby-semantic-logger-8 128.98 MB/s 3455192 B/op 23227 allocs/op
+.../ruby-semantic-logger-json-8 39.32 MB/s 6821616 B/op 133821 allocs/op
+.../ruby-std-logger-8 93.71 MB/s 2361975 B/op 19147 allocs/op
+.../rust-log4rs-8 70.26 MB/s 2749869 B/op 16340 allocs/op
+
 ```
 
 We're not super fast, far fromm it. But in the interesting case where our first parsing guesses all line up (`golang-gin-8`) we do match `encoding/json`'s performance of about ~300MB/s. Not so bad. This is workable. We can keep iterating and focus on this later, as there's a ton of stuff we can do to make things faster if the need arises. Maybe I should use my `flatjson` parser =D.
