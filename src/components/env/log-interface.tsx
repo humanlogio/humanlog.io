@@ -113,6 +113,14 @@ const LogInterface = () => {
         const parseRes = await parseQuery(parseReq);
 
         if (parseRes) {
+          // 1) we don't care about the response
+          // 2) we don't want to record the mutated query, so we record it
+          // before mutating it with `split by`
+          apiClients.user.recordQueryHistory({
+            rawQuery: editorContent,
+            query: parseRes.query,
+          });
+
           if (parseRes.dataType) {
             const { type } = parseRes.dataType;
 
@@ -164,12 +172,6 @@ const LogInterface = () => {
             environmentId: activeEnvironment?.id,
             query: parseRes.query,
             limit,
-          });
-
-          // don't wait for it
-          apiClients.user.recordQueryHistory({
-            rawQuery: editorContent,
-            query: parseRes.query,
           });
 
           const queryRes = await apiClients.query.query(queryReq);
