@@ -270,15 +270,15 @@ const PageHeader: React.FC = () => {
           <div className="flex flex-row items-center gap-4">
             {renderNavBlock()}
             <div className="ml-4 flex flex-row items-center gap-4">
-            {renderAvatarBlock(user)}
-            <div className="flex flex-row items-center gap-2">
-              <ModeToggle />
-              {pathname === "/" && (
-                <WidthToggle
-                  isFullWidth={isFullWidth}
-                  setIsFullWidth={setIsFullWidth}
-                />
-              )}
+              {renderAvatarBlock(user)}
+              <div className="flex flex-row items-center gap-2">
+                <ModeToggle />
+                {pathname === "/" && (
+                  <WidthToggle
+                    isFullWidth={isFullWidth}
+                    setIsFullWidth={setIsFullWidth}
+                  />
+                )}
               </div>
             </div>
           </div>
