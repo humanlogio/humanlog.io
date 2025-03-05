@@ -105,55 +105,6 @@ const PageHeader: React.FC = () => {
     }
   };
 
-  const renderAvatarBlock = (user: UserState) => {
-    if (user === "loading") {
-      return <Loader className="animate-spin md:text-white" />;
-    }
-    if (user === "not-logged-in") {
-      return (
-        <Button
-          onClick={() => doLogin()}
-          variant="noShadowNeutral"
-          className="w-full"
-        >
-          Sign up
-        </Button>
-      );
-    }
-    return (
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <div
-            className="flex cursor-pointer flex-row items-center gap-2 md:flex-row-reverse"
-            aria-label="user-dropdown"
-          >
-            <Avatar>
-              <AvatarImage src={gravatarURL(user?.email)} />
-              <AvatarFallback className="uppercase">
-                {user?.firstName?.slice(0, 2) || <UserIcon size={16} />}
-              </AvatarFallback>
-            </Avatar>
-            <p className="font-medium dark:text-white md:order-1 md:text-white">
-              {user?.firstName || "username"}
-            </p>
-          </div>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent className="w-56">
-          <Link href={getUserSettingsUrl()}>
-            <DropdownMenuItem>
-              <span>Settings</span>
-            </DropdownMenuItem>
-          </Link>
-          <DropdownMenuItem onClick={doLogout} aria-label="logout">
-            <LogOut size={16} className="mr-2" />
-            <span>Log out</span>
-            <DropdownMenuShortcut>⇧⌘Q</DropdownMenuShortcut>
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    );
-  };
-
   useEffect(() => {
     let _sources: { name: string; path: string; value: string }[] = [];
     const path = localhostInfo
@@ -204,6 +155,55 @@ const PageHeader: React.FC = () => {
     const _selected = sources?.find((source) => source.path === pathname);
     setSelected(_selected);
   }, [pathname, sources]);
+
+  const renderAvatarBlock = (user: UserState) => {
+    if (user === "loading") {
+      return <Loader className="animate-spin md:text-white" />;
+    }
+    if (user === "not-logged-in") {
+      return (
+        <Button
+          onClick={() => doLogin()}
+          variant="noShadowNeutral"
+          className="w-full"
+        >
+          Sign up
+        </Button>
+      );
+    }
+    return (
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <div
+            className="flex cursor-pointer flex-row items-center gap-2 md:flex-row-reverse"
+            aria-label="user-dropdown"
+          >
+            <Avatar>
+              <AvatarImage src={gravatarURL(user?.email)} />
+              <AvatarFallback className="uppercase">
+                {user?.firstName?.slice(0, 2) || <UserIcon size={16} />}
+              </AvatarFallback>
+            </Avatar>
+            <p className="font-medium dark:text-white md:order-1 md:text-white">
+              {user?.firstName || "username"}
+            </p>
+          </div>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent className="w-56">
+          <Link href={getUserSettingsUrl()}>
+            <DropdownMenuItem>
+              <span>Settings</span>
+            </DropdownMenuItem>
+          </Link>
+          <DropdownMenuItem onClick={doLogout} aria-label="logout">
+            <LogOut size={16} className="mr-2" />
+            <span>Log out</span>
+            <DropdownMenuShortcut>⇧⌘Q</DropdownMenuShortcut>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    );
+  };
 
   const renderSourceSelectorBlock = () => (
     <div
@@ -267,17 +267,19 @@ const PageHeader: React.FC = () => {
             <Logo />
             {renderSourceSelectorBlock()}
           </div>
-          {renderNavBlock()}
           <div className="flex flex-row items-center gap-4">
-            {renderAvatarBlock(user)}
-            <div className="flex flex-row items-center gap-2">
-              <ModeToggle />
-              {pathname === "/" && (
-                <WidthToggle
-                  isFullWidth={isFullWidth}
-                  setIsFullWidth={setIsFullWidth}
-                />
-              )}
+            {renderNavBlock()}
+            <div className="ml-4 flex flex-row items-center gap-4">
+              {renderAvatarBlock(user)}
+              <div className="flex flex-row items-center gap-2">
+                <ModeToggle />
+                {pathname === "/" && (
+                  <WidthToggle
+                    isFullWidth={isFullWidth}
+                    setIsFullWidth={setIsFullWidth}
+                  />
+                )}
+              </div>
             </div>
           </div>
         </div>
