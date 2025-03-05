@@ -133,7 +133,7 @@ export function UserSettingsForm() {
         returnToUrl: window.location.href,
       });
       if (res) {
-        router.push(res.portalUrl);
+        window.open(res.portalUrl);
       }
     } catch (error) {
       console.error("Failed to get stripe billing portal", error);
