@@ -166,6 +166,12 @@ const LogInterface = () => {
             limit,
           });
 
+          // don't wait for it
+          apiClients.user.recordQueryHistory({
+            rawQuery: editorContent,
+            query: parseRes.query,
+          });
+
           const queryRes = await apiClients.query.query(queryReq);
 
           if (queryRes.data) {
