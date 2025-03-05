@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/sheet";
 import { ChevronDown, ChevronRight, LayoutList } from "lucide-react";
 import { DocItem, DocSection } from "@/types/docs";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import NextLink from "next/link";
 
@@ -34,7 +34,7 @@ export function DocsSidebar({ docsList }: { docsList: DocSection[] }) {
           </button>
         </SheetTrigger>
         <SheetContent className="w-full dark:bg-darkBg dark:text-white">
-          <SheetHeader>
+          <SheetHeader className="text-left">
             <SheetTitle>Docs</SheetTitle>
           </SheetHeader>
           <nav className="mt-8">
@@ -48,14 +48,61 @@ export function DocsSidebar({ docsList }: { docsList: DocSection[] }) {
   );
 }
 
-const NavItem = ({ item }: { item: DocSection | DocItem }) => {
-  const [isOpen, setIsOpen] = useState(false);
+export const NavItem = ({ item }: { item: DocSection | DocItem }) => {
   const pathname = usePathname();
 
+  const itemId = `nav-item-${item.title.replace(/\s+/g, "-").toLowerCase()}`;
+  const [isOpen, setIsOpen] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    const savedState = localStorage.getItem(itemId);
+
+    if (savedState !== null) {
+      setIsOpen(savedState === "true");
+    } else {
+      if ("items" in item) {
+        const shouldOpen = checkIfSectionContainsCurrentPath(item, pathname);
+        setIsOpen(shouldOpen);
+        if (shouldOpen) {
+          localStorage.setItem(itemId, "true");
+        }
+      } else {
+        setIsOpen(false);
+      }
+    }
+  }, [itemId, pathname]);
+
+  const checkIfSectionContainsCurrentPath = (
+    section: DocSection,
+    currentPath: string,
+  ): boolean => {
+    if (!("items" in section)) return false;
+
+    return section.items.some((subItem) => {
+      if ("items" in subItem) {
+        return checkIfSectionContainsCurrentPath(
+          subItem as DocSection,
+          currentPath,
+        );
+      } else {
+        const itemPath = `/docs/${subItem.section}/${subItem.slug}`;
+        return currentPath === itemPath;
+      }
+    });
+  };
+
+  const toggleOpen = () => {
+    const newState = !isOpen;
+    setIsOpen(newState);
+    localStorage.setItem(itemId, String(newState));
+  };
+
   const isSection = "items" in item;
-  const hasChildren = isSection && item.items.length > 0;
+  const hasChildren = isSection && item.items && item.items.length > 0;
   const itemPath = !isSection ? `/docs/${item.section}/${item.slug}` : "";
   const isActive = !isSection && pathname === itemPath;
+
+  if (isOpen === null) return null;
 
   return (
     <div className="flex flex-col">
@@ -65,10 +112,7 @@ const NavItem = ({ item }: { item: DocSection | DocItem }) => {
         }`}
       >
         {hasChildren ? (
-          <button
-            className="mr-1 h-4 w-4 p-0"
-            onClick={() => setIsOpen(!isOpen)}
-          >
+          <button className="mr-1 h-4 w-4 p-0" onClick={toggleOpen}>
             {isOpen ? (
               <ChevronDown className="h-4 w-4" />
             ) : (
@@ -86,7 +130,7 @@ const NavItem = ({ item }: { item: DocSection | DocItem }) => {
         ) : (
           <div
             className="flex-1 cursor-pointer font-medium"
-            onClick={() => hasChildren && setIsOpen(!isOpen)}
+            onClick={() => hasChildren && toggleOpen()}
           >
             {item.title}
           </div>
