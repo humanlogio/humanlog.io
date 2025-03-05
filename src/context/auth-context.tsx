@@ -39,6 +39,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authMessage, setAuthMessage] = useState("You need to login.");
+  const [previousPath, setPreviousPath] = useState<string>();
 
   const isLoginRequired = useCallback(
     (path: string) => {
@@ -61,9 +62,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const closeAuthModal = useCallback(() => {
     setIsAuthModalOpen(false);
-    if (isLoginRequired(pathname)) {
-      router.back();
+    if (
+      previousPath &&
+      previousPath !== pathname &&
+      !isLoginRequired(previousPath)
+    ) {
+      router.push(previousPath);
+    } else {
+      router.push("/");
     }
+  }, [pathname]);
+
+  useEffect(() => {
+    setPreviousPath(pathname);
   }, [pathname]);
 
   useEffect(() => {
