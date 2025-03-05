@@ -27,6 +27,7 @@ type AllEnvironments = {
   defaultOrg: Organization | null;
   listEnvironments: ListEnvironmentResponse_ListItem[];
   doLogin: (returnUrl?: string) => void;
+  getUserInfo: () => void;
 };
 
 const ListEnvironmentContext = createContext<AllEnvironments>({
@@ -36,6 +37,7 @@ const ListEnvironmentContext = createContext<AllEnvironments>({
   defaultOrg: null,
   listEnvironments: [],
   doLogin: () => {},
+  getUserInfo: () => {},
 });
 
 export function ListEnvironmentsProvider({
@@ -246,6 +248,7 @@ export function ListEnvironmentsProvider({
     <ListEnvironmentContext.Provider
       value={{
         localhostInfo,
+        getUserInfo,
         user,
         currentOrg,
         defaultOrg,
