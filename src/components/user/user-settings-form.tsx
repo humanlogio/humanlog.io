@@ -19,6 +19,7 @@ import { Loader } from "lucide-react";
 import { useApiClients } from "@/context/api-provider";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
+import { ConnectError } from "@connectrpc/connect";
 
 const formSchema = z.object({
   firstName: z.string().min(1, "First Name is required"),
@@ -26,7 +27,7 @@ const formSchema = z.object({
 });
 
 export function UserSettingsForm() {
-  const { user, currentOrg, defaultOrg } = useAllEnvironments();
+  const { getUserInfo, user, currentOrg, defaultOrg } = useAllEnvironments();
   const { apiClients } = useApiClients();
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -100,28 +101,32 @@ export function UserSettingsForm() {
     handleReset();
   }, [user, form]);
 
-  async function onSubmit(values: z.infer<typeof formSchema>) {
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
       setIsSubmitting(true);
-      // @yejee handle the form submission logic and API here
-      console.log("Form submitted with values:", values);
+      await apiClients?.user.updateUser({
+        firstName: values.firstName,
+        lastName: values.lastName ?? "",
+      });
 
-      // Show success message
       toast.success("Settings updated", {
         description: "Your profile information has been updated successfully.",
       });
 
-      // Refresh the page to show updated data
-      router.refresh();
+      // refetch user info
+      getUserInfo();
     } catch (error) {
       console.error("Form submission error:", error);
-      toast.error("Error", {
-        description: "Failed to update settings. Please try again.",
-      });
+      if (error instanceof ConnectError) {
+        toast.error("Error", {
+          description:
+            error.message ?? "Failed to update settings. Please try again.",
+        });
+      }
     } finally {
       setIsSubmitting(false);
     }
-  }
+  };
 
   // Billing portal section
   const isDefaultOrg = currentOrg?.id === defaultOrg?.id;
@@ -133,7 +138,7 @@ export function UserSettingsForm() {
         returnToUrl: window.location.href,
       });
       if (res) {
-        router.push(res.portalUrl);
+        window.open(res.portalUrl);
       }
     } catch (error) {
       console.error("Failed to get stripe billing portal", error);
