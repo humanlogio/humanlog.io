@@ -43,6 +43,7 @@ import { useAllEnvironments, UserState } from "@/context/list-environments";
 import { Button } from "@/components/ui/button";
 import config from "@/features/config";
 import dynamic from "next/dynamic";
+import { getFirstDoc } from "@/lib/docs";
 
 const WidthToggle = dynamic(() => import("@/components/width-toggle"), {
   ssr: false,
@@ -56,7 +57,7 @@ interface Source {
 
 const navLinks = [
   {
-    href: "/docs",
+    href: `${getFirstDoc()?.fullPath}`,
     text: "Docs",
   },
   {
