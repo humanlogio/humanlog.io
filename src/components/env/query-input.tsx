@@ -267,7 +267,7 @@ const QueryInput = ({
       </div>
 
       <div className="flex flex-col items-center gap-2">
-        <Graph data={eventsList} zoom={zoom} onZoom={updateTimeFrame} />
+        {/* <Graph data={eventsList} zoom={zoom} onZoom={updateTimeFrame} /> */}
 
         <DateRangePicker
           dateFrom={startDate}

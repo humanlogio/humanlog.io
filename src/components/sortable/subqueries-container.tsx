@@ -65,7 +65,7 @@ export const SubQueriesContainer = ({ queries }: SubQueriesContainerProps) => {
           (selectedSession) => selectedSession.value === session.value,
         ),
     );
-    console.log("availableSessions", availableSessions);
+
     availableSessions && setSessionList(availableSessions);
   }, [selectedSessions, originalSessionList]);
 
