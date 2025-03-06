@@ -1,34 +1,24 @@
+import { allBlogs } from "contentlayer/generated";
+import config from "@/features/config";
 import Link from "next/link";
 
-const blogList = [
-  {
-    title: "Logs for humans, logs for machines",
-    href: "/logs-for-humans-logs-for-machines",
-    published: false,
-  },
-  {
-    title: "How to get TTL keys with any cache",
-    href: "/ttl-caching-without-ttl-support",
-    published: false,
-  },
-];
+export default function BlogListPage() {
+  const isProd = config.NEXT_PUBLIC_SIGNUP_ONLY;
 
-export default function BlogPage() {
+  const posts = allBlogs
+    .filter((post) => !isProd || post.published)
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
   return (
-    <div className="flex flex-col gap-4">
-      {blogList
-        .filter((el) => el.published)
-        .map((list) => {
-          return (
-            <Link
-              key={list.href}
-              href={`/blog/${list.href}`}
-              className="text-md"
-            >
-              {list.title}
-            </Link>
-          );
-        })}
+    <div className="container py-5">
+      <h1 className="text-2xl font-bold">the humanlog blog</h1>
+      <div className="mt-10 flex flex-col gap-2">
+        {posts.map((post) => (
+          <Link href={post.slug} key={post.slug} className="hover:underline">
+            {post.title}
+          </Link>
+        ))}
+      </div>
     </div>
   );
 }
