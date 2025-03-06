@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/sheet";
 import { SymbolList } from "@/components/env/symbol-list";
 import config from "@/features/config";
+import { twMerge } from "tailwind-merge";
 
 interface NewQueryInputProps {
   errMsg: string;
@@ -249,7 +250,12 @@ const NewQueryInput = ({ errMsg, onExecuteQuery }: NewQueryInputProps) => {
   }, [symbol]);
 
   return (
-    <div className="container grid grid-cols-2 items-start gap-8">
+    <div
+      className={twMerge(
+        "container items-start gap-8",
+        !isProd && "grid grid-cols-2",
+      )}
+    >
       {/* TEXT INPUT */}
       <div className="col-span-2 md:col-span-1">
         <div className="flex w-full flex-row gap-2">
