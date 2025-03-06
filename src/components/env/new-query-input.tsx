@@ -24,8 +24,9 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-
 import { SymbolList } from "@/components/env/symbol-list";
+import config from "@/features/config";
+import { twMerge } from "tailwind-merge";
 
 interface NewQueryInputProps {
   errMsg: string;
@@ -33,6 +34,7 @@ interface NewQueryInputProps {
 }
 
 const NewQueryInput = ({ errMsg, onExecuteQuery }: NewQueryInputProps) => {
+  const isProd = config.NEXT_PUBLIC_SIGNUP_ONLY;
   const router = useRouter();
   const searchParams = useSearchParams();
   const queryString = searchParams.get("query");
@@ -248,7 +250,12 @@ const NewQueryInput = ({ errMsg, onExecuteQuery }: NewQueryInputProps) => {
   }, [symbol]);
 
   return (
-    <div className="container grid grid-cols-2 items-start gap-8">
+    <div
+      className={twMerge(
+        "container items-start gap-8",
+        !isProd && "grid grid-cols-2",
+      )}
+    >
       {/* TEXT INPUT */}
       <div className="col-span-2 md:col-span-1">
         <div className="flex w-full flex-row gap-2">
@@ -287,15 +294,24 @@ const NewQueryInput = ({ errMsg, onExecuteQuery }: NewQueryInputProps) => {
       </div>
 
       {/* CHART */}
-      <div className="col-span-2 flex flex-col items-center gap-2 md:col-span-1">
-        <Graph data={eventsList} zoom={zoom} onZoom={updateTimeFrame} />
-        <DateRangePicker
-          dateFrom={startDate}
-          dateTo={endDate}
-          setDateFrom={setStartDate}
-          setDateTo={setEndDate}
-        />
-      </div>
+      {!isProd && (
+        <div className="col-span-2 flex flex-col items-center gap-2 md:col-span-1">
+          <Graph
+            data={eventsList}
+            bucketCount={bucketCount}
+            zoom={zoom}
+            onZoom={updateTimeFrame}
+            startDate={startDate}
+            endDate={endDate}
+          />
+          <DateRangePicker
+            dateFrom={startDate}
+            dateTo={endDate}
+            setDateFrom={setStartDate}
+            setDateTo={setEndDate}
+          />
+        </div>
+      )}
     </div>
   );
 };

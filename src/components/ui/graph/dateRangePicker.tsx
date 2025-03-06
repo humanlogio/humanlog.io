@@ -1,4 +1,5 @@
 import DatePicker from "@/components/ui/graph/datePicker";
+import dayjs from "dayjs";
 
 const DateRangePicker = (props: {
   dateFrom: Date;
@@ -21,16 +22,8 @@ const DateRangePicker = (props: {
         styles="block w-full border text-sm"
         hideDate={sameDate}
         date={dateFrom}
-        maxDate={
-          new Date(
-            new Date(
-              Math.min(
-                dateTo?.getTime() ?? new Date().getTime(),
-                new Date().getTime(),
-              ),
-            ).getTime() - 1000,
-          )
-        } // sub one hour
+        minDate={dayjs().subtract(1, "year").toDate()}
+        maxDate={dateTo as Date}
         setDate={setDateFrom}
       />
 
@@ -40,7 +33,8 @@ const DateRangePicker = (props: {
         styles="block w-full border text-sm"
         hideDate={sameDate}
         date={dateTo}
-        minDate={new Date(dateFrom.getTime() + 1000)} // add one hour
+        minDate={dateFrom}
+        maxDate={dayjs().toDate()}
         setDate={setDateTo}
       />
     </div>

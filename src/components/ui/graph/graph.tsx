@@ -11,6 +11,12 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import Scroller from "@/components/ui/graph/scroller";
+import dayjs from "dayjs";
+import { useApiClients } from "@/context/api-provider";
+import {
+  convertToGraphDataPoints,
+  convertToTimestamp,
+} from "@/components/env/graph-utils";
 
 export type ZoomType = {
   startIndex?: number;
@@ -19,7 +25,6 @@ export type ZoomType = {
 
 export type DataPoint = {
   dayNumber: number;
-  name: string;
   date: Date;
   amt: number;
   pv?: number;
@@ -27,10 +32,13 @@ export type DataPoint = {
 
 const Graph = (props: {
   data?: DataPoint[] | null;
+  bucketCount: number;
   zoom: ZoomType;
   onZoom?: (zoom: ZoomType) => void;
+  startDate: Date;
+  endDate: Date;
 }) => {
-  const { data, onZoom } = props;
+  const { data, bucketCount, onZoom, startDate, endDate } = props;
   const [zoom, setZoom] = useState<ZoomType>(props.zoom);
   const [activeAnimations, setActiveAnimations] = useState(true);
 
@@ -61,7 +69,7 @@ const Graph = (props: {
     );
   }
 
-  const [minValue, maxValue] = [0, data.length - 1];
+  const [minValue, maxValue] = [0, bucketCount];
   const { startIndex, endIndex } = {
     startIndex: Math.max(zoom?.startIndex ?? minValue, minValue),
     endIndex: Math.min(zoom?.endIndex ?? maxValue, maxValue),
@@ -79,7 +87,13 @@ const Graph = (props: {
       <ResponsiveContainer>
         <BarChart data={data}>
           <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="name" />
+          <XAxis
+            dataKey="date"
+            domain={[startDate.getTime(), endDate.getTime()]}
+            type="number"
+            scale="time"
+            tickFormatter={(timestamp) => dayjs(timestamp).format("MM/DD")}
+          />
           <YAxis width={40} />
           <Tooltip
             labelClassName="text-xs text-white dark:text-slate-500"
@@ -95,10 +109,10 @@ const Graph = (props: {
           />
           <Brush
             stroke={"rgba(24, 106, 188, 0.6)"}
+            fill="rgba(136, 170, 238, 0.3)"
             height={16}
-            dataKey={"name"}
-            type="number"
-            gap={data.length / 100}
+            dataKey={"date"}
+            gap={1}
             onChange={(zoom) => updateGraph(zoom, activeAnimations)}
             startIndex={startIndex}
             endIndex={endIndex}
