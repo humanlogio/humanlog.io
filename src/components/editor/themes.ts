@@ -1,6 +1,6 @@
 // largely lifted from https://github.com/Azure/monaco-kusto/tree/master/package/src/syntaxHighlighting
 import * as monaco from "monaco-editor/esm/vs/editor/editor.api";
-import { Token } from "./types";
+import { Token } from "@/components/editor/types";
 
 export enum ThemeName {
   light = "humanlogql-light",
