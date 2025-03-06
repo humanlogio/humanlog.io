@@ -12,6 +12,11 @@ import {
 } from "recharts";
 import Scroller from "@/components/ui/graph/scroller";
 import dayjs from "dayjs";
+import { useApiClients } from "@/context/api-provider";
+import {
+  convertToGraphDataPoints,
+  convertToTimestamp,
+} from "@/components/env/graph-utils";
 
 export type ZoomType = {
   startIndex?: number;
@@ -20,7 +25,6 @@ export type ZoomType = {
 
 export type DataPoint = {
   dayNumber: number;
-  name: string;
   date: Date;
   amt: number;
   pv?: number;
@@ -28,12 +32,13 @@ export type DataPoint = {
 
 const Graph = (props: {
   data?: DataPoint[] | null;
+  bucketCount: number;
   zoom: ZoomType;
   onZoom?: (zoom: ZoomType) => void;
   startDate: Date;
   endDate: Date;
 }) => {
-  const { data, onZoom, startDate, endDate } = props;
+  const { data, bucketCount, onZoom, startDate, endDate } = props;
   const [zoom, setZoom] = useState<ZoomType>(props.zoom);
   const [activeAnimations, setActiveAnimations] = useState(true);
 
@@ -64,7 +69,7 @@ const Graph = (props: {
     );
   }
 
-  const [minValue, maxValue] = [0, data.length - 1];
+  const [minValue, maxValue] = [0, bucketCount];
   const { startIndex, endIndex } = {
     startIndex: Math.max(zoom?.startIndex ?? minValue, minValue),
     endIndex: Math.min(zoom?.endIndex ?? maxValue, maxValue),
@@ -77,7 +82,7 @@ const Graph = (props: {
       startIndex={startIndex}
       endIndex={endIndex}
       lockScroll={true}
-      onProcessed={updateGraph}
+      onProcessed={() => {}} // TODO
     >
       <ResponsiveContainer>
         <BarChart data={data}>
@@ -102,16 +107,18 @@ const Graph = (props: {
             fill="rgba(136, 170, 238, var(--tw-bg-opacity))"
             isAnimationActive={activeAnimations}
           />
-          <Brush
+          {/* TODO */}
+          {/* <Brush
             stroke={"rgba(24, 106, 188, 0.6)"}
+            fill="rgba(136, 170, 238, 0.3)"
             height={16}
             dataKey={"date"}
-            type="number"
-            gap={data.length / 100}
+            gap={1}
             onChange={(zoom) => updateGraph(zoom, activeAnimations)}
+         
             startIndex={startIndex}
             endIndex={endIndex}
-          />
+          /> */}
         </BarChart>
       </ResponsiveContainer>
     </Scroller>
