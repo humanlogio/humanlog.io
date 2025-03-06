@@ -23,7 +23,7 @@ const DateRangePicker = (props: {
         hideDate={sameDate}
         date={dateFrom}
         minDate={dayjs().subtract(1, "year").toDate()}
-        maxDate={dayjs().toDate()}
+        maxDate={dateTo as Date}
         setDate={setDateFrom}
       />
 
@@ -33,7 +33,7 @@ const DateRangePicker = (props: {
         styles="block w-full border text-sm"
         hideDate={sameDate}
         date={dateTo}
-        minDate={dayjs().subtract(1, "year").toDate()}
+        minDate={dateFrom}
         maxDate={dayjs().toDate()}
         setDate={setDateTo}
       />
