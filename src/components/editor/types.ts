@@ -1,0 +1,41 @@
+// largely lifted from https://github.com/Azure/monaco-kusto/tree/master/package/src/syntaxHighlighting
+
+export enum Token {
+  PlainText = "plainText",
+  Comment = "comment",
+  Punctuation = "punctuation",
+  Literal = "literal",
+  StringLiteral = "stringLiteral",
+  Type = "type",
+  Column = "column",
+  Function = "function",
+  Parameter = "parameter",
+  Variable = "variable",
+  Identifier = "identifier",
+  QueryParameter = "queryParameter",
+  ScalarParameter = "scalarParameter",
+  MathOperator = "mathOperator",
+  QueryOperator = "queryOperator",
+  Command = "command",
+  Keyword = "keyword",
+}
+
+export const tokenTypes = [
+  Token.PlainText,
+  Token.Comment,
+  Token.Punctuation,
+  Token.Literal,
+  Token.StringLiteral,
+  Token.Type,
+  Token.Column,
+  Token.Function,
+  Token.Parameter,
+  Token.Variable,
+  Token.Identifier,
+  Token.QueryParameter,
+  Token.ScalarParameter,
+  Token.MathOperator,
+  Token.QueryOperator,
+  Token.Command,
+  Token.Keyword,
+];

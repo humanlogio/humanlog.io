@@ -4,6 +4,10 @@ import { useTheme } from "next-themes";
 import Editor, { EditorProps, OnMount } from "@monaco-editor/react";
 import type { editor } from "monaco-editor";
 import { useRef, useEffect, useCallback } from "react";
+import { languages } from "monaco-editor/esm/vs/editor/editor.api";
+import { LANGUAGE_ID } from "@/components/editor/globals";
+import LanguageConfiguration = languages.LanguageConfiguration;
+import { humanlogqlLanguageDefinition } from "@/components/editor/monarch";
 
 interface MonacoEditorProps extends Omit<EditorProps, "theme"> {
   width?: number | string;
@@ -75,6 +79,19 @@ const MonacoEditor = ({
       },
     });
 
+    monaco.languages.register({
+      id: LANGUAGE_ID,
+    });
+
+    monaco.languages.setLanguageConfiguration(
+      LANGUAGE_ID,
+      languageConfiguration,
+    );
+    monaco.languages.setMonarchTokensProvider(
+      LANGUAGE_ID,
+      humanlogqlLanguageDefinition,
+    );
+
     onMount?.(editor, monaco);
   };
 
@@ -105,7 +122,7 @@ const MonacoEditor = ({
     <Editor
       width={width}
       height={height}
-      defaultLanguage="sql"
+      defaultLanguage={LANGUAGE_ID}
       theme={theme === "dark" ? "my-dark" : "vs-light"}
       // defaultValue="-- let's write some broken query 😈"
       value={value}
@@ -116,6 +133,31 @@ const MonacoEditor = ({
       {...props}
     />
   );
+};
+
+// largely lifted from https://github.com/Azure/monaco-kusto/tree/master/package/src/syntaxHighlighting
+const languageConfiguration: LanguageConfiguration = {
+  folding: {
+    offSide: false,
+    markers: { start: /^\s*[\r\n]/gm, end: /^\s*[\r\n]/gm },
+  },
+  comments: {
+    lineComment: "//",
+    blockComment: null,
+  },
+  autoClosingPairs: [
+    { open: "{", close: "}" },
+    { open: "[", close: "]" },
+    { open: "(", close: ")" },
+    { open: "'", close: "'", notIn: ["string", "comment"] },
+    { open: '"', close: '"', notIn: ["string", "comment"] },
+  ],
+  brackets: [
+    ["[", "]"],
+    ["{", "}"],
+    ["(", ")"],
+  ],
+  colorizedBracketPairs: [],
 };
 
 export default MonacoEditor;
