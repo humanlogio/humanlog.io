@@ -1,3 +1,6 @@
+// if someone wants to tweak this, have fun with:
+// -> https://microsoft.github.io/monaco-editor/monarch.html
+
 // largely lifted from https://github.com/Azure/monaco-kusto/tree/master/package/src/syntaxHighlighting
 
 import type * as monaco from "monaco-editor";
