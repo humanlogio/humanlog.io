@@ -65,10 +65,6 @@ export const convertToGraphDataPoints = (
     .filter((data) => data?.ts)
     .map((data, i) => ({
       dayNumber: i,
-      name: formatToDateString(
-        data?.ts ?? convertToTimestamp(new Date()),
-        diff,
-      ),
       date: data.ts!.toDate(),
       amt: Number(data.eventCount),
     }));

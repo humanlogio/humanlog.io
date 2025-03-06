@@ -290,6 +290,7 @@ const NewQueryInput = ({ errMsg, onExecuteQuery }: NewQueryInputProps) => {
       <div className="col-span-2 flex flex-col items-center gap-2 md:col-span-1">
         <Graph
           data={eventsList}
+          bucketCount={bucketCount}
           zoom={zoom}
           onZoom={updateTimeFrame}
           startDate={startDate}
