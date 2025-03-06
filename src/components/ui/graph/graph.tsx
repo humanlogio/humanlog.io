@@ -82,7 +82,7 @@ const Graph = (props: {
       startIndex={startIndex}
       endIndex={endIndex}
       lockScroll={true}
-      onProcessed={() => {}} // TODO
+      onProcessed={updateGraph}
     >
       <ResponsiveContainer>
         <BarChart data={data}>
@@ -107,18 +107,16 @@ const Graph = (props: {
             fill="rgba(136, 170, 238, var(--tw-bg-opacity))"
             isAnimationActive={activeAnimations}
           />
-          {/* TODO */}
-          {/* <Brush
+          <Brush
             stroke={"rgba(24, 106, 188, 0.6)"}
             fill="rgba(136, 170, 238, 0.3)"
             height={16}
             dataKey={"date"}
             gap={1}
             onChange={(zoom) => updateGraph(zoom, activeAnimations)}
-         
             startIndex={startIndex}
             endIndex={endIndex}
-          /> */}
+          />
         </BarChart>
       </ResponsiveContainer>
     </Scroller>
