@@ -11,6 +11,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import Scroller from "@/components/ui/graph/scroller";
+import dayjs from "dayjs";
 
 export type ZoomType = {
   startIndex?: number;
@@ -29,8 +30,10 @@ const Graph = (props: {
   data?: DataPoint[] | null;
   zoom: ZoomType;
   onZoom?: (zoom: ZoomType) => void;
+  startDate: Date;
+  endDate: Date;
 }) => {
-  const { data, onZoom } = props;
+  const { data, onZoom, startDate, endDate } = props;
   const [zoom, setZoom] = useState<ZoomType>(props.zoom);
   const [activeAnimations, setActiveAnimations] = useState(true);
 
@@ -79,7 +82,13 @@ const Graph = (props: {
       <ResponsiveContainer>
         <BarChart data={data}>
           <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="name" />
+          <XAxis
+            dataKey="date"
+            domain={[startDate.getTime(), endDate.getTime()]}
+            type="number"
+            scale="time"
+            tickFormatter={(timestamp) => dayjs(timestamp).format("MM/DD")}
+          />
           <YAxis width={40} />
           <Tooltip
             labelClassName="text-xs text-white dark:text-slate-500"
@@ -96,7 +105,7 @@ const Graph = (props: {
           <Brush
             stroke={"rgba(24, 106, 188, 0.6)"}
             height={16}
-            dataKey={"name"}
+            dataKey={"date"}
             type="number"
             gap={data.length / 100}
             onChange={(zoom) => updateGraph(zoom, activeAnimations)}
