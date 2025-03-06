@@ -13,8 +13,9 @@ export async function generateStaticParams() {
   }));
 }
 
-export default function DocsPage({ params }: any) {
-  const doc = getDocBySlug(params.slug);
+export default async function DocsPage({ params }: any) {
+  const resolvledParmas = await params;
+  const doc = getDocBySlug(resolvledParmas.slug);
   if (!doc) {
     return notFound();
   }

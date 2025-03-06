@@ -12,8 +12,9 @@ export async function generateStaticParams() {
   }));
 }
 
-export default function BlogPage({ params }: any) {
-  const slugPath = `${params.slug[0]}/page`;
+export default async function BlogPage({ params }: any) {
+  const resolvledParmas = await params;
+  const slugPath = `${resolvledParmas.slug[0]}/page`;
   const post = allBlogs.find((post) => slugPath === post.slugAsParams);
   if (!post) {
     return notFound();
