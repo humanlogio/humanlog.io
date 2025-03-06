@@ -232,23 +232,19 @@ const defaultColumnsSuggestions = (
   model: editor.ITextModel,
   pos: Position,
 ): languages.CompletionItem[] => {
+  // find out if we are completing a property in the 'dependencies' object.
+  const word = model.getWordUntilPosition(pos);
   const range = {
     startLineNumber: pos.lineNumber,
-    startColumn: pos.column,
     endLineNumber: pos.lineNumber,
-    endColumn: pos.column,
+    startColumn: word.startColumn,
+    endColumn: word.endColumn,
   };
 
-  const line = model.getLineContent(pos.lineNumber);
   const computeRange = (keyword: string): IRange => {
     // TODO:
     // find the overlap between the suffix of line and the prefix of keyword
-    return {
-      startLineNumber: pos.lineNumber,
-      startColumn: pos.column,
-      endLineNumber: pos.lineNumber,
-      endColumn: pos.column,
-    };
+    return range;
   };
 
   return [
