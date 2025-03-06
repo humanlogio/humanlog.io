@@ -49,7 +49,7 @@ const defaultOptions: editor.IStandaloneEditorConstructionOptions = {
 
 const MonacoEditor = ({
   width = "100%",
-  height = 80,
+  height = 150,
   value,
   onChange,
   onMount,
@@ -119,7 +119,6 @@ const MonacoEditor = ({
         context: languages.CompletionContext,
         token: CancellationToken,
       ) => {
-        console.log("context", context);
         let suggestions: languages.CompletionItem[] = [];
 
         switch (context.triggerKind) {
@@ -173,10 +172,6 @@ const MonacoEditor = ({
       theme === "dark" ||
       (theme === "system" &&
         window.matchMedia("(prefers-color-scheme: dark)").matches);
-    console.log(
-      "matches",
-      window.matchMedia("(prefers-color-scheme: dark)").matches,
-    );
 
     monacoRef.current.editor.setTheme(
       isDarkMode ? "humanlogql-dark" : "humanlogql-light",
