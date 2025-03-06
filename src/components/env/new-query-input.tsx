@@ -24,8 +24,8 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-
 import { SymbolList } from "@/components/env/symbol-list";
+import config from "@/features/config";
 
 interface NewQueryInputProps {
   errMsg: string;
@@ -33,6 +33,7 @@ interface NewQueryInputProps {
 }
 
 const NewQueryInput = ({ errMsg, onExecuteQuery }: NewQueryInputProps) => {
+  const isProd = config.NEXT_PUBLIC_SIGNUP_ONLY;
   const router = useRouter();
   const searchParams = useSearchParams();
   const queryString = searchParams.get("query");
@@ -287,22 +288,24 @@ const NewQueryInput = ({ errMsg, onExecuteQuery }: NewQueryInputProps) => {
       </div>
 
       {/* CHART */}
-      <div className="col-span-2 flex flex-col items-center gap-2 md:col-span-1">
-        <Graph
-          data={eventsList}
-          bucketCount={bucketCount}
-          zoom={zoom}
-          onZoom={updateTimeFrame}
-          startDate={startDate}
-          endDate={endDate}
-        />
-        <DateRangePicker
-          dateFrom={startDate}
-          dateTo={endDate}
-          setDateFrom={setStartDate}
-          setDateTo={setEndDate}
-        />
-      </div>
+      {!isProd && (
+        <div className="col-span-2 flex flex-col items-center gap-2 md:col-span-1">
+          <Graph
+            data={eventsList}
+            bucketCount={bucketCount}
+            zoom={zoom}
+            onZoom={updateTimeFrame}
+            startDate={startDate}
+            endDate={endDate}
+          />
+          <DateRangePicker
+            dateFrom={startDate}
+            dateTo={endDate}
+            setDateFrom={setStartDate}
+            setDateTo={setEndDate}
+          />
+        </div>
+      )}
     </div>
   );
 };
