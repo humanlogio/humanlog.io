@@ -228,24 +228,25 @@ const languageConfiguration: LanguageConfiguration = {
   colorizedBracketPairs: [],
 };
 
-const defaultColumnsSuggestions = (
+const rangeForModelPos = (
   model: editor.ITextModel,
   pos: Position,
-): languages.CompletionItem[] => {
-  // find out if we are completing a property in the 'dependencies' object.
+  keyword: string,
+): IRange => {
   const word = model.getWordUntilPosition(pos);
-  const range = {
+  return {
     startLineNumber: pos.lineNumber,
     endLineNumber: pos.lineNumber,
     startColumn: word.startColumn,
     endColumn: word.endColumn,
   };
+};
 
-  const computeRange = (keyword: string): IRange => {
-    // TODO:
-    // find the overlap between the suffix of line and the prefix of keyword
-    return range;
-  };
+const defaultColumnsSuggestions = (
+  model: editor.ITextModel,
+  pos: Position,
+): languages.CompletionItem[] => {
+  // find out if we are completing a property in the 'dependencies' object.
 
   return [
     {
@@ -256,7 +257,7 @@ const defaultColumnsSuggestions = (
       kind: languages.CompletionItemKind.Property,
       insertText: "machine",
       documentation: "The machine on which a log was recorded.",
-      range: computeRange("machine"),
+      range: rangeForModelPos(model, pos, "machine"),
     },
     {
       label: {
@@ -267,7 +268,7 @@ const defaultColumnsSuggestions = (
       insertText: "session",
       documentation:
         "The session during which a log was recorded. Sessions roughly map to processes, or a single invocation of `humanlog`. Sessions are unique only within a machine.",
-      range: computeRange("machine"),
+      range: rangeForModelPos(model, pos, "machine"),
     },
     {
       label: {
@@ -278,7 +279,7 @@ const defaultColumnsSuggestions = (
       insertText: "event",
       documentation:
         "The event during which a log was recorded. Events roughly map to log lines ingested by `humanlog`. Events are unique and ordered only within a (machine, session) pair. No global order exists.",
-      range: computeRange("event"),
+      range: rangeForModelPos(model, pos, "event"),
     },
     {
       label: {
@@ -289,7 +290,7 @@ const defaultColumnsSuggestions = (
       insertText: "parsed_at",
       documentation:
         "The timestamp when the log event was parsed in `humanlog`.",
-      range: computeRange("parsed_at"),
+      range: rangeForModelPos(model, pos, "parsed_at"),
     },
     {
       label: {
@@ -299,7 +300,7 @@ const defaultColumnsSuggestions = (
       kind: languages.CompletionItemKind.Property,
       insertText: "raw",
       documentation: "The full unparsed content of the log event.",
-      range: computeRange("raw"),
+      range: rangeForModelPos(model, pos, "raw"),
     },
     {
       label: {
@@ -310,7 +311,7 @@ const defaultColumnsSuggestions = (
       insertText: "ts",
       documentation:
         "The ts found in a log event, if parsed in `humanlog`. When no timestamp is found, the default timestamp is the time of parsing. See `parsed_at`.",
-      range: computeRange("ts"),
+      range: rangeForModelPos(model, pos, "ts"),
     },
     {
       label: {
@@ -321,7 +322,7 @@ const defaultColumnsSuggestions = (
       insertText: "lvl",
       documentation:
         "The log level found in a log event, if parsed in `humanlog`. Usually one of `debug`, `info`, `warn`, `error`, `panic` or `fatal`.",
-      range: computeRange("lvl"),
+      range: rangeForModelPos(model, pos, "lvl"),
     },
     {
       label: {
@@ -332,7 +333,7 @@ const defaultColumnsSuggestions = (
       insertText: "msg",
       documentation:
         "The message found in a log event, if parsed in `humanlog`.",
-      range: computeRange("msg"),
+      range: rangeForModelPos(model, pos, "msg"),
     },
     {
       label: {
@@ -343,7 +344,7 @@ const defaultColumnsSuggestions = (
       insertText: "kv",
       documentation:
         "The key-values found in a log event, if parsed in `humanlog`.",
-      range: computeRange("kv"),
+      range: rangeForModelPos(model, pos, "kv"),
     },
   ];
 };
@@ -353,23 +354,12 @@ const symbolsSuggestions = (
   pos: Position,
   symbols: Symbol[],
 ): languages.CompletionItem[] => {
+  const word = model.getWordUntilPosition(pos);
   const range = {
     startLineNumber: pos.lineNumber,
-    startColumn: pos.column,
     endLineNumber: pos.lineNumber,
-    endColumn: pos.column,
-  };
-
-  const line = model.getLineContent(pos.lineNumber);
-  const computeRange = (keyword: string): IRange => {
-    // TODO:
-    // find the overlap between the suffix of line and the prefix of keyword
-    return {
-      startLineNumber: pos.lineNumber,
-      startColumn: pos.column,
-      endLineNumber: pos.lineNumber,
-      endColumn: pos.column,
-    };
+    startColumn: word.startColumn,
+    endColumn: word.endColumn,
   };
 
   return symbols.map((sym): languages.CompletionItem => {
@@ -377,7 +367,7 @@ const symbolsSuggestions = (
       label: sym.name,
       kind: languages.CompletionItemKind.Variable,
       insertText: "['" + sym.name + "']",
-      range: computeRange("['" + sym.name + "']"),
+      range: rangeForModelPos(model, pos, "['" + sym.name + "']"),
     };
   });
 };
@@ -386,23 +376,12 @@ const tableOperatorSuggestions = (
   model: editor.ITextModel,
   pos: Position,
 ): languages.CompletionItem[] => {
+  const word = model.getWordUntilPosition(pos);
   const range = {
     startLineNumber: pos.lineNumber,
-    startColumn: pos.column,
     endLineNumber: pos.lineNumber,
-    endColumn: pos.column,
-  };
-
-  const line = model.getLineContent(pos.lineNumber);
-  const computeRange = (keyword: string): IRange => {
-    // TODO:
-    // find the overlap between the suffix of line and the prefix of keyword
-    return {
-      startLineNumber: pos.lineNumber,
-      startColumn: pos.column,
-      endLineNumber: pos.lineNumber,
-      endColumn: pos.column,
-    };
+    startColumn: word.startColumn,
+    endColumn: word.endColumn,
   };
 
   return [
@@ -413,7 +392,7 @@ const tableOperatorSuggestions = (
       },
       kind: languages.CompletionItemKind.Operator,
       insertText: "filter",
-      range: computeRange("filter"),
+      range: rangeForModelPos(model, pos, "filter"),
     },
     {
       label: {
@@ -423,7 +402,7 @@ const tableOperatorSuggestions = (
       },
       kind: languages.CompletionItemKind.Operator,
       insertText: "summarize",
-      range: computeRange("summarize"),
+      range: rangeForModelPos(model, pos, "summarize"),
     },
     {
       label: {
@@ -432,7 +411,7 @@ const tableOperatorSuggestions = (
       },
       kind: languages.CompletionItemKind.Operator,
       insertText: "project",
-      range: computeRange("project"),
+      range: rangeForModelPos(model, pos, "project"),
     },
     {
       label: {
@@ -441,7 +420,7 @@ const tableOperatorSuggestions = (
       },
       kind: languages.CompletionItemKind.Operator,
       insertText: "project-away",
-      range: computeRange("project-away"),
+      range: rangeForModelPos(model, pos, "project-away"),
     },
     {
       label: {
@@ -450,7 +429,7 @@ const tableOperatorSuggestions = (
       },
       kind: languages.CompletionItemKind.Operator,
       insertText: "project-keep",
-      range: computeRange("project-keep"),
+      range: rangeForModelPos(model, pos, "project-keep"),
     },
     {
       label: {
@@ -459,7 +438,7 @@ const tableOperatorSuggestions = (
       },
       kind: languages.CompletionItemKind.Operator,
       insertText: "extend",
-      range: computeRange("extend"),
+      range: rangeForModelPos(model, pos, "extend"),
     },
     {
       label: {
@@ -468,7 +447,7 @@ const tableOperatorSuggestions = (
       },
       kind: languages.CompletionItemKind.Operator,
       insertText: "count",
-      range: computeRange("count"),
+      range: rangeForModelPos(model, pos, "count"),
     },
     {
       label: {
@@ -477,7 +456,7 @@ const tableOperatorSuggestions = (
       },
       kind: languages.CompletionItemKind.Operator,
       insertText: "distinct",
-      range: computeRange("distinct"),
+      range: rangeForModelPos(model, pos, "distinct"),
     },
     {
       label: {
@@ -486,7 +465,7 @@ const tableOperatorSuggestions = (
       },
       kind: languages.CompletionItemKind.Operator,
       insertText: "sample",
-      range: computeRange("sample"),
+      range: rangeForModelPos(model, pos, "sample"),
     },
     {
       label: {
@@ -495,7 +474,7 @@ const tableOperatorSuggestions = (
       },
       kind: languages.CompletionItemKind.Operator,
       insertText: "search",
-      range: computeRange("search"),
+      range: rangeForModelPos(model, pos, "search"),
     },
     {
       label: {
@@ -504,7 +483,7 @@ const tableOperatorSuggestions = (
       },
       kind: languages.CompletionItemKind.Operator,
       insertText: "sort by",
-      range: computeRange("sort by"),
+      range: rangeForModelPos(model, pos, "sort by"),
     },
     {
       label: {
@@ -513,7 +492,7 @@ const tableOperatorSuggestions = (
       },
       kind: languages.CompletionItemKind.Operator,
       insertText: "take",
-      range: computeRange("take"),
+      range: rangeForModelPos(model, pos, "take"),
     },
     {
       label: {
@@ -522,7 +501,7 @@ const tableOperatorSuggestions = (
       },
       kind: languages.CompletionItemKind.Operator,
       insertText: "top",
-      range: computeRange("top"),
+      range: rangeForModelPos(model, pos, "top"),
     },
     {
       label: {
@@ -531,7 +510,7 @@ const tableOperatorSuggestions = (
       },
       kind: languages.CompletionItemKind.Operator,
       insertText: "render split by",
-      range: computeRange("render split by"),
+      range: rangeForModelPos(model, pos, "render split by"),
     },
   ];
 };
