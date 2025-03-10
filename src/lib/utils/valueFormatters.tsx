@@ -8,45 +8,21 @@ export const valueToJSX = (val: Val | Scalar | undefined): ReactNode => {
   }
   switch (val.kind.case) {
     case "str":
-      return (
-        <span className="text-red-600 dark:text-red-400">{val.kind.value}</span>
-      );
+      return <span className="">{val.kind.value}</span>;
     case "f64":
-      return (
-        <span className="text-red-600 dark:text-red-400">{val.kind.value}</span>
-      );
+      return <span className="">{val.kind.value}</span>;
     case "i64":
-      return (
-        <span className="text-red-600 dark:text-red-400">{val.kind.value}</span>
-      );
+      return <span className="">{val.kind.value}</span>;
     case "bool":
-      return (
-        <span className="text-red-600 dark:text-red-400">{val.kind.value}</span>
-      );
+      return <span className="">{val.kind.value}</span>;
     case "arr":
-      return (
-        <span className="text-red-600 dark:text-red-400">
-          {JSON.stringify(val.kind.value)}
-        </span>
-      );
+      return <span className="">{JSON.stringify(val.kind.value)}</span>;
     case "obj":
-      return (
-        <span className="text-red-600 dark:text-red-400">
-          {JSON.stringify(val.kind.value)}
-        </span>
-      );
+      return <span className="">{JSON.stringify(val.kind.value)}</span>;
     case "ts":
-      return (
-        <span className="text-red-600 dark:text-red-400">
-          {val.kind.value.toDate().toISOString()}
-        </span>
-      );
+      return <span className="">{val.kind.value.toDate().toISOString()}</span>;
     case "dur":
-      return (
-        <span className="text-red-600 dark:text-red-400">
-          {durationToString(val.kind.value)}
-        </span>
-      );
+      return <span className="">{durationToString(val.kind.value)}</span>;
   }
   return (
     <span className="dark:text-redqu-400 text-red-600">

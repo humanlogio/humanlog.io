@@ -42,7 +42,10 @@ const TableContainer = ({ query }: TableProps) => {
           <tr>
             {tableColumns?.map((col, i) => {
               return (
-                <td key={i} className="px-2">
+                <td
+                  key={i}
+                  className="border border-border px-2 dark:border-white"
+                >
                   {col?.name}
                 </td>
               );
@@ -55,7 +58,10 @@ const TableContainer = ({ query }: TableProps) => {
               <tr key={i}>
                 {row.items?.map((item, i) => {
                   return (
-                    <td key={`${item.kind.case}-${i}`} className="px-2">
+                    <td
+                      key={`${item.kind.case}-${i}`}
+                      className="whitespace-nowrap border border-border px-2 dark:border-white"
+                    >
                       {valueToJSX(item)}
                     </td>
                   );
