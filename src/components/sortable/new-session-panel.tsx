@@ -91,7 +91,7 @@ const NewSessionPanel = ({
   const handleClickLine = (line: string) => {
     const params = new URLSearchParams(searchParams);
     params.set("line", line);
-    router.push(`?${params}`);
+    router.push(`?${params}`, { scroll: false });
   };
 
   const updateSelection = (
