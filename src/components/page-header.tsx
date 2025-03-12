@@ -60,10 +60,11 @@ const navLinks = [
     href: `${getFirstDoc()?.fullPath}`,
     text: "Docs",
   },
-  {
-    href: "/blog",
-    text: "Blog",
-  },
+  // TODO: when blog is ready
+  // {
+  //   href: "/blog",
+  //   text: "Blog",
+  // },
   {
     href: "/pricing",
     text: "Pricing",
@@ -242,21 +243,19 @@ const PageHeader: React.FC = () => {
 
   const renderNavBlock = () => {
     return (
-      !isProd && (
-        <div className="flex flex-col gap-3 md:flex-row">
-          {navLinks.map((link, i) => {
-            return (
-              <Link
-                href={link.href}
-                key={i}
-                className="transition-colors hover:underline md:text-main md:hover:text-white"
-              >
-                {link.text}
-              </Link>
-            );
-          })}
-        </div>
-      )
+      <div className="flex flex-col gap-3 md:flex-row">
+        {navLinks.map((link, i) => {
+          return (
+            <Link
+              href={link.href}
+              key={i}
+              className="transition-colors hover:underline md:text-main md:hover:text-white"
+            >
+              {link.text}
+            </Link>
+          );
+        })}
+      </div>
     );
   };
 
