@@ -16,12 +16,12 @@ ARG git_hash
 ARG api_url
 ARG self_url
 ARG default_release_channel
-ARG signup_only
+ARG is_prod
 ENV GIT_HASH=$git_hash
 ENV NEXT_PUBLIC_API_BASE_URL=$api_url
 ENV NEXT_PUBLIC_SELF_BASE_URL=$self_url
 ENV NEXT_PUBLIC_DEFAULT_RELEASE_CHANNEL=$default_release_channel
-ENV NEXT_PUBLIC_SIGNUP_ONLY=$signup_only
+ENV NEXT_IS_PROD=$is_prod
 RUN npm run build
 
 # server
@@ -31,12 +31,12 @@ ARG git_hash
 ARG api_url
 ARG self_url
 ARG default_release_channel
-ARG signup_only
+ARG is_prod
 ENV GIT_HASH=$git_hash
 ENV NEXT_PUBLIC_API_BASE_URL=$api_url
 ENV NEXT_PUBLIC_SELF_BASE_URL=$self_url
 ENV NEXT_PUBLIC_DEFAULT_RELEASE_CHANNEL=$default_release_channel
-ENV NEXT_PUBLIC_SIGNUP_ONLY=$signup_only
+ENV NEXT_IS_PROD=$is_prod
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 RUN addgroup --system --gid 1001 nodejs

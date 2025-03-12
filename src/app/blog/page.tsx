@@ -3,7 +3,7 @@ import config from "@/features/config";
 import Link from "next/link";
 
 export default function BlogListPage() {
-  const isProd = config.NEXT_PUBLIC_SIGNUP_ONLY;
+  const isProd = config.NEXT_IS_PROD;
 
   const posts = allBlogs
     .filter((post) => !isProd || post.published)

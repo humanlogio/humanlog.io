@@ -9,7 +9,7 @@ export default async function EnvironmentPage({
   params: Promise<{ env: string }>;
 }) {
   const env = (await params).env;
-  const isProd = config.NEXT_PUBLIC_SIGNUP_ONLY;
+  const isProd = config.NEXT_IS_PROD;
 
   if (isProd) {
     notFound();
