@@ -27,6 +27,7 @@ import {
 import { SymbolList } from "@/components/env/symbol-list";
 import config from "@/features/config";
 import { twMerge } from "tailwind-merge";
+import * as monaco from "monaco-editor";
 
 interface NewQueryInputProps {
   errMsg: string;
@@ -59,6 +60,7 @@ const NewQueryInput = ({ errMsg, onExecuteQuery }: NewQueryInputProps) => {
 
   const isFirstFocusRef = useRef(true);
   const editorRef = useRef<monacoEditor.IStandaloneCodeEditor>();
+  const monacoRef = useRef<typeof monaco>();
 
   const updateGraphRange = useCallback(
     (
@@ -195,6 +197,8 @@ const NewQueryInput = ({ errMsg, onExecuteQuery }: NewQueryInputProps) => {
 
   const handleEditorDidMount: OnMount = (editor, monaco) => {
     editorRef.current = editor;
+    monacoRef.current = monaco;
+
     editor.onDidFocusEditorText(() => {
       if (isFirstFocusRef.current) {
         !queryString && editor.setValue("");
@@ -248,6 +252,19 @@ const NewQueryInput = ({ errMsg, onExecuteQuery }: NewQueryInputProps) => {
       }
     }
   }, [symbol]);
+
+  useEffect(() => {
+    if (editorRef.current && monacoRef.current) {
+      editorRef.current.addCommand(
+        monacoRef.current.KeyMod.CtrlCmd | monacoRef.current.KeyCode.Enter,
+        () => {
+          const currentValue = editorRef.current?.getValue() || "";
+          onExecuteQuery(currentValue);
+          setEditorContent(currentValue);
+        },
+      );
+    }
+  }, [searchParams, onExecuteQuery]);
 
   return (
     <div
