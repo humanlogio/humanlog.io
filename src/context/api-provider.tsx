@@ -68,7 +68,7 @@ export function ApiClientsProvider({
 }: {
   children: React.ReactNode;
 }) {
-  const isProd = config.NEXT_PUBLIC_SIGNUP_ONLY;
+  const isProd = config.NEXT_IS_PROD;
   const returnToURL = getSelfURL();
 
   const [cookies, setCookie] = useCookies();

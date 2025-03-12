@@ -34,7 +34,7 @@ interface NewQueryInputProps {
 }
 
 const NewQueryInput = ({ errMsg, onExecuteQuery }: NewQueryInputProps) => {
-  const isProd = config.NEXT_PUBLIC_SIGNUP_ONLY;
+  const isProd = config.NEXT_IS_PROD;
   const router = useRouter();
   const searchParams = useSearchParams();
   const queryString = searchParams.get("query");
@@ -285,7 +285,7 @@ const NewQueryInput = ({ errMsg, onExecuteQuery }: NewQueryInputProps) => {
           {/* TODO: not implemented */}
           {/* <Button
             size="icon"
-            className="h-8"           
+            className="h-8"
           >
             <Share size={14} />
           </Button> */}
