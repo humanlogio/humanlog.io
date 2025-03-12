@@ -60,6 +60,10 @@ const MonacoEditor = ({
   const { apiClients } = useApiClients();
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
   const monacoRef = useRef<typeof import("monaco-editor") | null>(null);
+  const isDarkMode =
+    theme === "dark" ||
+    (theme === "system" &&
+      window.matchMedia("(prefers-color-scheme: dark)").matches);
 
   const mergedOptions = {
     ...defaultOptions,
@@ -82,7 +86,6 @@ const MonacoEditor = ({
     // initialize the layout
     editor.layout();
 
-    // set the theme for dark mode
     monaco.editor.defineTheme("humanlogql-dark", {
       base: "vs-dark",
       inherit: true,
@@ -95,7 +98,9 @@ const MonacoEditor = ({
       base: "vs",
       inherit: true,
       rules: [],
-      colors: {},
+      colors: {
+        "editor.background": "#FFFFFF",
+      },
     });
 
     monaco.languages.register({
@@ -111,6 +116,9 @@ const MonacoEditor = ({
       LANGUAGE_ID,
       humanlogqlLanguageDefinition,
     );
+
+    monaco.editor.setTheme(isDarkMode ? "humanlogql-dark" : "humanlogql-light");
+
     monaco.languages.registerCompletionItemProvider(LANGUAGE_ID, {
       triggerCharacters: ["[", "|"],
       provideCompletionItems: async (
@@ -168,11 +176,6 @@ const MonacoEditor = ({
   useEffect(() => {
     if (!monacoRef.current || !editorRef.current) return;
 
-    const isDarkMode =
-      theme === "dark" ||
-      (theme === "system" &&
-        window.matchMedia("(prefers-color-scheme: dark)").matches);
-
     monacoRef.current.editor.setTheme(
       isDarkMode ? "humanlogql-dark" : "humanlogql-light",
     );
@@ -191,7 +194,7 @@ const MonacoEditor = ({
       width={width}
       height={height}
       defaultLanguage={LANGUAGE_ID}
-      theme={theme === "dark" ? "humanlogql-dark" : "humanlogql-light"}
+      theme={isDarkMode ? "humanlogql-dark" : "humanlogql-light"}
       defaultValue="// The query language is defined in the docs :)"
       value={value}
       onChange={onChange}
