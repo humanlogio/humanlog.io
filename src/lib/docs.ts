@@ -5,7 +5,7 @@ export const groupDocsBySection = () => {
   const sectionMap = new Map<string, DocSection>();
 
   allDocs.forEach((doc) => {
-    if (!doc.section) return;
+    if (!doc.section || !doc.published) return;
 
     if (!sectionMap.has(doc.section)) {
       sectionMap.set(doc.section, {
@@ -33,9 +33,9 @@ export const groupDocsBySection = () => {
     section.items.sort((a, b) => a.order - b.order);
   });
 
-  const sortedSections = Array.from(sectionMap.values()).sort(
-    (a, b) => a.order - b.order,
-  );
+  const sortedSections = Array.from(sectionMap.values())
+    .sort((a, b) => a.order - b.order)
+    .filter((docs) => docs.items.length > 0);
 
   return sortedSections;
 };
