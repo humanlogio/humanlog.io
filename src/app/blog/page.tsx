@@ -3,10 +3,8 @@ import config from "@/features/config";
 import Link from "next/link";
 
 export default function BlogListPage() {
-  const isProd = config.NEXT_IS_PROD;
-
   const posts = allBlogs
-    .filter((post) => !isProd || post.published)
+    .filter((post) => post.published)
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   return (

@@ -4,8 +4,7 @@ import { notFound } from "next/navigation";
 import config from "@/features/config";
 
 export async function generateStaticParams() {
-  const isProd = config.NEXT_IS_PROD;
-  const blogs = allBlogs.filter((post) => !isProd || post.published);
+  const blogs = allBlogs.filter((post) => post.published);
 
   return blogs.map((post) => ({
     slug: post._raw.flattenedPath.split("/"),
