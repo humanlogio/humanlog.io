@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import config from "@/features/config";
 
 export async function generateStaticParams() {
-  const isProd = config.NEXT_PUBLIC_SIGNUP_ONLY;
+  const isProd = config.NEXT_IS_PROD;
   const blogs = allBlogs.filter((post) => !isProd || post.published);
 
   return blogs.map((post) => ({

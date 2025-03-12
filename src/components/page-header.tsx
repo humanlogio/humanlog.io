@@ -72,7 +72,7 @@ const navLinks = [
 
 const PageHeader: React.FC = () => {
   const pathname = usePathname();
-  const isProd = config.NEXT_PUBLIC_SIGNUP_ONLY;
+  const isProd = config.NEXT_IS_PROD;
 
   const { setActiveEnvironment, doLogout } = useApiClients();
   const { isFullWidth, setIsFullWidth } = useFullWidth();
