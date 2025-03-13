@@ -5,7 +5,6 @@ order: 6
 section: "reference"
 ---
 
-
 # HumanlogQL
 
 This document describes the operators and functions available in the query language of humanlog.
@@ -91,9 +90,10 @@ Level detected in the log event. These are detected according to the parsing rul
 Key-values found in structured logs. If they respect the [a-Z0-9]+ regexp, you can simply refer to them. Otherwise you can refer to them via the `['my.nested.value']` notation, using either single or double quoted strings.
 
 ## Scalar Operators
-### scalar operator: `!`
-Negation of booleans.
 
+### scalar operator: `!`
+
+Negation of booleans.
 
 #### Examples
 
@@ -110,25 +110,22 @@ Given these logs:
 
 Applying this query:
 
-
 ```kusto
 project value = !(len(['source.func']) > 5)
 ```
 
-
 Produces the output:
 
 | value (`scalar:bool`) |
-| --- |
-| `true` |
-| `null` |
-| `false` |
-| `false` |
-
+| --------------------- |
+| `true`                |
+| `null`                |
+| `false`               |
+| `false`               |
 
 ### scalar operator: `-`
-Negation of numbers.
 
+Negation of numbers.
 
 #### Examples
 
@@ -145,27 +142,24 @@ Given these logs:
 
 Applying this query:
 
-
 ```kusto
 project value = -1
 ```
 
-
 Produces the output:
 
 | value (`scalar:i64`) |
-| --- |
-| `-1` |
-| `-1` |
-| `-1` |
-| `-1` |
-
+| -------------------- |
+| `-1`                 |
+| `-1`                 |
+| `-1`                 |
+| `-1`                 |
 
 ### scalar operator: `!=`
+
 Returns true if the two sides are unequal. False otherwise. Both operands must be of the same type, or an error will be returned.
 
 For strings, case-sensitive unequality is performed. Use `!~` for case-insensitive inequality.
-
 
 #### Examples
 
@@ -182,19 +176,16 @@ Given these logs:
 
 Applying this query:
 
-
 ```kusto
 filter ['source.function'] != "" | extend func_name=['source.function'] | take 10 | extend world=strcat(func_name, " is a function")
 ```
 
-
 Produces the output:
 
-| machine (`scalar:i64`) | session (`scalar:i64`) | event (`scalar:i64`) | parsed_at (`scalar:ts`) | raw (`scalar:str`) | ts (`scalar:ts`) | lvl (`scalar:str`) | msg (`scalar:str`) | kv (`scalar:unknown`) | func_name (`scalar:str`) | world (`scalar:str`) |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `1` | `1` | `1` | `2006-01-02T15:04:06Z` | `"{\"ts\":\"2006-01-02T15:04:06.001\", \"lvl\": \"error\", \"msg\":\"log1\",\"source\":{\"function\":\"my_func\"}}"` | `2006-01-02T15:04:06Z` | `"error"` | `"log1"` | `{}` | `"my_func"` | `"my_func"` |
-| `1` | `1` | `3` | `2006-01-02T15:04:06Z` | `"{\"ts\":\"2006-01-02T15:04:06.002\", \"lvl\": \"error\", \"msg\":\"log3\",\"source\":{\"function\":\"my_other_func\"}}"` | `2006-01-02T15:04:06Z` | `"error"` | `"log3"` | `{}` | `"my_other_func"` | `"my_other_func"` |
-
+| machine (`scalar:i64`) | session (`scalar:i64`) | event (`scalar:i64`) | parsed_at (`scalar:ts`) | raw (`scalar:str`)                                                                                                         | ts (`scalar:ts`)       | lvl (`scalar:str`) | msg (`scalar:str`) | kv (`scalar:unknown`) | func_name (`scalar:str`) | world (`scalar:str`) |
+| ---------------------- | ---------------------- | -------------------- | ----------------------- | -------------------------------------------------------------------------------------------------------------------------- | ---------------------- | ------------------ | ------------------ | --------------------- | ------------------------ | -------------------- |
+| `1`                    | `1`                    | `1`                  | `2006-01-02T15:04:06Z`  | `"{\"ts\":\"2006-01-02T15:04:06.001\", \"lvl\": \"error\", \"msg\":\"log1\",\"source\":{\"function\":\"my_func\"}}"`       | `2006-01-02T15:04:06Z` | `"error"`          | `"log1"`           | `{}`                  | `"my_func"`              | `"my_func"`          |
+| `1`                    | `1`                    | `3`                  | `2006-01-02T15:04:06Z`  | `"{\"ts\":\"2006-01-02T15:04:06.002\", \"lvl\": \"error\", \"msg\":\"log3\",\"source\":{\"function\":\"my_other_func\"}}"` | `2006-01-02T15:04:06Z` | `"error"`          | `"log3"`           | `{}`                  | `"my_other_func"`        | `"my_other_func"`    |
 
 ##### Example: `filter key value`
 
@@ -209,24 +200,21 @@ Given these logs:
 
 Applying this query:
 
-
 ```kusto
 filter ['source.function'] != "" | project hello=['source.function']
 ```
 
-
 Produces the output:
 
 | hello (`scalar:str`) |
-| --- |
-| `"blablabla1"` |
-| `"blablabla2"` |
-| `"blablabla3"` |
-
+| -------------------- |
+| `"blablabla1"`       |
+| `"blablabla2"`       |
+| `"blablabla3"`       |
 
 ### scalar operator: `!contains`
-(*not* case-sensitive) Returns true if the left-hand-side string does not contain the string in the right-hand-side. Slower than `!contains_cs`.
 
+(_not_ case-sensitive) Returns true if the left-hand-side string does not contain the string in the right-hand-side. Slower than `!contains_cs`.
 
 #### Examples
 
@@ -242,11 +230,9 @@ Given these logs:
 
 Applying this query:
 
-
 ```kusto
 filter ['source.func'] !contains "blabl"
 ```
-
 
 Produces the output:
 
@@ -255,8 +241,8 @@ Produces the output:
 ```
 
 ### scalar operator: `!contains_cs`
-(case-sensitive) Returns true if the left-hand-side string does not contain the string in the right-hand-side. Faster than `!contains`.
 
+(case-sensitive) Returns true if the left-hand-side string does not contain the string in the right-hand-side. Faster than `!contains`.
 
 #### Examples
 
@@ -273,11 +259,9 @@ Given these logs:
 
 Applying this query:
 
-
 ```kusto
 filter ['source.func'] !contains_cs "blablB"
 ```
-
 
 Produces the output:
 
@@ -287,8 +271,8 @@ Produces the output:
 ```
 
 ### scalar operator: `!endswith`
-(*not* case-sensitive) Returns true if the left-hand-side string does not end with the string in the right-hand-side. Slower than `!endswith_cs`.
 
+(_not_ case-sensitive) Returns true if the left-hand-side string does not end with the string in the right-hand-side. Slower than `!endswith_cs`.
 
 #### Examples
 
@@ -305,11 +289,9 @@ Given these logs:
 
 Applying this query:
 
-
 ```kusto
 filter ['source.func'] !endswith "ablb"
 ```
-
 
 Produces the output:
 
@@ -318,8 +300,8 @@ Produces the output:
 ```
 
 ### scalar operator: `!endswith_cs`
-(case-sensitive) Returns true if the left-hand-side string does not end with the string in the right-hand-side. Faster than `!endswith`.
 
+(case-sensitive) Returns true if the left-hand-side string does not end with the string in the right-hand-side. Faster than `!endswith`.
 
 #### Examples
 
@@ -336,11 +318,9 @@ Given these logs:
 
 Applying this query:
 
-
 ```kusto
 filter ['source.func'] !endswith_cs "ablb"
 ```
-
 
 Produces the output:
 
@@ -350,8 +330,8 @@ Produces the output:
 ```
 
 ### scalar operator: `!matches regex`
-Returns true if the left-hand-side string does *not* match the right-hand-side regex.
 
+Returns true if the left-hand-side string does _not_ match the right-hand-side regex.
 
 #### Examples
 
@@ -368,11 +348,9 @@ Given these logs:
 
 Applying this query:
 
-
 ```kusto
 filter ['source.func'] !matches regex "(bl.){3}"
 ```
-
 
 Produces the output:
 
@@ -382,8 +360,8 @@ Produces the output:
 ```
 
 ### scalar operator: `!startswith`
-(*not* case-sensitive) Returns true if the left-hand-side string does not start with the string in the right-hand-side. Slower than `!startswith_cs`.
 
+(_not_ case-sensitive) Returns true if the left-hand-side string does not start with the string in the right-hand-side. Slower than `!startswith_cs`.
 
 #### Examples
 
@@ -400,11 +378,9 @@ Given these logs:
 
 Applying this query:
 
-
 ```kusto
 filter ['source.func'] !startswith "blabl"
 ```
-
 
 Produces the output:
 
@@ -413,8 +389,8 @@ Produces the output:
 ```
 
 ### scalar operator: `!startswith_cs`
-(case-sensitive) Returns true if the left-hand-side string does not start with the string in the right-hand-side. Faster than `!startswith`.
 
+(case-sensitive) Returns true if the left-hand-side string does not start with the string in the right-hand-side. Faster than `!startswith`.
 
 #### Examples
 
@@ -431,11 +407,9 @@ Given these logs:
 
 Applying this query:
 
-
 ```kusto
 filter ['source.func'] !startswith_cs "blabl"
 ```
-
 
 Produces the output:
 
@@ -445,10 +419,10 @@ Produces the output:
 ```
 
 ### scalar operator: `!~`
-(*not* case-sensitive) Returns true if the two sides are unequal. False otherwise. Both operands must be of the same type, or an error will be returned.
+
+(_not_ case-sensitive) Returns true if the two sides are unequal. False otherwise. Both operands must be of the same type, or an error will be returned.
 
 For strings, case-insensitive unequality is performed. Use `==` for case-sensitive unequality.
-
 
 #### Examples
 
@@ -464,11 +438,9 @@ Given these logs:
 
 Applying this query:
 
-
 ```kusto
 filter ['source.func'] !~ "blablabla"
 ```
-
 
 Produces the output:
 
@@ -477,8 +449,8 @@ Produces the output:
 ```
 
 ### scalar operator: `%`
-Modulo of the operands. Both must be i64 (integers).
 
+Modulo of the operands. Both must be i64 (integers).
 
 #### Examples
 
@@ -496,26 +468,23 @@ Given these logs:
 
 Applying this query:
 
-
 ```kusto
 project hello=['source.line'] % 2
 ```
 
-
 Produces the output:
 
 | hello (`scalar:i64`) |
-| --- |
-| `1` |
-| `null` |
-| `0` |
-| `null` |
-| `1` |
-
+| -------------------- |
+| `1`                  |
+| `null`               |
+| `0`                  |
+| `null`               |
+| `1`                  |
 
 ### scalar operator: `*`
-Multiplies the operands.
 
+Multiplies the operands.
 
 #### Examples
 
@@ -532,21 +501,18 @@ Given these logs:
 
 Applying this query:
 
-
 ```kusto
 project value = 1.4*2.0
 ```
 
-
 Produces the output:
 
 | value (`scalar:f64`) |
-| --- |
-| `2.800000` |
-| `2.800000` |
-| `2.800000` |
-| `2.800000` |
-
+| -------------------- |
+| `2.800000`           |
+| `2.800000`           |
+| `2.800000`           |
+| `2.800000`           |
 
 ##### Example: `*` numerical operator (i64)
 
@@ -561,25 +527,22 @@ Given these logs:
 
 Applying this query:
 
-
 ```kusto
 project value = 4*2
 ```
 
-
 Produces the output:
 
 | value (`scalar:i64`) |
-| --- |
-| `8` |
-| `8` |
-| `8` |
-| `8` |
-
+| -------------------- |
+| `8`                  |
+| `8`                  |
+| `8`                  |
+| `8`                  |
 
 ### scalar operator: `+`
-Adds the two operands. As of now, the two operands must be of the same type.
 
+Adds the two operands. As of now, the two operands must be of the same type.
 
 #### Examples
 
@@ -596,21 +559,18 @@ Given these logs:
 
 Applying this query:
 
-
 ```kusto
 project value = now()+1h
 ```
 
-
 Produces the output:
 
-| value (`scalar:ts`) |
-| --- |
+| value (`scalar:ts`)    |
+| ---------------------- |
 | `2025-03-10T21:55:20Z` |
 | `2025-03-10T21:55:20Z` |
 | `2025-03-10T21:55:20Z` |
 | `2025-03-10T21:55:20Z` |
-
 
 ##### Example: `+` numerical operator (f64)
 
@@ -625,21 +585,18 @@ Given these logs:
 
 Applying this query:
 
-
 ```kusto
 project value = 1.5+2.3
 ```
 
-
 Produces the output:
 
 | value (`scalar:f64`) |
-| --- |
-| `3.800000` |
-| `3.800000` |
-| `3.800000` |
-| `3.800000` |
-
+| -------------------- |
+| `3.800000`           |
+| `3.800000`           |
+| `3.800000`           |
+| `3.800000`           |
 
 ##### Example: `+` numerical operator (i64)
 
@@ -654,25 +611,22 @@ Given these logs:
 
 Applying this query:
 
-
 ```kusto
 project value = 1+2
 ```
 
-
 Produces the output:
 
 | value (`scalar:i64`) |
-| --- |
-| `3` |
-| `3` |
-| `3` |
-| `3` |
-
+| -------------------- |
+| `3`                  |
+| `3`                  |
+| `3`                  |
+| `3`                  |
 
 ### scalar operator: `-`
-Subtract the two operands. As of now, the two operands must be of the same type.
 
+Subtract the two operands. As of now, the two operands must be of the same type.
 
 #### Examples
 
@@ -689,21 +643,18 @@ Given these logs:
 
 Applying this query:
 
-
 ```kusto
 project value = 1.0-2.0
 ```
 
-
 Produces the output:
 
 | value (`scalar:f64`) |
-| --- |
-| `-1.000000` |
-| `-1.000000` |
-| `-1.000000` |
-| `-1.000000` |
-
+| -------------------- |
+| `-1.000000`          |
+| `-1.000000`          |
+| `-1.000000`          |
+| `-1.000000`          |
 
 ##### Example: `-` numerical operator (i64)
 
@@ -718,21 +669,18 @@ Given these logs:
 
 Applying this query:
 
-
 ```kusto
 project value = 1-2
 ```
 
-
 Produces the output:
 
 | value (`scalar:i64`) |
-| --- |
-| `-1` |
-| `-1` |
-| `-1` |
-| `-1` |
-
+| -------------------- |
+| `-1`                 |
+| `-1`                 |
+| `-1`                 |
+| `-1`                 |
 
 ##### Example: `-` numerical operator (timestamps and durations)
 
@@ -747,25 +695,22 @@ Given these logs:
 
 Applying this query:
 
-
 ```kusto
 project value = now()-1h
 ```
 
-
 Produces the output:
 
-| value (`scalar:ts`) |
-| --- |
+| value (`scalar:ts`)    |
+| ---------------------- |
 | `2025-03-10T19:55:20Z` |
 | `2025-03-10T19:55:20Z` |
 | `2025-03-10T19:55:20Z` |
 | `2025-03-10T19:55:20Z` |
-
 
 ### scalar operator: `/`
-Divides the operands. If the operands are i64, the operation is integer division. Otherwise it is normal floating point division.
 
+Divides the operands. If the operands are i64, the operation is integer division. Otherwise it is normal floating point division.
 
 #### Examples
 
@@ -782,21 +727,18 @@ Given these logs:
 
 Applying this query:
 
-
 ```kusto
 project value = 3.0/2.0
 ```
 
-
 Produces the output:
 
 | value (`scalar:f64`) |
-| --- |
-| `1.500000` |
-| `1.500000` |
-| `1.500000` |
-| `1.500000` |
-
+| -------------------- |
+| `1.500000`           |
+| `1.500000`           |
+| `1.500000`           |
+| `1.500000`           |
 
 ##### Example: `/` numerical operator (i64)
 
@@ -811,25 +753,22 @@ Given these logs:
 
 Applying this query:
 
-
 ```kusto
 project value = 4/2
 ```
 
-
 Produces the output:
 
 | value (`scalar:i64`) |
-| --- |
-| `2` |
-| `2` |
-| `2` |
-| `2` |
-
+| -------------------- |
+| `2`                  |
+| `2`                  |
+| `2`                  |
+| `2`                  |
 
 ### scalar operator: `<`
-Returns true if the left-hand-side operand is less than the right-hand-side. Both types must be equal and comparable.
 
+Returns true if the left-hand-side operand is less than the right-hand-side. Both types must be equal and comparable.
 
 #### Examples
 
@@ -846,25 +785,22 @@ Given these logs:
 
 Applying this query:
 
-
 ```kusto
 project value = len(['source.func']) < 9
 ```
 
-
 Produces the output:
 
 | value (`scalar:bool`) |
-| --- |
-| `true` |
-| `null` |
-| `false` |
-| `false` |
-
+| --------------------- |
+| `true`                |
+| `null`                |
+| `false`               |
+| `false`               |
 
 ### scalar operator: `<=`
-Returns true if the left-hand-side operand is less or equal to the right-hand-side. Both types must be equal and comparable.
 
+Returns true if the left-hand-side operand is less or equal to the right-hand-side. Both types must be equal and comparable.
 
 #### Examples
 
@@ -881,27 +817,24 @@ Given these logs:
 
 Applying this query:
 
-
 ```kusto
 project value = len(['source.func']) <= 9
 ```
 
-
 Produces the output:
 
 | value (`scalar:bool`) |
-| --- |
-| `true` |
-| `null` |
-| `true` |
-| `true` |
-
+| --------------------- |
+| `true`                |
+| `null`                |
+| `true`                |
+| `true`                |
 
 ### scalar operator: `==`
+
 Returns true if the two sides are equal. False otherwise. Both operands must be of the same type, or an error will be returned.
 
 For strings, case-sensitive equality is performed. Use `=~` for case-insensitive equality.
-
 
 #### Examples
 
@@ -920,11 +853,9 @@ hello world 1
 
 Applying this query:
 
-
 ```kusto
 {from==2006-01-02T15:04:06.002000000Z to==2006-01-02T15:04:06.004000000Z} filter lvl=="error"
 ```
-
 
 Produces the output:
 
@@ -933,10 +864,10 @@ hello world 1
 ```
 
 ### scalar operator: `=~`
-(*not* case-sensitive) Returns true if the two sides are equal. False otherwise. Both operands must be of the same type, or an error will be returned.
+
+(_not_ case-sensitive) Returns true if the two sides are equal. False otherwise. Both operands must be of the same type, or an error will be returned.
 
 For strings, case-insensitive equality is performed. Use `==` for case-sensitive equality.
-
 
 #### Examples
 
@@ -952,11 +883,9 @@ Given these logs:
 
 Applying this query:
 
-
 ```kusto
 filter ['source.func'] =~ "blablabla"
 ```
-
 
 Produces the output:
 
@@ -965,8 +894,8 @@ Produces the output:
 ```
 
 ### scalar operator: `>`
-Returns true if the left-hand-side operand is greater than the right-hand-side. Both types must be equal and comparable.
 
+Returns true if the left-hand-side operand is greater than the right-hand-side. Both types must be equal and comparable.
 
 #### Examples
 
@@ -983,25 +912,22 @@ Given these logs:
 
 Applying this query:
 
-
 ```kusto
 project value = len(['source.func']) > 5
 ```
 
-
 Produces the output:
 
 | value (`scalar:bool`) |
-| --- |
-| `false` |
-| `null` |
-| `true` |
-| `true` |
-
+| --------------------- |
+| `false`               |
+| `null`                |
+| `true`                |
+| `true`                |
 
 ### scalar operator: `>=`
-Returns true if the left-hand-side operand is greater or equal to the right-hand-side. Both types must be equal and comparable.
 
+Returns true if the left-hand-side operand is greater or equal to the right-hand-side. Both types must be equal and comparable.
 
 #### Examples
 
@@ -1018,25 +944,22 @@ Given these logs:
 
 Applying this query:
 
-
 ```kusto
 project value = len(['source.func']) >= 5
 ```
 
-
 Produces the output:
 
 | value (`scalar:bool`) |
-| --- |
-| `true` |
-| `null` |
-| `true` |
-| `true` |
-
+| --------------------- |
+| `true`                |
+| `null`                |
+| `true`                |
+| `true`                |
 
 ### scalar operator: `and`
-The `and` operator does logical and-ing, like in other languages. Call it a conjunction if you want.
 
+The `and` operator does logical and-ing, like in other languages. Call it a conjunction if you want.
 
 #### Examples
 
@@ -1053,25 +976,22 @@ Given these logs:
 
 Applying this query:
 
-
 ```kusto
 project value = lvl=="error" and msg=="log1"
 ```
 
-
 Produces the output:
 
 | value (`scalar:bool`) |
-| --- |
-| `true` |
-| `false` |
-| `false` |
-| `false` |
-
+| --------------------- |
+| `true`                |
+| `false`               |
+| `false`               |
+| `false`               |
 
 ### scalar operator: `contains`
-(*not* case-sensitive) Returns true if the left-hand-side string contains the string in the right-hand-side. Slower than `contains_cs`.
 
+(_not_ case-sensitive) Returns true if the left-hand-side string contains the string in the right-hand-side. Slower than `contains_cs`.
 
 #### Examples
 
@@ -1087,11 +1007,9 @@ Given these logs:
 
 Applying this query:
 
-
 ```kusto
 filter ['source.func'] contains "blabl"
 ```
-
 
 Produces the output:
 
@@ -1111,11 +1029,9 @@ Given these logs:
 
 Applying this query:
 
-
 ```kusto
 filter ['source.func'] contains "blabla"
 ```
-
 
 Produces the output:
 
@@ -1124,8 +1040,8 @@ Produces the output:
 ```
 
 ### scalar operator: `contains_cs`
-(case-sensitive) Returns true if the left-hand-side string contains the string in the right-hand-side. Faster than `contains`.
 
+(case-sensitive) Returns true if the left-hand-side string contains the string in the right-hand-side. Faster than `contains`.
 
 #### Examples
 
@@ -1142,11 +1058,9 @@ Given these logs:
 
 Applying this query:
 
-
 ```kusto
 filter ['source.func'] contains_cs "blablB"
 ```
-
 
 Produces the output:
 
@@ -1155,8 +1069,8 @@ Produces the output:
 ```
 
 ### scalar operator: `endswith`
-(*not* case-sensitive) Returns true if the left-hand-side string ends with the string in the right-hand-side. Slower than `endswith_cs`.
 
+(_not_ case-sensitive) Returns true if the left-hand-side string ends with the string in the right-hand-side. Slower than `endswith_cs`.
 
 #### Examples
 
@@ -1173,11 +1087,9 @@ Given these logs:
 
 Applying this query:
 
-
 ```kusto
 filter ['source.func'] endswith "ablb"
 ```
-
 
 Produces the output:
 
@@ -1187,8 +1099,8 @@ Produces the output:
 ```
 
 ### scalar operator: `endswith_cs`
-(case-sensitive) Returns true if the left-hand-side string ends with the string in the right-hand-side. Faster than `endswith`.
 
+(case-sensitive) Returns true if the left-hand-side string ends with the string in the right-hand-side. Faster than `endswith`.
 
 #### Examples
 
@@ -1205,11 +1117,9 @@ Given these logs:
 
 Applying this query:
 
-
 ```kusto
 filter ['source.func'] endswith_cs "ablb"
 ```
-
 
 Produces the output:
 
@@ -1218,8 +1128,8 @@ Produces the output:
 ```
 
 ### scalar operator: `matches regex`
-Returns true if the left-hand-side string matches the right-hand-side regex
 
+Returns true if the left-hand-side string matches the right-hand-side regex
 
 #### Examples
 
@@ -1236,11 +1146,9 @@ Given these logs:
 
 Applying this query:
 
-
 ```kusto
 filter ['source.func'] matches regex "(bl.){3}"
 ```
-
 
 Produces the output:
 
@@ -1249,8 +1157,8 @@ Produces the output:
 ```
 
 ### scalar operator: `or`
-The `or` operator does logical or-ing, like in other languages. Call it a disjunction if you want.
 
+The `or` operator does logical or-ing, like in other languages. Call it a disjunction if you want.
 
 #### Examples
 
@@ -1267,25 +1175,22 @@ Given these logs:
 
 Applying this query:
 
-
 ```kusto
 project value = msg=="log2" or msg=="log1"
 ```
 
-
 Produces the output:
 
 | value (`scalar:bool`) |
-| --- |
-| `true` |
-| `true` |
-| `false` |
-| `false` |
-
+| --------------------- |
+| `true`                |
+| `true`                |
+| `false`               |
+| `false`               |
 
 ### scalar operator: `startswith`
-(*not* case-sensitive) Returns true if the left-hand-side string starts with the string in the right-hand-side. Slower than `startswith_cs`.
 
+(_not_ case-sensitive) Returns true if the left-hand-side string starts with the string in the right-hand-side. Slower than `startswith_cs`.
 
 #### Examples
 
@@ -1302,11 +1207,9 @@ Given these logs:
 
 Applying this query:
 
-
 ```kusto
 filter ['source.func'] startswith "blabl"
 ```
-
 
 Produces the output:
 
@@ -1316,8 +1219,8 @@ Produces the output:
 ```
 
 ### scalar operator: `startswith_cs`
-(case-sensitive) Returns true if the left-hand-side string starts with the string in the right-hand-side. Faster than `startswith`.
 
+(case-sensitive) Returns true if the left-hand-side string starts with the string in the right-hand-side. Faster than `startswith`.
 
 #### Examples
 
@@ -1334,11 +1237,9 @@ Given these logs:
 
 Applying this query:
 
-
 ```kusto
 filter ['source.func'] startswith_cs "blabl"
 ```
-
 
 Produces the output:
 
@@ -1346,15 +1247,15 @@ Produces the output:
 {"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"blablablB"}}
 ```
 
-
 ## Tabular Operators
 
 ## Functions
 
 ### Scalar
-### scalar function: `bin`
-Puts the input into bins, where the 1st argument is what to bin, and the 2nd argument is the method by which to bin. In the case of binning timestamps, the second argument would be a duration to use to round the timestamps.
 
+### scalar function: `bin`
+
+Puts the input into bins, where the 1st argument is what to bin, and the 2nd argument is the method by which to bin. In the case of binning timestamps, the second argument would be a duration to use to round the timestamps.
 
 #### Examples
 
@@ -1372,19 +1273,16 @@ Given these logs:
 
 Applying this query:
 
-
 ```kusto
 summarize daily_count=count() by bin(ts, 1d) | sort by daily_count
 ```
 
-
 Produces the output:
 
-| by_ts (`scalar:ts`) | daily_count (`scalar:i64`) |
-| --- | --- |
-| `2006-01-03T00:00:00Z` | `1` |
-| `2006-01-02T00:00:00Z` | `4` |
-
+| by_ts (`scalar:ts`)    | daily_count (`scalar:i64`) |
+| ---------------------- | -------------------------- |
+| `2006-01-03T00:00:00Z` | `1`                        |
+| `2006-01-02T00:00:00Z` | `4`                        |
 
 ##### Example: `refer to summarized column, sort desc`
 
@@ -1400,19 +1298,16 @@ Given these logs:
 
 Applying this query:
 
-
 ```kusto
 summarize daily_count=count() by bin(ts, 1d) | sort by daily_count desc
 ```
 
-
 Produces the output:
 
-| by_ts (`scalar:ts`) | daily_count (`scalar:i64`) |
-| --- | --- |
-| `2006-01-02T00:00:00Z` | `4` |
-| `2006-01-03T00:00:00Z` | `1` |
-
+| by_ts (`scalar:ts`)    | daily_count (`scalar:i64`) |
+| ---------------------- | -------------------------- |
+| `2006-01-02T00:00:00Z` | `4`                        |
+| `2006-01-03T00:00:00Z` | `1`                        |
 
 ##### Example: `refer to summarized column, sort asc`
 
@@ -1428,19 +1323,16 @@ Given these logs:
 
 Applying this query:
 
-
 ```kusto
 summarize daily_count=count() by bin(ts, 1d) | sort by daily_count asc
 ```
 
-
 Produces the output:
 
-| by_ts (`scalar:ts`) | daily_count (`scalar:i64`) |
-| --- | --- |
-| `2006-01-03T00:00:00Z` | `1` |
-| `2006-01-02T00:00:00Z` | `4` |
-
+| by_ts (`scalar:ts`)    | daily_count (`scalar:i64`) |
+| ---------------------- | -------------------------- |
+| `2006-01-03T00:00:00Z` | `1`                        |
+| `2006-01-02T00:00:00Z` | `4`                        |
 
 ##### Example: `summarize by binned ts`
 
@@ -1455,24 +1347,21 @@ Given these logs:
 
 Applying this query:
 
-
 ```kusto
 summarize count() by bin(ts, 1ms)
 ```
 
-
 Produces the output:
 
-| by_ts (`scalar:ts`) | count_by_bin_ts (`scalar:i64`) |
-| --- | --- |
-| `2006-01-02T15:04:06Z` | `1` |
-| `2006-01-02T15:04:06Z` | `2` |
-| `2006-01-02T15:04:06Z` | `1` |
-
+| by_ts (`scalar:ts`)    | count_by_bin_ts (`scalar:i64`) |
+| ---------------------- | ------------------------------ |
+| `2006-01-02T15:04:06Z` | `1`                            |
+| `2006-01-02T15:04:06Z` | `2`                            |
+| `2006-01-02T15:04:06Z` | `1`                            |
 
 ### scalar function: `len`
-Returns the length of the input (a string or an array), as an i64.
 
+Returns the length of the input (a string or an array), as an i64.
 
 #### Examples
 
@@ -1489,25 +1378,22 @@ Given these logs:
 
 Applying this query:
 
-
 ```kusto
 project func_name_length=len(['source.func'])
 ```
 
-
 Produces the output:
 
 | func_name_length (`scalar:i64`) |
-| --- |
-| `5` |
-| `null` |
-| `9` |
-| `9` |
-
+| ------------------------------- |
+| `5`                             |
+| `null`                          |
+| `9`                             |
+| `9`                             |
 
 ### scalar function: `now`
-Returns the current time in UTC, as a timestamp.
 
+Returns the current time in UTC, as a timestamp.
 
 #### Examples
 
@@ -1524,25 +1410,22 @@ Given these logs:
 
 Applying this query:
 
-
 ```kusto
 project current_time=now()
 ```
 
-
 Produces the output:
 
 | current_time (`scalar:ts`) |
-| --- |
-| `2025-03-10T20:55:20Z` |
-| `2025-03-10T20:55:20Z` |
-| `2025-03-10T20:55:20Z` |
-| `2025-03-10T20:55:20Z` |
-
+| -------------------------- |
+| `2025-03-10T20:55:20Z`     |
+| `2025-03-10T20:55:20Z`     |
+| `2025-03-10T20:55:20Z`     |
+| `2025-03-10T20:55:20Z`     |
 
 ### scalar function: `strcat`
-Concatenates strings together. A maximum of 64 strings can be concatenated at once.
 
+Concatenates strings together. A maximum of 64 strings can be concatenated at once.
 
 #### Examples
 
@@ -1559,19 +1442,16 @@ Given these logs:
 
 Applying this query:
 
-
 ```kusto
 filter ['source.function'] != "" | extend func_name=['source.function'] | take 10 | extend world=strcat(func_name, " is a function")
 ```
 
-
 Produces the output:
 
-| machine (`scalar:i64`) | session (`scalar:i64`) | event (`scalar:i64`) | parsed_at (`scalar:ts`) | raw (`scalar:str`) | ts (`scalar:ts`) | lvl (`scalar:str`) | msg (`scalar:str`) | kv (`scalar:unknown`) | func_name (`scalar:str`) | world (`scalar:str`) |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `1` | `1` | `1` | `2006-01-02T15:04:06Z` | `"{\"ts\":\"2006-01-02T15:04:06.001\", \"lvl\": \"error\", \"msg\":\"log1\",\"source\":{\"function\":\"my_func\"}}"` | `2006-01-02T15:04:06Z` | `"error"` | `"log1"` | `{}` | `"my_func"` | `"my_func"` |
-| `1` | `1` | `3` | `2006-01-02T15:04:06Z` | `"{\"ts\":\"2006-01-02T15:04:06.002\", \"lvl\": \"error\", \"msg\":\"log3\",\"source\":{\"function\":\"my_other_func\"}}"` | `2006-01-02T15:04:06Z` | `"error"` | `"log3"` | `{}` | `"my_other_func"` | `"my_other_func"` |
-
+| machine (`scalar:i64`) | session (`scalar:i64`) | event (`scalar:i64`) | parsed_at (`scalar:ts`) | raw (`scalar:str`)                                                                                                         | ts (`scalar:ts`)       | lvl (`scalar:str`) | msg (`scalar:str`) | kv (`scalar:unknown`) | func_name (`scalar:str`) | world (`scalar:str`) |
+| ---------------------- | ---------------------- | -------------------- | ----------------------- | -------------------------------------------------------------------------------------------------------------------------- | ---------------------- | ------------------ | ------------------ | --------------------- | ------------------------ | -------------------- |
+| `1`                    | `1`                    | `1`                  | `2006-01-02T15:04:06Z`  | `"{\"ts\":\"2006-01-02T15:04:06.001\", \"lvl\": \"error\", \"msg\":\"log1\",\"source\":{\"function\":\"my_func\"}}"`       | `2006-01-02T15:04:06Z` | `"error"`          | `"log1"`           | `{}`                  | `"my_func"`              | `"my_func"`          |
+| `1`                    | `1`                    | `3`                  | `2006-01-02T15:04:06Z`  | `"{\"ts\":\"2006-01-02T15:04:06.002\", \"lvl\": \"error\", \"msg\":\"log3\",\"source\":{\"function\":\"my_other_func\"}}"` | `2006-01-02T15:04:06Z` | `"error"`          | `"log3"`           | `{}`                  | `"my_other_func"`        | `"my_other_func"`    |
 
 ##### Example: `project with expr`
 
@@ -1586,27 +1466,24 @@ Given these logs:
 
 Applying this query:
 
-
 ```kusto
 project new_msg=strcat(msg, "_world")
 ```
 
-
 Produces the output:
 
 | new_msg (`scalar:str`) |
-| --- |
-| `"log1_world"` |
-| `"log2_world"` |
-| `"log3_world"` |
-| `"log4_world"` |
-
-
+| ---------------------- |
+| `"log1_world"`         |
+| `"log2_world"`         |
+| `"log3_world"`         |
+| `"log4_world"`         |
 
 ### Aggregate
-### aggregate function: `avg`
-Returns the average value of the input. Takes as argument the thing to average.
 
+### aggregate function: `avg`
+
+Returns the average value of the input. Takes as argument the thing to average.
 
 #### Examples
 
@@ -1626,22 +1503,19 @@ Given these logs:
 
 Applying this query:
 
-
 ```kusto
 summarize avg(['source.line'])
 ```
 
-
 Produces the output:
 
 | avg (`scalar:f64`) |
-| --- |
-| `3.000000` |
-
+| ------------------ |
+| `3.000000`         |
 
 ### aggregate function: `avgif`
-Returns the average value of the input, if the condition in the argument evaluates to true. Null values evaluate to false. Takes as argument the thing to average.
 
+Returns the average value of the input, if the condition in the argument evaluates to true. Null values evaluate to false. Takes as argument the thing to average.
 
 #### Examples
 
@@ -1661,22 +1535,19 @@ Given these logs:
 
 Applying this query:
 
-
 ```kusto
 summarize avgif(['source.line'], ['source.line'] >= 3)
 ```
 
-
 Produces the output:
 
 | avgif (`scalar:f64`) |
-| --- |
-| `4.000000` |
-
+| -------------------- |
+| `4.000000`           |
 
 ### aggregate function: `count`
-Count the number of events that are aggregated. Returns an i64.
 
+Count the number of events that are aggregated. Returns an i64.
 
 #### Examples
 
@@ -1694,19 +1565,16 @@ Given these logs:
 
 Applying this query:
 
-
 ```kusto
 summarize daily_count=count() by bin(ts, 1d) | sort by daily_count
 ```
 
-
 Produces the output:
 
-| by_ts (`scalar:ts`) | daily_count (`scalar:i64`) |
-| --- | --- |
-| `2006-01-03T00:00:00Z` | `1` |
-| `2006-01-02T00:00:00Z` | `4` |
-
+| by_ts (`scalar:ts`)    | daily_count (`scalar:i64`) |
+| ---------------------- | -------------------------- |
+| `2006-01-03T00:00:00Z` | `1`                        |
+| `2006-01-02T00:00:00Z` | `4`                        |
 
 ##### Example: `refer to summarized column, sort desc`
 
@@ -1722,19 +1590,16 @@ Given these logs:
 
 Applying this query:
 
-
 ```kusto
 summarize daily_count=count() by bin(ts, 1d) | sort by daily_count desc
 ```
 
-
 Produces the output:
 
-| by_ts (`scalar:ts`) | daily_count (`scalar:i64`) |
-| --- | --- |
-| `2006-01-02T00:00:00Z` | `4` |
-| `2006-01-03T00:00:00Z` | `1` |
-
+| by_ts (`scalar:ts`)    | daily_count (`scalar:i64`) |
+| ---------------------- | -------------------------- |
+| `2006-01-02T00:00:00Z` | `4`                        |
+| `2006-01-03T00:00:00Z` | `1`                        |
 
 ##### Example: `refer to summarized column, sort asc`
 
@@ -1750,19 +1615,16 @@ Given these logs:
 
 Applying this query:
 
-
 ```kusto
 summarize daily_count=count() by bin(ts, 1d) | sort by daily_count asc
 ```
 
-
 Produces the output:
 
-| by_ts (`scalar:ts`) | daily_count (`scalar:i64`) |
-| --- | --- |
-| `2006-01-03T00:00:00Z` | `1` |
-| `2006-01-02T00:00:00Z` | `4` |
-
+| by_ts (`scalar:ts`)    | daily_count (`scalar:i64`) |
+| ---------------------- | -------------------------- |
+| `2006-01-03T00:00:00Z` | `1`                        |
+| `2006-01-02T00:00:00Z` | `4`                        |
 
 ##### Example: `summarize by ts`
 
@@ -1777,20 +1639,17 @@ Given these logs:
 
 Applying this query:
 
-
 ```kusto
 summarize count() by ts
 ```
 
-
 Produces the output:
 
-| by_ts (`scalar:ts`) | count_by_ts (`scalar:i64`) |
-| --- | --- |
-| `2006-01-02T15:04:06Z` | `1` |
-| `2006-01-02T15:04:06Z` | `2` |
-| `2006-01-02T15:04:06Z` | `1` |
-
+| by_ts (`scalar:ts`)    | count_by_ts (`scalar:i64`) |
+| ---------------------- | -------------------------- |
+| `2006-01-02T15:04:06Z` | `1`                        |
+| `2006-01-02T15:04:06Z` | `2`                        |
+| `2006-01-02T15:04:06Z` | `1`                        |
 
 ##### Example: `summarize by binned ts`
 
@@ -1805,24 +1664,21 @@ Given these logs:
 
 Applying this query:
 
-
 ```kusto
 summarize count() by bin(ts, 1ms)
 ```
 
-
 Produces the output:
 
-| by_ts (`scalar:ts`) | count_by_bin_ts (`scalar:i64`) |
-| --- | --- |
-| `2006-01-02T15:04:06Z` | `1` |
-| `2006-01-02T15:04:06Z` | `2` |
-| `2006-01-02T15:04:06Z` | `1` |
-
+| by_ts (`scalar:ts`)    | count_by_bin_ts (`scalar:i64`) |
+| ---------------------- | ------------------------------ |
+| `2006-01-02T15:04:06Z` | `1`                            |
+| `2006-01-02T15:04:06Z` | `2`                            |
+| `2006-01-02T15:04:06Z` | `1`                            |
 
 ### aggregate function: `countif`
-Count the number of events that are aggregated, if the condition in the argument evaluates to true. Null values evaluate to false. Returns an i64.
 
+Count the number of events that are aggregated, if the condition in the argument evaluates to true. Null values evaluate to false. Returns an i64.
 
 #### Examples
 
@@ -1842,22 +1698,19 @@ Given these logs:
 
 Applying this query:
 
-
 ```kusto
 summarize countif(['source.line'] > 3)
 ```
 
-
 Produces the output:
 
 | countif (`scalar:i64`) |
-| --- |
-| `2` |
-
+| ---------------------- |
+| `2`                    |
 
 ### aggregate function: `dcount`
-Count the number of distinct events that are aggregated by the given argument. Returns an i64.
 
+Count the number of distinct events that are aggregated by the given argument. Returns an i64.
 
 #### Examples
 
@@ -1877,18 +1730,15 @@ Given these logs:
 
 Applying this query:
 
-
 ```kusto
 summarize dcount(['source.line'])
 ```
 
-
 Produces the output:
 
 | dcount (`scalar:i64`) |
-| --- |
-| `4` |
-
+| --------------------- |
+| `4`                   |
 
 ##### Example: `summarize dcount`
 
@@ -1905,19 +1755,16 @@ Given these logs:
 ```
 
 Applying this query:
-
 
 ```kusto
 summarize dcount(msg)
 ```
 
-
 Produces the output:
 
 | dcount (`scalar:i64`) |
-| --- |
-| `7` |
-
+| --------------------- |
+| `7`                   |
 
 ##### Example: `summarize dcount`
 
@@ -1934,19 +1781,16 @@ Given these logs:
 ```
 
 Applying this query:
-
 
 ```kusto
 summarize dcount(lvl)
 ```
 
-
 Produces the output:
 
 | dcount (`scalar:i64`) |
-| --- |
-| `1` |
-
+| --------------------- |
+| `1`                   |
 
 ##### Example: `summarize dcount`
 
@@ -1964,22 +1808,19 @@ Given these logs:
 
 Applying this query:
 
-
 ```kusto
 summarize dcount(1 + 1 + 3)
 ```
 
-
 Produces the output:
 
 | dcount (`scalar:i64`) |
-| --- |
-| `1` |
-
+| --------------------- |
+| `1`                   |
 
 ### aggregate function: `dcountif`
-Count the number of distinct events that are aggregated by the given argument, if the condition in the argument evaluates to true. Null values evaluate to false. Returns an i64.
 
+Count the number of distinct events that are aggregated by the given argument, if the condition in the argument evaluates to true. Null values evaluate to false. Returns an i64.
 
 #### Examples
 
@@ -1999,22 +1840,19 @@ Given these logs:
 
 Applying this query:
 
-
 ```kusto
 summarize dcountif(['source.line'], ['source.line'] > 3)
 ```
 
-
 Produces the output:
 
 | dcountif (`scalar:i64`) |
-| --- |
-| `2` |
-
+| ----------------------- |
+| `2`                     |
 
 ### aggregate function: `histogram`
-Puts the input into a histogram. The first argument is the value to put in the histogram, and the second argument is the number of buckets to sort the input into.
 
+Puts the input into a histogram. The first argument is the value to put in the histogram, and the second argument is the number of buckets to sort the input into.
 
 #### Examples
 
@@ -2048,22 +1886,19 @@ Given these logs:
 
 Applying this query:
 
-
 ```kusto
 summarize histogram(['source.line'], 10)
 ```
 
-
 Produces the output:
 
 | histogram (`map:{key:{scalar:i64}  value:{scalar:i64}}`) |
-| --- |
-| `{1: 5,2: 3,3: 3,4: 1,5: 3}` |
-
+| -------------------------------------------------------- |
+| `{1: 5,2: 3,3: 3,4: 1,5: 3}`                             |
 
 ### aggregate function: `max`
-Returns the maximum value of the input. Takes as argument the thing to maximize.
 
+Returns the maximum value of the input. Takes as argument the thing to maximize.
 
 #### Examples
 
@@ -2083,22 +1918,19 @@ Given these logs:
 
 Applying this query:
 
-
 ```kusto
 summarize max(['source.line'])
 ```
 
-
 Produces the output:
 
 | max (`scalar:i64`) |
-| --- |
-| `5` |
-
+| ------------------ |
+| `5`                |
 
 ### aggregate function: `maxif`
-Returns the maximum value of the input, if the condition in the argument evaluates to true. Null values evaluate to false. Takes as argument the thing to maximize.
 
+Returns the maximum value of the input, if the condition in the argument evaluates to true. Null values evaluate to false. Takes as argument the thing to maximize.
 
 #### Examples
 
@@ -2118,22 +1950,19 @@ Given these logs:
 
 Applying this query:
 
-
 ```kusto
 summarize maxif(['source.line'], ['source.line'] < 3)
 ```
 
-
 Produces the output:
 
 | maxif (`scalar:i64`) |
-| --- |
-| `2` |
-
+| -------------------- |
+| `2`                  |
 
 ### aggregate function: `min`
-Returns the minimum value of the input. Takes as argument the thing to minimize.
 
+Returns the minimum value of the input. Takes as argument the thing to minimize.
 
 #### Examples
 
@@ -2153,22 +1982,19 @@ Given these logs:
 
 Applying this query:
 
-
 ```kusto
 summarize min(['source.line'])
 ```
 
-
 Produces the output:
 
 | min (`scalar:i64`) |
-| --- |
-| `1` |
-
+| ------------------ |
+| `1`                |
 
 ### aggregate function: `minif`
-Returns the minimum value of the input, if the condition in the argument evaluates to true. Null values evaluate to false. Takes as argument the thing to minimize.
 
+Returns the minimum value of the input, if the condition in the argument evaluates to true. Null values evaluate to false. Takes as argument the thing to minimize.
 
 #### Examples
 
@@ -2188,22 +2014,19 @@ Given these logs:
 
 Applying this query:
 
-
 ```kusto
 summarize minif(['source.line'], ['source.line'] > 3)
 ```
 
-
 Produces the output:
 
 | minif (`scalar:i64`) |
-| --- |
-| `4` |
-
+| -------------------- |
+| `4`                  |
 
 ### aggregate function: `percentile`
-Returns the percentile of the values in the input. Takes as argument the thing to compute the percentile on.
 
+Returns the percentile of the values in the input. Takes as argument the thing to compute the percentile on.
 
 #### Examples
 
@@ -2223,18 +2046,15 @@ Given these logs:
 
 Applying this query:
 
-
 ```kusto
 summarize percentile(['source.line'], 50)
 ```
 
-
 Produces the output:
 
 | percentile (`scalar:i64`) |
-| --- |
-| `3` |
-
+| ------------------------- |
+| `3`                       |
 
 ##### Example: `summarize percentile`
 
@@ -2251,19 +2071,16 @@ Given these logs:
 ```
 
 Applying this query:
-
 
 ```kusto
 summarize percentile(['source.line'], 0)
 ```
 
-
 Produces the output:
 
 | percentile (`scalar:i64`) |
-| --- |
-| `1` |
-
+| ------------------------- |
+| `1`                       |
 
 ##### Example: `summarize percentile`
 
@@ -2280,19 +2097,16 @@ Given these logs:
 ```
 
 Applying this query:
-
 
 ```kusto
 summarize percentile(['source.line'], 100)
 ```
 
-
 Produces the output:
 
 | percentile (`scalar:i64`) |
-| --- |
-| `5` |
-
+| ------------------------- |
+| `5`                       |
 
 ##### Example: `summarize percentile`
 
@@ -2310,22 +2124,19 @@ Given these logs:
 
 Applying this query:
 
-
 ```kusto
 summarize percentile(['source.line'], 80)
 ```
 
-
 Produces the output:
 
 | percentile (`scalar:i64`) |
-| --- |
-| `4` |
-
+| ------------------------- |
+| `4`                       |
 
 ### aggregate function: `percentileif`
-Returns the percentile of the values in the input, if the condition in the argument evaluates to true. Null values evaluate to false. Takes as argument the thing to compute the percentile on.
 
+Returns the percentile of the values in the input, if the condition in the argument evaluates to true. Null values evaluate to false. Takes as argument the thing to compute the percentile on.
 
 #### Examples
 
@@ -2345,22 +2156,19 @@ Given these logs:
 
 Applying this query:
 
-
 ```kusto
 summarize percentileif(['source.line'], 50, ['source.line'] > 2)
 ```
 
-
 Produces the output:
 
 | percentileif (`scalar:i64`) |
-| --- |
-| `4` |
-
+| --------------------------- |
+| `4`                         |
 
 ### aggregate function: `stddev`
-Returns the stddev of the values in the input. Takes as argument the thing to compute the stddev on.
 
+Returns the stddev of the values in the input. Takes as argument the thing to compute the stddev on.
 
 #### Examples
 
@@ -2380,22 +2188,19 @@ Given these logs:
 
 Applying this query:
 
-
 ```kusto
 summarize stddev(['source.line'])
 ```
 
-
 Produces the output:
 
 | stddev (`scalar:f64`) |
-| --- |
-| `1.414214` |
-
+| --------------------- |
+| `1.414214`            |
 
 ### aggregate function: `stddevif`
-Returns the stddev of the values in the input, if the condition in the argument evaluates to true. Null values evaluate to false. Takes as argument the thing to compute the stddev on.
 
+Returns the stddev of the values in the input, if the condition in the argument evaluates to true. Null values evaluate to false. Takes as argument the thing to compute the stddev on.
 
 #### Examples
 
@@ -2415,22 +2220,19 @@ Given these logs:
 
 Applying this query:
 
-
 ```kusto
 summarize stddevif(['source.line'], ['source.line'] > 3)
 ```
 
-
 Produces the output:
 
 | stddevif (`scalar:f64`) |
-| --- |
-| `0.500000` |
-
+| ----------------------- |
+| `0.500000`              |
 
 ### aggregate function: `sum`
-Returns the sum of the values in the input. Takes as argument the thing to sum.
 
+Returns the sum of the values in the input. Takes as argument the thing to sum.
 
 #### Examples
 
@@ -2450,22 +2252,19 @@ Given these logs:
 
 Applying this query:
 
-
 ```kusto
 summarize sum(['source.line'])
 ```
 
-
 Produces the output:
 
 | sum (`scalar:i64`) |
-| --- |
-| `15` |
-
+| ------------------ |
+| `15`               |
 
 ### aggregate function: `sumif`
-Returns the sum of the values in the input, if the condition in the argument evaluates to true. Null values evaluate to false. Takes as argument the thing to sum.
 
+Returns the sum of the values in the input, if the condition in the argument evaluates to true. Null values evaluate to false. Takes as argument the thing to sum.
 
 #### Examples
 
@@ -2485,22 +2284,19 @@ Given these logs:
 
 Applying this query:
 
-
 ```kusto
 summarize sumif(['source.line'], ['source.line'] > 3)
 ```
 
-
 Produces the output:
 
 | sumif (`scalar:i64`) |
-| --- |
-| `9` |
-
+| -------------------- |
+| `9`                  |
 
 ### aggregate function: `variance`
-Returns the variance of the values in the input. Takes as argument the thing to compute the variance on.
 
+Returns the variance of the values in the input. Takes as argument the thing to compute the variance on.
 
 #### Examples
 
@@ -2520,22 +2316,19 @@ Given these logs:
 
 Applying this query:
 
-
 ```kusto
 summarize variance(['source.line'])
 ```
 
-
 Produces the output:
 
 | variance (`scalar:f64`) |
-| --- |
-| `2.000000` |
-
+| ----------------------- |
+| `2.000000`              |
 
 ### aggregate function: `varianceif`
-Returns the variance of the values in the input, if the condition in the argument evaluates to true. Null values evaluate to false. Takes as argument the thing to compute the variance on.
 
+Returns the variance of the values in the input, if the condition in the argument evaluates to true. Null values evaluate to false. Takes as argument the thing to compute the variance on.
 
 #### Examples
 
@@ -2555,16 +2348,12 @@ Given these logs:
 
 Applying this query:
 
-
 ```kusto
 summarize varianceif(['source.line'], ['source.line'] > 3)
 ```
 
-
 Produces the output:
 
 | varianceif (`scalar:f64`) |
-| --- |
-| `0.250000` |
-
-
+| ------------------------- |
+| `0.250000`                |
