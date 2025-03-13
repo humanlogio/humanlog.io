@@ -54,9 +54,7 @@ export default function PreviewCode() {
 }
 
 export function Demo() {
-  const rowLogSrc = "/asciinema/raw_logs.cast";
-  const prettyLogsSrc = "/asciinema/pretty_logs.cast";
-
+  const videoId = "44XDFtOOskU";
   return (
     <div className="container">
       <div>
@@ -74,7 +72,7 @@ export function Demo() {
         <iframe
           width="738"
           height="641"
-          src="https://www.youtube.com/embed/44XDFtOOskU"
+          src={`https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&loop=1&playlist=${videoId}`}
           title="YouTube video player"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           allowFullScreen
