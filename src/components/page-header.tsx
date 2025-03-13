@@ -73,7 +73,7 @@ const navLinks = [
 
 const PageHeader: React.FC = () => {
   const pathname = usePathname();
-  const isProd = config.NEXT_IS_PROD;
+  const isProd = process.env.NODE_ENV === "production";
 
   const { setActiveEnvironment, doLogout } = useApiClients();
   const { isFullWidth, setIsFullWidth } = useFullWidth();
