@@ -52,3 +52,34 @@ export default function PreviewCode() {
     </div>
   );
 }
+
+export function Demo() {
+  const rowLogSrc = "/asciinema/raw_logs.cast";
+  const prettyLogsSrc = "/asciinema/pretty_logs.cast";
+
+  return (
+    <div className="container">
+      <div>
+        <h1 className="text-center text-4xl font-bold">
+          See the Difference Humanlog Makes
+        </h1>
+        <p className="mt-4 text-center text-slate-500">
+          Messy logs? No problem. <br />
+          This is how Humanlog transforms raw, chaotic logs into clean,
+          human-readable insights.
+        </p>
+      </div>
+
+      <div className="mx-auto flex max-w-screen-xl flex-col justify-center gap-7 py-16 sm:flex-row">
+        <iframe
+          width="738"
+          height="641"
+          src="https://www.youtube.com/embed/44XDFtOOskU"
+          title="YouTube video player"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+        ></iframe>
+      </div>
+    </div>
+  );
+}
