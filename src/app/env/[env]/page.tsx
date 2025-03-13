@@ -9,7 +9,7 @@ export default async function EnvironmentPage({
   params: Promise<{ env: string }>;
 }) {
   const env = (await params).env;
-  const isProd = config.NEXT_IS_PROD;
+  const isProd = process.env.NODE_ENV === "production";
 
   if (isProd) {
     notFound();

@@ -35,7 +35,7 @@ interface NewQueryInputProps {
 }
 
 const NewQueryInput = ({ errMsg, onExecuteQuery }: NewQueryInputProps) => {
-  const isProd = config.NEXT_IS_PROD;
+  const isProd = process.env.NODE_ENV === "production";
   const router = useRouter();
   const searchParams = useSearchParams();
   const queryString = searchParams.get("query");
