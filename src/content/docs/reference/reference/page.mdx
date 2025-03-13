@@ -5,6 +5,7 @@ order: 6
 section: "reference"
 ---
 
+
 # HumanlogQL
 
 This document describes the operators and functions available in the query language of humanlog.
@@ -13,97 +14,86 @@ This document describes the operators and functions available in the query langu
 
 The following symbols are usable at the begining of a query. These will change as you change the projections or aggregate log events.
 
-### Symbol: machine
+### Symbol: `machine`
 
 > is a `scalar:i64`
 
-The ID of the machine during which events were ingested. This is guaranteed to always exist. Machine IDs are unique within an environment.
+The ID of the machine during which events were ingested.
 
-### Symbol: parsed_at
+This is guaranteed to always exist.
+
+Machine IDs are unique within an environment.
+
+### Symbol: `session`
+
+> is a `scalar:i64`
+
+The ID of the session during which events were ingested.
+
+This is guaranteed to always exist.
+
+Session IDs are _not_ globally unique, nor are they globally ordered. They are only unique within a `machine`, unless the ingestor forcibly specified the session ID and caused a collision.
+
+In some case, the session ID will be defined by the ingesting server and will be unique per machine. If derived from the ingestor, they often are the unix-nano timestamp when the ingestion for the session stream started. If two sessions were to start in the same nanosecond on the same machine, or if the machine has lower resolution timestamps (say milliseconds), they might share the same session ID. This is assumed to not occur.
+
+### Symbol: `event`
+
+> is a `scalar:i64`
+
+The ID of the log event.
+
+This is guaranteed to always exist.
+
+Event IDs are _not_ globally unique, nor are they globally ordered. They are only unique and ordered within a `(machine, session)` tuple. A log event can be uniquely identified, and ordered, using the `(machine, session, event)` tuple.
+
+### Symbol: `parsed_at`
 
 > is a `scalar:ts`
 
-Timestamp when the log event was parsed. This is guaranteed to always exist. This is not the time recorded the log event. For example, if you ingest old logs with timestamps in 2014, the `parsed_at` will match today, but `ts` will be in 2014.
+Timestamp when the log event was parsed.
 
-### Symbol: ts
+This is guaranteed to always exist.
+
+This is not the time recorded the log event. For example, if you ingest old logs with timestamps in 2014, the `parsed_at` will match today, but `ts` will be in 2014.
+
+### Symbol: `raw`
+
+> is a `scalar:str`
+
+The raw log event as it was parsed.
+
+This is guaranteed to always exist.
+
+Queries against this will be slower than those against parsed structured data.
+
+### Symbol: `ts`
 
 > is a `scalar:ts`
 
 Timestamp detected in the log event. These are detected according to the parsing rules specified in the configuration.
 
-### Symbol: msg
+### Symbol: `msg`
 
 > is a `scalar:str`
 
 Message detected in the log event. These are detected according to the parsing rules specified in the configuration.
 
-### Symbol: kv
-
-> is a `map:{key:{scalar:str} value:{scalar:unknown}}`
-
-Key-values found in structured logs. If they respect the [a-Z0-9]+ regexp, you can simply refer to them. Otherwise you can refer to them via the `['my.nested.value']` notation, using either single or double quoted strings.
-
-### Symbol: session
-
-> is a `scalar:i64`
-
-The ID of the session during which events were ingested. This is guaranteed to always exist. Session IDs are _not_ globally unique, nor are they globally ordered. They are only unique within a `machine`, unless the ingestor forcibly specified the session ID and caused a collision. In some case, the session ID will be defined by the ingesting server and will be unique per machine. If derived from the ingestor, they often are the unix-nano timestamp when the ingestion for the session stream started. If two sessions were to start in the same nanosecond on the same machine, or if the machine has lower resolution timestamps (say milliseconds), they might share the same session ID. This is assumed to not occur.
-
-### Symbol: event
-
-> is a `scalar:i64`
-
-The ID of the log event. This is guaranteed to always exist. Event IDs are _not_ globally unique, nor are they globally ordered. They are only unique and ordered within a `(machine, session)` tuple. A log event can be uniquely identified, and ordered, using the `(machine, session, event)` tuple.
-
-### Symbol: raw
-
-> is a `scalar:str`
-
-The raw log event as it was parsed. This is guaranteed to always exist. Queries against this will be slower than those against parsed structured data.
-
-### Symbol: lvl
+### Symbol: `lvl`
 
 > is a `scalar:str`
 
 Level detected in the log event. These are detected according to the parsing rules specified in the configuration.
 
+### Symbol: `kv`
+
+> is a `map:{key:{scalar:str}  value:{scalar:unknown}}`
+
+Key-values found in structured logs. If they respect the [a-Z0-9]+ regexp, you can simply refer to them. Otherwise you can refer to them via the `['my.nested.value']` notation, using either single or double quoted strings.
+
 ## Scalar Operators
+### scalar operator: `!`
+Negation of booleans.
 
-### scalar operator: UnaryOp_NEG
-
-UnaryOp_NEG
-
-#### Examples
-
-##### Example: `-` numerical negation of literals
-
-Given these logs:
-
-```ndjson
-{"ts":"2006-01-02T15:04:06.001", "lvl": "error", "msg":"log1", "source": {"func":"hello"}}
-{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log2"}
-{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"Blablablb"}}
-{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"blablablB"}}
-```
-
-Applying this query:
-
-```kusto
-project value = -1
-```
-
-Produces the output:
-
-| value (`scalar:i64`) |
-| -------------------- |
-| `-1`                 |
-| `-1`                 |
-| `-1`                 |
-| `-1`                 |
-
-### scalar operator: UnaryOp_NOT
-
-UnaryOp_NOT
 
 #### Examples
 
@@ -120,22 +110,798 @@ Given these logs:
 
 Applying this query:
 
+
 ```kusto
 project value = !(len(['source.func']) > 5)
 ```
 
+
 Produces the output:
 
 | value (`scalar:bool`) |
-| --------------------- |
-| `true`                |
-| `null`                |
-| `false`               |
-| `false`               |
+| --- |
+| `true` |
+| `null` |
+| `false` |
+| `false` |
 
-### scalar operator: BinaryOp_CMP_EQ
 
-BinaryOp_CMP_EQ TODO
+### scalar operator: `-`
+Negation of numbers.
+
+
+#### Examples
+
+##### Example: `-` numerical negation of literals
+
+Given these logs:
+
+```ndjson
+{"ts":"2006-01-02T15:04:06.001", "lvl": "error", "msg":"log1", "source": {"func":"hello"}}
+{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log2"}
+{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"Blablablb"}}
+{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"blablablB"}}
+```
+
+Applying this query:
+
+
+```kusto
+project value = -1
+```
+
+
+Produces the output:
+
+| value (`scalar:i64`) |
+| --- |
+| `-1` |
+| `-1` |
+| `-1` |
+| `-1` |
+
+
+### scalar operator: `!=`
+Returns true if the two sides are unequal. False otherwise. Both operands must be of the same type, or an error will be returned.
+
+For strings, case-sensitive unequality is performed. Use `!~` for case-insensitive inequality.
+
+
+#### Examples
+
+##### Example: `reuse of extended named-column`
+
+Given these logs:
+
+```ndjson
+{"ts":"2006-01-02T15:04:06.001", "lvl": "error", "msg":"log1","source":{"function":"my_func"}}
+{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log2"}
+{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3","source":{"function":"my_other_func"}}
+{"ts":"2006-01-02T15:04:06.003", "lvl": "error", "msg":"log4"}
+```
+
+Applying this query:
+
+
+```kusto
+filter ['source.function'] != "" | extend func_name=['source.function'] | take 10 | extend world=strcat(func_name, " is a function")
+```
+
+
+Produces the output:
+
+| machine (`scalar:i64`) | session (`scalar:i64`) | event (`scalar:i64`) | parsed_at (`scalar:ts`) | raw (`scalar:str`) | ts (`scalar:ts`) | lvl (`scalar:str`) | msg (`scalar:str`) | kv (`scalar:unknown`) | func_name (`scalar:str`) | world (`scalar:str`) |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `1` | `1` | `1` | `2006-01-02T15:04:06Z` | `"{\"ts\":\"2006-01-02T15:04:06.001\", \"lvl\": \"error\", \"msg\":\"log1\",\"source\":{\"function\":\"my_func\"}}"` | `2006-01-02T15:04:06Z` | `"error"` | `"log1"` | `{}` | `"my_func"` | `"my_func"` |
+| `1` | `1` | `3` | `2006-01-02T15:04:06Z` | `"{\"ts\":\"2006-01-02T15:04:06.002\", \"lvl\": \"error\", \"msg\":\"log3\",\"source\":{\"function\":\"my_other_func\"}}"` | `2006-01-02T15:04:06Z` | `"error"` | `"log3"` | `{}` | `"my_other_func"` | `"my_other_func"` |
+
+
+##### Example: `filter key value`
+
+Given these logs:
+
+```ndjson
+{"ts":"2006-01-02T15:04:06.001", "lvl": "error", "msg":"log1", "source":{"function": "blablabla1"}}
+{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log2", "source":{"function": "blablabla2"}}
+{"ts":"2006-01-02T15:04:06.003", "lvl": "error", "msg":"log3", "source":{"function": "blablabla3"}}
+{"ts":"2006-01-02T15:04:06.004", "lvl": "error", "msg":"log4"}
+```
+
+Applying this query:
+
+
+```kusto
+filter ['source.function'] != "" | project hello=['source.function']
+```
+
+
+Produces the output:
+
+| hello (`scalar:str`) |
+| --- |
+| `"blablabla1"` |
+| `"blablabla2"` |
+| `"blablabla3"` |
+
+
+### scalar operator: `!contains`
+(*not* case-sensitive) Returns true if the left-hand-side string does not contain the string in the right-hand-side. Slower than `!contains_cs`.
+
+
+#### Examples
+
+##### Example: `string not contains case-insensitive`
+
+Given these logs:
+
+```ndjson
+{"ts":"2006-01-02T15:04:06.001", "lvl": "error", "msg":"log1", "source": {"func":"hello"}}
+{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log2"}
+{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"Blablabla"}}
+```
+
+Applying this query:
+
+
+```kusto
+filter ['source.func'] !contains "blabl"
+```
+
+
+Produces the output:
+
+```ndjson
+{"ts":"2006-01-02T15:04:06.001", "lvl": "error", "msg":"log1", "source": {"func":"hello"}}
+```
+
+### scalar operator: `!contains_cs`
+(case-sensitive) Returns true if the left-hand-side string does not contain the string in the right-hand-side. Faster than `!contains`.
+
+
+#### Examples
+
+##### Example: `string !contains case-sensitive`
+
+Given these logs:
+
+```ndjson
+{"ts":"2006-01-02T15:04:06.001", "lvl": "error", "msg":"log1", "source": {"func":"hello"}}
+{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log2"}
+{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"Blablablb"}}
+{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"blablablB"}}
+```
+
+Applying this query:
+
+
+```kusto
+filter ['source.func'] !contains_cs "blablB"
+```
+
+
+Produces the output:
+
+```ndjson
+{"ts":"2006-01-02T15:04:06.001", "lvl": "error", "msg":"log1", "source": {"func":"hello"}}
+{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"Blablablb"}}
+```
+
+### scalar operator: `!endswith`
+(*not* case-sensitive) Returns true if the left-hand-side string does not end with the string in the right-hand-side. Slower than `!endswith_cs`.
+
+
+#### Examples
+
+##### Example: `string !endswith case-insensitive`
+
+Given these logs:
+
+```ndjson
+{"ts":"2006-01-02T15:04:06.001", "lvl": "error", "msg":"log1", "source": {"func":"hello"}}
+{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log2"}
+{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"Blablablb"}}
+{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"blablablB"}}
+```
+
+Applying this query:
+
+
+```kusto
+filter ['source.func'] !endswith "ablb"
+```
+
+
+Produces the output:
+
+```ndjson
+{"ts":"2006-01-02T15:04:06.001", "lvl": "error", "msg":"log1", "source": {"func":"hello"}}
+```
+
+### scalar operator: `!endswith_cs`
+(case-sensitive) Returns true if the left-hand-side string does not end with the string in the right-hand-side. Faster than `!endswith`.
+
+
+#### Examples
+
+##### Example: `string !endswith case-sensitive`
+
+Given these logs:
+
+```ndjson
+{"ts":"2006-01-02T15:04:06.001", "lvl": "error", "msg":"log1", "source": {"func":"hello"}}
+{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log2"}
+{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"Blablablb"}}
+{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"blablablB"}}
+```
+
+Applying this query:
+
+
+```kusto
+filter ['source.func'] !endswith_cs "ablb"
+```
+
+
+Produces the output:
+
+```ndjson
+{"ts":"2006-01-02T15:04:06.001", "lvl": "error", "msg":"log1", "source": {"func":"hello"}}
+{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"blablablB"}}
+```
+
+### scalar operator: `!matches regex`
+Returns true if the left-hand-side string does *not* match the right-hand-side regex.
+
+
+#### Examples
+
+##### Example: `string !match regexp`
+
+Given these logs:
+
+```ndjson
+{"ts":"2006-01-02T15:04:06.001", "lvl": "error", "msg":"log1", "source": {"func":"hello"}}
+{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log2"}
+{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"Blablablb"}}
+{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"blablablB"}}
+```
+
+Applying this query:
+
+
+```kusto
+filter ['source.func'] !matches regex "(bl.){3}"
+```
+
+
+Produces the output:
+
+```ndjson
+{"ts":"2006-01-02T15:04:06.001", "lvl": "error", "msg":"log1", "source": {"func":"hello"}}
+{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"Blablablb"}}
+```
+
+### scalar operator: `!startswith`
+(*not* case-sensitive) Returns true if the left-hand-side string does not start with the string in the right-hand-side. Slower than `!startswith_cs`.
+
+
+#### Examples
+
+##### Example: `string !startswith case-insensitive`
+
+Given these logs:
+
+```ndjson
+{"ts":"2006-01-02T15:04:06.001", "lvl": "error", "msg":"log1", "source": {"func":"hello"}}
+{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log2"}
+{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"Blablablb"}}
+{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"blablablB"}}
+```
+
+Applying this query:
+
+
+```kusto
+filter ['source.func'] !startswith "blabl"
+```
+
+
+Produces the output:
+
+```ndjson
+{"ts":"2006-01-02T15:04:06.001", "lvl": "error", "msg":"log1", "source": {"func":"hello"}}
+```
+
+### scalar operator: `!startswith_cs`
+(case-sensitive) Returns true if the left-hand-side string does not start with the string in the right-hand-side. Faster than `!startswith`.
+
+
+#### Examples
+
+##### Example: `string !startswith case-sensitive`
+
+Given these logs:
+
+```ndjson
+{"ts":"2006-01-02T15:04:06.001", "lvl": "error", "msg":"log1", "source": {"func":"hello"}}
+{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log2"}
+{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"Blablablb"}}
+{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"blablablB"}}
+```
+
+Applying this query:
+
+
+```kusto
+filter ['source.func'] !startswith_cs "blabl"
+```
+
+
+Produces the output:
+
+```ndjson
+{"ts":"2006-01-02T15:04:06.001", "lvl": "error", "msg":"log1", "source": {"func":"hello"}}
+{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"Blablablb"}}
+```
+
+### scalar operator: `!~`
+(*not* case-sensitive) Returns true if the two sides are unequal. False otherwise. Both operands must be of the same type, or an error will be returned.
+
+For strings, case-insensitive unequality is performed. Use `==` for case-sensitive unequality.
+
+
+#### Examples
+
+##### Example: `string not equal case-insensitive`
+
+Given these logs:
+
+```ndjson
+{"ts":"2006-01-02T15:04:06.001", "lvl": "error", "msg":"log1", "source": {"func":"hello"}}
+{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log2"}
+{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"Blablabla"}}
+```
+
+Applying this query:
+
+
+```kusto
+filter ['source.func'] !~ "blablabla"
+```
+
+
+Produces the output:
+
+```ndjson
+{"ts":"2006-01-02T15:04:06.001", "lvl": "error", "msg":"log1", "source": {"func":"hello"}}
+```
+
+### scalar operator: `%`
+Modulo of the operands. Both must be i64 (integers).
+
+
+#### Examples
+
+##### Example: `modulo`
+
+Given these logs:
+
+```ndjson
+{"ts":"2006-01-02T15:04:06.001", "lvl": "error", "msg":"log1","source":{"line": 1}}
+{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log2"}
+{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3","source":{"line": 2}}
+{"ts":"2006-01-02T15:04:06.003", "lvl": "error", "msg":"log4"}
+{"ts":"2006-01-02T15:04:06.003", "lvl": "error", "msg":"log5","source":{"line": 3}}
+```
+
+Applying this query:
+
+
+```kusto
+project hello=['source.line'] % 2
+```
+
+
+Produces the output:
+
+| hello (`scalar:i64`) |
+| --- |
+| `1` |
+| `null` |
+| `0` |
+| `null` |
+| `1` |
+
+
+### scalar operator: `*`
+Multiplies the operands.
+
+
+#### Examples
+
+##### Example: `*` numerical operator (f64)
+
+Given these logs:
+
+```ndjson
+{"ts":"2006-01-02T15:04:06.001", "lvl": "error", "msg":"log1", "source": {"func":"hello"}}
+{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log2"}
+{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"Blablablb"}}
+{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"blablablB"}}
+```
+
+Applying this query:
+
+
+```kusto
+project value = 1.4*2.0
+```
+
+
+Produces the output:
+
+| value (`scalar:f64`) |
+| --- |
+| `2.800000` |
+| `2.800000` |
+| `2.800000` |
+| `2.800000` |
+
+
+##### Example: `*` numerical operator (i64)
+
+Given these logs:
+
+```ndjson
+{"ts":"2006-01-02T15:04:06.001", "lvl": "error", "msg":"log1", "source": {"func":"hello"}}
+{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log2"}
+{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"Blablablb"}}
+{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"blablablB"}}
+```
+
+Applying this query:
+
+
+```kusto
+project value = 4*2
+```
+
+
+Produces the output:
+
+| value (`scalar:i64`) |
+| --- |
+| `8` |
+| `8` |
+| `8` |
+| `8` |
+
+
+### scalar operator: `+`
+Adds the two operands. As of now, the two operands must be of the same type.
+
+
+#### Examples
+
+##### Example: `+` numerical operator (timestamps and durations)
+
+Given these logs:
+
+```ndjson
+{"ts":"2006-01-02T15:04:06.001", "lvl": "error", "msg":"log1", "source": {"func":"hello"}}
+{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log2"}
+{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"Blablablb"}}
+{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"blablablB"}}
+```
+
+Applying this query:
+
+
+```kusto
+project value = now()+1h
+```
+
+
+Produces the output:
+
+| value (`scalar:ts`) |
+| --- |
+| `2025-03-10T21:55:20Z` |
+| `2025-03-10T21:55:20Z` |
+| `2025-03-10T21:55:20Z` |
+| `2025-03-10T21:55:20Z` |
+
+
+##### Example: `+` numerical operator (f64)
+
+Given these logs:
+
+```ndjson
+{"ts":"2006-01-02T15:04:06.001", "lvl": "error", "msg":"log1", "source": {"func":"hello"}}
+{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log2"}
+{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"Blablablb"}}
+{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"blablablB"}}
+```
+
+Applying this query:
+
+
+```kusto
+project value = 1.5+2.3
+```
+
+
+Produces the output:
+
+| value (`scalar:f64`) |
+| --- |
+| `3.800000` |
+| `3.800000` |
+| `3.800000` |
+| `3.800000` |
+
+
+##### Example: `+` numerical operator (i64)
+
+Given these logs:
+
+```ndjson
+{"ts":"2006-01-02T15:04:06.001", "lvl": "error", "msg":"log1", "source": {"func":"hello"}}
+{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log2"}
+{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"Blablablb"}}
+{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"blablablB"}}
+```
+
+Applying this query:
+
+
+```kusto
+project value = 1+2
+```
+
+
+Produces the output:
+
+| value (`scalar:i64`) |
+| --- |
+| `3` |
+| `3` |
+| `3` |
+| `3` |
+
+
+### scalar operator: `-`
+Subtract the two operands. As of now, the two operands must be of the same type.
+
+
+#### Examples
+
+##### Example: `-` numerical operator (f64)
+
+Given these logs:
+
+```ndjson
+{"ts":"2006-01-02T15:04:06.001", "lvl": "error", "msg":"log1", "source": {"func":"hello"}}
+{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log2"}
+{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"Blablablb"}}
+{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"blablablB"}}
+```
+
+Applying this query:
+
+
+```kusto
+project value = 1.0-2.0
+```
+
+
+Produces the output:
+
+| value (`scalar:f64`) |
+| --- |
+| `-1.000000` |
+| `-1.000000` |
+| `-1.000000` |
+| `-1.000000` |
+
+
+##### Example: `-` numerical operator (i64)
+
+Given these logs:
+
+```ndjson
+{"ts":"2006-01-02T15:04:06.001", "lvl": "error", "msg":"log1", "source": {"func":"hello"}}
+{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log2"}
+{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"Blablablb"}}
+{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"blablablB"}}
+```
+
+Applying this query:
+
+
+```kusto
+project value = 1-2
+```
+
+
+Produces the output:
+
+| value (`scalar:i64`) |
+| --- |
+| `-1` |
+| `-1` |
+| `-1` |
+| `-1` |
+
+
+##### Example: `-` numerical operator (timestamps and durations)
+
+Given these logs:
+
+```ndjson
+{"ts":"2006-01-02T15:04:06.001", "lvl": "error", "msg":"log1", "source": {"func":"hello"}}
+{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log2"}
+{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"Blablablb"}}
+{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"blablablB"}}
+```
+
+Applying this query:
+
+
+```kusto
+project value = now()-1h
+```
+
+
+Produces the output:
+
+| value (`scalar:ts`) |
+| --- |
+| `2025-03-10T19:55:20Z` |
+| `2025-03-10T19:55:20Z` |
+| `2025-03-10T19:55:20Z` |
+| `2025-03-10T19:55:20Z` |
+
+
+### scalar operator: `/`
+Divides the operands. If the operands are i64, the operation is integer division. Otherwise it is normal floating point division.
+
+
+#### Examples
+
+##### Example: `/` numerical operator (f64)
+
+Given these logs:
+
+```ndjson
+{"ts":"2006-01-02T15:04:06.001", "lvl": "error", "msg":"log1", "source": {"func":"hello"}}
+{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log2"}
+{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"Blablablb"}}
+{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"blablablB"}}
+```
+
+Applying this query:
+
+
+```kusto
+project value = 3.0/2.0
+```
+
+
+Produces the output:
+
+| value (`scalar:f64`) |
+| --- |
+| `1.500000` |
+| `1.500000` |
+| `1.500000` |
+| `1.500000` |
+
+
+##### Example: `/` numerical operator (i64)
+
+Given these logs:
+
+```ndjson
+{"ts":"2006-01-02T15:04:06.001", "lvl": "error", "msg":"log1", "source": {"func":"hello"}}
+{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log2"}
+{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"Blablablb"}}
+{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"blablablB"}}
+```
+
+Applying this query:
+
+
+```kusto
+project value = 4/2
+```
+
+
+Produces the output:
+
+| value (`scalar:i64`) |
+| --- |
+| `2` |
+| `2` |
+| `2` |
+| `2` |
+
+
+### scalar operator: `<`
+Returns true if the left-hand-side operand is less than the right-hand-side. Both types must be equal and comparable.
+
+
+#### Examples
+
+##### Example: `<` less than
+
+Given these logs:
+
+```ndjson
+{"ts":"2006-01-02T15:04:06.001", "lvl": "error", "msg":"log1", "source": {"func":"hello"}}
+{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log2"}
+{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"Blablablb"}}
+{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"blablablB"}}
+```
+
+Applying this query:
+
+
+```kusto
+project value = len(['source.func']) < 9
+```
+
+
+Produces the output:
+
+| value (`scalar:bool`) |
+| --- |
+| `true` |
+| `null` |
+| `false` |
+| `false` |
+
+
+### scalar operator: `<=`
+Returns true if the left-hand-side operand is less or equal to the right-hand-side. Both types must be equal and comparable.
+
+
+#### Examples
+
+##### Example: `<=` less than or equal
+
+Given these logs:
+
+```ndjson
+{"ts":"2006-01-02T15:04:06.001", "lvl": "error", "msg":"log1", "source": {"func":"hello"}}
+{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log2"}
+{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"Blablablb"}}
+{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"blablablB"}}
+```
+
+Applying this query:
+
+
+```kusto
+project value = len(['source.func']) <= 9
+```
+
+
+Produces the output:
+
+| value (`scalar:bool`) |
+| --- |
+| `true` |
+| `null` |
+| `true` |
+| `true` |
+
+
+### scalar operator: `==`
+Returns true if the two sides are equal. False otherwise. Both operands must be of the same type, or an error will be returned.
+
+For strings, case-sensitive equality is performed. Use `=~` for case-insensitive equality.
+
 
 #### Examples
 
@@ -154,9 +920,11 @@ hello world 1
 
 Applying this query:
 
+
 ```kusto
 {from==2006-01-02T15:04:06.002000000Z to==2006-01-02T15:04:06.004000000Z} filter lvl=="error"
 ```
+
 
 Produces the output:
 
@@ -164,9 +932,41 @@ Produces the output:
 hello world 1
 ```
 
-### scalar operator: BinaryOp_CMP_GT
+### scalar operator: `=~`
+(*not* case-sensitive) Returns true if the two sides are equal. False otherwise. Both operands must be of the same type, or an error will be returned.
 
-BinaryOp_CMP_GT TODO
+For strings, case-insensitive equality is performed. Use `==` for case-sensitive equality.
+
+
+#### Examples
+
+##### Example: `string equal case-insensitive`
+
+Given these logs:
+
+```ndjson
+{"ts":"2006-01-02T15:04:06.001", "lvl": "error", "msg":"log1", "source": {"func":"hello"}}
+{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log2"}
+{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"Blablabla"}}
+```
+
+Applying this query:
+
+
+```kusto
+filter ['source.func'] =~ "blablabla"
+```
+
+
+Produces the output:
+
+```ndjson
+{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"Blablabla"}}
+```
+
+### scalar operator: `>`
+Returns true if the left-hand-side operand is greater than the right-hand-side. Both types must be equal and comparable.
+
 
 #### Examples
 
@@ -183,22 +983,25 @@ Given these logs:
 
 Applying this query:
 
+
 ```kusto
 project value = len(['source.func']) > 5
 ```
 
+
 Produces the output:
 
 | value (`scalar:bool`) |
-| --------------------- |
-| `false`               |
-| `null`                |
-| `true`                |
-| `true`                |
+| --- |
+| `false` |
+| `null` |
+| `true` |
+| `true` |
 
-### scalar operator: BinaryOp_CMP_GTE
 
-BinaryOp_CMP_GTE TODO
+### scalar operator: `>=`
+Returns true if the left-hand-side operand is greater or equal to the right-hand-side. Both types must be equal and comparable.
+
 
 #### Examples
 
@@ -215,983 +1018,25 @@ Given these logs:
 
 Applying this query:
 
+
 ```kusto
 project value = len(['source.func']) >= 5
 ```
 
-Produces the output:
-
-| value (`scalar:bool`) |
-| --------------------- |
-| `true`                |
-| `null`                |
-| `true`                |
-| `true`                |
-
-### scalar operator: BinaryOp_CMP_LT
-
-BinaryOp_CMP_LT TODO
-
-#### Examples
-
-##### Example: `<` less than
-
-Given these logs:
-
-```ndjson
-{"ts":"2006-01-02T15:04:06.001", "lvl": "error", "msg":"log1", "source": {"func":"hello"}}
-{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log2"}
-{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"Blablablb"}}
-{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"blablablB"}}
-```
-
-Applying this query:
-
-```kusto
-project value = len(['source.func']) < 9
-```
 
 Produces the output:
 
 | value (`scalar:bool`) |
-| --------------------- |
-| `true`                |
-| `null`                |
-| `false`               |
-| `false`               |
+| --- |
+| `true` |
+| `null` |
+| `true` |
+| `true` |
 
-### scalar operator: BinaryOp_CMP_LTE
 
-BinaryOp_CMP_LTE TODO
+### scalar operator: `and`
+The `and` operator does logical and-ing, like in other languages. Call it a conjunction if you want.
 
-#### Examples
-
-##### Example: `<=` less than or equal
-
-Given these logs:
-
-```ndjson
-{"ts":"2006-01-02T15:04:06.001", "lvl": "error", "msg":"log1", "source": {"func":"hello"}}
-{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log2"}
-{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"Blablablb"}}
-{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"blablablB"}}
-```
-
-Applying this query:
-
-```kusto
-project value = len(['source.func']) <= 9
-```
-
-Produces the output:
-
-| value (`scalar:bool`) |
-| --------------------- |
-| `true`                |
-| `null`                |
-| `true`                |
-| `true`                |
-
-### scalar operator: BinaryOp_CMP_NOTEQ
-
-BinaryOp_CMP_NOTEQ TODO
-
-#### Examples
-
-##### Example: reuse of extended named-column
-
-Given these logs:
-
-```ndjson
-{"ts":"2006-01-02T15:04:06.001", "lvl": "error", "msg":"log1","source":{"function":"my_func"}}
-{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log2"}
-{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3","source":{"function":"my_other_func"}}
-{"ts":"2006-01-02T15:04:06.003", "lvl": "error", "msg":"log4"}
-```
-
-Applying this query:
-
-```kusto
-filter ['source.function'] != "" | extend func_name=['source.function'] | take 10 | extend world=strcat(func_name, " is a function")
-```
-
-Produces the output:
-
-| machine (`scalar:i64`) | session (`scalar:i64`) | event (`scalar:i64`) | parsed_at (`scalar:ts`) | raw (`scalar:str`)                                                                                                                                                                                                       | ts (`scalar:ts`)       | lvl (`scalar:str`) | msg (`scalar:str`) | kv (`scalar:unknown`) | func_name (`scalar:str`) | world (`scalar:str`) |
-| ---------------------- | ---------------------- | -------------------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------- | ------------------ | ------------------ | --------------------- | ------------------------ | -------------------- |
-| `1`                    | `1`                    | `1`                  | `2006-01-02T15:04:06Z`  | `&#34;&#123;\&#34;ts\&#34;:\&#34;2006-01-02T15:04:06.001\&#34;, \&#34;lvl\&#34;: \&#34;error\&#34;, \&#34;msg\&#34;:\&#34;log1\&#34;,\&#34;source\&#34;:&#123;\&#34;function\&#34;:\&#34;my_func\&#34;&#125;&#125;&#34;` | `2006-01-02T15:04:06Z` | `&#34;error&#34;`  | `&#34;log1&#34;`   | `map&#123;            |
-
-&#125;`|`&#34;my_func&#34;`|`&#34;my_func&#34;`|
-|`1`|`1`|`3`|`2006-01-02T15:04:06Z`|`&#34;&#123;\&#34;ts\&#34;:\&#34;2006-01-02T15:04:06.002\&#34;, \&#34;lvl\&#34;: \&#34;error\&#34;, \&#34;msg\&#34;:\&#34;log3\&#34;,\&#34;source\&#34;:&#123;\&#34;function\&#34;:\&#34;my_other_func\&#34;&#125;&#125;&#34;`|`2006-01-02T15:04:06Z`|`&#34;error&#34;`|`&#34;log3&#34;`|`map&#123;
-
-&#125;`|`&#34;my_other_func&#34;`|`&#34;my_other_func&#34;` |
-
-##### Example: filter key value
-
-Given these logs:
-
-```ndjson
-{"ts":"2006-01-02T15:04:06.001", "lvl": "error", "msg":"log1", "source":{"function": "blablabla1"}}
-{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log2", "source":{"function": "blablabla2"}}
-{"ts":"2006-01-02T15:04:06.003", "lvl": "error", "msg":"log3", "source":{"function": "blablabla3"}}
-{"ts":"2006-01-02T15:04:06.004", "lvl": "error", "msg":"log4"}
-```
-
-Applying this query:
-
-```kusto
-filter ['source.function'] != "" | project hello=['source.function']
-```
-
-Produces the output:
-
-| hello (`scalar:str`)   |
-| ---------------------- |
-| `&#34;blablabla1&#34;` |
-| `&#34;blablabla2&#34;` |
-| `&#34;blablabla3&#34;` |
-
-### scalar operator: BinaryOp_LOG_OR
-
-BinaryOp_LOG_OR TODO
-
-#### Examples
-
-##### Example: `or` logical operator
-
-Given these logs:
-
-```ndjson
-{"ts":"2006-01-02T15:04:06.001", "lvl": "error", "msg":"log1", "source": {"func":"hello"}}
-{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log2"}
-{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"Blablablb"}}
-{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"blablablB"}}
-```
-
-Applying this query:
-
-```kusto
-project value = msg=="log2" or msg=="log1"
-```
-
-Produces the output:
-
-| value (`scalar:bool`) |
-| --------------------- |
-| `true`                |
-| `true`                |
-| `false`               |
-| `false`               |
-
-### scalar operator: BinaryOp_NUM_ADD
-
-BinaryOp_NUM_ADD TODO
-
-#### Examples
-
-##### Example: `+` numerical operator (timestamps and durations)
-
-Given these logs:
-
-```ndjson
-{"ts":"2006-01-02T15:04:06.001", "lvl": "error", "msg":"log1", "source": {"func":"hello"}}
-{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log2"}
-{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"Blablablb"}}
-{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"blablablB"}}
-```
-
-Applying this query:
-
-```kusto
-project value = now()+1h
-```
-
-Produces the output:
-
-| value (`scalar:ts`)    |
-| ---------------------- |
-| `2025-03-10T21:55:20Z` |
-| `2025-03-10T21:55:20Z` |
-| `2025-03-10T21:55:20Z` |
-| `2025-03-10T21:55:20Z` |
-
-##### Example: `+` numerical operator (f64)
-
-Given these logs:
-
-```ndjson
-{"ts":"2006-01-02T15:04:06.001", "lvl": "error", "msg":"log1", "source": {"func":"hello"}}
-{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log2"}
-{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"Blablablb"}}
-{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"blablablB"}}
-```
-
-Applying this query:
-
-```kusto
-project value = 1.5+2.3
-```
-
-Produces the output:
-
-| value (`scalar:f64`) |
-| -------------------- |
-| `3.800000`           |
-| `3.800000`           |
-| `3.800000`           |
-| `3.800000`           |
-
-##### Example: `+` numerical operator (i64)
-
-Given these logs:
-
-```ndjson
-{"ts":"2006-01-02T15:04:06.001", "lvl": "error", "msg":"log1", "source": {"func":"hello"}}
-{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log2"}
-{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"Blablablb"}}
-{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"blablablB"}}
-```
-
-Applying this query:
-
-```kusto
-project value = 1+2
-```
-
-Produces the output:
-
-| value (`scalar:i64`) |
-| -------------------- |
-| `3`                  |
-| `3`                  |
-| `3`                  |
-| `3`                  |
-
-### scalar operator: BinaryOp_NUM_DIV
-
-BinaryOp_NUM_DIV TODO
-
-#### Examples
-
-##### Example: `/` numerical operator (f64)
-
-Given these logs:
-
-```ndjson
-{"ts":"2006-01-02T15:04:06.001", "lvl": "error", "msg":"log1", "source": {"func":"hello"}}
-{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log2"}
-{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"Blablablb"}}
-{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"blablablB"}}
-```
-
-Applying this query:
-
-```kusto
-project value = 3.0/2.0
-```
-
-Produces the output:
-
-| value (`scalar:f64`) |
-| -------------------- |
-| `1.500000`           |
-| `1.500000`           |
-| `1.500000`           |
-| `1.500000`           |
-
-##### Example: `/` numerical operator (i64)
-
-Given these logs:
-
-```ndjson
-{"ts":"2006-01-02T15:04:06.001", "lvl": "error", "msg":"log1", "source": {"func":"hello"}}
-{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log2"}
-{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"Blablablb"}}
-{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"blablablB"}}
-```
-
-Applying this query:
-
-```kusto
-project value = 4/2
-```
-
-Produces the output:
-
-| value (`scalar:i64`) |
-| -------------------- |
-| `2`                  |
-| `2`                  |
-| `2`                  |
-| `2`                  |
-
-### scalar operator: BinaryOp_NUM_MOD
-
-BinaryOp_NUM_MOD TODO
-
-#### Examples
-
-##### Example: modulo
-
-Given these logs:
-
-```ndjson
-{"ts":"2006-01-02T15:04:06.001", "lvl": "error", "msg":"log1","source":{"line": 1}}
-{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log2"}
-{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3","source":{"line": 2}}
-{"ts":"2006-01-02T15:04:06.003", "lvl": "error", "msg":"log4"}
-{"ts":"2006-01-02T15:04:06.003", "lvl": "error", "msg":"log5","source":{"line": 3}}
-```
-
-Applying this query:
-
-```kusto
-project hello=['source.line'] % 2
-```
-
-Produces the output:
-
-| hello (`scalar:i64`) |
-| -------------------- |
-| `1`                  |
-| `null`               |
-| `0`                  |
-| `null`               |
-| `1`                  |
-
-### scalar operator: BinaryOp_NUM_MUL
-
-BinaryOp_NUM_MUL TODO
-
-#### Examples
-
-##### Example: `*` numerical operator (f64)
-
-Given these logs:
-
-```ndjson
-{"ts":"2006-01-02T15:04:06.001", "lvl": "error", "msg":"log1", "source": {"func":"hello"}}
-{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log2"}
-{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"Blablablb"}}
-{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"blablablB"}}
-```
-
-Applying this query:
-
-```kusto
-project value = 1.4*2.0
-```
-
-Produces the output:
-
-| value (`scalar:f64`) |
-| -------------------- |
-| `2.800000`           |
-| `2.800000`           |
-| `2.800000`           |
-| `2.800000`           |
-
-##### Example: `*` numerical operator (i64)
-
-Given these logs:
-
-```ndjson
-{"ts":"2006-01-02T15:04:06.001", "lvl": "error", "msg":"log1", "source": {"func":"hello"}}
-{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log2"}
-{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"Blablablb"}}
-{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"blablablB"}}
-```
-
-Applying this query:
-
-```kusto
-project value = 4*2
-```
-
-Produces the output:
-
-| value (`scalar:i64`) |
-| -------------------- |
-| `8`                  |
-| `8`                  |
-| `8`                  |
-| `8`                  |
-
-### scalar operator: BinaryOp_NUM_SUB
-
-BinaryOp_NUM_SUB TODO
-
-#### Examples
-
-##### Example: `-` numerical operator (f64)
-
-Given these logs:
-
-```ndjson
-{"ts":"2006-01-02T15:04:06.001", "lvl": "error", "msg":"log1", "source": {"func":"hello"}}
-{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log2"}
-{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"Blablablb"}}
-{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"blablablB"}}
-```
-
-Applying this query:
-
-```kusto
-project value = 1.0-2.0
-```
-
-Produces the output:
-
-| value (`scalar:f64`) |
-| -------------------- |
-| `-1.000000`          |
-| `-1.000000`          |
-| `-1.000000`          |
-| `-1.000000`          |
-
-##### Example: `-` numerical operator (i64)
-
-Given these logs:
-
-```ndjson
-{"ts":"2006-01-02T15:04:06.001", "lvl": "error", "msg":"log1", "source": {"func":"hello"}}
-{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log2"}
-{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"Blablablb"}}
-{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"blablablB"}}
-```
-
-Applying this query:
-
-```kusto
-project value = 1-2
-```
-
-Produces the output:
-
-| value (`scalar:i64`) |
-| -------------------- |
-| `-1`                 |
-| `-1`                 |
-| `-1`                 |
-| `-1`                 |
-
-##### Example: `-` numerical operator (timestamps and durations)
-
-Given these logs:
-
-```ndjson
-{"ts":"2006-01-02T15:04:06.001", "lvl": "error", "msg":"log1", "source": {"func":"hello"}}
-{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log2"}
-{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"Blablablb"}}
-{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"blablablB"}}
-```
-
-Applying this query:
-
-```kusto
-project value = now()-1h
-```
-
-Produces the output:
-
-| value (`scalar:ts`)    |
-| ---------------------- |
-| `2025-03-10T19:55:20Z` |
-| `2025-03-10T19:55:20Z` |
-| `2025-03-10T19:55:20Z` |
-| `2025-03-10T19:55:20Z` |
-
-### scalar operator: BinaryOp_STR_CONTAINS
-
-BinaryOp_STR_CONTAINS TODO
-
-#### Examples
-
-##### Example: string contains case-insensitive
-
-Given these logs:
-
-```ndjson
-{"ts":"2006-01-02T15:04:06.001", "lvl": "error", "msg":"log1", "source": {"func":"hello"}}
-{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log2"}
-{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"Blablabla"}}
-```
-
-Applying this query:
-
-```kusto
-filter ['source.func'] contains "blabl"
-```
-
-Produces the output:
-
-```ndjson
-{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"Blablabla"}}
-```
-
-##### Example: string operator contains
-
-Given these logs:
-
-```ndjson
-{"ts":"2006-01-02T15:04:06.001", "lvl": "error", "msg":"log1", "source": {"func":"hello"}}
-{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log2"}
-{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"i said blabla, seriously"}}
-```
-
-Applying this query:
-
-```kusto
-filter ['source.func'] contains "blabla"
-```
-
-Produces the output:
-
-```ndjson
-{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"i said blabla, seriously"}}
-```
-
-### scalar operator: BinaryOp_STR_CONTAINS_CS
-
-BinaryOp_STR_CONTAINS_CS TODO
-
-#### Examples
-
-##### Example: string contains case-sensitive
-
-Given these logs:
-
-```ndjson
-{"ts":"2006-01-02T15:04:06.001", "lvl": "error", "msg":"log1", "source": {"func":"hello"}}
-{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log2"}
-{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"Blablablb"}}
-{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"blablablB"}}
-```
-
-Applying this query:
-
-```kusto
-filter ['source.func'] contains_cs "blablB"
-```
-
-Produces the output:
-
-```ndjson
-{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"blablablB"}}
-```
-
-### scalar operator: BinaryOp_STR_ENDSWITH
-
-BinaryOp_STR_ENDSWITH TODO
-
-#### Examples
-
-##### Example: string endswith case-insensitive
-
-Given these logs:
-
-```ndjson
-{"ts":"2006-01-02T15:04:06.001", "lvl": "error", "msg":"log1", "source": {"func":"hello"}}
-{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log2"}
-{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"Blablablb"}}
-{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"blablablB"}}
-```
-
-Applying this query:
-
-```kusto
-filter ['source.func'] endswith "ablb"
-```
-
-Produces the output:
-
-```ndjson
-{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"Blablablb"}}
-{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"blablablB"}}
-```
-
-### scalar operator: BinaryOp_STR_ENDSWITH_CS
-
-BinaryOp_STR_ENDSWITH_CS TODO
-
-#### Examples
-
-##### Example: string endswith case-sensitive
-
-Given these logs:
-
-```ndjson
-{"ts":"2006-01-02T15:04:06.001", "lvl": "error", "msg":"log1", "source": {"func":"hello"}}
-{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log2"}
-{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"Blablablb"}}
-{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"blablablB"}}
-```
-
-Applying this query:
-
-```kusto
-filter ['source.func'] endswith_cs "ablb"
-```
-
-Produces the output:
-
-```ndjson
-{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"Blablablb"}}
-```
-
-### scalar operator: BinaryOp_STR_EQ_NOCS
-
-BinaryOp_STR_EQ_NOCS TODO
-
-#### Examples
-
-##### Example: string equal case-insensitive
-
-Given these logs:
-
-```ndjson
-{"ts":"2006-01-02T15:04:06.001", "lvl": "error", "msg":"log1", "source": {"func":"hello"}}
-{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log2"}
-{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"Blablabla"}}
-```
-
-Applying this query:
-
-```kusto
-filter ['source.func'] =~ "blablabla"
-```
-
-Produces the output:
-
-```ndjson
-{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"Blablabla"}}
-```
-
-### scalar operator: BinaryOp_STR_MATCHES_REGEX
-
-BinaryOp_STR_MATCHES_REGEX TODO
-
-#### Examples
-
-##### Example: string match regexp
-
-Given these logs:
-
-```ndjson
-{"ts":"2006-01-02T15:04:06.001", "lvl": "error", "msg":"log1", "source": {"func":"hello"}}
-{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log2"}
-{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"Blablablb"}}
-{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"blablablB"}}
-```
-
-Applying this query:
-
-```kusto
-filter ['source.func'] matches regex "(bl.){3}"
-```
-
-Produces the output:
-
-```ndjson
-{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"blablablB"}}
-```
-
-### scalar operator: BinaryOp_STR_NOTEQ_NOCS
-
-BinaryOp_STR_NOTEQ_NOCS TODO
-
-#### Examples
-
-##### Example: string not equal case-insensitive
-
-Given these logs:
-
-```ndjson
-{"ts":"2006-01-02T15:04:06.001", "lvl": "error", "msg":"log1", "source": {"func":"hello"}}
-{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log2"}
-{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"Blablabla"}}
-```
-
-Applying this query:
-
-```kusto
-filter ['source.func'] !~ "blablabla"
-```
-
-Produces the output:
-
-```ndjson
-{"ts":"2006-01-02T15:04:06.001", "lvl": "error", "msg":"log1", "source": {"func":"hello"}}
-```
-
-### scalar operator: BinaryOp_STR_NOT_CONTAINS
-
-BinaryOp_STR_NOT_CONTAINS TODO
-
-#### Examples
-
-##### Example: string not contains case-insensitive
-
-Given these logs:
-
-```ndjson
-{"ts":"2006-01-02T15:04:06.001", "lvl": "error", "msg":"log1", "source": {"func":"hello"}}
-{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log2"}
-{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"Blablabla"}}
-```
-
-Applying this query:
-
-```kusto
-filter ['source.func'] !contains "blabl"
-```
-
-Produces the output:
-
-```ndjson
-{"ts":"2006-01-02T15:04:06.001", "lvl": "error", "msg":"log1", "source": {"func":"hello"}}
-```
-
-### scalar operator: BinaryOp_STR_NOT_CONTAINS_CS
-
-BinaryOp_STR_NOT_CONTAINS_CS TODO
-
-#### Examples
-
-##### Example: string !contains case-sensitive
-
-Given these logs:
-
-```ndjson
-{"ts":"2006-01-02T15:04:06.001", "lvl": "error", "msg":"log1", "source": {"func":"hello"}}
-{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log2"}
-{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"Blablablb"}}
-{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"blablablB"}}
-```
-
-Applying this query:
-
-```kusto
-filter ['source.func'] !contains_cs "blablB"
-```
-
-Produces the output:
-
-```ndjson
-{"ts":"2006-01-02T15:04:06.001", "lvl": "error", "msg":"log1", "source": {"func":"hello"}}
-{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"Blablablb"}}
-```
-
-### scalar operator: BinaryOp_STR_NOT_ENDSWITH
-
-BinaryOp_STR_NOT_ENDSWITH TODO
-
-#### Examples
-
-##### Example: string !endswith case-insensitive
-
-Given these logs:
-
-```ndjson
-{"ts":"2006-01-02T15:04:06.001", "lvl": "error", "msg":"log1", "source": {"func":"hello"}}
-{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log2"}
-{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"Blablablb"}}
-{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"blablablB"}}
-```
-
-Applying this query:
-
-```kusto
-filter ['source.func'] !endswith "ablb"
-```
-
-Produces the output:
-
-```ndjson
-{"ts":"2006-01-02T15:04:06.001", "lvl": "error", "msg":"log1", "source": {"func":"hello"}}
-```
-
-### scalar operator: BinaryOp_STR_NOT_ENDSWITH_CS
-
-BinaryOp_STR_NOT_ENDSWITH_CS TODO
-
-#### Examples
-
-##### Example: string !endswith case-sensitive
-
-Given these logs:
-
-```ndjson
-{"ts":"2006-01-02T15:04:06.001", "lvl": "error", "msg":"log1", "source": {"func":"hello"}}
-{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log2"}
-{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"Blablablb"}}
-{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"blablablB"}}
-```
-
-Applying this query:
-
-```kusto
-filter ['source.func'] !endswith_cs "ablb"
-```
-
-Produces the output:
-
-```ndjson
-{"ts":"2006-01-02T15:04:06.001", "lvl": "error", "msg":"log1", "source": {"func":"hello"}}
-{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"blablablB"}}
-```
-
-### scalar operator: BinaryOp_STR_NOT_MATCHES_REGEX
-
-BinaryOp_STR_NOT_MATCHES_REGEX TODO
-
-#### Examples
-
-##### Example: string !match regexp
-
-Given these logs:
-
-```ndjson
-{"ts":"2006-01-02T15:04:06.001", "lvl": "error", "msg":"log1", "source": {"func":"hello"}}
-{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log2"}
-{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"Blablablb"}}
-{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"blablablB"}}
-```
-
-Applying this query:
-
-```kusto
-filter ['source.func'] !matches regex "(bl.){3}"
-```
-
-Produces the output:
-
-```ndjson
-{"ts":"2006-01-02T15:04:06.001", "lvl": "error", "msg":"log1", "source": {"func":"hello"}}
-{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"Blablablb"}}
-```
-
-### scalar operator: BinaryOp_STR_NOT_STARTSWITH
-
-BinaryOp_STR_NOT_STARTSWITH TODO
-
-#### Examples
-
-##### Example: string !startswith case-insensitive
-
-Given these logs:
-
-```ndjson
-{"ts":"2006-01-02T15:04:06.001", "lvl": "error", "msg":"log1", "source": {"func":"hello"}}
-{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log2"}
-{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"Blablablb"}}
-{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"blablablB"}}
-```
-
-Applying this query:
-
-```kusto
-filter ['source.func'] !startswith "blabl"
-```
-
-Produces the output:
-
-```ndjson
-{"ts":"2006-01-02T15:04:06.001", "lvl": "error", "msg":"log1", "source": {"func":"hello"}}
-```
-
-### scalar operator: BinaryOp_STR_NOT_STARTSWITH_CS
-
-BinaryOp_STR_NOT_STARTSWITH_CS TODO
-
-#### Examples
-
-##### Example: string !startswith case-sensitive
-
-Given these logs:
-
-```ndjson
-{"ts":"2006-01-02T15:04:06.001", "lvl": "error", "msg":"log1", "source": {"func":"hello"}}
-{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log2"}
-{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"Blablablb"}}
-{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"blablablB"}}
-```
-
-Applying this query:
-
-```kusto
-filter ['source.func'] !startswith_cs "blabl"
-```
-
-Produces the output:
-
-```ndjson
-{"ts":"2006-01-02T15:04:06.001", "lvl": "error", "msg":"log1", "source": {"func":"hello"}}
-{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"Blablablb"}}
-```
-
-### scalar operator: BinaryOp_STR_STARTSWITH
-
-BinaryOp_STR_STARTSWITH TODO
-
-#### Examples
-
-##### Example: string startswith case-insensitive
-
-Given these logs:
-
-```ndjson
-{"ts":"2006-01-02T15:04:06.001", "lvl": "error", "msg":"log1", "source": {"func":"hello"}}
-{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log2"}
-{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"Blablablb"}}
-{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"blablablB"}}
-```
-
-Applying this query:
-
-```kusto
-filter ['source.func'] startswith "blabl"
-```
-
-Produces the output:
-
-```ndjson
-{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"Blablablb"}}
-{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"blablablB"}}
-```
-
-### scalar operator: BinaryOp_STR_STARTSWITH_CS
-
-BinaryOp_STR_STARTSWITH_CS TODO
-
-#### Examples
-
-##### Example: string startswith case-sensitive
-
-Given these logs:
-
-```ndjson
-{"ts":"2006-01-02T15:04:06.001", "lvl": "error", "msg":"log1", "source": {"func":"hello"}}
-{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log2"}
-{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"Blablablb"}}
-{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"blablablB"}}
-```
-
-Applying this query:
-
-```kusto
-filter ['source.func'] startswith_cs "blabl"
-```
-
-Produces the output:
-
-```ndjson
-{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"blablablB"}}
-```
-
-### scalar operator: and
-
-The `and` operator works like in every other language.
 
 #### Examples
 
@@ -1208,32 +1053,312 @@ Given these logs:
 
 Applying this query:
 
+
 ```kusto
 project value = lvl=="error" and msg=="log1"
 ```
 
+
 Produces the output:
 
 | value (`scalar:bool`) |
-| --------------------- |
-| `true`                |
-| `false`               |
-| `false`               |
-| `false`               |
+| --- |
+| `true` |
+| `false` |
+| `false` |
+| `false` |
+
+
+### scalar operator: `contains`
+(*not* case-sensitive) Returns true if the left-hand-side string contains the string in the right-hand-side. Slower than `contains_cs`.
+
+
+#### Examples
+
+##### Example: `string contains case-insensitive`
+
+Given these logs:
+
+```ndjson
+{"ts":"2006-01-02T15:04:06.001", "lvl": "error", "msg":"log1", "source": {"func":"hello"}}
+{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log2"}
+{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"Blablabla"}}
+```
+
+Applying this query:
+
+
+```kusto
+filter ['source.func'] contains "blabl"
+```
+
+
+Produces the output:
+
+```ndjson
+{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"Blablabla"}}
+```
+
+##### Example: `string operator contains`
+
+Given these logs:
+
+```ndjson
+{"ts":"2006-01-02T15:04:06.001", "lvl": "error", "msg":"log1", "source": {"func":"hello"}}
+{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log2"}
+{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"i said blabla, seriously"}}
+```
+
+Applying this query:
+
+
+```kusto
+filter ['source.func'] contains "blabla"
+```
+
+
+Produces the output:
+
+```ndjson
+{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"i said blabla, seriously"}}
+```
+
+### scalar operator: `contains_cs`
+(case-sensitive) Returns true if the left-hand-side string contains the string in the right-hand-side. Faster than `contains`.
+
+
+#### Examples
+
+##### Example: `string contains case-sensitive`
+
+Given these logs:
+
+```ndjson
+{"ts":"2006-01-02T15:04:06.001", "lvl": "error", "msg":"log1", "source": {"func":"hello"}}
+{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log2"}
+{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"Blablablb"}}
+{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"blablablB"}}
+```
+
+Applying this query:
+
+
+```kusto
+filter ['source.func'] contains_cs "blablB"
+```
+
+
+Produces the output:
+
+```ndjson
+{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"blablablB"}}
+```
+
+### scalar operator: `endswith`
+(*not* case-sensitive) Returns true if the left-hand-side string ends with the string in the right-hand-side. Slower than `endswith_cs`.
+
+
+#### Examples
+
+##### Example: `string endswith case-insensitive`
+
+Given these logs:
+
+```ndjson
+{"ts":"2006-01-02T15:04:06.001", "lvl": "error", "msg":"log1", "source": {"func":"hello"}}
+{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log2"}
+{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"Blablablb"}}
+{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"blablablB"}}
+```
+
+Applying this query:
+
+
+```kusto
+filter ['source.func'] endswith "ablb"
+```
+
+
+Produces the output:
+
+```ndjson
+{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"Blablablb"}}
+{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"blablablB"}}
+```
+
+### scalar operator: `endswith_cs`
+(case-sensitive) Returns true if the left-hand-side string ends with the string in the right-hand-side. Faster than `endswith`.
+
+
+#### Examples
+
+##### Example: `string endswith case-sensitive`
+
+Given these logs:
+
+```ndjson
+{"ts":"2006-01-02T15:04:06.001", "lvl": "error", "msg":"log1", "source": {"func":"hello"}}
+{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log2"}
+{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"Blablablb"}}
+{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"blablablB"}}
+```
+
+Applying this query:
+
+
+```kusto
+filter ['source.func'] endswith_cs "ablb"
+```
+
+
+Produces the output:
+
+```ndjson
+{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"Blablablb"}}
+```
+
+### scalar operator: `matches regex`
+Returns true if the left-hand-side string matches the right-hand-side regex
+
+
+#### Examples
+
+##### Example: `string match regexp`
+
+Given these logs:
+
+```ndjson
+{"ts":"2006-01-02T15:04:06.001", "lvl": "error", "msg":"log1", "source": {"func":"hello"}}
+{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log2"}
+{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"Blablablb"}}
+{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"blablablB"}}
+```
+
+Applying this query:
+
+
+```kusto
+filter ['source.func'] matches regex "(bl.){3}"
+```
+
+
+Produces the output:
+
+```ndjson
+{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"blablablB"}}
+```
+
+### scalar operator: `or`
+The `or` operator does logical or-ing, like in other languages. Call it a disjunction if you want.
+
+
+#### Examples
+
+##### Example: `or` logical operator
+
+Given these logs:
+
+```ndjson
+{"ts":"2006-01-02T15:04:06.001", "lvl": "error", "msg":"log1", "source": {"func":"hello"}}
+{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log2"}
+{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"Blablablb"}}
+{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"blablablB"}}
+```
+
+Applying this query:
+
+
+```kusto
+project value = msg=="log2" or msg=="log1"
+```
+
+
+Produces the output:
+
+| value (`scalar:bool`) |
+| --- |
+| `true` |
+| `true` |
+| `false` |
+| `false` |
+
+
+### scalar operator: `startswith`
+(*not* case-sensitive) Returns true if the left-hand-side string starts with the string in the right-hand-side. Slower than `startswith_cs`.
+
+
+#### Examples
+
+##### Example: `string startswith case-insensitive`
+
+Given these logs:
+
+```ndjson
+{"ts":"2006-01-02T15:04:06.001", "lvl": "error", "msg":"log1", "source": {"func":"hello"}}
+{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log2"}
+{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"Blablablb"}}
+{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"blablablB"}}
+```
+
+Applying this query:
+
+
+```kusto
+filter ['source.func'] startswith "blabl"
+```
+
+
+Produces the output:
+
+```ndjson
+{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"Blablablb"}}
+{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"blablablB"}}
+```
+
+### scalar operator: `startswith_cs`
+(case-sensitive) Returns true if the left-hand-side string starts with the string in the right-hand-side. Faster than `startswith`.
+
+
+#### Examples
+
+##### Example: `string startswith case-sensitive`
+
+Given these logs:
+
+```ndjson
+{"ts":"2006-01-02T15:04:06.001", "lvl": "error", "msg":"log1", "source": {"func":"hello"}}
+{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log2"}
+{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"Blablablb"}}
+{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"blablablB"}}
+```
+
+Applying this query:
+
+
+```kusto
+filter ['source.func'] startswith_cs "blabl"
+```
+
+
+Produces the output:
+
+```ndjson
+{"ts":"2006-01-02T15:04:06.002", "lvl": "error", "msg":"log3", "source": {"func":"blablablB"}}
+```
+
 
 ## Tabular Operators
 
 ## Functions
 
 ### Scalar
-
-### scalar function: bin
-
+### scalar function: `bin`
 Puts the input into bins, where the 1st argument is what to bin, and the 2nd argument is the method by which to bin. In the case of binning timestamps, the second argument would be a duration to use to round the timestamps.
+
 
 #### Examples
 
-##### Example: refer to summarized column
+##### Example: `refer to summarized column`
 
 Given these logs:
 
@@ -1246,19 +1371,22 @@ Given these logs:
 ```
 
 Applying this query:
+
 
 ```kusto
 summarize daily_count=count() by bin(ts, 1d) | sort by daily_count
 ```
 
+
 Produces the output:
 
-| by_ts (`scalar:ts`)    | daily_count (`scalar:i64`) |
-| ---------------------- | -------------------------- |
-| `2006-01-03T00:00:00Z` | `1`                        |
-| `2006-01-02T00:00:00Z` | `4`                        |
+| by_ts (`scalar:ts`) | daily_count (`scalar:i64`) |
+| --- | --- |
+| `2006-01-03T00:00:00Z` | `1` |
+| `2006-01-02T00:00:00Z` | `4` |
 
-##### Example: refer to summarized column, sort desc
+
+##### Example: `refer to summarized column, sort desc`
 
 Given these logs:
 
@@ -1271,19 +1399,22 @@ Given these logs:
 ```
 
 Applying this query:
+
 
 ```kusto
 summarize daily_count=count() by bin(ts, 1d) | sort by daily_count desc
 ```
 
+
 Produces the output:
 
-| by_ts (`scalar:ts`)    | daily_count (`scalar:i64`) |
-| ---------------------- | -------------------------- |
-| `2006-01-02T00:00:00Z` | `4`                        |
-| `2006-01-03T00:00:00Z` | `1`                        |
+| by_ts (`scalar:ts`) | daily_count (`scalar:i64`) |
+| --- | --- |
+| `2006-01-02T00:00:00Z` | `4` |
+| `2006-01-03T00:00:00Z` | `1` |
 
-##### Example: refer to summarized column, sort asc
+
+##### Example: `refer to summarized column, sort asc`
 
 Given these logs:
 
@@ -1297,18 +1428,21 @@ Given these logs:
 
 Applying this query:
 
+
 ```kusto
 summarize daily_count=count() by bin(ts, 1d) | sort by daily_count asc
 ```
 
+
 Produces the output:
 
-| by_ts (`scalar:ts`)    | daily_count (`scalar:i64`) |
-| ---------------------- | -------------------------- |
-| `2006-01-03T00:00:00Z` | `1`                        |
-| `2006-01-02T00:00:00Z` | `4`                        |
+| by_ts (`scalar:ts`) | daily_count (`scalar:i64`) |
+| --- | --- |
+| `2006-01-03T00:00:00Z` | `1` |
+| `2006-01-02T00:00:00Z` | `4` |
 
-##### Example: summarize by binned ts
+
+##### Example: `summarize by binned ts`
 
 Given these logs:
 
@@ -1321,25 +1455,28 @@ Given these logs:
 
 Applying this query:
 
+
 ```kusto
 summarize count() by bin(ts, 1ms)
 ```
 
+
 Produces the output:
 
-| by_ts (`scalar:ts`)    | count_by_bin_ts (`scalar:i64`) |
-| ---------------------- | ------------------------------ |
-| `2006-01-02T15:04:06Z` | `1`                            |
-| `2006-01-02T15:04:06Z` | `2`                            |
-| `2006-01-02T15:04:06Z` | `1`                            |
+| by_ts (`scalar:ts`) | count_by_bin_ts (`scalar:i64`) |
+| --- | --- |
+| `2006-01-02T15:04:06Z` | `1` |
+| `2006-01-02T15:04:06Z` | `2` |
+| `2006-01-02T15:04:06Z` | `1` |
 
-### scalar function: len
 
+### scalar function: `len`
 Returns the length of the input (a string or an array), as an i64.
+
 
 #### Examples
 
-##### Example: string length
+##### Example: `string length`
 
 Given these logs:
 
@@ -1351,27 +1488,30 @@ Given these logs:
 ```
 
 Applying this query:
+
 
 ```kusto
 project func_name_length=len(['source.func'])
 ```
 
+
 Produces the output:
 
 | func_name_length (`scalar:i64`) |
-| ------------------------------- |
-| `5`                             |
-| `null`                          |
-| `9`                             |
-| `9`                             |
+| --- |
+| `5` |
+| `null` |
+| `9` |
+| `9` |
 
-### scalar function: now
 
+### scalar function: `now`
 Returns the current time in UTC, as a timestamp.
+
 
 #### Examples
 
-##### Example: now
+##### Example: `now`
 
 Given these logs:
 
@@ -1384,26 +1524,29 @@ Given these logs:
 
 Applying this query:
 
+
 ```kusto
 project current_time=now()
 ```
 
+
 Produces the output:
 
 | current_time (`scalar:ts`) |
-| -------------------------- |
-| `2025-03-10T20:55:20Z`     |
-| `2025-03-10T20:55:20Z`     |
-| `2025-03-10T20:55:20Z`     |
-| `2025-03-10T20:55:20Z`     |
+| --- |
+| `2025-03-10T20:55:20Z` |
+| `2025-03-10T20:55:20Z` |
+| `2025-03-10T20:55:20Z` |
+| `2025-03-10T20:55:20Z` |
 
-### scalar function: strcat
 
+### scalar function: `strcat`
 Concatenates strings together. A maximum of 64 strings can be concatenated at once.
+
 
 #### Examples
 
-##### Example: reuse of extended named-column
+##### Example: `reuse of extended named-column`
 
 Given these logs:
 
@@ -1416,22 +1559,21 @@ Given these logs:
 
 Applying this query:
 
+
 ```kusto
 filter ['source.function'] != "" | extend func_name=['source.function'] | take 10 | extend world=strcat(func_name, " is a function")
 ```
 
+
 Produces the output:
 
-| machine (`scalar:i64`) | session (`scalar:i64`) | event (`scalar:i64`) | parsed_at (`scalar:ts`) | raw (`scalar:str`)                                                                                                                                                                                                       | ts (`scalar:ts`)       | lvl (`scalar:str`) | msg (`scalar:str`) | kv (`scalar:unknown`) | func_name (`scalar:str`) | world (`scalar:str`) |
-| ---------------------- | ---------------------- | -------------------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------- | ------------------ | ------------------ | --------------------- | ------------------------ | -------------------- |
-| `1`                    | `1`                    | `1`                  | `2006-01-02T15:04:06Z`  | `&#34;&#123;\&#34;ts\&#34;:\&#34;2006-01-02T15:04:06.001\&#34;, \&#34;lvl\&#34;: \&#34;error\&#34;, \&#34;msg\&#34;:\&#34;log1\&#34;,\&#34;source\&#34;:&#123;\&#34;function\&#34;:\&#34;my_func\&#34;&#125;&#125;&#34;` | `2006-01-02T15:04:06Z` | `&#34;error&#34;`  | `&#34;log1&#34;`   | `map&#123;            |
+| machine (`scalar:i64`) | session (`scalar:i64`) | event (`scalar:i64`) | parsed_at (`scalar:ts`) | raw (`scalar:str`) | ts (`scalar:ts`) | lvl (`scalar:str`) | msg (`scalar:str`) | kv (`scalar:unknown`) | func_name (`scalar:str`) | world (`scalar:str`) |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `1` | `1` | `1` | `2006-01-02T15:04:06Z` | `"{\"ts\":\"2006-01-02T15:04:06.001\", \"lvl\": \"error\", \"msg\":\"log1\",\"source\":{\"function\":\"my_func\"}}"` | `2006-01-02T15:04:06Z` | `"error"` | `"log1"` | `{}` | `"my_func"` | `"my_func"` |
+| `1` | `1` | `3` | `2006-01-02T15:04:06Z` | `"{\"ts\":\"2006-01-02T15:04:06.002\", \"lvl\": \"error\", \"msg\":\"log3\",\"source\":{\"function\":\"my_other_func\"}}"` | `2006-01-02T15:04:06Z` | `"error"` | `"log3"` | `{}` | `"my_other_func"` | `"my_other_func"` |
 
-&#125;`|`&#34;my_func&#34;`|`&#34;my_func&#34;`|
-|`1`|`1`|`3`|`2006-01-02T15:04:06Z`|`&#34;&#123;\&#34;ts\&#34;:\&#34;2006-01-02T15:04:06.002\&#34;, \&#34;lvl\&#34;: \&#34;error\&#34;, \&#34;msg\&#34;:\&#34;log3\&#34;,\&#34;source\&#34;:&#123;\&#34;function\&#34;:\&#34;my_other_func\&#34;&#125;&#125;&#34;`|`2006-01-02T15:04:06Z`|`&#34;error&#34;`|`&#34;log3&#34;`|`map&#123;
 
-&#125;`|`&#34;my_other_func&#34;`|`&#34;my_other_func&#34;` |
-
-##### Example: project with expr
+##### Example: `project with expr`
 
 Given these logs:
 
@@ -1443,29 +1585,32 @@ Given these logs:
 ```
 
 Applying this query:
+
 
 ```kusto
 project new_msg=strcat(msg, "_world")
 ```
 
+
 Produces the output:
 
 | new_msg (`scalar:str`) |
-| ---------------------- |
-| `&#34;log1_world&#34;` |
-| `&#34;log2_world&#34;` |
-| `&#34;log3_world&#34;` |
-| `&#34;log4_world&#34;` |
+| --- |
+| `"log1_world"` |
+| `"log2_world"` |
+| `"log3_world"` |
+| `"log4_world"` |
+
+
 
 ### Aggregate
-
-### aggregate function: avg
-
+### aggregate function: `avg`
 Returns the average value of the input. Takes as argument the thing to average.
+
 
 #### Examples
 
-##### Example: summarize average integer becomes float
+##### Example: `summarize average integer becomes float`
 
 Given these logs:
 
@@ -1480,24 +1625,27 @@ Given these logs:
 ```
 
 Applying this query:
+
 
 ```kusto
 summarize avg(['source.line'])
 ```
 
+
 Produces the output:
 
 | avg (`scalar:f64`) |
-| ------------------ |
-| `3.000000`         |
+| --- |
+| `3.000000` |
 
-### aggregate function: avgif
 
+### aggregate function: `avgif`
 Returns the average value of the input, if the condition in the argument evaluates to true. Null values evaluate to false. Takes as argument the thing to average.
+
 
 #### Examples
 
-##### Example: summarize average if value gt
+##### Example: `summarize average if value gt`
 
 Given these logs:
 
@@ -1512,24 +1660,27 @@ Given these logs:
 ```
 
 Applying this query:
+
 
 ```kusto
 summarize avgif(['source.line'], ['source.line'] >= 3)
 ```
 
+
 Produces the output:
 
 | avgif (`scalar:f64`) |
-| -------------------- |
-| `4.000000`           |
+| --- |
+| `4.000000` |
 
-### aggregate function: count
 
+### aggregate function: `count`
 Count the number of events that are aggregated. Returns an i64.
+
 
 #### Examples
 
-##### Example: refer to summarized column
+##### Example: `refer to summarized column`
 
 Given these logs:
 
@@ -1542,19 +1693,22 @@ Given these logs:
 ```
 
 Applying this query:
+
 
 ```kusto
 summarize daily_count=count() by bin(ts, 1d) | sort by daily_count
 ```
 
+
 Produces the output:
 
-| by_ts (`scalar:ts`)    | daily_count (`scalar:i64`) |
-| ---------------------- | -------------------------- |
-| `2006-01-03T00:00:00Z` | `1`                        |
-| `2006-01-02T00:00:00Z` | `4`                        |
+| by_ts (`scalar:ts`) | daily_count (`scalar:i64`) |
+| --- | --- |
+| `2006-01-03T00:00:00Z` | `1` |
+| `2006-01-02T00:00:00Z` | `4` |
 
-##### Example: refer to summarized column, sort desc
+
+##### Example: `refer to summarized column, sort desc`
 
 Given these logs:
 
@@ -1567,19 +1721,22 @@ Given these logs:
 ```
 
 Applying this query:
+
 
 ```kusto
 summarize daily_count=count() by bin(ts, 1d) | sort by daily_count desc
 ```
 
+
 Produces the output:
 
-| by_ts (`scalar:ts`)    | daily_count (`scalar:i64`) |
-| ---------------------- | -------------------------- |
-| `2006-01-02T00:00:00Z` | `4`                        |
-| `2006-01-03T00:00:00Z` | `1`                        |
+| by_ts (`scalar:ts`) | daily_count (`scalar:i64`) |
+| --- | --- |
+| `2006-01-02T00:00:00Z` | `4` |
+| `2006-01-03T00:00:00Z` | `1` |
 
-##### Example: refer to summarized column, sort asc
+
+##### Example: `refer to summarized column, sort asc`
 
 Given these logs:
 
@@ -1593,18 +1750,21 @@ Given these logs:
 
 Applying this query:
 
+
 ```kusto
 summarize daily_count=count() by bin(ts, 1d) | sort by daily_count asc
 ```
 
+
 Produces the output:
 
-| by_ts (`scalar:ts`)    | daily_count (`scalar:i64`) |
-| ---------------------- | -------------------------- |
-| `2006-01-03T00:00:00Z` | `1`                        |
-| `2006-01-02T00:00:00Z` | `4`                        |
+| by_ts (`scalar:ts`) | daily_count (`scalar:i64`) |
+| --- | --- |
+| `2006-01-03T00:00:00Z` | `1` |
+| `2006-01-02T00:00:00Z` | `4` |
 
-##### Example: summarize by ts
+
+##### Example: `summarize by ts`
 
 Given these logs:
 
@@ -1616,20 +1776,23 @@ Given these logs:
 ```
 
 Applying this query:
+
 
 ```kusto
 summarize count() by ts
 ```
 
+
 Produces the output:
 
-| by_ts (`scalar:ts`)    | count_by_ts (`scalar:i64`) |
-| ---------------------- | -------------------------- |
-| `2006-01-02T15:04:06Z` | `1`                        |
-| `2006-01-02T15:04:06Z` | `2`                        |
-| `2006-01-02T15:04:06Z` | `1`                        |
+| by_ts (`scalar:ts`) | count_by_ts (`scalar:i64`) |
+| --- | --- |
+| `2006-01-02T15:04:06Z` | `1` |
+| `2006-01-02T15:04:06Z` | `2` |
+| `2006-01-02T15:04:06Z` | `1` |
 
-##### Example: summarize by binned ts
+
+##### Example: `summarize by binned ts`
 
 Given these logs:
 
@@ -1642,25 +1805,28 @@ Given these logs:
 
 Applying this query:
 
+
 ```kusto
 summarize count() by bin(ts, 1ms)
 ```
 
+
 Produces the output:
 
-| by_ts (`scalar:ts`)    | count_by_bin_ts (`scalar:i64`) |
-| ---------------------- | ------------------------------ |
-| `2006-01-02T15:04:06Z` | `1`                            |
-| `2006-01-02T15:04:06Z` | `2`                            |
-| `2006-01-02T15:04:06Z` | `1`                            |
+| by_ts (`scalar:ts`) | count_by_bin_ts (`scalar:i64`) |
+| --- | --- |
+| `2006-01-02T15:04:06Z` | `1` |
+| `2006-01-02T15:04:06Z` | `2` |
+| `2006-01-02T15:04:06Z` | `1` |
 
-### aggregate function: countif
 
+### aggregate function: `countif`
 Count the number of events that are aggregated, if the condition in the argument evaluates to true. Null values evaluate to false. Returns an i64.
+
 
 #### Examples
 
-##### Example: summarize count if value lt
+##### Example: `summarize count if value lt`
 
 Given these logs:
 
@@ -1676,23 +1842,26 @@ Given these logs:
 
 Applying this query:
 
+
 ```kusto
 summarize countif(['source.line'] > 3)
 ```
 
+
 Produces the output:
 
 | countif (`scalar:i64`) |
-| ---------------------- |
-| `2`                    |
+| --- |
+| `2` |
 
-### aggregate function: dcount
 
+### aggregate function: `dcount`
 Count the number of distinct events that are aggregated by the given argument. Returns an i64.
+
 
 #### Examples
 
-##### Example: summarize dcount
+##### Example: `summarize dcount`
 
 Given these logs:
 
@@ -1708,17 +1877,20 @@ Given these logs:
 
 Applying this query:
 
+
 ```kusto
 summarize dcount(['source.line'])
 ```
 
+
 Produces the output:
 
 | dcount (`scalar:i64`) |
-| --------------------- |
-| `4`                   |
+| --- |
+| `4` |
 
-##### Example: summarize dcount
+
+##### Example: `summarize dcount`
 
 Given these logs:
 
@@ -1733,18 +1905,21 @@ Given these logs:
 ```
 
 Applying this query:
+
 
 ```kusto
 summarize dcount(msg)
 ```
 
+
 Produces the output:
 
 | dcount (`scalar:i64`) |
-| --------------------- |
-| `7`                   |
+| --- |
+| `7` |
 
-##### Example: summarize dcount
+
+##### Example: `summarize dcount`
 
 Given these logs:
 
@@ -1759,18 +1934,21 @@ Given these logs:
 ```
 
 Applying this query:
+
 
 ```kusto
 summarize dcount(lvl)
 ```
 
+
 Produces the output:
 
 | dcount (`scalar:i64`) |
-| --------------------- |
-| `1`                   |
+| --- |
+| `1` |
 
-##### Example: summarize dcount
+
+##### Example: `summarize dcount`
 
 Given these logs:
 
@@ -1785,24 +1963,27 @@ Given these logs:
 ```
 
 Applying this query:
+
 
 ```kusto
 summarize dcount(1 + 1 + 3)
 ```
 
+
 Produces the output:
 
 | dcount (`scalar:i64`) |
-| --------------------- |
-| `1`                   |
+| --- |
+| `1` |
 
-### aggregate function: dcountif
 
+### aggregate function: `dcountif`
 Count the number of distinct events that are aggregated by the given argument, if the condition in the argument evaluates to true. Null values evaluate to false. Returns an i64.
+
 
 #### Examples
 
-##### Example: summarize dcount if value lt
+##### Example: `summarize dcount if value lt`
 
 Given these logs:
 
@@ -1818,23 +1999,26 @@ Given these logs:
 
 Applying this query:
 
+
 ```kusto
 summarize dcountif(['source.line'], ['source.line'] > 3)
 ```
 
+
 Produces the output:
 
 | dcountif (`scalar:i64`) |
-| ----------------------- |
-| `2`                     |
+| --- |
+| `2` |
 
-### aggregate function: histogram
 
+### aggregate function: `histogram`
 Puts the input into a histogram. The first argument is the value to put in the histogram, and the second argument is the number of buckets to sort the input into.
+
 
 #### Examples
 
-##### Example: summarize histogram
+##### Example: `summarize histogram`
 
 Given these logs:
 
@@ -1864,30 +2048,26 @@ Given these logs:
 
 Applying this query:
 
+
 ```kusto
 summarize histogram(['source.line'], 10)
 ```
 
+
 Produces the output:
 
-| histogram (`map:{key:{scalar:i64} value:{scalar:i64}}`) |
-| ------------------------------------------------------- |
+| histogram (`map:{key:{scalar:i64}  value:{scalar:i64}}`) |
+| --- |
+| `{1: 5,2: 3,3: 3,4: 1,5: 3}` |
 
-| `map&#123;
-	1: 5,
-	2: 3,
-	3: 3,
-	4: 1,
-	5: 3
-&#125;` |
 
-### aggregate function: max
-
+### aggregate function: `max`
 Returns the maximum value of the input. Takes as argument the thing to maximize.
+
 
 #### Examples
 
-##### Example: summarize max
+##### Example: `summarize max`
 
 Given these logs:
 
@@ -1902,24 +2082,27 @@ Given these logs:
 ```
 
 Applying this query:
+
 
 ```kusto
 summarize max(['source.line'])
 ```
 
+
 Produces the output:
 
 | max (`scalar:i64`) |
-| ------------------ |
-| `5`                |
+| --- |
+| `5` |
 
-### aggregate function: maxif
 
+### aggregate function: `maxif`
 Returns the maximum value of the input, if the condition in the argument evaluates to true. Null values evaluate to false. Takes as argument the thing to maximize.
+
 
 #### Examples
 
-##### Example: summarize max if value lt
+##### Example: `summarize max if value lt`
 
 Given these logs:
 
@@ -1934,24 +2117,27 @@ Given these logs:
 ```
 
 Applying this query:
+
 
 ```kusto
 summarize maxif(['source.line'], ['source.line'] < 3)
 ```
 
+
 Produces the output:
 
 | maxif (`scalar:i64`) |
-| -------------------- |
-| `2`                  |
+| --- |
+| `2` |
 
-### aggregate function: min
 
+### aggregate function: `min`
 Returns the minimum value of the input. Takes as argument the thing to minimize.
+
 
 #### Examples
 
-##### Example: summarize min
+##### Example: `summarize min`
 
 Given these logs:
 
@@ -1966,24 +2152,27 @@ Given these logs:
 ```
 
 Applying this query:
+
 
 ```kusto
 summarize min(['source.line'])
 ```
 
+
 Produces the output:
 
 | min (`scalar:i64`) |
-| ------------------ |
-| `1`                |
+| --- |
+| `1` |
 
-### aggregate function: minif
 
+### aggregate function: `minif`
 Returns the minimum value of the input, if the condition in the argument evaluates to true. Null values evaluate to false. Takes as argument the thing to minimize.
+
 
 #### Examples
 
-##### Example: summarize min if value lt
+##### Example: `summarize min if value lt`
 
 Given these logs:
 
@@ -1998,24 +2187,27 @@ Given these logs:
 ```
 
 Applying this query:
+
 
 ```kusto
 summarize minif(['source.line'], ['source.line'] > 3)
 ```
 
+
 Produces the output:
 
 | minif (`scalar:i64`) |
-| -------------------- |
-| `4`                  |
+| --- |
+| `4` |
 
-### aggregate function: percentile
 
+### aggregate function: `percentile`
 Returns the percentile of the values in the input. Takes as argument the thing to compute the percentile on.
+
 
 #### Examples
 
-##### Example: summarize percentile
+##### Example: `summarize percentile`
 
 Given these logs:
 
@@ -2030,18 +2222,21 @@ Given these logs:
 ```
 
 Applying this query:
+
 
 ```kusto
 summarize percentile(['source.line'], 50)
 ```
 
+
 Produces the output:
 
 | percentile (`scalar:i64`) |
-| ------------------------- |
-| `3`                       |
+| --- |
+| `3` |
 
-##### Example: summarize percentile
+
+##### Example: `summarize percentile`
 
 Given these logs:
 
@@ -2056,18 +2251,21 @@ Given these logs:
 ```
 
 Applying this query:
+
 
 ```kusto
 summarize percentile(['source.line'], 0)
 ```
 
+
 Produces the output:
 
 | percentile (`scalar:i64`) |
-| ------------------------- |
-| `1`                       |
+| --- |
+| `1` |
 
-##### Example: summarize percentile
+
+##### Example: `summarize percentile`
 
 Given these logs:
 
@@ -2082,18 +2280,21 @@ Given these logs:
 ```
 
 Applying this query:
+
 
 ```kusto
 summarize percentile(['source.line'], 100)
 ```
 
+
 Produces the output:
 
 | percentile (`scalar:i64`) |
-| ------------------------- |
-| `5`                       |
+| --- |
+| `5` |
 
-##### Example: summarize percentile
+
+##### Example: `summarize percentile`
 
 Given these logs:
 
@@ -2108,24 +2309,27 @@ Given these logs:
 ```
 
 Applying this query:
+
 
 ```kusto
 summarize percentile(['source.line'], 80)
 ```
 
+
 Produces the output:
 
 | percentile (`scalar:i64`) |
-| ------------------------- |
-| `4`                       |
+| --- |
+| `4` |
 
-### aggregate function: percentileif
 
+### aggregate function: `percentileif`
 Returns the percentile of the values in the input, if the condition in the argument evaluates to true. Null values evaluate to false. Takes as argument the thing to compute the percentile on.
+
 
 #### Examples
 
-##### Example: summarize percentile if value lt
+##### Example: `summarize percentile if value lt`
 
 Given these logs:
 
@@ -2140,24 +2344,27 @@ Given these logs:
 ```
 
 Applying this query:
+
 
 ```kusto
 summarize percentileif(['source.line'], 50, ['source.line'] > 2)
 ```
 
+
 Produces the output:
 
 | percentileif (`scalar:i64`) |
-| --------------------------- |
-| `4`                         |
+| --- |
+| `4` |
 
-### aggregate function: stddev
 
+### aggregate function: `stddev`
 Returns the stddev of the values in the input. Takes as argument the thing to compute the stddev on.
+
 
 #### Examples
 
-##### Example: summarize stddev
+##### Example: `summarize stddev`
 
 Given these logs:
 
@@ -2172,24 +2379,27 @@ Given these logs:
 ```
 
 Applying this query:
+
 
 ```kusto
 summarize stddev(['source.line'])
 ```
 
+
 Produces the output:
 
 | stddev (`scalar:f64`) |
-| --------------------- |
-| `1.414214`            |
+| --- |
+| `1.414214` |
 
-### aggregate function: stddevif
 
+### aggregate function: `stddevif`
 Returns the stddev of the values in the input, if the condition in the argument evaluates to true. Null values evaluate to false. Takes as argument the thing to compute the stddev on.
+
 
 #### Examples
 
-##### Example: summarize stddev if value lt
+##### Example: `summarize stddev if value lt`
 
 Given these logs:
 
@@ -2204,24 +2414,27 @@ Given these logs:
 ```
 
 Applying this query:
+
 
 ```kusto
 summarize stddevif(['source.line'], ['source.line'] > 3)
 ```
 
+
 Produces the output:
 
 | stddevif (`scalar:f64`) |
-| ----------------------- |
-| `0.500000`              |
+| --- |
+| `0.500000` |
 
-### aggregate function: sum
 
+### aggregate function: `sum`
 Returns the sum of the values in the input. Takes as argument the thing to sum.
+
 
 #### Examples
 
-##### Example: summarize sum
+##### Example: `summarize sum`
 
 Given these logs:
 
@@ -2236,24 +2449,27 @@ Given these logs:
 ```
 
 Applying this query:
+
 
 ```kusto
 summarize sum(['source.line'])
 ```
 
+
 Produces the output:
 
 | sum (`scalar:i64`) |
-| ------------------ |
-| `15`               |
+| --- |
+| `15` |
 
-### aggregate function: sumif
 
+### aggregate function: `sumif`
 Returns the sum of the values in the input, if the condition in the argument evaluates to true. Null values evaluate to false. Takes as argument the thing to sum.
+
 
 #### Examples
 
-##### Example: summarize sum if value lt
+##### Example: `summarize sum if value lt`
 
 Given these logs:
 
@@ -2268,24 +2484,27 @@ Given these logs:
 ```
 
 Applying this query:
+
 
 ```kusto
 summarize sumif(['source.line'], ['source.line'] > 3)
 ```
 
+
 Produces the output:
 
 | sumif (`scalar:i64`) |
-| -------------------- |
-| `9`                  |
+| --- |
+| `9` |
 
-### aggregate function: variance
 
+### aggregate function: `variance`
 Returns the variance of the values in the input. Takes as argument the thing to compute the variance on.
+
 
 #### Examples
 
-##### Example: summarize variance
+##### Example: `summarize variance`
 
 Given these logs:
 
@@ -2300,24 +2519,27 @@ Given these logs:
 ```
 
 Applying this query:
+
 
 ```kusto
 summarize variance(['source.line'])
 ```
 
+
 Produces the output:
 
 | variance (`scalar:f64`) |
-| ----------------------- |
-| `2.000000`              |
+| --- |
+| `2.000000` |
 
-### aggregate function: varianceif
 
+### aggregate function: `varianceif`
 Returns the variance of the values in the input, if the condition in the argument evaluates to true. Null values evaluate to false. Takes as argument the thing to compute the variance on.
+
 
 #### Examples
 
-##### Example: summarize variance if value lt
+##### Example: `summarize variance if value lt`
 
 Given these logs:
 
@@ -2333,12 +2555,16 @@ Given these logs:
 
 Applying this query:
 
+
 ```kusto
 summarize varianceif(['source.line'], ['source.line'] > 3)
 ```
 
+
 Produces the output:
 
 | varianceif (`scalar:f64`) |
-| ------------------------- |
-| `0.250000`                |
+| --- |
+| `0.250000` |
+
+
