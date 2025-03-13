@@ -58,13 +58,13 @@ export function Demo() {
   return (
     <div className="container">
       <div>
-        <h1 className="text-center text-4xl font-bold">
-          See the Difference Humanlog Makes
-        </h1>
+        <h2 className="text-center text-4xl font-bold">
+          {"Don't wait until production to leverage your logs."}
+        </h2>
         <p className="mt-4 text-center text-slate-500">
-          Messy logs? No problem. <br />
-          This is how Humanlog transforms raw, chaotic logs into clean,
-          human-readable insights.
+          A full log search engine in local dev, all the way to production.
+          <br />
+          Humanlog makes your structured logs easier to read, and queryable.
         </p>
       </div>
 
