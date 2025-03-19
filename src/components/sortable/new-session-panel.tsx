@@ -11,7 +11,10 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { DragHandle } from "@/components/sortable/sortable-item";
 import { Button } from "@/components/ui/button";
 import { Timestamp } from "@bufbuild/protobuf";
-import { LocalhostConfig } from "api/js/types/v1/localhost_config_pb";
+import {
+  FormatConfig_Themes,
+  LocalhostConfig,
+} from "api/js/types/v1/localhost_config_pb";
 import { useTheme } from "next-themes";
 import { useThemeColors } from "@/lib/utils/useThemeColors";
 import { useApiClients } from "@/context/api-provider";
@@ -40,6 +43,7 @@ interface NewSessionPanelProps {
   query: LogQuery | undefined;
   fakeData?: IngestedLogEvent[];
   darkMode?: boolean;
+  themes?: FormatConfig_Themes;
 }
 
 const NewSessionPanel = ({
@@ -47,6 +51,7 @@ const NewSessionPanel = ({
   query,
   fakeData,
   darkMode,
+  themes,
 }: NewSessionPanelProps) => {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -79,12 +84,13 @@ const NewSessionPanel = ({
   const [config, setConfig] = useState<LocalhostConfig>();
   const { getColor, getLevelColor } = useThemeColors(
     isDark,
-    config?.formatter?.themes,
+    themes ?? config?.formatter?.themes,
   );
   const [selectedLines, setSelectedLines] = useState<string | null>();
 
   const getConfig = useCallback(async () => {
     const res = await apiClients?.localhost.getConfig({});
+
     setConfig(res?.config);
   }, []);
 

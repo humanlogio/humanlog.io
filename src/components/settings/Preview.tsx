@@ -271,6 +271,11 @@ export const Preview = ({ themes, isDark, timeformat }: PreviewProps) => {
   const fakeData = convertSampleLogs();
 
   return (
-    <NewSessionPanel fakeData={fakeData} query={undefined} darkMode={isDark} />
+    <NewSessionPanel
+      fakeData={fakeData}
+      query={undefined}
+      darkMode={isDark}
+      themes={themes}
+    />
   );
 };
