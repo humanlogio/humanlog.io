@@ -103,23 +103,29 @@ export function ApiClientsProvider({
   const apiClients = useMemo((): ApiClients => {
     const auther = (token: string): Interceptor => {
       return (next) => async (req) => {
+        if (!token) {
+          token = cookies["hlog_session"];
+        }
         if (token && token != "") {
           req.header.set("Browser-Authorization", token);
         }
         req.header.set("Request-Id", uuidv4());
 
         const res = await next(req);
-        const newToken = res.header.get("UseAuthorization");
+        const newToken =
+          res.header.get("UseAuthorization") ||
+          res.header.get("useauthorization");
 
         !isProd && console.log("res.header", res.header);
 
         if (newToken) {
           console.log("Received new authorization token");
+          token = newToken;
           setCookie("hlog_session", newToken, {
             path: "/",
             domain: `.humanlog${config.TLD}`,
             secure: true,
-            sameSite: "strict",
+            sameSite: "none",
           });
         }
         return res;
