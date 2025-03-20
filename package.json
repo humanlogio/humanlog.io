@@ -7,6 +7,7 @@
     "prebuild": "rm -rf node_modules/.cache",
     "build": "next build",
     "dev": "./script/check-has-setup-localhost && NEXT_PUBLIC_API_BASE_URL=https://api.humanlog.dev NEXT_PUBLIC_SELF_BASE_URL=https://app.humanlog.dev:3000 next dev --hostname app.humanlog.dev --experimental-https --experimental-https-ca certificates/rootCA.pem --experimental-https-cert certificates/app.humanlog.dev.pem --experimental-https-key certificates/app.humanlog.dev-key.pem",
+    "apidev": "./script/check-has-setup-localhost && NEXT_PUBLIC_API_BASE_URL=https://localdevapi.humanlog.dev NEXT_PUBLIC_SELF_BASE_URL=https://app.humanlog.dev:3000 next dev --hostname app.humanlog.dev --experimental-https --experimental-https-ca certificates/rootCA.pem --experimental-https-cert certificates/app.humanlog.dev.pem --experimental-https-key certificates/app.humanlog.dev-key.pem",
     "fmt": "prettier --write src/",
     "lint": "next lint",
     "start": "next start",
