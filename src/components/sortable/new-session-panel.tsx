@@ -108,6 +108,17 @@ const NewSessionPanel = ({
     selected?.func(decodeUint8Array(text));
   };
 
+  const isStructuredLog = (log: IngestedLogEvent) => {
+    if (
+      log.structured?.lvl ||
+      log.structured?.msg ||
+      (log.structured?.kvs && log.structured.kvs.length > 0)
+    ) {
+      return true;
+    }
+    return false;
+  };
+
   useEffect(() => {
     getConfig();
   }, []);
@@ -145,237 +156,247 @@ const NewSessionPanel = ({
 
   return (
     <div className="flex w-full flex-col rounded-base border-2 border-border">
-      <div className="sticky left-0 right-0 top-0 z-10 flex h-11 w-full flex-none flex-row items-center justify-between bg-slate-900 px-4 py-2 dark:bg-slate-800">
-        <div className="flex justify-start">
-          <h4 className="flex flex-row items-center gap-3 truncate font-bold text-white">
-            {isFetching ? (
-              <div className="contents" title="Fetching more log data...">
-                <Loader className="animate-spin"></Loader>
-                <span className="sr-only">Loading...</span>
-              </div>
-            ) : (
-              <div className="text-sm">
-                {ids?.machineId && <p>M-{ids?.machineId}</p>}
-                {ids?.sessionId && <p>S-{ids?.sessionId}</p>}
-              </div>
-            )}
-          </h4>
-        </div>
+      <TooltipProvider>
+        <div className="sticky left-0 right-0 top-0 z-10 flex h-11 w-full flex-none flex-row items-center justify-between bg-slate-900 px-4 py-2 dark:bg-slate-800">
+          <div className="flex justify-start">
+            <h4 className="flex flex-row items-center gap-3 truncate font-bold text-white">
+              {isFetching ? (
+                <div className="contents" title="Fetching more log data...">
+                  <Loader className="animate-spin"></Loader>
+                  <span className="sr-only">Loading...</span>
+                </div>
+              ) : (
+                <div className="text-sm">
+                  {ids?.machineId && <p>M-{ids?.machineId}</p>}
+                  {ids?.sessionId && <p>S-{ids?.sessionId}</p>}
+                </div>
+              )}
+            </h4>
+          </div>
 
-        {/* TODO: later.. */}
-        {/* 
+          {/* TODO: later.. */}
+          {/* 
         <div className="flex w-1/3 justify-end">
           <Button size="icon" className="mb-1 h-8">
             <Search size={14} />
           </Button>
         </div> */}
-      </div>
+        </div>
 
-      <div
-        ref={containerRef}
-        className={twJoin(
-          "flex flex-grow bg-gradient-to-r from-slate-300 via-slate-200 via-10% to-slate-200 text-sm dark:from-slate-900 dark:via-slate-950 dark:to-slate-950",
-          darkMode && "from-slate-900 via-slate-950 to-slate-950",
-        )}
-      >
-        <div className="border-separate overflow-x-auto py-2">
-          {logs && logs.length > 0 ? (
-            logs?.map((log, i) => {
-              return (
-                <div
-                  key={`${i + 1}-${log.machineId}-${log.sessionId}-${log.eventId}`}
-                  className={twMerge(
-                    "relative flex px-2",
-                    selectedLines ===
-                      `${i + 1}${log.machineId}${log.sessionId}${log.eventId}` &&
-                      "bg-slate-400 dark:bg-gray-700",
-                  )}
-                >
-                  <button
-                    className="w-5 flex-none hover:text-white"
-                    onClick={() =>
-                      handleClickLine(
-                        `${i + 1}${log.machineId}${log.sessionId}${log.eventId}`,
-                      )
-                    }
-                  >
-                    {i + 1}
-                  </button>
-                  <Select
-                    value=""
-                    onValueChange={(value) => updateSelection(value, log.raw)}
-                  >
-                    <SelectTrigger>
-                      {selectedLines ===
+        <div
+          ref={containerRef}
+          className={twJoin(
+            "flex flex-grow bg-gradient-to-r from-slate-300 via-slate-200 via-10% to-slate-200 text-sm dark:from-slate-900 dark:via-slate-950 dark:to-slate-950",
+            darkMode && "from-slate-900 via-slate-950 to-slate-950",
+          )}
+        >
+          <div className="border-separate overflow-x-auto py-2">
+            {logs && logs.length > 0 ? (
+              logs?.map((log, i) => {
+                return (
+                  <div
+                    key={`${i + 1}-${log.machineId}-${log.sessionId}-${log.eventId}`}
+                    className={twMerge(
+                      "relative flex px-2",
+                      selectedLines ===
                         `${i + 1}${log.machineId}${log.sessionId}${log.eventId}` &&
-                      "bg-slate-400 dark:bg-gray-700" ? (
-                        <div className="z-1 mr-2 flex h-5 w-5 items-center justify-center rounded bg-main shadow-sm">
-                          <Ellipsis size={14} />
-                          <SelectValue placeholder="" />
-                        </div>
-                      ) : (
-                        <div className="w-5 flex-none" />
-                      )}
-                    </SelectTrigger>
-                    <SelectContent position="item-aligned">
-                      <SelectGroup>
-                        {dropDownMenu.map((menu, index) => {
-                          return (
-                            <SelectItem key={menu.key} value={menu.key}>
-                              {menu.text}
-                            </SelectItem>
-                          );
-                        })}
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
+                        "bg-slate-400 dark:bg-gray-700",
+                    )}
+                  >
+                    <button
+                      className="w-5 flex-none hover:text-white"
+                      onClick={() =>
+                        handleClickLine(
+                          `${i + 1}${log.machineId}${log.sessionId}${log.eventId}`,
+                        )
+                      }
+                    >
+                      {i + 1}
+                    </button>
+                    <Select
+                      value=""
+                      onValueChange={(value) => updateSelection(value, log.raw)}
+                    >
+                      <SelectTrigger>
+                        {selectedLines ===
+                          `${i + 1}${log.machineId}${log.sessionId}${log.eventId}` &&
+                        "bg-slate-400 dark:bg-gray-700" ? (
+                          <div className="z-1 mr-2 flex h-5 w-5 items-center justify-center rounded bg-main shadow-sm">
+                            <Ellipsis size={14} />
+                            <SelectValue placeholder="" />
+                          </div>
+                        ) : (
+                          <div className="w-5 flex-none" />
+                        )}
+                      </SelectTrigger>
+                      <SelectContent position="item-aligned">
+                        <SelectGroup>
+                          {dropDownMenu.map((menu, index) => {
+                            return (
+                              <SelectItem key={menu.key} value={menu.key}>
+                                {menu.text}
+                              </SelectItem>
+                            );
+                          })}
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
 
-                  {!pretty ? (
-                    <div
-                      className={twMerge(
-                        "flex gap-1 whitespace-nowrap py-[1px]",
-                      )}
-                    >
-                      {decodeUint8Array(log.raw)}
-                    </div>
-                  ) : (
-                    <div
-                      className={twMerge(
-                        "flex gap-1 whitespace-nowrap py-[1px]",
-                      )}
-                    >
-                      <TooltipProvider>
+                    {!pretty || !isStructuredLog(log) ? (
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <div
+                            className={twMerge(
+                              "flex gap-1 whitespace-nowrap py-[1px]",
+                            )}
+                          >
+                            {decodeUint8Array(log.raw)}
+                          </div>
+                        </TooltipTrigger>
+                        <MetaDataTooltip log={log} />
+                      </Tooltip>
+                    ) : (
+                      <div
+                        className={twMerge(
+                          "flex gap-1 whitespace-nowrap py-[1px]",
+                        )}
+                      >
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <code
-                              style={{
-                                color: getColor("time"),
-                              }}
-                            >
-                              {formatTimestamp(
-                                (log.structured?.timestamp as Timestamp) ??
-                                  log.parsedAt,
-                                config?.formatter?.time?.format ?? "",
-                              )}
-                            </code>
-                          </TooltipTrigger>
-                          <TooltipContent className="bg-white dark:bg-secondaryBlack">
                             <div>
-                              <KeyValueRow
-                                label="Machine Id"
-                                value={log.machineId.toString()}
-                              />
-                              <KeyValueRow
-                                label="Session Id"
-                                value={log.sessionId.toString()}
-                              />
-                              <KeyValueRow
-                                label="Event Id"
-                                value={log.eventId.toString()}
-                              />
-                              <KeyValueRow
-                                label="Local"
-                                value={formatTimestamp(
+                              <code
+                                style={{
+                                  color: getColor("time"),
+                                }}
+                              >
+                                {formatTimestamp(
                                   (log.structured?.timestamp as Timestamp) ??
                                     log.parsedAt,
-                                  "Jan _2 15:04:05.000",
+                                  config?.formatter?.time?.format ?? "",
                                 )}
-                              />
-                              <KeyValueRow
-                                label="UTC"
-                                value={formatTimestamp(
-                                  (log.structured?.timestamp as Timestamp) ??
-                                    log.parsedAt,
-                                  "Jan _2 15:04:05.000",
-                                  true,
-                                )}
-                              />
-                              <KeyValueRow
-                                label="Timestamp"
-                                value={getUnixTimestamp(
-                                  (log.structured?.timestamp as Timestamp) ??
-                                    log.parsedAt,
-                                ).toString()}
-                              />
+                              </code>
+
+                              <code>
+                                <span className="text-gray-400">
+                                  |
+                                  <span
+                                    style={{
+                                      color: getLevelColor(
+                                        log?.structured?.lvl,
+                                      ),
+                                    }}
+                                  >
+                                    {log?.structured?.lvl || "EMPTY"}
+                                  </span>
+                                  |
+                                </span>
+                              </code>
+
+                              <code
+                                style={{ color: getColor("msg") }}
+                                className="mr-1"
+                              >
+                                {log.structured?.msg || "no message"}
+                              </code>
                             </div>
-                          </TooltipContent>
+                          </TooltipTrigger>
+                          <MetaDataTooltip log={log} />
                         </Tooltip>
-                      </TooltipProvider>
 
-                      <code>
-                        <span className="text-gray-400">
-                          |
-                          <span
-                            style={{
-                              color: getLevelColor(log?.structured?.lvl),
-                            }}
-                          >
-                            {log?.structured?.lvl || "EMPTY"}
-                          </span>
-                          |
-                        </span>
-                      </code>
-
-                      <code style={{ color: getColor("msg") }}>
-                        {log.structured?.msg || "no message"}{" "}
                         {log.structured?.kvs.map((kv, kvIndex) => {
                           return (
                             <span
                               key={`${log.sessionId}-${log.eventId}-${kvIndex}`}
                               className="mr-1 flex-none"
                             >
-                              <TooltipProvider>
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <code>
-                                      <span style={{ color: getColor("key") }}>
-                                        {kv.key}=
-                                      </span>
-                                      <span
-                                        style={{ color: getColor("value") }}
-                                      >
-                                        {kv.value?.kind.value?.toString()}
-                                      </span>
-                                    </code>
-                                  </TooltipTrigger>
-                                  <TooltipContent className="bg-transparent bg-white dark:bg-secondaryBlack">
-                                    <KeyValueRow label="Key" value={kv.key} />
-                                    <KeyValueRow
-                                      label="Type"
-                                      value={
-                                        kv.value?.kind.case?.toString() ?? ""
-                                      }
-                                    />
-                                    <KeyValueRow
-                                      label="Value"
-                                      value={
-                                        kv.value?.kind.value?.toString() ?? ""
-                                      }
-                                    />
-                                  </TooltipContent>
-                                </Tooltip>
-                              </TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <code>
+                                    <span style={{ color: getColor("key") }}>
+                                      {kv.key}=
+                                    </span>
+                                    <span
+                                      style={{
+                                        color: getColor("value"),
+                                      }}
+                                    >
+                                      {kv.value?.kind.value?.toString()}
+                                    </span>
+                                  </code>
+                                </TooltipTrigger>
+                                <TooltipContent className="bg-transparent bg-white dark:bg-secondaryBlack">
+                                  <KeyValueRow label="Key" value={kv.key} />
+                                  <KeyValueRow
+                                    label="Type"
+                                    value={
+                                      kv.value?.kind.case?.toString() ?? ""
+                                    }
+                                  />
+                                  <KeyValueRow
+                                    label="Value"
+                                    value={
+                                      kv.value?.kind.value?.toString() ?? ""
+                                    }
+                                  />
+                                </TooltipContent>
+                              </Tooltip>
                             </span>
                           );
                         })}
-                      </code>
-                    </div>
-                  )}
-                </div>
-              );
-            })
-          ) : (
-            <NoLogsView />
-          )}
-
-          <div>{next && <div ref={targetRef} className="h-4" />}</div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })
+            ) : (
+              <NoLogsView />
+            )}
+            <div>{next && <div ref={targetRef} className="h-4" />}</div>
+          </div>
         </div>
-      </div>
+      </TooltipProvider>
     </div>
   );
 };
 
 export default NewSessionPanel;
+
+interface MetaDataTooltipProps {
+  log: IngestedLogEvent;
+}
+
+const MetaDataTooltip = ({ log }: MetaDataTooltipProps) => {
+  return (
+    <TooltipContent className="bg-white dark:bg-secondaryBlack" align="start">
+      <div>
+        <KeyValueRow label="Machine Id" value={log.machineId.toString()} />
+        <KeyValueRow label="Session Id" value={log.sessionId.toString()} />
+        <KeyValueRow label="Event Id" value={log.eventId.toString()} />
+        <KeyValueRow
+          label="Local"
+          value={formatTimestamp(
+            (log.structured?.timestamp as Timestamp) ?? log.parsedAt,
+            "Jan _2 15:04:05.000",
+          )}
+        />
+        <KeyValueRow
+          label="UTC"
+          value={formatTimestamp(
+            (log.structured?.timestamp as Timestamp) ?? log.parsedAt,
+            "Jan _2 15:04:05.000",
+            true,
+          )}
+        />
+        <KeyValueRow
+          label="Timestamp"
+          value={getUnixTimestamp(
+            (log.structured?.timestamp as Timestamp) ?? log.parsedAt,
+          ).toString()}
+        />
+      </div>
+    </TooltipContent>
+  );
+};
 
 interface KeyValueRowProps {
   label: string;
