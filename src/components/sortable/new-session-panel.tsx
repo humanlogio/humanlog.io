@@ -108,6 +108,17 @@ const NewSessionPanel = ({
     selected?.func(decodeUint8Array(text));
   };
 
+  const isStructuredLog = (log: IngestedLogEvent) => {
+    if (
+      log.structured?.lvl ||
+      log.structured?.msg ||
+      (log.structured?.kvs && log.structured.kvs.length > 0)
+    ) {
+      return true;
+    }
+    return false;
+  };
+
   useEffect(() => {
     getConfig();
   }, []);
@@ -231,11 +242,7 @@ const NewSessionPanel = ({
                       </SelectContent>
                     </Select>
 
-                    {!pretty ||
-                    (!log.structured?.lvl &&
-                      !log.structured?.msg &&
-                      (!log.structured?.kvs ||
-                        log.structured.kvs.length === 0)) ? (
+                    {!pretty || !isStructuredLog(log) ? (
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <div
