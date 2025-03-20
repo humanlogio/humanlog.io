@@ -68,6 +68,8 @@ const LogInterface = () => {
     case: undefined,
     value: undefined,
   });
+  const [isLibraryOpen, setIsLibraryOpen] = useState(false);
+  // const [symbol, setSymbol] = useState("");
 
   const parseQuery = async (parseReq: { query: string }) => {
     try {
@@ -228,10 +230,20 @@ const LogInterface = () => {
 
   return (
     <section>
-      <div className="container-min-h-full flex flex-col gap-4 overflow-y-hidden py-8">
-        <NewQueryInput errMsg={errMsg} onExecuteQuery={executeQuery} />
-        <NewQueryOutput logData={logData} parsedQuery={parsedQuery} />
+      <div
+        className={`transition-all duration-300 ease-in-out ${isLibraryOpen ? "mr-96" : "mr-0"}`}
+      >
+        <div className="container-min-h-full flex flex-col gap-4 overflow-y-hidden py-8">
+          <NewQueryInput
+            errMsg={errMsg}
+            onExecuteQuery={executeQuery}
+            isLibraryOpen={isLibraryOpen}
+            setIsLibraryOpen={setIsLibraryOpen}
+          />
+          <NewQueryOutput logData={logData} parsedQuery={parsedQuery} />
+        </div>
       </div>
+
       <Modal open={isModalOpen}>
         <DialogHeader>
           <div className="text-xl font-semibold">Subscription Required</div>

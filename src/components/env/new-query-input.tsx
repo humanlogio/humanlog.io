@@ -1,8 +1,13 @@
 "use client";
 
-import React, { useCallback, useEffect, useRef, useState } from "react";
-import { ListTree, Share } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import React, {
+  Dispatch,
+  SetStateAction,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import Graph, { DataPoint, ZoomType } from "@/components/ui/graph/graph";
 import { useApiClients } from "@/context/api-provider";
 import DateRangePicker from "@/components/ui/graph/dateRangePicker";
@@ -16,27 +21,27 @@ import {
 import MonacoEditor from "@/components/editor/monaco-editor";
 import { editor as monacoEditor } from "monaco-editor";
 import type { OnMount } from "@monaco-editor/react";
-import { useRouter, useSearchParams } from "next/navigation";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
-import { SymbolList } from "@/components/env/symbol-list";
-import config from "@/features/config";
+import { useSearchParams } from "next/navigation";
 import { twMerge } from "tailwind-merge";
 import * as monaco from "monaco-editor";
+import { QueryLibrary } from "./query-library";
+import { X } from "lucide-react";
 
 interface NewQueryInputProps {
   errMsg: string;
   onExecuteQuery: (query: string) => void;
+  symbol?: string;
+  isLibraryOpen: boolean;
+  setIsLibraryOpen: Dispatch<SetStateAction<boolean>>;
 }
 
-const NewQueryInput = ({ errMsg, onExecuteQuery }: NewQueryInputProps) => {
+const NewQueryInput = ({
+  errMsg,
+  onExecuteQuery,
+  isLibraryOpen,
+  setIsLibraryOpen,
+}: NewQueryInputProps) => {
   const isProd = process.env.NODE_ENV === "production";
-  const router = useRouter();
   const searchParams = useSearchParams();
   const queryString = searchParams.get("query");
 
@@ -269,50 +274,61 @@ const NewQueryInput = ({ errMsg, onExecuteQuery }: NewQueryInputProps) => {
   return (
     <div
       className={twMerge(
-        "container items-start gap-8",
+        "container items-center gap-8",
         !isProd && "grid grid-cols-2",
       )}
     >
       {/* TEXT INPUT */}
       <div className="col-span-2 md:col-span-1">
-        <div className="flex w-full flex-row gap-2">
-          <div className="w-full overflow-hidden rounded-base border-2 border-border py-3">
-            <MonacoEditor
-              value={editorContent}
-              onChange={(value) => setEditorContent(value || "")}
-              onMount={handleEditorDidMount}
-            />
+        <div className="mb-2 flex w-full flex-row items-center justify-between">
+          <div>{/* 필요한 경우 왼쪽에 추가 컨트롤 위치 */}</div>
+          <div className="flex gap-2 text-sm">
+            <button className="border">Save</button>
+            <button onClick={() => setIsLibraryOpen(true)} className="border">
+              Query Library
+            </button>
           </div>
-          <Sheet>
-            <SheetTrigger asChild>
-              <Button size="icon" className="h-8">
-                <ListTree size={14} />
-              </Button>
-            </SheetTrigger>
-            <SheetContent className="flex flex-col items-start dark:bg-darkBg">
-              <SheetHeader>
-                <SheetTitle>Symbols</SheetTitle>
-              </SheetHeader>
-              <SymbolList
-                onClickSymbol={(symbolString) => setSymbol(symbolString)}
-              />
-            </SheetContent>
-          </Sheet>
-
-          {/* TODO: not implemented */}
-          {/* <Button
-            size="icon"
-            className="h-8"
-          >
-            <Share size={14} />
-          </Button> */}
+        </div>
+        <div className="w-full overflow-hidden rounded-base border-2 border-border py-3">
+          <MonacoEditor
+            value={editorContent}
+            onChange={(value) => setEditorContent(value || "")}
+            onMount={handleEditorDidMount}
+          />
         </div>
         <p className="mt-2 text-xs text-[red]">{errMsg}</p>
+      </div>
+
+      <div
+        className={`fixed bottom-0 right-0 top-16 w-96 border-l-2 border-black bg-white p-4 pt-4 shadow-lg transition-transform duration-300 ease-in-out dark:border-white dark:bg-darkBg ${
+          isLibraryOpen ? "translate-x-0" : "translate-x-full"
+        } z-20`}
+      >
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-bold">Query Library</h2>
+          <button
+            onClick={() => setIsLibraryOpen(false)}
+            className="rounded-full p-1 hover:bg-gray-100"
+          >
+            <X size={18} />
+          </button>
+        </div>
+        <QueryLibrary
+          onClickSymbol={(symbolString) => {
+            setSymbol(symbolString);
+          }}
+        />
       </div>
 
       {/* CHART */}
       {!isProd && (
         <div className="col-span-2 flex flex-col items-center gap-2 md:col-span-1">
+          <DateRangePicker
+            dateFrom={startDate}
+            dateTo={endDate}
+            setDateFrom={setStartDate}
+            setDateTo={setEndDate}
+          />
           <Graph
             data={eventsList}
             bucketCount={bucketCount}
@@ -320,12 +336,6 @@ const NewQueryInput = ({ errMsg, onExecuteQuery }: NewQueryInputProps) => {
             onZoom={updateTimeFrame}
             startDate={startDate}
             endDate={endDate}
-          />
-          <DateRangePicker
-            dateFrom={startDate}
-            dateTo={endDate}
-            setDateFrom={setStartDate}
-            setDateTo={setEndDate}
           />
         </div>
       )}
