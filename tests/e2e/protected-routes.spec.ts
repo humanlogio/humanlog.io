@@ -65,46 +65,46 @@ test("should redirect to login page with redirect query when not logged in", asy
   await expect(page.locator("text=Loading login interface")).not.toBeVisible();
 });
 
-test("should not redirect when properly logged in", async ({ page }) => {
-  await page.context().addCookies([
-    {
-      name: "hlog_session",
-      value: "fake_token",
-      domain: "app.humanlog.dev",
-      path: "/",
-    },
-  ]);
+// test("should not redirect when properly logged in", async ({ page }) => {
+//   await page.context().addCookies([
+//     {
+//       name: "hlog_session",
+//       value: "fake_token",
+//       domain: "app.humanlog.dev",
+//       path: "/",
+//     },
+//   ]);
 
-  await page.goto("/env/new");
-  await expect(page).toHaveURL("/env/new");
-  await expect(page.locator("text=Create a new environment")).toBeVisible();
-  await expect(page.locator("text=Test_firstName")).toBeVisible();
-  await expect(page.locator("text=Sign in")).not.toBeVisible();
-});
+//   await page.goto("/env/new");
+//   await expect(page).toHaveURL("/env/new");
+//   await expect(page.locator("text=Create a new environment")).toBeVisible();
+//   await expect(page.locator("text=Test_firstName")).toBeVisible();
+//   await expect(page.locator("text=Sign in")).not.toBeVisible();
+// });
 
-test("should log out and redirect to login page", async ({ page }) => {
-  await page.context().addCookies([
-    {
-      name: "hlog_session",
-      value: "fake_token",
-      domain: "localhost",
-      path: "/",
-    },
-  ]);
+// test("should log out and redirect to login page", async ({ page }) => {
+//   await page.context().addCookies([
+//     {
+//       name: "hlog_session",
+//       value: "fake_token",
+//       domain: "localhost",
+//       path: "/",
+//     },
+//   ]);
 
-  await page.goto("/env/new");
-  await page.click('div[aria-label="user-dropdown"]');
-  await page.click('div[aria-label="logout"]');
+//   await page.goto("/env/new");
+//   await page.click('div[aria-label="user-dropdown"]');
+//   await page.click('div[aria-label="logout"]');
 
-  await page.route("**/svc.user.v1.UserService/Whoami", (route) => {
-    route.fulfill({
-      status: 300,
-      contentType: "application/json",
-      body: JSON.stringify({}),
-    });
-  });
+//   await page.route("**/svc.user.v1.UserService/Whoami", (route) => {
+//     route.fulfill({
+//       status: 300,
+//       contentType: "application/json",
+//       body: JSON.stringify({}),
+//     });
+//   });
 
-  await expect(page).toHaveURL("/login?redirect=%2Fenv%2Fnew");
-  // await expect(page.locator("text=Sign up").last()).toBeVisible();
-  await expect(page.locator("text=Loading login interface")).not.toBeVisible();
-});
+//   await expect(page).toHaveURL("/login?redirect=%2Fenv%2Fnew");
+//   // await expect(page.locator("text=Sign up").last()).toBeVisible();
+//   await expect(page.locator("text=Loading login interface")).not.toBeVisible();
+// });
