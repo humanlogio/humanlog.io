@@ -132,7 +132,7 @@ export const SubQueriesContainer = ({ queries }: SubQueriesContainerProps) => {
                     {selectedSessions.length > 1 && (
                       <button
                         onClick={() => deleteSession(list.value)}
-                        className="absolute right-2 top-2 z-20"
+                        className="absolute right-2 top-2 z-10"
                       >
                         <X color="white" size={15} />
                       </button>
