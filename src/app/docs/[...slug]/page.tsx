@@ -5,7 +5,7 @@ import { notFound } from "next/navigation";
 import config from "@/features/config";
 
 export async function generateStaticParams() {
-  const isProd = config.NEXT_IS_PROD;
+  const isProd = config.NEXT_PUBLIC_IS_PROD;
   const docs = allDocs.filter((doc) => !isProd || doc.published);
 
   return docs.map((doc) => ({
