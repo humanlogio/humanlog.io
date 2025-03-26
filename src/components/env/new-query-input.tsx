@@ -24,22 +24,19 @@ import type { OnMount } from "@monaco-editor/react";
 import { useSearchParams } from "next/navigation";
 import { twMerge } from "tailwind-merge";
 import * as monaco from "monaco-editor";
-import { QueryLibrary } from "./query-library";
-import { X } from "lucide-react";
 
 interface NewQueryInputProps {
   errMsg: string;
   onExecuteQuery: (query: string) => void;
   symbol?: string;
-  isLibraryOpen: boolean;
-  setIsLibraryOpen: Dispatch<SetStateAction<boolean>>;
+  setIsSaveValid: Dispatch<SetStateAction<boolean>>;
 }
 
 const NewQueryInput = ({
   errMsg,
   onExecuteQuery,
-  isLibraryOpen,
-  setIsLibraryOpen,
+  symbol,
+  setIsSaveValid,
 }: NewQueryInputProps) => {
   const isProd = process.env.NODE_ENV === "production";
   const searchParams = useSearchParams();
@@ -61,7 +58,6 @@ const NewQueryInput = ({
     startDate: Date;
     endDate: Date;
   }>({ startDate, endDate: new Date() });
-  const [symbol, setSymbol] = useState("");
 
   const isFirstFocusRef = useRef(true);
   const editorRef = useRef<monacoEditor.IStandaloneCodeEditor>();
@@ -213,6 +209,8 @@ const NewQueryInput = ({
 
     editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, () => {
       const currentValue = editor.getValue();
+      const params = new URLSearchParams(searchParams);
+      params.set("query", encodeURIComponent(currentValue));
       onExecuteQuery(currentValue);
 
       setEditorContent(currentValue);
@@ -271,6 +269,14 @@ const NewQueryInput = ({
     }
   }, [searchParams, onExecuteQuery]);
 
+  useEffect(() => {
+    if (editorContent.length > 0) {
+      setIsSaveValid(true);
+    } else {
+      setIsSaveValid(false);
+    }
+  }, [editorContent]);
+
   return (
     <div
       className={twMerge(
@@ -280,15 +286,6 @@ const NewQueryInput = ({
     >
       {/* TEXT INPUT */}
       <div className="col-span-2 md:col-span-1">
-        <div className="mb-2 flex w-full flex-row items-center justify-between">
-          <div>{/* 필요한 경우 왼쪽에 추가 컨트롤 위치 */}</div>
-          <div className="flex gap-2 text-sm">
-            <button className="border">Save</button>
-            <button onClick={() => setIsLibraryOpen(true)} className="border">
-              Query Library
-            </button>
-          </div>
-        </div>
         <div className="w-full overflow-hidden rounded-base border-2 border-border py-3">
           <MonacoEditor
             value={editorContent}
@@ -299,36 +296,9 @@ const NewQueryInput = ({
         <p className="mt-2 text-xs text-[red]">{errMsg}</p>
       </div>
 
-      <div
-        className={`fixed bottom-0 right-0 top-16 w-96 border-l-2 border-black bg-white p-4 pt-4 shadow-lg transition-transform duration-300 ease-in-out dark:border-white dark:bg-darkBg ${
-          isLibraryOpen ? "translate-x-0" : "translate-x-full"
-        } z-20`}
-      >
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-bold">Query Library</h2>
-          <button
-            onClick={() => setIsLibraryOpen(false)}
-            className="rounded-full p-1 hover:bg-gray-100"
-          >
-            <X size={18} />
-          </button>
-        </div>
-        <QueryLibrary
-          onClickSymbol={(symbolString) => {
-            setSymbol(symbolString);
-          }}
-        />
-      </div>
-
       {/* CHART */}
       {!isProd && (
         <div className="col-span-2 flex flex-col items-center gap-2 md:col-span-1">
-          <DateRangePicker
-            dateFrom={startDate}
-            dateTo={endDate}
-            setDateFrom={setStartDate}
-            setDateTo={setEndDate}
-          />
           <Graph
             data={eventsList}
             bucketCount={bucketCount}
@@ -336,6 +306,12 @@ const NewQueryInput = ({
             onZoom={updateTimeFrame}
             startDate={startDate}
             endDate={endDate}
+          />
+          <DateRangePicker
+            dateFrom={startDate}
+            dateTo={endDate}
+            setDateFrom={setStartDate}
+            setDateTo={setEndDate}
           />
         </div>
       )}

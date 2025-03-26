@@ -24,10 +24,10 @@ import {
 import { Val } from "api/js/types/v1/types_pb";
 import { useAllEnvironments } from "@/context/list-environments";
 import { NoLocalhostView } from "@/components/sortable/no-localhost-view";
-import { DialogDescription } from "@radix-ui/react-dialog";
-import { DialogFooter, DialogHeader } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Modal } from "@/components/ui/modal";
+import { QueryLibrary } from "@/components/env/query-library";
+import { X } from "lucide-react";
+import { SaveQueryModal } from "@/components/env/query-library/save-query-modal";
 
 export type DataCase =
   | "subqueries"
@@ -62,14 +62,15 @@ const LogInterface = () => {
   const splitByDefault = searchParams.get("splitByDefault") !== "false";
 
   const [errMsg, setErrMsg] = useState("");
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [parsedQuery, setParsedQuery] = useState<LogQuery>();
   const [logData, setLogData] = useState<LogData>({
     case: undefined,
     value: undefined,
   });
   const [isLibraryOpen, setIsLibraryOpen] = useState(false);
-  // const [symbol, setSymbol] = useState("");
+  const [isSaveValid, setIsSaveValid] = useState(false);
+  const [isSaveQueryModalOpen, setIsSaveQueryModalOpen] = useState(false);
+  const [symbol, setSymbol] = useState("");
 
   const parseQuery = async (parseReq: { query: string }) => {
     try {
@@ -118,10 +119,11 @@ const LogInterface = () => {
           // 1) we don't care about the response
           // 2) we don't want to record the mutated query, so we record it
           // before mutating it with `split by`
-          apiClients.user.recordQueryHistory({
-            rawQuery: editorContent,
-            query: parseRes.query,
-          });
+          editorContent.length > 0 &&
+            apiClients.user.recordQueryHistory({
+              rawQuery: editorContent,
+              query: parseRes.query,
+            });
 
           if (parseRes.dataType) {
             const { type } = parseRes.dataType;
@@ -189,10 +191,6 @@ const LogInterface = () => {
             toast.error(message);
           }
 
-          if (code === Code.FailedPrecondition) {
-            setIsModalOpen(true);
-          }
-
           setLogData({
             case: undefined,
             value: undefined,
@@ -206,10 +204,8 @@ const LogInterface = () => {
 
   const executeQuery = useCallback(
     async (query: string) => {
-      const params = new URLSearchParams(searchParams);
       const parseRes = await parseQuery({ query });
-      params.set("query", encodeURIComponent(query));
-      router.push(`?${params}`);
+
       if (!parseRes) return;
       await getLogData(query);
     },
@@ -218,7 +214,7 @@ const LogInterface = () => {
 
   useEffect(() => {
     if (queryString != null) executeQuery(decodeURIComponent(queryString));
-  }, [splitByDefault]);
+  }, [splitByDefault, queryString]);
 
   if (!localhostInfo) {
     return (
@@ -233,33 +229,59 @@ const LogInterface = () => {
       <div
         className={`transition-all duration-300 ease-in-out ${isLibraryOpen ? "mr-96" : "mr-0"}`}
       >
-        <div className="container-min-h-full flex flex-col gap-4 overflow-y-hidden py-8">
+        <div className="container-min-h-full container flex flex-col gap-4 overflow-y-hidden py-8">
+          <div className="mb-2 flex w-full flex-row items-center justify-between">
+            <div />
+            <div className="flex gap-2 text-sm">
+              <Button
+                disabled={!isSaveValid}
+                size="sm"
+                onClick={() => setIsSaveQueryModalOpen(true)}
+              >
+                Save
+              </Button>
+              <Button size="sm" onClick={() => setIsLibraryOpen(true)}>
+                Query Library
+              </Button>
+            </div>
+          </div>
           <NewQueryInput
             errMsg={errMsg}
+            setIsSaveValid={setIsSaveValid}
             onExecuteQuery={executeQuery}
-            isLibraryOpen={isLibraryOpen}
-            setIsLibraryOpen={setIsLibraryOpen}
+            symbol={symbol}
           />
           <NewQueryOutput logData={logData} parsedQuery={parsedQuery} />
         </div>
       </div>
 
-      <Modal open={isModalOpen}>
-        <DialogHeader>
-          <div className="text-xl font-semibold">Subscription Required</div>
-          <DialogDescription>
-            {
-              "This feature requires a subscription. But don't worry, we have a free plan for personal use."
-            }
-          </DialogDescription>
-        </DialogHeader>
-        <DialogFooter className="mt-4 flex-row">
-          <Button onClick={() => router.push("/user/purchase")}>
-            Subscribe
-          </Button>
-          <Button onClick={() => setIsModalOpen(false)}>Cancel</Button>
-        </DialogFooter>
-      </Modal>
+      <div
+        className={`fixed bottom-0 right-0 top-16 w-96 border-l-2 border-black bg-white p-4 pt-4 shadow-lg transition-transform duration-300 ease-in-out dark:border-white dark:bg-darkBg ${
+          isLibraryOpen ? "translate-x-0" : "translate-x-full"
+        } z-1`}
+      >
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-bold">Query Library</h2>
+          <button
+            onClick={() => setIsLibraryOpen(false)}
+            className="rounded-full p-1 hover:bg-gray-100"
+          >
+            <X size={18} />
+          </button>
+        </div>
+        <QueryLibrary
+          onClickSymbol={(symbolString) => {
+            setSymbol(symbolString);
+          }}
+        />
+      </div>
+
+      <SaveQueryModal
+        queryString={queryString || ""}
+        isSaveQueryModalOpen={isSaveQueryModalOpen}
+        setIsSaveQueryModalOpen={setIsSaveQueryModalOpen}
+        parsedQuery={parsedQuery}
+      />
     </section>
   );
 };
