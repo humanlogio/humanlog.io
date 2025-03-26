@@ -1,4 +1,4 @@
-import { EllipsisVertical } from "lucide-react";
+import { EllipsisVertical, FileText } from "lucide-react";
 import { Timestamp } from "@bufbuild/protobuf";
 import { Select, SelectContent, SelectItem } from "@/components/ui/select";
 import {
@@ -13,6 +13,8 @@ import { copyToClipboard } from "@/lib/utils";
 import { toast } from "sonner";
 import { Cursor } from "api/js/types/v1/cursor_pb";
 import { useInfiniteScroll } from "@/lib/utils/useInfiniteScroll";
+import ReactMarkdown from "react-markdown";
+import { useState } from "react";
 
 interface DropdownMenuItem {
   key: string;
@@ -25,6 +27,7 @@ interface QueryItem {
   rawQuery: string;
   createdAt: Timestamp;
   name?: string;
+  note?: string;
 }
 
 interface DropdownMenuItem {
@@ -142,6 +145,10 @@ export const QueryListItem = ({
   dropDownMenu,
   updateSelection,
 }: QueryListItemProps) => {
+  const [isNoteExpanded, setIsNoteExpanded] = useState(false);
+
+  const hasNote = item.note && item.note.trim().length > 0;
+
   return (
     <div
       key={`${index + 1}-${item.id}`}
@@ -150,9 +157,21 @@ export const QueryListItem = ({
       <div className="flex w-full cursor-pointer items-center justify-between">
         <div className="min-w-0 flex-1">
           <div className="flex w-full items-center justify-between">
-            {item.name && (
-              <div className="text-sm font-medium">{item.name}</div>
-            )}
+            <div className="flex items-center gap-2">
+              {item.name && (
+                <div className="text-sm font-medium">{item.name}</div>
+              )}
+
+              {hasNote && (
+                <button
+                  onClick={() => setIsNoteExpanded(!isNoteExpanded)}
+                  className="flex items-center text-xs text-gray-500 hover:text-gray-700"
+                >
+                  <FileText size={14} className="mr-1" />
+                  {isNoteExpanded ? "Hide note" : "View note"}
+                </button>
+              )}
+            </div>
             <Select
               value=""
               onValueChange={(value) => updateSelection(value, item)}
@@ -183,9 +202,28 @@ export const QueryListItem = ({
           </div>
         </div>
       </div>
-      <p className="mt-2 text-xs text-gray-500">
-        {getTimeSince(item.createdAt)}
-      </p>
+
+      {hasNote && isNoteExpanded && (
+        <div className="mt-3 border-t border-gray-100 pt-2">
+          <div className="prose prose-sm max-w-none rounded-md bg-gray-50 p-2 dark:prose-invert dark:bg-gray-800">
+            <ReactMarkdown>{item.note}</ReactMarkdown>
+          </div>
+        </div>
+      )}
+
+      <div className="mt-2 flex items-center justify-between">
+        <p className="text-xs text-gray-500">{getTimeSince(item.createdAt)}</p>
+
+        {/* 노트가 있는 경우 작은 아이콘 표시 */}
+        {hasNote && !isNoteExpanded && (
+          <button
+            onClick={() => setIsNoteExpanded(true)}
+            className="text-xs text-gray-400 hover:text-gray-600"
+          >
+            <FileText size={12} />
+          </button>
+        )}
+      </div>
     </div>
   );
 };
