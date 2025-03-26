@@ -18,3 +18,41 @@
 .dark {
   --chart-ticklabels-color: white;
 }
+
+.markdown-preview {
+  text-align: left;
+}
+.markdown-preview h1,
+.markdown-preview h2,
+.markdown-preview h3 {
+  font-weight: bold;
+  margin-top: 1em;
+  margin-bottom: 0.5em;
+}
+.markdown-preview h1 {
+  font-size: 1.5em;
+}
+.markdown-preview h2 {
+  font-size: 1.3em;
+}
+.markdown-preview h3 {
+  font-size: 1.1em;
+}
+.markdown-preview p {
+  margin-bottom: 1em;
+}
+.markdown-preview ul,
+.markdown-preview ol {
+  padding-left: 2em;
+  margin-bottom: 1em;
+}
+.markdown-preview blockquote {
+  border-left: 3px solid #ccc;
+  padding-left: 1em;
+  margin-left: 0;
+}
+.markdown-preview code {
+  background-color: #f0f0f0;
+  padding: 0.2em 0.4em;
+  border-radius: 3px;
+}

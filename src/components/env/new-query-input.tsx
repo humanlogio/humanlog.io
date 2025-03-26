@@ -1,8 +1,13 @@
 "use client";
 
-import React, { useCallback, useEffect, useRef, useState } from "react";
-import { ListTree, Share } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import React, {
+  Dispatch,
+  SetStateAction,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import Graph, { DataPoint, ZoomType } from "@/components/ui/graph/graph";
 import { useApiClients } from "@/context/api-provider";
 import DateRangePicker from "@/components/ui/graph/dateRangePicker";
@@ -16,27 +21,24 @@ import {
 import MonacoEditor from "@/components/editor/monaco-editor";
 import { editor as monacoEditor } from "monaco-editor";
 import type { OnMount } from "@monaco-editor/react";
-import { useRouter, useSearchParams } from "next/navigation";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
-import { SymbolList } from "@/components/env/symbol-list";
-import config from "@/features/config";
+import { useSearchParams } from "next/navigation";
 import { twMerge } from "tailwind-merge";
 import * as monaco from "monaco-editor";
 
 interface NewQueryInputProps {
   errMsg: string;
   onExecuteQuery: (query: string) => void;
+  symbol?: string;
+  setIsSaveValid: Dispatch<SetStateAction<boolean>>;
 }
 
-const NewQueryInput = ({ errMsg, onExecuteQuery }: NewQueryInputProps) => {
+const NewQueryInput = ({
+  errMsg,
+  onExecuteQuery,
+  symbol,
+  setIsSaveValid,
+}: NewQueryInputProps) => {
   const isProd = process.env.NODE_ENV === "production";
-  const router = useRouter();
   const searchParams = useSearchParams();
   const queryString = searchParams.get("query");
 
@@ -56,7 +58,6 @@ const NewQueryInput = ({ errMsg, onExecuteQuery }: NewQueryInputProps) => {
     startDate: Date;
     endDate: Date;
   }>({ startDate, endDate: new Date() });
-  const [symbol, setSymbol] = useState("");
 
   const isFirstFocusRef = useRef(true);
   const editorRef = useRef<monacoEditor.IStandaloneCodeEditor>();
@@ -208,6 +209,8 @@ const NewQueryInput = ({ errMsg, onExecuteQuery }: NewQueryInputProps) => {
 
     editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, () => {
       const currentValue = editor.getValue();
+      const params = new URLSearchParams(searchParams);
+      params.set("query", encodeURIComponent(currentValue));
       onExecuteQuery(currentValue);
 
       setEditorContent(currentValue);
@@ -266,46 +269,29 @@ const NewQueryInput = ({ errMsg, onExecuteQuery }: NewQueryInputProps) => {
     }
   }, [searchParams, onExecuteQuery]);
 
+  useEffect(() => {
+    if (editorContent.length > 0) {
+      setIsSaveValid(true);
+    } else {
+      setIsSaveValid(false);
+    }
+  }, [editorContent]);
+
   return (
     <div
       className={twMerge(
-        "container items-start gap-8",
+        "container items-center gap-8",
         !isProd && "grid grid-cols-2",
       )}
     >
       {/* TEXT INPUT */}
       <div className="col-span-2 md:col-span-1">
-        <div className="flex w-full flex-row gap-2">
-          <div className="w-full overflow-hidden rounded-base border-2 border-border py-3">
-            <MonacoEditor
-              value={editorContent}
-              onChange={(value) => setEditorContent(value || "")}
-              onMount={handleEditorDidMount}
-            />
-          </div>
-          <Sheet>
-            <SheetTrigger asChild>
-              <Button size="icon" className="h-8">
-                <ListTree size={14} />
-              </Button>
-            </SheetTrigger>
-            <SheetContent className="flex flex-col items-start dark:bg-darkBg">
-              <SheetHeader>
-                <SheetTitle>Symbols</SheetTitle>
-              </SheetHeader>
-              <SymbolList
-                onClickSymbol={(symbolString) => setSymbol(symbolString)}
-              />
-            </SheetContent>
-          </Sheet>
-
-          {/* TODO: not implemented */}
-          {/* <Button
-            size="icon"
-            className="h-8"
-          >
-            <Share size={14} />
-          </Button> */}
+        <div className="w-full overflow-hidden rounded-base border-2 border-border py-3">
+          <MonacoEditor
+            value={editorContent}
+            onChange={(value) => setEditorContent(value || "")}
+            onMount={handleEditorDidMount}
+          />
         </div>
         <p className="mt-2 text-xs text-[red]">{errMsg}</p>
       </div>

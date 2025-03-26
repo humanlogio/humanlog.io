@@ -204,7 +204,7 @@ export const SymbolList = ({ onClickSymbol }: SymbolListProps) => {
   };
 
   return (
-    <div className="w-full overflow-y-scroll p-2 scrollbar-hide">
+    <div className="h-[calc(100vh-100px)] w-full overflow-y-auto p-2 scrollbar-hide">
       {Object.values(symbolTree).map((node) => renderTreeNode(node, true))}
     </div>
   );
