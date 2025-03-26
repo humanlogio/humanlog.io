@@ -157,7 +157,7 @@ const NewSessionPanel = ({
   return (
     <div className="flex w-full flex-col rounded-base border-2 border-border">
       <TooltipProvider>
-        <div className="sticky left-0 right-0 top-0 z-10 flex h-11 w-full flex-none flex-row items-center justify-between bg-slate-900 px-4 py-2 dark:bg-slate-800">
+        <div className="sticky left-0 right-0 top-0 flex h-11 w-full flex-none flex-row items-center justify-between bg-slate-900 px-4 py-2 dark:bg-slate-800">
           <div className="flex justify-start">
             <h4 className="flex flex-row items-center gap-3 truncate font-bold text-white">
               {isFetching ? (

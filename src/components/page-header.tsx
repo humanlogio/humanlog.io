@@ -260,7 +260,7 @@ const PageHeader: React.FC = () => {
   };
 
   return (
-    <header className="bg-darkBg dark:bg-slate-950">
+    <header className="sticky left-0 top-0 z-20 bg-darkBg dark:bg-slate-950">
       <div className="container flex flex-row items-center justify-between gap-8 py-3">
         <div className="hidden w-full flex-row items-center justify-between gap-8 md:flex">
           <div className="flex flex-row items-center gap-8">

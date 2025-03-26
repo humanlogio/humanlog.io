@@ -2,8 +2,12 @@ import { Duration, Timestamp } from "@bufbuild/protobuf";
 import { timeStamp } from "console";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
+import duration from "dayjs/plugin/duration";
+import relativeTime from "dayjs/plugin/relativeTime";
 
 dayjs.extend(utc);
+dayjs.extend(duration);
+dayjs.extend(relativeTime);
 
 export const TIME_FORMAT = {
   "MMM D HH:mm:ss.SSS": "Jan _2 15:04:05.000",
@@ -57,4 +61,10 @@ export const getUnixTimestamp = (timestamp: Timestamp) => {
   const milliseconds = Math.floor(timestamp.nanos / 1_000_000);
 
   return seconds * 1000 + milliseconds;
+};
+
+export const getTimeSince = (timestamp: Timestamp) => {
+  const unixTimestamp = getUnixTimestamp(timestamp);
+
+  return dayjs(unixTimestamp).fromNow();
 };

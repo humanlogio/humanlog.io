@@ -1,10 +1,10 @@
 import { toast } from "sonner";
 
-export const copyToClipboard = (text: string) => {
+export const copyToClipboard = (value: string, text?: string) => {
   navigator.clipboard
-    .writeText(text)
+    .writeText(value)
     .then(() => {
-      toast.success("Text copied to clipboard");
+      toast.success(`${text ? text : "Text"} copied to clipboard`);
     })
     .catch((err) => {
       console.error("Failed to copy text: ", err);
