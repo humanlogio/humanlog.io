@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { twMerge } from "tailwind-merge";
 import { SheetTitle } from "@/components/ui/sheet";
-import { RecentQuery } from "./recent-query";
-import { SavedQuery } from "./saved-query";
-import { SymbolList } from "./symbol-list";
+import { RecentQuery } from "@/components/env/query-library/recent-query";
+import { SavedQuery } from "@/components/env/query-library/saved-query";
+import { SymbolList } from "@/components/env/query-library/symbol-list";
 
 interface QueryLibraryProps {
   onClickSymbol: (symbolString: string) => void;
