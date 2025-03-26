@@ -68,7 +68,7 @@ export function ApiClientsProvider({
 }: {
   children: React.ReactNode;
 }) {
-  const isProd = process.env.NODE_ENV === "production";
+  const isProd = config.NEXT_PUBLIC_IS_PROD;
   const returnToURL = getSelfURL();
 
   const [cookies, setCookie] = useCookies();

@@ -24,6 +24,7 @@ import type { OnMount } from "@monaco-editor/react";
 import { useSearchParams } from "next/navigation";
 import { twMerge } from "tailwind-merge";
 import * as monaco from "monaco-editor";
+import config from "@/features/config";
 
 interface NewQueryInputProps {
   errMsg: string;
@@ -38,7 +39,7 @@ const NewQueryInput = ({
   symbol,
   setIsSaveValid,
 }: NewQueryInputProps) => {
-  const isProd = process.env.NODE_ENV === "production";
+  const isProd = config.NEXT_PUBLIC_IS_PROD;
   const searchParams = useSearchParams();
   const queryString = searchParams.get("query");
 
