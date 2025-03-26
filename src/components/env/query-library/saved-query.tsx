@@ -31,6 +31,7 @@ export const SavedQuery = () => {
         rawQuery: item.favorite?.rawQuery || "",
         createdAt: item.favorite?.createdAt as Timestamp,
         name: item.favorite?.name,
+        note: item.favorite?.note,
       };
     },
     [],
