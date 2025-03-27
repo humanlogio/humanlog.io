@@ -21,7 +21,7 @@ import {
 import MonacoEditor from "@/components/editor/monaco-editor";
 import { editor as monacoEditor } from "monaco-editor";
 import type { OnMount } from "@monaco-editor/react";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { twMerge } from "tailwind-merge";
 import * as monaco from "monaco-editor";
 import config from "@/features/config";
@@ -40,6 +40,7 @@ const NewQueryInput = ({
   setIsSaveValid,
 }: NewQueryInputProps) => {
   const isProd = config.NEXT_PUBLIC_IS_PROD;
+  const router = useRouter();
   const searchParams = useSearchParams();
   const queryString = searchParams.get("query");
 
@@ -212,6 +213,7 @@ const NewQueryInput = ({
       const currentValue = editor.getValue();
       const params = new URLSearchParams(searchParams);
       params.set("query", encodeURIComponent(currentValue));
+      router.push(`?${params}`);
       onExecuteQuery(currentValue);
 
       setEditorContent(currentValue);
@@ -263,6 +265,9 @@ const NewQueryInput = ({
         monacoRef.current.KeyMod.CtrlCmd | monacoRef.current.KeyCode.Enter,
         () => {
           const currentValue = editorRef.current?.getValue() || "";
+          const params = new URLSearchParams(searchParams);
+          params.set("query", encodeURIComponent(currentValue));
+          router.push(`?${params}`);
           onExecuteQuery(currentValue);
           setEditorContent(currentValue);
         },
