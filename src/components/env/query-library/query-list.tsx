@@ -121,7 +121,9 @@ export const QueryList = <T,>({
           />
         );
       })}
-      <div className="flex justify-center">
+      <div
+        className={`flex justify-center ${items.length === 0 && "h-full items-center"}`}
+      >
         {loading ? (
           <Loader className="animate-spin"></Loader>
         ) : (
