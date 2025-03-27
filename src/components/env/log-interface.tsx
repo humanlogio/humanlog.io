@@ -28,6 +28,7 @@ import { Button } from "@/components/ui/button";
 import { QueryLibrary } from "@/components/env/query-library";
 import { X } from "lucide-react";
 import { SaveQueryModal } from "@/components/env/query-library/save-query-modal";
+import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 
 export type DataCase =
   | "subqueries"
@@ -225,57 +226,61 @@ const LogInterface = () => {
   }
 
   return (
-    <section>
-      <div
-        className={`transition-all duration-300 ease-in-out ${isLibraryOpen ? "mr-96" : "mr-0"}`}
-      >
-        <div className="container-min-h-full container flex flex-col gap-4 overflow-y-hidden py-8">
-          <div className="mb-2 flex w-full flex-row items-center justify-between">
-            <div />
-            <div className="flex gap-2 text-sm">
-              <Button
-                disabled={!isSaveValid}
-                size="sm"
-                onClick={() => setIsSaveQueryModalOpen(true)}
-              >
-                Save
-              </Button>
-              <Button size="sm" onClick={() => setIsLibraryOpen(true)}>
-                Query Library
-              </Button>
+    <section className="h-[calc(100vh-4rem)]">
+      <PanelGroup direction="horizontal">
+        <Panel defaultSize={80} minSize={30}>
+          <div className="container flex h-full flex-col gap-4 py-8">
+            <div className="mb-2 flex w-full flex-row items-center justify-between">
+              <div />
+              <div className="flex gap-2 text-sm">
+                <Button
+                  disabled={!isSaveValid}
+                  size="sm"
+                  onClick={() => setIsSaveQueryModalOpen(true)}
+                >
+                  Save
+                </Button>
+                <Button size="sm" onClick={() => setIsLibraryOpen(true)}>
+                  Query Library
+                </Button>
+              </div>
             </div>
+            <NewQueryInput
+              errMsg={errMsg}
+              setIsSaveValid={setIsSaveValid}
+              onExecuteQuery={executeQuery}
+              symbol={symbol}
+            />
+            <NewQueryOutput logData={logData} parsedQuery={parsedQuery} />
           </div>
-          <NewQueryInput
-            errMsg={errMsg}
-            setIsSaveValid={setIsSaveValid}
-            onExecuteQuery={executeQuery}
-            symbol={symbol}
-          />
-          <NewQueryOutput logData={logData} parsedQuery={parsedQuery} />
-        </div>
-      </div>
+        </Panel>
 
-      <div
-        className={`fixed bottom-0 right-0 top-16 w-96 border-l-2 border-black bg-white p-4 pt-4 shadow-lg transition-transform duration-300 ease-in-out dark:border-white dark:bg-darkBg ${
-          isLibraryOpen ? "translate-x-0" : "translate-x-full"
-        } z-1`}
-      >
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-bold">Query Library</h2>
-          <button
-            onClick={() => setIsLibraryOpen(false)}
-            className="rounded-full p-1 hover:bg-gray-100"
-          >
-            <X size={18} />
-          </button>
-        </div>
-        <QueryLibrary
-          onClickSymbol={(symbolString) => {
-            setSymbol(symbolString);
-          }}
-        />
-      </div>
+        <PanelResizeHandle />
 
+        <Panel
+          defaultSize={25}
+          maxSize={50}
+          minSize={15}
+          className={`border-l border-border bg-white transition-transform duration-300 ease-in-out dark:bg-darkBg ${isLibraryOpen ? "translate-x-0" : "hidden translate-x-full"}`}
+        >
+          <div className="h-full p-4">
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-lg font-bold">Query Library</h2>
+              <button
+                onClick={() => setIsLibraryOpen(false)}
+                className="rounded-full p-1 hover:bg-gray-100"
+              >
+                <X size={18} />
+              </button>
+            </div>
+            <QueryLibrary
+              onClickSymbol={(symbolString) => {
+                setSymbol(symbolString);
+              }}
+            />
+          </div>
+        </Panel>
+      </PanelGroup>
       <SaveQueryModal
         queryString={queryString || ""}
         isSaveQueryModalOpen={isSaveQueryModalOpen}
