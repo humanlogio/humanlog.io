@@ -93,16 +93,14 @@ export const QueryList = <T,>({
         deleteItem(id);
         setData((prev) => {
           if (prev) {
-            if (prev) {
-              return prev.filter((item) => {
-                if (item instanceof ListFavoriteQueryResponse_ListItem) {
-                  return item.favorite?.id !== id;
-                }
-                if (item instanceof ListQueryHistoryResponse_ListItem) {
-                  return item.entry?.id !== id;
-                }
-              });
-            }
+            return prev.filter((item) => {
+              if (item instanceof ListFavoriteQueryResponse_ListItem) {
+                return item.favorite?.id !== id;
+              }
+              if (item instanceof ListQueryHistoryResponse_ListItem) {
+                return item.entry?.id !== id;
+              }
+            });
           }
           return [];
         });
