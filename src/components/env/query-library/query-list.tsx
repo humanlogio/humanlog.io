@@ -15,6 +15,10 @@ import { Cursor } from "api/js/types/v1/cursor_pb";
 import { useInfiniteScroll } from "@/lib/utils/useInfiniteScroll";
 import ReactMarkdown from "react-markdown";
 import { useState } from "react";
+import {
+  ListFavoriteQueryResponse_ListItem,
+  ListQueryHistoryResponse_ListItem,
+} from "api/js/svc/user/v1/service_pb";
 
 interface DropdownMenuItem {
   key: string;
@@ -42,6 +46,7 @@ interface QueryListProps<T> {
     next: Cursor | null;
   }>;
   getItemData: (item: T) => QueryItem;
+  getItemID: (item: T) => bigint | undefined;
   deleteItem?: (id: bigint) => void;
   emptyMessage?: string;
   limit?: number;
@@ -50,18 +55,25 @@ interface QueryListProps<T> {
 export const QueryList = <T,>({
   fetchItems,
   getItemData,
+  getItemID,
   deleteItem,
   emptyMessage = "No recent queries found",
   limit = 100,
 }: QueryListProps<T>) => {
   const router = useRouter();
+  const makeFilterFn = (id: bigint | undefined) => {
+    return (item: T): boolean => {
+      const itemID = getItemID(item);
+      return itemID !== id;
+    };
+  };
 
   const {
     data: items,
     loading,
     error,
     targetRef,
-    refresh,
+    setData,
   } = useInfiniteScroll(fetchItems, { limit });
 
   if (error) {
@@ -86,8 +98,13 @@ export const QueryList = <T,>({
       key: "3",
       text: "Delete query",
       func: (id: bigint, query: string) => {
+        const fn = makeFilterFn(id);
+
         deleteItem(id);
-        refresh();
+        setData((prev) => {
+          if (!prev) return [];
+          return prev.filter(fn);
+        });
       },
     });
   }
