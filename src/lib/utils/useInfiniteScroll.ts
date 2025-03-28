@@ -57,14 +57,10 @@ export function useInfiniteScroll<T>(
 
   return {
     data,
+    setData,
     loading,
     error,
     targetRef,
     next,
-    refresh: useCallback(() => {
-      setData([]);
-      setNext(initialCursor);
-      setLoading(false);
-    }, [initialCursor]),
   };
 }

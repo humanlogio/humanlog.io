@@ -37,6 +37,12 @@ export const SavedQuery = () => {
     [],
   );
 
+  const getItemID = (
+    item: ListFavoriteQueryResponse_ListItem,
+  ): bigint | undefined => {
+    return item.favorite?.id;
+  };
+
   const deleteSavedQuery = useCallback(
     (id: bigint) => {
       try {
@@ -53,6 +59,7 @@ export const SavedQuery = () => {
     <QueryList<ListFavoriteQueryResponse_ListItem>
       fetchItems={fetchSavedQueries}
       getItemData={getItemData}
+      getItemID={getItemID}
       deleteItem={deleteSavedQuery}
       emptyMessage="No saved queries found"
     />
