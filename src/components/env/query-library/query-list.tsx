@@ -15,6 +15,10 @@ import { Cursor } from "api/js/types/v1/cursor_pb";
 import { useInfiniteScroll } from "@/lib/utils/useInfiniteScroll";
 import ReactMarkdown from "react-markdown";
 import { useState } from "react";
+import {
+  ListFavoriteQueryResponse_ListItem,
+  ListQueryHistoryResponse_ListItem,
+} from "api/js/svc/user/v1/service_pb";
 
 interface DropdownMenuItem {
   key: string;
@@ -61,7 +65,7 @@ export const QueryList = <T,>({
     loading,
     error,
     targetRef,
-    refresh,
+    setData,
   } = useInfiniteScroll(fetchItems, { limit });
 
   if (error) {
@@ -87,7 +91,21 @@ export const QueryList = <T,>({
       text: "Delete query",
       func: (id: bigint, query: string) => {
         deleteItem(id);
-        refresh();
+        setData((prev) => {
+          if (prev) {
+            if (prev) {
+              return prev.filter((item) => {
+                if (item instanceof ListFavoriteQueryResponse_ListItem) {
+                  return item.favorite?.id !== id;
+                }
+                if (item instanceof ListQueryHistoryResponse_ListItem) {
+                  return item.entry?.id !== id;
+                }
+              });
+            }
+          }
+          return [];
+        });
       },
     });
   }
