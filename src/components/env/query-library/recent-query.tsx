@@ -32,6 +32,12 @@ export const RecentQuery = () => {
     };
   }, []);
 
+  const getItemID = (
+    item: ListQueryHistoryResponse_ListItem,
+  ): bigint | undefined => {
+    return item.entry?.id;
+  };
+
   const deleteHistoryQuery = useCallback(
     (id: bigint) => {
       try {
@@ -48,6 +54,7 @@ export const RecentQuery = () => {
     <QueryList<ListQueryHistoryResponse_ListItem>
       fetchItems={fetchRecentQueries}
       getItemData={getItemData}
+      getItemID={getItemID}
       deleteItem={deleteHistoryQuery}
       emptyMessage="No recent queries found"
     />

@@ -46,6 +46,7 @@ interface QueryListProps<T> {
     next: Cursor | null;
   }>;
   getItemData: (item: T) => QueryItem;
+  getItemID: (item: T) => bigint | undefined;
   deleteItem?: (id: bigint) => void;
   emptyMessage?: string;
   limit?: number;
@@ -54,11 +55,18 @@ interface QueryListProps<T> {
 export const QueryList = <T,>({
   fetchItems,
   getItemData,
+  getItemID,
   deleteItem,
   emptyMessage = "No recent queries found",
   limit = 100,
 }: QueryListProps<T>) => {
   const router = useRouter();
+  const makeFilterFn = (id: bigint | undefined) => {
+    return (item: T): boolean => {
+      const itemID = getItemID(item);
+      return itemID !== id;
+    };
+  };
 
   const {
     data: items,
@@ -90,19 +98,12 @@ export const QueryList = <T,>({
       key: "3",
       text: "Delete query",
       func: (id: bigint, query: string) => {
+        const fn = makeFilterFn(id);
+
         deleteItem(id);
         setData((prev) => {
-          if (prev) {
-            return prev.filter((item) => {
-              if (item instanceof ListFavoriteQueryResponse_ListItem) {
-                return item.favorite?.id !== id;
-              }
-              if (item instanceof ListQueryHistoryResponse_ListItem) {
-                return item.entry?.id !== id;
-              }
-            });
-          }
-          return [];
+          if (!prev) return [];
+          return prev.filter(fn);
         });
       },
     });
