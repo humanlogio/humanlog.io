@@ -31,6 +31,8 @@ interface NewQueryInputProps {
   onExecuteQuery: (query: string) => void;
   symbol?: string;
   setIsSaveValid: Dispatch<SetStateAction<boolean>>;
+  editorContent: string;
+  setEditorContent: Dispatch<SetStateAction<string>>;
 }
 
 const NewQueryInput = ({
@@ -38,6 +40,8 @@ const NewQueryInput = ({
   onExecuteQuery,
   symbol,
   setIsSaveValid,
+  editorContent,
+  setEditorContent,
 }: NewQueryInputProps) => {
   const isProd = config.NEXT_PUBLIC_IS_PROD;
   const router = useRouter();
@@ -51,7 +55,6 @@ const NewQueryInput = ({
     // starting from one week ago
     new Date(new Date().valueOf() - 1000 * 60 * 60 * 24 * 7),
   );
-  const [editorContent, setEditorContent] = useState<string>("");
   const [endDate, setEndDate] = useState<Date>(new Date(new Date().valueOf()));
   const [zoom, setZoom] = useState<{ startIndex?: number; endIndex?: number }>(
     {},
@@ -274,14 +277,6 @@ const NewQueryInput = ({
       );
     }
   }, [searchParams, onExecuteQuery]);
-
-  useEffect(() => {
-    if (editorContent.length > 0) {
-      setIsSaveValid(true);
-    } else {
-      setIsSaveValid(false);
-    }
-  }, [editorContent]);
 
   return (
     <div
