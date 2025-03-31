@@ -215,6 +215,14 @@ const LogInterface = () => {
   );
 
   useEffect(() => {
+    if (editorContent.length > 0) {
+      setIsSaveValid(true);
+    } else {
+      setIsSaveValid(false);
+    }
+  }, [editorContent]);
+
+  useEffect(() => {
     if (queryString != null) executeQuery(decodeURIComponent(queryString));
   }, [splitByDefault, queryString]);
 
@@ -225,14 +233,6 @@ const LogInterface = () => {
       </div>
     );
   }
-
-  useEffect(() => {
-    if (editorContent.length > 0) {
-      setIsSaveValid(true);
-    } else {
-      setIsSaveValid(false);
-    }
-  }, [editorContent]);
 
   return (
     <section className="h-[calc(100vh-4rem)]">
