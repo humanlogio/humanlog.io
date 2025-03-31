@@ -20,15 +20,17 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import MarkdownEditor from "@/components/ui/markdown-textarea";
+import MonacoEditor from "@/components/editor/monaco-editor";
 
 interface SaveQueryModalProps {
-  queryString: string;
+  query: string;
   isSaveQueryModalOpen: boolean;
   setIsSaveQueryModalOpen: Dispatch<SetStateAction<boolean>>;
   parsedQuery?: LogQuery;
 }
 
 const formSchema = z.object({
+  query: z.string(),
   name: z.string().min(1, "Name is required"),
   note: z.string().optional(),
 });
@@ -36,7 +38,7 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 export const SaveQueryModal = ({
-  queryString,
+  query,
   isSaveQueryModalOpen,
   setIsSaveQueryModalOpen,
   parsedQuery,
@@ -46,6 +48,7 @@ export const SaveQueryModal = ({
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
+      query,
       name: "",
       note: "",
     },
@@ -53,15 +56,16 @@ export const SaveQueryModal = ({
 
   const onSubmit = (formData: FormValues) => {
     try {
-      if (queryString) {
-        const { name, note } = formData;
+      if (query) {
+        const { query, name, note } = formData;
         apiClients?.user.createFavoriteQuery({
           name,
-          rawQuery: decodeURIComponent(queryString),
+          rawQuery: query,
           ...(note && { note }),
           ...(parsedQuery && { query: parsedQuery }),
         });
         toast.success(`Query ${name} saved`);
+        console.log("query", query);
       }
     } catch (error) {
       if (error instanceof ConnectError) toast.error(error.message);
@@ -73,11 +77,12 @@ export const SaveQueryModal = ({
   useEffect(() => {
     if (!isSaveQueryModalOpen) {
       form.reset({
+        query,
         name: "",
         note: "",
       });
     }
-  }, [isSaveQueryModalOpen, form]);
+  }, [isSaveQueryModalOpen, form, query]);
 
   return (
     <Modal open={isSaveQueryModalOpen}>
@@ -101,6 +106,21 @@ export const SaveQueryModal = ({
                     className="w-full"
                     required
                   />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="query"
+            render={({ field, fieldState }) => (
+              <FormItem className="mt-4 flex flex-col items-start">
+                <FormLabel>Query</FormLabel>
+                <FormControl>
+                  <div className="w-full overflow-hidden rounded-base border-2 border-border py-3">
+                    <MonacoEditor {...field} value={field.value || ""} />
+                  </div>
                 </FormControl>
                 <FormMessage />
               </FormItem>

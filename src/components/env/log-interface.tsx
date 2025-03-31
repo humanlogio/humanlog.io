@@ -72,6 +72,7 @@ const LogInterface = () => {
   const [isSaveValid, setIsSaveValid] = useState(false);
   const [isSaveQueryModalOpen, setIsSaveQueryModalOpen] = useState(false);
   const [symbol, setSymbol] = useState("");
+  const [editorContent, setEditorContent] = useState<string>("");
 
   const parseQuery = async (parseReq: { query: string }) => {
     try {
@@ -214,6 +215,14 @@ const LogInterface = () => {
   );
 
   useEffect(() => {
+    if (editorContent.length > 0) {
+      setIsSaveValid(true);
+    } else {
+      setIsSaveValid(false);
+    }
+  }, [editorContent]);
+
+  useEffect(() => {
     if (queryString != null) executeQuery(decodeURIComponent(queryString));
   }, [splitByDefault, queryString]);
 
@@ -240,7 +249,10 @@ const LogInterface = () => {
                 >
                   Save
                 </Button>
-                <Button size="sm" onClick={() => setIsLibraryOpen(true)}>
+                <Button
+                  size="sm"
+                  onClick={() => setIsLibraryOpen((prev) => !prev)}
+                >
                   Query Library
                 </Button>
               </div>
@@ -250,6 +262,8 @@ const LogInterface = () => {
               setIsSaveValid={setIsSaveValid}
               onExecuteQuery={executeQuery}
               symbol={symbol}
+              editorContent={editorContent}
+              setEditorContent={setEditorContent}
             />
             <NewQueryOutput logData={logData} parsedQuery={parsedQuery} />
           </div>
@@ -282,7 +296,7 @@ const LogInterface = () => {
         </Panel>
       </PanelGroup>
       <SaveQueryModal
-        queryString={queryString || ""}
+        query={editorContent || ""}
         isSaveQueryModalOpen={isSaveQueryModalOpen}
         setIsSaveQueryModalOpen={setIsSaveQueryModalOpen}
         parsedQuery={parsedQuery}
