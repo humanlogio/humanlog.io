@@ -27,6 +27,7 @@ interface QueryItem {
   id: bigint;
   rawQuery: string;
   createdAt: Timestamp;
+  updatedAt?: Timestamp;
   name?: string;
   note?: string;
 }
@@ -251,7 +252,11 @@ export const QueryListItem = ({
       )}
 
       <div className="mt-2 flex items-center justify-between">
-        <p className="text-xs text-gray-500">{getTimeSince(item.createdAt)}</p>
+        <p className="text-xs text-gray-500">
+          {item.updatedAt
+            ? `saved ${getTimeSince(item.updatedAt)}`
+            : `executed ${getTimeSince(item.createdAt)}`}
+        </p>
 
         {/* 노트가 있는 경우 작은 아이콘 표시 */}
         {hasNote && !isNoteExpanded && (
