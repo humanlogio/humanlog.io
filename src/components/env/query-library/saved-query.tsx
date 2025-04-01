@@ -62,6 +62,7 @@ export const SavedQuery = () => {
       getItemID={getItemID}
       deleteItem={deleteSavedQuery}
       emptyMessage="No saved queries found"
+      enableEdit={true}
     />
   );
 };
