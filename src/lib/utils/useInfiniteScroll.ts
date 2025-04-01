@@ -44,6 +44,12 @@ export function useInfiniteScroll<T>(
     }
   }, [fetchData, next, limit, loading]);
 
+  const refetch = useCallback(async () => {
+    setNext(null);
+    setData([]);
+    loadMore();
+  }, []);
+
   // initial data load
   useEffect(() => {
     loadMore();
@@ -62,5 +68,6 @@ export function useInfiniteScroll<T>(
     error,
     targetRef,
     next,
+    refetch,
   };
 }
