@@ -23,7 +23,7 @@ interface DropdownMenuItem {
   func: (id: bigint, query: string) => void;
 }
 
-interface QueryItem {
+export interface QueryItem {
   id: bigint;
   rawQuery: string;
   createdAt: Timestamp;
@@ -77,6 +77,7 @@ export const QueryList = <T,>({
     error,
     targetRef,
     setData,
+    refetch,
   } = useInfiniteScroll(fetchItems, { limit });
 
   if (error) {
@@ -166,6 +167,7 @@ export const QueryList = <T,>({
           id={editingQueryId}
           isSaveQueryModalOpen={isEditing && !!editingQueryId}
           setIsSaveQueryModalOpen={setIsEditing}
+          refetch={refetch}
         />
       )}
     </div>
@@ -235,7 +237,7 @@ export const QueryListItem = ({
             </Select>
           </div>
 
-          <div className="mt-2 max-w-full overflow-x-auto">
+          <div className="mt-2 max-w-full overflow-x-auto rounded">
             <code className="block w-full whitespace-pre text-xs text-gray-700 dark:text-gray-300">
               {item.rawQuery}
             </code>
@@ -257,16 +259,6 @@ export const QueryListItem = ({
             ? `saved ${getTimeSince(item.updatedAt)}`
             : `executed ${getTimeSince(item.createdAt)}`}
         </p>
-
-        {/* 노트가 있는 경우 작은 아이콘 표시 */}
-        {hasNote && !isNoteExpanded && (
-          <button
-            onClick={() => setIsNoteExpanded(true)}
-            className="text-xs text-gray-400 hover:text-gray-600"
-          >
-            <FileText size={12} />
-          </button>
-        )}
       </div>
     </div>
   );
