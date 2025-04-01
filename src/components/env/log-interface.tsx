@@ -295,12 +295,14 @@ const LogInterface = () => {
           </div>
         </Panel>
       </PanelGroup>
-      <SaveQueryModal
-        query={editorContent || ""}
-        isSaveQueryModalOpen={isSaveQueryModalOpen}
-        setIsSaveQueryModalOpen={setIsSaveQueryModalOpen}
-        parsedQuery={parsedQuery}
-      />
+      {isSaveQueryModalOpen && (
+        <SaveQueryModal
+          query={editorContent || ""}
+          isSaveQueryModalOpen={isSaveQueryModalOpen}
+          setIsSaveQueryModalOpen={setIsSaveQueryModalOpen}
+          parsedQuery={parsedQuery}
+        />
+      )}
     </section>
   );
 };

@@ -15,10 +15,7 @@ import { Cursor } from "api/js/types/v1/cursor_pb";
 import { useInfiniteScroll } from "@/lib/utils/useInfiniteScroll";
 import ReactMarkdown from "react-markdown";
 import { useState } from "react";
-import {
-  ListFavoriteQueryResponse_ListItem,
-  ListQueryHistoryResponse_ListItem,
-} from "api/js/svc/user/v1/service_pb";
+import { SaveQueryModal } from "@/components/env/query-library/save-query-modal";
 
 interface DropdownMenuItem {
   key: string;
@@ -50,6 +47,7 @@ interface QueryListProps<T> {
   deleteItem?: (id: bigint) => void;
   emptyMessage?: string;
   limit?: number;
+  enableEdit?: boolean;
 }
 
 export const QueryList = <T,>({
@@ -59,8 +57,12 @@ export const QueryList = <T,>({
   deleteItem,
   emptyMessage = "No recent queries found",
   limit = 100,
+  enableEdit = false,
 }: QueryListProps<T>) => {
   const router = useRouter();
+  const [isEditing, setIsEditing] = useState(false);
+  const [editingQueryId, setEditingQueryId] = useState<bigint>();
+
   const makeFilterFn = (id: bigint | undefined) => {
     return (item: T): boolean => {
       const itemID = getItemID(item);
@@ -109,6 +111,17 @@ export const QueryList = <T,>({
     });
   }
 
+  if (enableEdit) {
+    dropDownMenu.push({
+      key: "4",
+      text: "Edit",
+      func: (id: bigint, query: string) => {
+        setEditingQueryId(id);
+        setIsEditing(true);
+      },
+    });
+  }
+
   const updateSelection = (value: string, item: QueryItem) => {
     const selected = dropDownMenu?.find((select) => select.key === value);
     if (selected) {
@@ -147,6 +160,13 @@ export const QueryList = <T,>({
           <div ref={targetRef} className="h-1" />
         )}
       </div>
+      {editingQueryId && (
+        <SaveQueryModal
+          id={editingQueryId}
+          isSaveQueryModalOpen={isEditing && !!editingQueryId}
+          setIsSaveQueryModalOpen={setIsEditing}
+        />
+      )}
     </div>
   );
 };
