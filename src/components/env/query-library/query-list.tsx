@@ -92,14 +92,25 @@ export const QueryList = <T,>({
     },
     {
       key: "2",
-      text: "Copy Line",
+      text: "Copy Query",
       func: (id: bigint, query: string) => copyToClipboard(query, `[${query}]`),
     },
   ];
 
-  if (deleteItem) {
+  if (enableEdit) {
     dropDownMenu.push({
       key: "3",
+      text: "Edit",
+      func: (id: bigint, query: string) => {
+        setEditingQueryId(id);
+        setIsEditing(true);
+      },
+    });
+  }
+
+  if (deleteItem) {
+    dropDownMenu.push({
+      key: "4",
       text: "Delete query",
       func: (id: bigint, query: string) => {
         const fn = makeFilterFn(id);
@@ -109,17 +120,6 @@ export const QueryList = <T,>({
           if (!prev) return [];
           return prev.filter(fn);
         });
-      },
-    });
-  }
-
-  if (enableEdit) {
-    dropDownMenu.push({
-      key: "4",
-      text: "Edit",
-      func: (id: bigint, query: string) => {
-        setEditingQueryId(id);
-        setIsEditing(true);
       },
     });
   }

@@ -116,7 +116,11 @@ export const SaveQueryModal = ({
         await apiClients?.user.createFavoriteQuery(requestForm);
       }
       refetch && refetch();
-      toast.success(`Query ${name} ${id ? "editied" : "saved"}`);
+      toast.success(
+        <p>
+          Saved query <strong>{name}</strong>
+        </p>,
+      );
     } catch (error) {
       if (error instanceof ConnectError) toast.error(error.message);
     } finally {
@@ -202,11 +206,20 @@ export const SaveQueryModal = ({
             />
 
             <DialogFooter className="mt-4 flex-row">
-              <Button size="sm" onClick={() => setIsSaveQueryModalOpen(false)}>
+              <Button
+                variant="neutral"
+                size="sm"
+                onClick={() => setIsSaveQueryModalOpen(false)}
+              >
                 Cancel
               </Button>
-              <Button size="sm" type="submit" disabled={!form.formState.errors}>
-                {id ? "Edit" : "Save"}
+              <Button
+                // variant="noShadow"
+                size="sm"
+                type="submit"
+                disabled={!form.formState.errors}
+              >
+                Save
               </Button>
             </DialogFooter>
           </form>
