@@ -56,7 +56,7 @@ export const SubQueriesContainer = ({ queries }: SubQueriesContainerProps) => {
     setOriginalSessionList(_selectList);
     setSessionList(_selectList);
     setSelectedSessions(_selectList.slice(0, 4));
-  }, [queryString]);
+  }, [queryString, queries]);
 
   useEffect(() => {
     const availableSessions = originalSessionList.filter(
@@ -132,7 +132,7 @@ export const SubQueriesContainer = ({ queries }: SubQueriesContainerProps) => {
                     {selectedSessions.length > 1 && (
                       <button
                         onClick={() => deleteSession(list.value)}
-                        className="absolute right-2 top-2 z-10"
+                        className="absolute right-2 top-2 z-20"
                       >
                         <X color="white" size={15} />
                       </button>
