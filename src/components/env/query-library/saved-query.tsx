@@ -30,6 +30,7 @@ export const SavedQuery = () => {
         id: item.favorite?.id as bigint,
         rawQuery: item.favorite?.rawQuery || "",
         createdAt: item.favorite?.createdAt as Timestamp,
+        updatedAt: item.favorite?.updatedAt,
         name: item.favorite?.name,
         note: item.favorite?.note,
       };

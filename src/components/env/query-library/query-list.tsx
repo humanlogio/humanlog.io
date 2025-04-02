@@ -23,10 +23,11 @@ interface DropdownMenuItem {
   func: (id: bigint, query: string) => void;
 }
 
-interface QueryItem {
+export interface QueryItem {
   id: bigint;
   rawQuery: string;
   createdAt: Timestamp;
+  updatedAt?: Timestamp;
   name?: string;
   note?: string;
 }
@@ -76,6 +77,7 @@ export const QueryList = <T,>({
     error,
     targetRef,
     setData,
+    refetch,
   } = useInfiniteScroll(fetchItems, { limit });
 
   if (error) {
@@ -90,14 +92,25 @@ export const QueryList = <T,>({
     },
     {
       key: "2",
-      text: "Copy Line",
+      text: "Copy Query",
       func: (id: bigint, query: string) => copyToClipboard(query, `[${query}]`),
     },
   ];
 
-  if (deleteItem) {
+  if (enableEdit) {
     dropDownMenu.push({
       key: "3",
+      text: "Edit",
+      func: (id: bigint, query: string) => {
+        setEditingQueryId(id);
+        setIsEditing(true);
+      },
+    });
+  }
+
+  if (deleteItem) {
+    dropDownMenu.push({
+      key: "4",
       text: "Delete query",
       func: (id: bigint, query: string) => {
         const fn = makeFilterFn(id);
@@ -107,17 +120,6 @@ export const QueryList = <T,>({
           if (!prev) return [];
           return prev.filter(fn);
         });
-      },
-    });
-  }
-
-  if (enableEdit) {
-    dropDownMenu.push({
-      key: "4",
-      text: "Edit",
-      func: (id: bigint, query: string) => {
-        setEditingQueryId(id);
-        setIsEditing(true);
       },
     });
   }
@@ -165,6 +167,7 @@ export const QueryList = <T,>({
           id={editingQueryId}
           isSaveQueryModalOpen={isEditing && !!editingQueryId}
           setIsSaveQueryModalOpen={setIsEditing}
+          refetch={refetch}
         />
       )}
     </div>
@@ -234,7 +237,7 @@ export const QueryListItem = ({
             </Select>
           </div>
 
-          <div className="mt-2 max-w-full overflow-x-auto">
+          <div className="mt-2 max-w-full overflow-x-auto rounded">
             <code className="block w-full whitespace-pre text-xs text-gray-700 dark:text-gray-300">
               {item.rawQuery}
             </code>
@@ -251,17 +254,11 @@ export const QueryListItem = ({
       )}
 
       <div className="mt-2 flex items-center justify-between">
-        <p className="text-xs text-gray-500">{getTimeSince(item.createdAt)}</p>
-
-        {/* 노트가 있는 경우 작은 아이콘 표시 */}
-        {hasNote && !isNoteExpanded && (
-          <button
-            onClick={() => setIsNoteExpanded(true)}
-            className="text-xs text-gray-400 hover:text-gray-600"
-          >
-            <FileText size={12} />
-          </button>
-        )}
+        <p className="text-xs text-gray-500">
+          {item.updatedAt
+            ? `saved ${getTimeSince(item.updatedAt)}`
+            : `executed ${getTimeSince(item.createdAt)}`}
+        </p>
       </div>
     </div>
   );

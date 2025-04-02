@@ -28,6 +28,7 @@ import { Input } from "@/components/ui/input";
 import MarkdownEditor from "@/components/ui/markdown-textarea";
 import MonacoEditor from "@/components/editor/monaco-editor";
 import { Loader } from "lucide-react";
+import { Cursor } from "api/js/types/v1/cursor_pb";
 
 interface SaveQueryModalProps {
   id?: bigint;
@@ -35,6 +36,7 @@ interface SaveQueryModalProps {
   isSaveQueryModalOpen: boolean;
   setIsSaveQueryModalOpen: Dispatch<SetStateAction<boolean>>;
   parsedQuery?: LogQuery;
+  refetch?: () => void;
 }
 
 const formSchema = z.object({
@@ -48,12 +50,27 @@ type FormValues = z.infer<typeof formSchema>;
 export const SaveQueryModal = ({
   id,
   query,
-
+  refetch,
   isSaveQueryModalOpen,
   setIsSaveQueryModalOpen,
   parsedQuery,
 }: SaveQueryModalProps) => {
   const { apiClients } = useApiClients();
+
+  const fetchSavedQueries = useCallback(
+    async ({ cursor, limit }: { cursor: Cursor | null; limit: number }) => {
+      const res = await apiClients?.user.listFavoriteQuery({
+        ...(cursor && { cursor }),
+        limit,
+      });
+      return {
+        items: res?.items || [],
+        next: res?.next || null,
+      };
+    },
+    [apiClients?.user],
+  );
+
   const [isFetching, setIsFetching] = useState(false);
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -98,7 +115,12 @@ export const SaveQueryModal = ({
       } else {
         await apiClients?.user.createFavoriteQuery(requestForm);
       }
-      toast.success(`Query ${name} ${id ? "editied" : "saved"}`);
+      refetch && refetch();
+      toast.success(
+        <p>
+          Saved query <strong>{name}</strong>
+        </p>,
+      );
     } catch (error) {
       if (error instanceof ConnectError) toast.error(error.message);
     } finally {
@@ -184,11 +206,20 @@ export const SaveQueryModal = ({
             />
 
             <DialogFooter className="mt-4 flex-row">
-              <Button size="sm" onClick={() => setIsSaveQueryModalOpen(false)}>
+              <Button
+                variant="neutral"
+                size="sm"
+                onClick={() => setIsSaveQueryModalOpen(false)}
+              >
                 Cancel
               </Button>
-              <Button size="sm" type="submit" disabled={!form.formState.errors}>
-                {id ? "Edit" : "Save"}
+              <Button
+                // variant="noShadow"
+                size="sm"
+                type="submit"
+                disabled={!form.formState.errors}
+              >
+                Save
               </Button>
             </DialogFooter>
           </form>
