@@ -235,10 +235,12 @@ const LogInterface = () => {
   }
 
   return (
-    <section className="h-[calc(100vh-4rem)]">
+    <section className={isLibraryOpen ? "h-[calc(100vh-4rem)]" : ""}>
       <PanelGroup direction="horizontal">
         <Panel defaultSize={80} minSize={30}>
-          <div className="container flex h-full flex-col gap-4 py-8">
+          <div
+            className={`container flex h-full flex-col gap-4 py-8 ${isLibraryOpen && "overflow-y-auto"}`}
+          >
             <div className="mb-2 flex w-full flex-row items-center justify-between">
               <div />
               <div className="flex gap-2 text-sm">
