@@ -128,23 +128,25 @@ export const SubQueriesContainer = ({ queries }: SubQueriesContainerProps) => {
             {selectedSessions?.map((list, i) => {
               return (
                 <Fragment key={list.value}>
-                  <Panel className="relative">
-                    {selectedSessions.length > 1 && (
-                      <button
-                        onClick={() => deleteSession(list.value)}
-                        className="absolute right-2 top-2 z-20"
-                      >
-                        <X color="white" size={15} />
-                      </button>
-                    )}
-                    <NewSessionPanel
-                      ids={extractQueryIds(list.query)}
-                      query={list.query}
-                    />
+                  <Panel minSize={20}>
+                    <div className="relative pr-2 pt-2">
+                      {selectedSessions.length > 1 && (
+                        <button
+                          onClick={() => deleteSession(list.value)}
+                          className="absolute right-0 top-0 z-50 rounded-full border border-black bg-white"
+                        >
+                          <X color="black" size={14} />
+                        </button>
+                      )}
+                      <NewSessionPanel
+                        ids={extractQueryIds(list.query)}
+                        query={list.query}
+                      />
+                    </div>
                   </Panel>
 
                   {i !== selectedSessions.length - 1 && (
-                    <PanelResizeHandle className="flex h-auto items-center justify-center px-1">
+                    <PanelResizeHandle className="flex h-auto items-center justify-center">
                       <div className="h-12 w-1 rounded-full bg-slate-700" />
                     </PanelResizeHandle>
                   )}
