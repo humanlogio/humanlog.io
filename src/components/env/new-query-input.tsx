@@ -25,6 +25,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { twMerge } from "tailwind-merge";
 import * as monaco from "monaco-editor";
 import config from "@/features/config";
+import { Button } from "@/components/ui/button";
+import { Play } from "lucide-react";
 
 interface NewQueryInputProps {
   errMsg: string;
@@ -223,6 +225,14 @@ const NewQueryInput = ({
     });
   };
 
+  const executeQuery = (query: string) => {
+    const params = new URLSearchParams(searchParams);
+    params.set("query", encodeURIComponent(query));
+    router.push(`?${params}`);
+    onExecuteQuery(query);
+    setEditorContent(query);
+  };
+
   useEffect(() => {
     updateGraphRange(startDate, endDate);
   }, [startDate, endDate]);
@@ -268,11 +278,7 @@ const NewQueryInput = ({
         monacoRef.current.KeyMod.CtrlCmd | monacoRef.current.KeyCode.Enter,
         () => {
           const currentValue = editorRef.current?.getValue() || "";
-          const params = new URLSearchParams(searchParams);
-          params.set("query", encodeURIComponent(currentValue));
-          router.push(`?${params}`);
-          onExecuteQuery(currentValue);
-          setEditorContent(currentValue);
+          executeQuery(currentValue);
         },
       );
     }
@@ -287,14 +293,22 @@ const NewQueryInput = ({
     >
       {/* TEXT INPUT */}
       <div className="col-span-2 md:col-span-1">
-        <div className="w-full overflow-hidden rounded-base border-2 border-border py-3">
-          <MonacoEditor
-            value={editorContent}
-            onChange={(value) => setEditorContent(value || "")}
-            onMount={handleEditorDidMount}
-          />
+        <div className="mb-2 w-full text-end">
+          <Button onClick={() => executeQuery(editorContent)}>
+            <Play size={12} />
+            <span>Run</span>
+          </Button>
         </div>
-        <p className="mt-2 text-xs text-[red]">{errMsg}</p>
+        <div>
+          <div className="w-full overflow-hidden rounded-base border-2 border-border py-3">
+            <MonacoEditor
+              value={editorContent}
+              onChange={(value) => setEditorContent(value || "")}
+              onMount={handleEditorDidMount}
+            />
+          </div>
+          <p className="mt-2 text-xs text-[red]">{errMsg}</p>
+        </div>
       </div>
 
       {/* CHART */}
