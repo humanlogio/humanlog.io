@@ -179,7 +179,8 @@ const NewSessionPanel = ({
               )}
             </h4>
           </div>
-          <div className="flex items-center gap-2">
+
+          {pretty && (
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
@@ -199,7 +200,7 @@ const NewSessionPanel = ({
                 <p>Toggle section line breaks in logs</p>
               </TooltipContent>
             </Tooltip>
-          </div>
+          )}
 
           {/* TODO: later.. */}
           {/* 
@@ -228,6 +229,7 @@ const NewSessionPanel = ({
                       selectedLines ===
                         `${i + 1}${log.machineId}${log.sessionId}${log.eventId}` &&
                         "w-full bg-slate-400 dark:bg-gray-700",
+                      sectionBreak && "py-1",
                     )}
                   >
                     <button
