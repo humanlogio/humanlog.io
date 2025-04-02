@@ -51,7 +51,7 @@ const NewQueryOutput = ({
                 <ToggleShowPretty />
                 <ToggleSplit />
               </div>
-              <div className="container flex-1 overflow-auto">
+              <div className="container flex-1">
                 <NewSessionPanel
                   query={parsedQuery}
                   ids={extractQueryIds(parsedQuery as LogQuery)}
@@ -63,7 +63,7 @@ const NewQueryOutput = ({
 
         case "freeForm":
           setOutput(
-            <div className="container flex-1 overflow-auto">
+            <div className="container flex-1">
               <TableContainer query={parsedQuery} />
             </div>,
           );
@@ -75,7 +75,7 @@ const NewQueryOutput = ({
     if (dataCase === "subqueries" && value instanceof Data_SubQueries) {
       const { queries } = value;
       setOutput(
-        <div className="container flex-1 overflow-auto">
+        <div className="container flex-1">
           <SubQueriesContainer queries={queries} />
         </div>,
       );

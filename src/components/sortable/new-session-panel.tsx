@@ -6,7 +6,12 @@ import {
 } from "@/lib/utils";
 import { IngestedLogEvent } from "api/js/types/v1/logevent_pb";
 import { LogQuery } from "api/js/types/v1/logquery_pb";
-import { Ellipsis, Link, Loader, Search } from "lucide-react";
+import {
+  Ellipsis,
+  Loader,
+  UnfoldHorizontal,
+  UnfoldVertical,
+} from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { DragHandle } from "@/components/sortable/sortable-item";
 import { Button } from "@/components/ui/button";
@@ -82,6 +87,7 @@ const NewSessionPanel = ({
   // state
   const [logs, setLogs] = useState<IngestedLogEvent[]>();
   const [config, setConfig] = useState<LocalhostConfig>();
+  const [sectionBreak, setSectionBreak] = useState(false);
   const { getColor, getLevelColor } = useThemeColors(
     isDark,
     themes ?? config?.formatter?.themes,
@@ -157,7 +163,7 @@ const NewSessionPanel = ({
   return (
     <div className="flex w-full flex-col rounded-base border-2 border-border">
       <TooltipProvider>
-        <div className="sticky left-0 right-0 top-0 z-10 flex h-11 w-full flex-none flex-row items-center justify-between bg-slate-900 px-4 py-2 dark:bg-slate-800">
+        <div className="sticky left-0 right-0 top-0 z-10 flex h-11 w-full flex-none flex-row items-center justify-between bg-slate-900 p-2 dark:bg-slate-800">
           <div className="flex justify-start">
             <h4 className="flex flex-row items-center gap-3 truncate font-bold text-white">
               {isFetching ? (
@@ -172,6 +178,27 @@ const NewSessionPanel = ({
                 </div>
               )}
             </h4>
+          </div>
+          <div className="flex items-center gap-2">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  size="icon"
+                  className="h-7 w-7"
+                  variant="noShadowNeutral"
+                  onClick={() => setSectionBreak(!sectionBreak)}
+                >
+                  {sectionBreak ? (
+                    <UnfoldHorizontal size={13} />
+                  ) : (
+                    <UnfoldVertical size={13} />
+                  )}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="top" className="bg-white">
+                <p>Toggle section line breaks in logs</p>
+              </TooltipContent>
+            </Tooltip>
           </div>
 
           {/* TODO: later.. */}
@@ -200,7 +227,7 @@ const NewSessionPanel = ({
                       "relative flex px-2",
                       selectedLines ===
                         `${i + 1}${log.machineId}${log.sessionId}${log.eventId}` &&
-                        "bg-slate-400 dark:bg-gray-700",
+                        "w-full bg-slate-400 dark:bg-gray-700",
                     )}
                   >
                     <button
@@ -245,84 +272,76 @@ const NewSessionPanel = ({
                     {!pretty || !isStructuredLog(log) ? (
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <div
+                          <code
                             className={twMerge(
                               "flex gap-1 whitespace-nowrap py-[1px]",
                             )}
                           >
                             {decodeUint8Array(log.raw)}
-                          </div>
+                          </code>
                         </TooltipTrigger>
                         <MetaDataTooltip log={log} />
                       </Tooltip>
                     ) : (
-                      <div
+                      <pre
                         className={twMerge(
-                          "flex gap-1 whitespace-nowrap py-[1px]",
+                          "log-line flex whitespace-nowrap",
+                          sectionBreak && "flex-col",
                         )}
                       >
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <div>
-                              <code
-                                style={{
-                                  color: getColor("time"),
-                                }}
-                              >
+                            <span className="inline-flex items-center">
+                              <span style={{ color: getColor("time") }}>
                                 {formatTimestamp(
                                   (log.structured?.timestamp as Timestamp) ??
                                     log.parsedAt,
                                   config?.formatter?.time?.format ?? "",
-                                )}
-                              </code>
-
-                              <code>
-                                <span className="text-gray-400">
-                                  |
-                                  <span
-                                    style={{
-                                      color: getLevelColor(
-                                        log?.structured?.lvl,
-                                      ),
-                                    }}
-                                  >
-                                    {log?.structured?.lvl || "EMPTY"}
-                                  </span>
-                                  |
+                                )}{" "}
+                              </span>
+                              <span className="text-gray-400">
+                                |
+                                <span
+                                  style={{
+                                    color: getLevelColor(log?.structured?.lvl),
+                                  }}
+                                >
+                                  {log?.structured?.lvl || "EMPTY"}
                                 </span>
-                              </code>
-
-                              <code
+                                |{" "}
+                              </span>
+                              <span
                                 style={{ color: getColor("msg") }}
                                 className="mr-1"
                               >
                                 {log.structured?.msg || "no message"}
-                              </code>
-                            </div>
+                              </span>{" "}
+                            </span>
                           </TooltipTrigger>
                           <MetaDataTooltip log={log} />
                         </Tooltip>
 
-                        {log.structured?.kvs.map((kv, kvIndex) => {
-                          return (
+                        <div
+                          className={twMerge(
+                            "flex",
+                            sectionBreak && "flex-col",
+                          )}
+                        >
+                          {log.structured?.kvs.map((kv, kvIndex) => (
                             <span
                               key={`${log.sessionId}-${log.eventId}-${kvIndex}`}
-                              className="mr-1 flex-none"
+                              className="mr-1 inline-flex"
                             >
                               <Tooltip>
                                 <TooltipTrigger asChild>
-                                  <code>
+                                  <span className="inline">
                                     <span style={{ color: getColor("key") }}>
                                       {kv.key}=
                                     </span>
-                                    <span
-                                      style={{
-                                        color: getColor("value"),
-                                      }}
-                                    >
+                                    <span style={{ color: getColor("value") }}>
                                       {kv.value?.kind.value?.toString()}
                                     </span>
-                                  </code>
+                                  </span>
                                 </TooltipTrigger>
                                 <TooltipContent className="bg-transparent bg-white dark:bg-secondaryBlack">
                                   <KeyValueRow label="Key" value={kv.key} />
@@ -339,11 +358,11 @@ const NewSessionPanel = ({
                                     }
                                   />
                                 </TooltipContent>
-                              </Tooltip>
+                              </Tooltip>{" "}
                             </span>
-                          );
-                        })}
-                      </div>
+                          ))}
+                        </div>
+                      </pre>
                     )}
                   </div>
                 );
