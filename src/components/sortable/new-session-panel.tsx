@@ -297,7 +297,7 @@ const NewSessionPanel = ({
                                   (log.structured?.timestamp as Timestamp) ??
                                     log.parsedAt,
                                   config?.formatter?.time?.format ?? "",
-                                )}
+                                )}{" "}
                               </span>
                               <span className="text-gray-400">
                                 |
@@ -308,14 +308,14 @@ const NewSessionPanel = ({
                                 >
                                   {log?.structured?.lvl || "EMPTY"}
                                 </span>
-                                |
+                                |{" "}
                               </span>
                               <span
                                 style={{ color: getColor("msg") }}
                                 className="mr-1"
                               >
                                 {log.structured?.msg || "no message"}
-                              </span>
+                              </span>{" "}
                             </span>
                           </TooltipTrigger>
                           <MetaDataTooltip log={log} />
@@ -358,7 +358,7 @@ const NewSessionPanel = ({
                                     }
                                   />
                                 </TooltipContent>
-                              </Tooltip>
+                              </Tooltip>{" "}
                             </span>
                           ))}
                         </div>
