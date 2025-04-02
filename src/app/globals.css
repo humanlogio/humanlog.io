@@ -5,6 +5,7 @@
 :root {
   font-size: 14px;
   --chart-ticklabels-color: black;
+  font-variant-ligatures: none;
 }
 
 .container-min-h-full {
