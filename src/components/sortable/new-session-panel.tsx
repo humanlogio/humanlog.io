@@ -229,7 +229,7 @@ const NewSessionPanel = ({
                       selectedLines ===
                         `${i + 1}${log.machineId}${log.sessionId}${log.eventId}` &&
                         "w-full bg-slate-400 dark:bg-gray-700",
-                      sectionBreak && "py-1",
+                      sectionBreak && pretty && "py-1",
                     )}
                   >
                     <button
