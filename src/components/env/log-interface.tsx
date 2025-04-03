@@ -29,6 +29,7 @@ import { QueryLibrary } from "@/components/env/query-library";
 import { X } from "lucide-react";
 import { SaveQueryModal } from "@/components/env/query-library/save-query-modal";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
+import { useInfiniteQuery } from "@/lib/utils";
 
 export type DataCase =
   | "subqueries"
@@ -56,6 +57,7 @@ const LogInterface = () => {
 
   const { apiClients, activeEnvironment } = useApiClients();
   const { localhostInfo } = useAllEnvironments();
+  const { setNext } = useInfiniteQuery();
 
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -206,12 +208,13 @@ const LogInterface = () => {
 
   const executeQuery = useCallback(
     async (query: string) => {
+      setNext(null);
       const parseRes = await parseQuery({ query });
 
       if (!parseRes) return;
       await getLogData(query);
     },
-    [apiClients?.query, parseQuery, getLogData, splitByDefault],
+    [apiClients?.query, parseQuery, splitByDefault],
   );
 
   useEffect(() => {
