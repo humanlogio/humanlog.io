@@ -1,0 +1,430 @@
+---
+published: false
+title: Chasing Down Kubernetes Ghosts with Humanlog
+date: 2024-03-01
+author: antoine
+---
+
+# Chasing Down Kubernetes Ghosts with Humanlog
+
+I was just here minding my own business, trying to setup the [CNPG operator](https://cloudnative-pg.github.io) in my [Tilt](https://tilt.dev/) environment:
+
+```starlark
+def main():
+    setup_external_secrets()
+    setup_ingress_nginx()
+    install_cnpg_operator()
+    install_cnpg_cluster("temporal-default")
+    install_cnpg_cluster("temporal-visibility")
+
+def install_cnpg_operator():
+    # helm repo add cnpg https://cloudnative-pg.github.io/charts
+    k8s_yaml(helm(
+        './deploy/cnpg-operator',
+        'cnpg-operator',
+        namespace='default',
+    ))
+
+def install_cnpg_cluster(name):
+    k8s_yaml(helm(
+        './deploy/cnpg-clusters',
+        'cnpg-clusters',
+        namespace='default',
+        values=[
+            "./deploy/cnpg-clusters/values.yaml",
+            "./deploy/cnpg-clusters/values-{name}.yaml".format(name=name),
+        ]
+    ))
+```
+
+And I couldn't for the life of me understand why Tilt was _sometimes_ failing to apply the YAML for the CNPG clusters (essentially Postgres):
+
+```
+Build Failed: Internal error occurred: failed calling webhook "mcluster.cnpg.io": failed to call webhook: Post "https://cnpg-webhook-service.default.svc:443/mutate-postgresql-cnpg-io-v1-cluster?timeout=10s": tls: failed to verify certificate: x509: certificate signed by unknown authority
+```
+
+Why is an error with `tls: failed to verify certificate: x509: certificate signed by unknown authority` showing up there? I'm not doing anything funky with TLS, it's a vanilla Kubernetes setup from [Orbstack](https://orbstack.dev/). And why is this setup working _sometimes_ but not always? Not knowing it's internals and transactional model, it's easy to assume that Titl might be getting in a weird state if I edit files too fast, so I turned down and up my local-dev environment multiple times and the error is inconsistent and shows up in various locations.
+
+Anyways, I asked ChatGPT to help direct my search, and it told me to look into the `MutatingWebhookConfiguration` for the CNPG operator. Makes sense, matches the URL in the error string.
+
+But, also I forgot what these mutating webhooks are about. My brain works like a cache, and mutating webhooks knowledge got evicted.
+
+## Mutating Webhooks and Their Configuration
+
+Per the Kubernetes docs:
+
+> Admission webhooks are HTTP callbacks that receive admission requests and do something with them. You can define two types of admission webhooks, validating admission webhook and mutating admission webhook. Mutating admission webhooks are invoked first, and can modify objects sent to the API server to enforce custom defaults. After all object modifications are complete, and after the incoming object is validated by the API server, validating admission webhooks are invoked and can reject requests to enforce custom policies.
+>
+> - https://kubernetes.io/docs/reference/access-authn-authz/extensible-admission-controllers/
+
+So somehow, there's a "mutating webhook server" listening on service `cnpg-webhook-service` for webhooks about `"mcluster.cnpg.io"`. And that server is returning a certificate signed with an authority unknown to the `kubectl` cliet (or Tilt's internal k8s client, not sure). Why is that?
+
+Mutating webhooks are configured using a `mutatingwebhookconfiguration` object (so they say). In my case, this object looks like:
+
+```bash
+kubectl get mutatingwebhookconfiguration cnpg-mutating-webhook-configuration -o yaml
+```
+
+A configuration that enumerates multiple webhooks, and details about the way clients should invoke them (service name, namespace, path, port).
+
+```yaml
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingWebhookConfiguration
+metadata:
+  name: cnpg-mutating-webhook-configuration
+  labels:
+    app.kubernetes.io/instance: cnpg-operator
+    app.kubernetes.io/managed-by: tilt
+    app.kubernetes.io/name: cloudnative-pg
+    app.kubernetes.io/version: 1.25.1
+    helm.sh/chart: cloudnative-pg-0.23.2
+webhooks:
+  - admissionReviewVersions:
+      - v1
+    clientConfig:
+      service:
+        name: cnpg-webhook-service
+        namespace: default
+        path: /mutate-postgresql-cnpg-io-v1-backup
+        port: 443
+    failurePolicy: Fail
+    matchPolicy: Equivalent
+    name: mbackup.cnpg.io
+    namespaceSelector: {}
+    objectSelector: {}
+    reinvocationPolicy: Never
+    rules:
+      - apiGroups:
+          - postgresql.cnpg.io
+        apiVersions:
+          - v1
+        operations:
+          - CREATE
+          - UPDATE
+        resources:
+          - backups
+        scope: "*"
+    sideEffects: None
+    timeoutSeconds: 10
+  - admissionReviewVersions:
+      - v1
+    clientConfig:
+      service:
+        name: cnpg-webhook-service
+        namespace: default
+        path: /mutate-postgresql-cnpg-io-v1-cluster
+        port: 443
+    failurePolicy: Fail
+    matchPolicy: Equivalent
+    name: mcluster.cnpg.io
+    namespaceSelector: {}
+    objectSelector: {}
+    reinvocationPolicy: Never
+    rules:
+      - apiGroups:
+          - postgresql.cnpg.io
+        apiVersions:
+          - v1
+        operations:
+          - CREATE
+          - UPDATE
+        resources:
+          - clusters
+        scope: "*"
+    sideEffects: None
+    timeoutSeconds: 10
+  - admissionReviewVersions:
+      - v1
+    clientConfig:
+      service:
+        name: cnpg-webhook-service
+        namespace: default
+        path: /mutate-postgresql-cnpg-io-v1-scheduledbackup
+        port: 443
+    failurePolicy: Fail
+    matchPolicy: Equivalent
+    name: mscheduledbackup.cnpg.io
+    namespaceSelector: {}
+    objectSelector: {}
+    reinvocationPolicy: Never
+    rules:
+      - apiGroups:
+          - postgresql.cnpg.io
+        apiVersions:
+          - v1
+        operations:
+          - CREATE
+          - UPDATE
+        resources:
+          - scheduledbackups
+        scope: "*"
+    sideEffects: None
+    timeoutSeconds: 10
+```
+
+In particular, we're looking at the `name: mcluster.cnpg.io` webhook, since that's what our error talks about (although we can assume the other webhooks probably suffer the same problem).
+
+```
+- admissionReviewVersions:
+  - v1
+  clientConfig:
+    service:
+      name: cnpg-webhook-service
+      namespace: default
+      path: /mutate-postgresql-cnpg-io-v1-cluster
+      port: 443
+  failurePolicy: Fail
+  matchPolicy: Equivalent
+  name: mcluster.cnpg.io
+  namespaceSelector: {}
+  objectSelector: {}
+  reinvocationPolicy: Never
+  rules:
+  - apiGroups:
+    - postgresql.cnpg.io
+    apiVersions:
+    - v1
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - clusters
+    scope: '*'
+  sideEffects: None
+  timeoutSeconds: 10
+```
+
+When cross-referencing with the Kubernetes docs, notably missing here is the `caBundle` entry in the `clientConfig` children. The docs on this are clear:
+
+> You must replace the `caBundle` in the above example by a valid CA bundle which is a PEM-encoded (field value is Base64 encoded) CA bundle for validating the webhook's server certificate.
+
+We don't have a `caBundle` here and this seems like a problem, and it would make sense that we'd get `x509` errors from the pipes along the way if some client dialed a server without knowing that the server uses a specific certificate chain.
+
+So why is this value not there? Is it _ever_ there? This is vanilla from the helm chart.
+
+Let's pull the good old trick and turn it on and off again and see what's happening.
+
+## Turning It Off And On Again
+
+Let's tear down the environment with `tilt down` and bring it back up with `tilt up`. And then watch the webhook:
+
+```bash
+watch "kubectl get mutatingwebhookconfiguration cnpg-mutating-webhook-configuration -o yaml | grep caBundle"
+```
+
+```
+Error from server (NotFound): mutatingwebhookconfigurations.admissionregistration.k8s.io "cnpg-mutating-webhook-configuration" not found
+```
+
+And then we see:
+
+```
+Every 2.0s: kubectl get mutatingwebhookconfiguration cnpg-mutating-webhook-configuration -o yaml | grep caBundle                                                                                                orion.local: Tue Apr  1 16:38:46 2025
+```
+
+Then ```Every 2.0s: kubectl get mutatingwebhookconfiguration cnpg-mutating-webhook-configuration -o yaml | grep caBundle orion.local: Tue Apr 1 16:38:59 2025
+
+    caBundle: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUIyVENDQVlDZ0F3SUJBZ0lSQUpiWnlibnI3R1llYkhHMXl1eENqNkF3Q2dZSUtvWkl6ajBFQXdJd0t6RVEKTUE0R0ExVUVDeE1IWkdWbVlYVnNkREVYTUJVR0ExVUVBeE1PWTI1d1p5MWpZUzF6WldOeVpYUXdIaGNOTWpVdwpOREF4TURjek16UTVXaGN
+
+OTWpVd05qTXdNRGN6TXpRNVdqQXJNU2t3SndZRFZRUURFeUJqYm5CbkxYZGxZbWh2CmIyc3RjMlZ5ZG1salpTNWtaV1poZFd4MExuTjJZekJaTUJNR0J5cUdTTTQ5QWdFR0NDcUdTTTQ5QXdFSEEwSUEKQkJuakZIc2hRNGtZUGZ4dG8vS1RPTDJPUXBDdzBQcDVySXdrSTZUd2w2RitOc0VFQUpOV1V3UFRFTTcvQ0FHdgpLa21x
+SUxMZnBpbGNGT01ieFg4SXFHaWpnWVF3Z1lFd0RnWURWUjBQQVFIL0JBUURBZ09vTUJNR0ExVWRKUVFNCk1Bb0dDQ3NHQVFVRkJ3TUJNQXdHQTFVZEV3RUIvd1FDTUFBd0h3WURWUjBqQkJnd0ZvQVV5bCtRVFdmMkxjdTUKdXV5S200QW5aMVg1VU4wd0t3WURWUjBSQkNRd0lvSWdZMjV3WnkxM1pXSm9iMjlyTFhObGNuWnBZM
+lV1WkdWbQpZWFZzZEM1emRtTXdDZ1lJS29aSXpqMEVBd0lEUndBd1JBSWdVWFZSai90OXVZZGwweE9hREVHdm5DL0xzY01LCjlObDlzcmFlVzIxSXFGSUNJRjZhMk1xbzhETDVMamxoZ1ZrRDdrYlNrSzZDR0lEZWtYeE92R2ZRQ1FQSAotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCg==
+caBundle: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUIyVENDQVlDZ0F3SUJBZ0lSQUpiWnlibnI3R1llYkhHMXl1eENqNkF3Q2dZSUtvWkl6ajBFQXdJd0t6RVEKTUE0R0ExVUVDeE1IWkdWbVlYVnNkREVYTUJVR0ExVUVBeE1PWTI1d1p5MWpZUzF6WldOeVpYUXdIaGNOTWpVdwpOREF4TURjek16UTVXaGN
+OTWpVd05qTXdNRGN6TXpRNVdqQXJNU2t3SndZRFZRUURFeUJqYm5CbkxYZGxZbWh2CmIyc3RjMlZ5ZG1salpTNWtaV1poZFd4MExuTjJZekJaTUJNR0J5cUdTTTQ5QWdFR0NDcUdTTTQ5QXdFSEEwSUEKQkJuakZIc2hRNGtZUGZ4dG8vS1RPTDJPUXBDdzBQcDVySXdrSTZUd2w2RitOc0VFQUpOV1V3UFRFTTcvQ0FHdgpLa21x
+SUxMZnBpbGNGT01ieFg4SXFHaWpnWVF3Z1lFd0RnWURWUjBQQVFIL0JBUURBZ09vTUJNR0ExVWRKUVFNCk1Bb0dDQ3NHQVFVRkJ3TUJNQXdHQTFVZEV3RUIvd1FDTUFBd0h3WURWUjBqQkJnd0ZvQVV5bCtRVFdmMkxjdTUKdXV5S200QW5aMVg1VU4wd0t3WURWUjBSQkNRd0lvSWdZMjV3WnkxM1pXSm9iMjlyTFhObGNuWnBZM
+lV1WkdWbQpZWFZzZEM1emRtTXdDZ1lJS29aSXpqMEVBd0lEUndBd1JBSWdVWFZSai90OXVZZGwweE9hREVHdm5DL0xzY01LCjlObDlzcmFlVzIxSXFGSUNJRjZhMk1xbzhETDVMamxoZ1ZrRDdrYlNrSzZDR0lEZWtYeE92R2ZRQ1FQSAotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCg==
+caBundle: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUIyVENDQVlDZ0F3SUJBZ0lSQUpiWnlibnI3R1llYkhHMXl1eENqNkF3Q2dZSUtvWkl6ajBFQXdJd0t6RVEKTUE0R0ExVUVDeE1IWkdWbVlYVnNkREVYTUJVR0ExVUVBeE1PWTI1d1p5MWpZUzF6WldOeVpYUXdIaGNOTWpVdwpOREF4TURjek16UTVXaGN
+OTWpVd05qTXdNRGN6TXpRNVdqQXJNU2t3SndZRFZRUURFeUJqYm5CbkxYZGxZbWh2CmIyc3RjMlZ5ZG1salpTNWtaV1poZFd4MExuTjJZekJaTUJNR0J5cUdTTTQ5QWdFR0NDcUdTTTQ5QXdFSEEwSUEKQkJuakZIc2hRNGtZUGZ4dG8vS1RPTDJPUXBDdzBQcDVySXdrSTZUd2w2RitOc0VFQUpOV1V3UFRFTTcvQ0FHdgpLa21x
+SUxMZnBpbGNGT01ieFg4SXFHaWpnWVF3Z1lFd0RnWURWUjBQQVFIL0JBUURBZ09vTUJNR0ExVWRKUVFNCk1Bb0dDQ3NHQVFVRkJ3TUJNQXdHQTFVZEV3RUIvd1FDTUFBd0h3WURWUjBqQkJnd0ZvQVV5bCtRVFdmMkxjdTUKdXV5S200QW5aMVg1VU4wd0t3WURWUjBSQkNRd0lvSWdZMjV3WnkxM1pXSm9iMjlyTFhObGNuWnBZM
+lV1WkdWbQpZWFZzZEM1emRtTXdDZ1lJS29aSXpqMEVBd0lEUndBd1JBSWdVWFZSai90OXVZZGwweE9hREVHdm5DL0xzY01LCjlObDlzcmFlVzIxSXFGSUNJRjZhMk1xbzhETDVMamxoZ1ZrRDdrYlNrSzZDR0lEZWtYeE92R2ZRQ1FQSAotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCg==
+
+```
+
+And silence. But when looking in Tilt's UI, the Postgres cluster didn't get created.
+
+[!](/images/blog/debugging-k8s-audit-logs/tilt-on-coming-up.png)
+
+Seems like Tilt tried to create the Postgres cluster _before_ the CNPG operator was done installing, so we trigger an update on the "uncategorized" group in which the error occured, and that's when we get the `x509` error:
+
+```
+
+Build Failed: Internal error occurred: failed calling webhook "mcluster.cnpg.io": failed to call webhook: Post "https://cnpg-webhook-service.default.svc:443/mutate-postgresql-cnpg-io-v1-cluster?timeout=10s": tls: failed to verify certificate: x509: certificate signed by unknown authority
+
+```
+
+And then our watch terminal looks like this:
+```
+
+Every 2.0s: kubectl get mutatingwebhookconfiguration cnpg-mutating-webhook-configuration -o yaml | grep caBundle orion.local: Tue Apr 1 16:39:53 2025
+
+````
+
+The `caBundle` shows up and then disappears. Why?
+
+Something is mutating the mutating webhook. Who?
+
+## Kubernetes Audit Logs
+
+The audit logs in Kubernetes are how you can figure out who touched what. The "who" can be a user, a controller, or the API server itself. And the "what" is Kubernetes resources.
+
+> Kubernetes auditing provides a security-relevant, chronological set of records documenting the sequence of actions in a cluster. The cluster audits the activities generated by users, by applications that use the Kubernetes API, and by the control plane itself.
+>
+> Auditing allows cluster administrators to answer the following questions:
+>
+>     what happened?
+>     when did it happen?
+>     who initiated it?
+>     on what did it happen?
+>     where was it observed?
+>     from where was it initiated?
+>     to where was it going?
+>
+> - https://kubernetes.io/docs/tasks/debug/debug-cluster/audit/
+
+In this case, we want to know "who" is touching our `kind: MutatingWebhookConfiguration`. By default, Kubernetes doesn't record audit logs. It needs a `kind: Policy` (`apiVersion: audit.k8s.io/v1`) to do anything of the sort. You can read more about this [in the reference](https://kubernetes.io/docs/reference/config-api/apiserver-audit.v1/#audit-k8s-io-v1-Policy).
+
+In our case, the policy should include a `PolicyRule` that looks something like:
+
+```yaml
+- level: RequestResponse
+  omitStages:
+  - RequestReceived
+  resources:
+  - group: "admissionregistration.k8s.io/v1"
+    resources:
+    - mutatingwebhookconfiguration
+````
+
+We want to know who's doing what to our mutating webhooks.
+
+But it turns out that Orbstack doesn't allow customizing clusters in this manner, and the AuditPolicy of a cluster is a file that gets set on the filesystem of the API server of a Kubernetes cluster, and not via the API. So we need to fallback to another Kubernetes local-dev tool. My second favorite is [`kind`]()
+
+## Configuring Audit Logs in Kind
+
+We'll create a new Kubernetes cluster in kind and [turn on audit logging](https://kind.sigs.k8s.io/docs/user/auditing/) with this config (`kind-config.yaml`):
+
+```yaml
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+nodes:
+  - role: control-plane
+    kubeadmConfigPatches:
+      - |
+        kind: ClusterConfiguration
+        apiServer:
+            # enable auditing flags on the API server
+            extraArgs:
+              audit-log-path: /var/log/kubernetes/kube-apiserver-audit.log
+              audit-policy-file: /etc/kubernetes/policies/audit-policy.yaml
+            # mount new files / directories on the control plane
+            extraVolumes:
+              - name: audit-policies
+                hostPath: /etc/kubernetes/policies
+                mountPath: /etc/kubernetes/policies
+                readOnly: true
+                pathType: "DirectoryOrCreate"
+              - name: "audit-logs"
+                hostPath: "/var/log/kubernetes"
+                mountPath: "/var/log/kubernetes"
+                readOnly: false
+                pathType: DirectoryOrCreate
+    # mount the local file on the control plane
+    extraMounts:
+      - hostPath: ./audit-policy.yaml
+        containerPath: /etc/kubernetes/policies/audit-policy.yaml
+        readOnly: true
+```
+
+And use this as our `audit-policy.yaml`:
+
+```yaml
+apiVersion: audit.k8s.io/v1
+kind: Policy
+rules:
+  - level: None
+    nonResourceURLs:
+      - "/healthz*"
+      - "/logs"
+      - "/metrics"
+      - "/swagger*"
+      - "/version"
+
+  - level: RequestResponse
+    resources:
+      - group: "admissionregistration.k8s.io"
+        resources:
+          - mutatingwebhookconfigurations
+
+  # log everything else at Metadata level
+  - level: Metadata
+    omitStages:
+      - RequestReceived
+```
+
+If you're doing the same, note that you'll then have to run your cluster create command from the same path as where `audit-policy.yaml` is found, since we tell `kind` to find the file at a relative path on our host filesystem.
+
+```
+kind create cluster --config kind-config.yaml
+```
+
+This creates a Kubernetes cluster that logs what's happening to everything at a `Metadata` level, and every `RequestResponse` about `mutatingwebhookconfiguration`.
+
+But when we try to look at the logs:
+
+```bash
+docker exec kind-control-plane cat /var/log/kubernetes/kube-apiserver-audit.log
+```
+
+We just get an offensive amount of JSON logs.
+
+```
+{"kind":"Event","apiVersion":"audit.k8s.io/v1","level":"Metadata","auditID":"513cd6d4-724a-4956-8759-1bd2b700c9f3","stage":"ResponseComplete","requestURI":"/api/v1/nodes?limit=500\u0026resourceVersion=0","verb":"list","user":{"username":"system:apiserver","uid":"c46eca93-fde4-4340-b186-a3d42af64633","groups":["system:masters"]},"sourceIPs":["::1"],"userAgent":"kube-apiserver/v1.31.0 (linux/arm64) kubernetes/9edcffc","objectRef":{"resource":"nodes","apiVersion":"v1"},"responseStatus":{"metadata":{},"code":200},"requestReceivedTimestamp":"2025-04-01T08:45:43.765731Z","stageTimestamp":"2025-04-01T08:45:43.766188Z","annotations":{"authorization.k8s.io/decision":"allow","authorization.k8s.io/reason":""}}
+{"kind":"Event","apiVersion":"audit.k8s.io/v1","level":"Metadata","auditID":"7f1d017b-b17f-4cf8-9497-45839d30dfb7","stage":"ResponseComplete","requestURI":"/apis/storage.k8s.io/v1/volumeattachments?limit=500\u0026resourceVersion=0","verb":"list","user":{"username":"system:apiserver","uid":"c46eca93-fde4-4340-b186-a3d42af64633","groups":["system:masters"]},"sourceIPs":["::1"],"userAgent":"kube-apiserver/v1.31.0 (linux/arm64) kubernetes/9edcffc","objectRef":{"resource":"volumeattachments","apiGroup":"storage.k8s.io","apiVersion":"v1"},"responseStatus":{"metadata":{},"code":200},"requestReceivedTimestamp":"2025-04-01T08:45:43.766485Z","stageTimestamp":"2025-04-01T08:45:43.766638Z","annotations":{"authorization.k8s.io/decision":"allow","authorization.k8s.io/reason":""}}
+{"kind":"Event","apiVersion":"audit.k8s.io/v1","level":"Metadata","auditID":"d8b93b3c-074a-4a03-8be1-05cf9a430204","stage":"ResponseComplete","requestURI":"/api/v1/namespaces/kube-system/configmaps/extension-apiserver-authentication","verb":"get","user":{"username":"system:kube-scheduler","groups":["system:authenticated"]},"sourceIPs":["192.168.97.2"],"userAgent":"kube-scheduler/v1.31.0 (linux/arm64) kubernetes/9edcffc","objectRef":{"resource":"configmaps","namespace":"kube-system","name":"extension-apiserver-authentication","apiVersion":"v1"},"responseStatus":{"metadata":{},"status":"Failure","message":"configmaps \"extension-apiserver-authentication\" is forbidden: User \"system:kube-scheduler\" cannot get resource \"configmaps\" in API group \"\" in the namespace \"kube-system\"","reason":"Forbidden","details":{"name":"extension-apiserver-authentication","kind":"configmaps"},"code":403},"requestReceivedTimestamp":"2025-04-01T08:45:43.766795Z","stageTimestamp":"2025-04-01T08:45:43.767005Z","annotations":{"authorization.k8s.io/decision":"forbid","authorization.k8s.io/reason":""}}
+{"kind":"Event","apiVersion":"audit.k8s.io/v1","level":"Metadata","auditID":"aaa39848-b177-485b-9960-38251f76ee91","stage":"ResponseComplete","requestURI":"/api/v1/services?limit=500\u0026resourceVersion=0","verb":"list","user":{"username":"system:apiserver","uid":"c46eca93-fde4-4340-b186-a3d42af64633","groups":["system:masters"]},"sourceIPs":["::1"],"userAgent":"kube-apiserver/v1.31.0 (linux/arm64) kubernetes/9edcffc","objectRef":{"resource":"services","apiVersion":"v1"},"responseStatus":{"metadata":{},"code":200},"requestReceivedTimestamp":"2025-04-01T08:45:43.766919Z","stageTimestamp":"2025-04-01T08:45:43.767138Z","annotations":{"authorization.k8s.io/decision":"allow","authorization.k8s.io/reason":""}}
+{"kind":"Event","apiVersion":"audit.k8s.io/v1","level":"Metadata","auditID":"7d7c1a4f-9d13-4000-beed-0552a9254f87","stage":"ResponseComplete","requestURI":"/api/v1/namespaces/kube-system/configmaps?limit=500\u0026resourceVersion=0","verb":"list","user":{"username":"system:apiserver","uid":"c46eca93-fde4-4340-b186-a3d42af64633","groups":["system:masters"]},"sourceIPs":["::1"],"userAgent":"kube-apiserver/v1.31.0 (linux/arm64) kubernetes/9edcffc","objectRef":{"resource":"configmaps","namespace":"kube-system","apiVersion":"v1"},"responseStatus":{"metadata":{},"code":200},"requestReceivedTimestamp":"2025-04-01T08:45:43.767200Z","stageTimestamp":"2025-04-01T08:45:43.767367Z","annotations":{"authorization.k8s.io/decision":"allow","authorization.k8s.io/reason":""}}
+```
+
+## Bringing The Data In Humanlog
+
+Offensive amount of JSON logs. That's exactly what `humanlog` is good at. Let's shove it into `humanlog` and continue our search from there.
+
+```
+docker exec kind-control-plane tail -f /var/log/kubernetes/kube-apiserver-audit.log | humanlog
+```
+
+And then we search for audit logs that match the mutatingwebhookconfigurations and involve an update or a delete:
+
+```
+filter ['objectRef.resource']=="mutatingwebhookconfigurations"
+| filter (verb == "delete"  or verb == "patch")
+| filter stage != "RequestReceived"
+```
+
+We get this result:
+
+```
+Apr 3 14:22:22.596 |RequestResponse| no message requestObject.webhooks.1.name=mcluster.cnpg.io auditID=b8060f91-dbd0-4a21-9142-45989f199498 requestObject.webhooks.2.matchPolicy=Equivalent responseObject.webhooks.1.rules.0.resources.0=clusters requestObject.webhooks.1.clientConfig.service.name=cnpg-webhook-service responseObject.metadata.managedFields.0.manager=Go-http-client annotations.authorization.k8s.io/reason=RBAC: allowed by ClusterRoleBinding "cnpg-operator-cloudnative-pg" of ClusterRole "cnpg-operator-cloudnative-pg" to ServiceAccount "cnpg-operator-cloudnative-pg/default" responseObject.webhooks.1.rules.0.scope=* requestObject.webhooks.0.admissionReviewVersions.0=v1 requestObject.webhooks.1.rules.0.apiVersions.0=v1 responseObject.webhooks.0.clientConfig.caBundle=LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUIyVENDQVlDZ0F3SUJBZ0lSQU45YW8yL1llSmlHSFNkK2l4ZE5MQ1l3Q2dZSUtvWkl6ajBFQXdJd0t6RVEKTUE0R0ExVUVDeE1IWkdWbVlYVnNkREVYTUJVR0ExVUVBeE1PWTI1d1p5MWpZUzF6WldOeVpYUXdIaGNOTWpVdwpOREF6TURVeE56SXlXaGNOTWpVd056QXlNRFV4TnpJeVdqQXJNU2t3SndZRFZRUURFeUJqYm5CbkxYZGxZbWh2CmIyc3RjMlZ5ZG1salpTNWtaV1poZFd4MExuTjJZekJaTUJNR0J5cUdTTTQ5QWdFR0NDcUdTTTQ5QXdFSEEwSUEKQkEyY3Y3dmFwaFI5blhsdi95MGVoYyttZHRJSFErLy9mZC9ENEJ4ZG82MjY5SGMvWkFPVk5GNVUwUXdlS05mVgpuS1o3K1NHQnUzayt6V2xlMjVXSWxYbWpnWVF3Z1lFd0RnWURWUjBQQVFIL0JBUURBZ09vTUJNR0ExVWRKUVFNCk1Bb0dDQ3NHQVFVRkJ3TUJNQXdHQTFVZEV3RUIvd1FDTUFBd0h3WURWUjBqQkJnd0ZvQVVQcG00Y05ybFVjU1gKNnpSNitCL2l3d3YveUZ3d0t3WURWUjBSQkNRd0lvSWdZMjV3WnkxM1pXSm9iMjlyTFhObGNuWnBZMlV1WkdWbQpZWFZzZEM1emRtTXdDZ1lJS29aSXpqMEVBd0lEUndBd1JBSWdFSzJXa2lpV01oZ2lkdlJSMG85ZWpYeXgrK05ZCnU0bXd5QmNtNVVVcWdMVUNJRFRLMFFqZ3JhUHRqNWxjRkx1czlqQ3JQSVpHYk9GM2lUcmdHKy8wbEdaMwotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCg== user.groups.2=system:authenticated responseObject.webhooks.0.rules.0.apiGroups.0=postgresql.cnpg.io responseObject.metadata.managedFields.0.operation=Update responseObject.webhooks.1.clientConfig.service.name=cnpg-webhook-service requestObject.webhooks.2.clientConfig.service.path=/mutate-postgresql-cnpg-io-v1-scheduledbackup requestObject.webhooks.0.matchPolicy=Equivalent responseObject.metadata.managedFields.0.apiVersion=admissionregistration.k8s.io/v1 responseObject.webhooks.1.sideEffects=None responseObject.webhooks.2.rules.0.resources.0=scheduledbackups responseObject.metadata.managedFields.1.fieldsType=FieldsV1 requestObject.webhooks.1.failurePolicy=Fail requestObject.webhooks.0.rules.0.apiVersions.0=v1 responseObject.webhooks.0.failurePolicy=Fail responseObject.webhooks.1.rules.0.apiGroups.0=postgresql.cnpg.io user.uid=4452febe-2fec-4147-bbae-768abd3f0714 objectRef.name=cnpg-mutating-webhook-configuration requestObject.webhooks.1.rules.0.apiGroups.0=postgresql.cnpg.io objectRef.apiVersion=v1 requestObject.webhooks.1.rules.0.operations.1=UPDATE responseObject.apiVersion=admissionregistration.k8s.io/v1 requestReceivedTimestamp=2025-04-03T05:22:22.575948Z responseObject.webhooks.0.clientConfig.service.name=cnpg-webhook-service user.extra.authentication.kubernetes.io/pod-uid.0=c07f57c3-6b18-4b12-9c53-b04d36b59901 requestObject.webhooks.0.clientConfig.service.name=cnpg-webhook-service responseObject.webhooks.0.rules.0.scope=* responseObject.webhooks.1.name=mcluster.cnpg.io requestObject.webhooks.0.failurePolicy=Fail requestObject.webhooks.1.rules.0.resources.0=clusters user.extra.authentication.kubernetes.io/node-uid.0=f3f6505f-e302-40fa-b0b4-390a7b375b11 requestObject.webhooks.0.rules.0.operations.0=CREATE requestObject.webhooks.2.name=mscheduledbackup.cnpg.io responseObject.webhooks.1.reinvocationPolicy=Never responseObject.webhooks.2.rules.0.operations.1=UPDATE user.extra.authentication.kubernetes.io/credential-id.0=JTI=730a8859-24e1-44de-845a-ce2b246c2508 requestObject.webhooks.2.admissionReviewVersions.0=v1 responseObject.metadata.managedFields.1.manager=manager requestObject.webhooks.2.failurePolicy=Fail requestObject.webhooks.1.admissionReviewVersions.0=v1 responseObject.metadata.uid=c487f2d4-2755-4648-b6f8-89a400a05c3d responseObject.webhooks.0.clientConfig.service.namespace=default responseObject.webhooks.0.clientConfig.service.path=/mutate-postgresql-cnpg-io-v1-backup user.username=system:serviceaccount:default:cnpg-operator-cloudnative-pg responseObject.metadata.labels.app.kubernetes.io/instance=cnpg-operator requestObject.webhooks.2.clientConfig.service.name=cnpg-webhook-service responseObject.webhooks.1.clientConfig.caBundle=LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUIyVENDQVlDZ0F3SUJBZ0lSQU45YW8yL1llSmlHSFNkK2l4ZE5MQ1l3Q2dZSUtvWkl6ajBFQXdJd0t6RVEKTUE0R0ExVUVDeE1IWkdWbVlYVnNkREVYTUJVR0ExVUVBeE1PWTI1d1p5MWpZUzF6WldOeVpYUXdIaGNOTWpVdwpOREF6TURVeE56SXlXaGNOTWpVd056QXlNRFV4TnpJeVdqQXJNU2t3SndZRFZRUURFeUJqYm5CbkxYZGxZbWh2CmIyc3RjMlZ5ZG1salpTNWtaV1poZFd4MExuTjJZekJaTUJNR0J5cUdTTTQ5QWdFR0NDcUdTTTQ5QXdFSEEwSUEKQkEyY3Y3dmFwaFI5blhsdi95MGVoYyttZHRJSFErLy9mZC9ENEJ4ZG82MjY5SGMvWkFPVk5GNVUwUXdlS05mVgpuS1o3K1NHQnUzayt6V2xlMjVXSWxYbWpnWVF3Z1lFd0RnWURWUjBQQVFIL0JBUURBZ09vTUJNR0ExVWRKUVFNCk1Bb0dDQ3NHQVFVRkJ3TUJNQXdHQTFVZEV3RUIvd1FDTUFBd0h3WURWUjBqQkJnd0ZvQVVQcG00Y05ybFVjU1gKNnpSNitCL2l3d3YveUZ3d0t3WURWUjBSQkNRd0lvSWdZMjV3WnkxM1pXSm9iMjlyTFhObGNuWnBZMlV1WkdWbQpZWFZzZEM1emRtTXdDZ1lJS29aSXpqMEVBd0lEUndBd1JBSWdFSzJXa2lpV01oZ2lkdlJSMG85ZWpYeXgrK05ZCnU0bXd5QmNtNVVVcWdMVUNJRFRLMFFqZ3JhUHRqNWxjRkx1czlqQ3JQSVpHYk9GM2lUcmdHKy8wbEdaMwotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCg== responseObject.webhooks.2.clientConfig.caBundle=LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUIyVENDQVlDZ0F3SUJBZ0lSQU45YW8yL1llSmlHSFNkK2l4ZE5MQ1l3Q2dZSUtvWkl6ajBFQXdJd0t6RVEKTUE0R0ExVUVDeE1IWkdWbVlYVnNkREVYTUJVR0ExVUVBeE1PWTI1d1p5MWpZUzF6WldOeVpYUXdIaGNOTWpVdwpOREF6TURVeE56SXlXaGNOTWpVd056QXlNRFV4TnpJeVdqQXJNU2t3SndZRFZRUURFeUJqYm5CbkxYZGxZbWh2CmIyc3RjMlZ5ZG1salpTNWtaV1poZFd4MExuTjJZekJaTUJNR0J5cUdTTTQ5QWdFR0NDcUdTTTQ5QXdFSEEwSUEKQkEyY3Y3dmFwaFI5blhsdi95MGVoYyttZHRJSFErLy9mZC9ENEJ4ZG82MjY5SGMvWkFPVk5GNVUwUXdlS05mVgpuS1o3K1NHQnUzayt6V2xlMjVXSWxYbWpnWVF3Z1lFd0RnWURWUjBQQVFIL0JBUURBZ09vTUJNR0ExVWRKUVFNCk1Bb0dDQ3NHQVFVRkJ3TUJNQXdHQTFVZEV3RUIvd1FDTUFBd0h3WURWUjBqQkJnd0ZvQVVQcG00Y05ybFVjU1gKNnpSNitCL2l3d3YveUZ3d0t3WURWUjBSQkNRd0lvSWdZMjV3WnkxM1pXSm9iMjlyTFhObGNuWnBZMlV1WkdWbQpZWFZzZEM1emRtTXdDZ1lJS29aSXpqMEVBd0lEUndBd1JBSWdFSzJXa2lpV01oZ2lkdlJSMG85ZWpYeXgrK05ZCnU0bXd5QmNtNVVVcWdMVUNJRFRLMFFqZ3JhUHRqNWxjRkx1czlqQ3JQSVpHYk9GM2lUcmdHKy8wbEdaMwotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCg== requestObject.webhooks.2.clientConfig.caBundle=LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUIyVENDQVlDZ0F3SUJBZ0lSQU45YW8yL1llSmlHSFNkK2l4ZE5MQ1l3Q2dZSUtvWkl6ajBFQXdJd0t6RVEKTUE0R0ExVUVDeE1IWkdWbVlYVnNkREVYTUJVR0ExVUVBeE1PWTI1d1p5MWpZUzF6WldOeVpYUXdIaGNOTWpVdwpOREF6TURVeE56SXlXaGNOTWpVd056QXlNRFV4TnpJeVdqQXJNU2t3SndZRFZRUURFeUJqYm5CbkxYZGxZbWh2CmIyc3RjMlZ5ZG1salpTNWtaV1poZFd4MExuTjJZekJaTUJNR0J5cUdTTTQ5QWdFR0NDcUdTTTQ5QXdFSEEwSUEKQkEyY3Y3dmFwaFI5blhsdi95MGVoYyttZHRJSFErLy9mZC9ENEJ4ZG82MjY5SGMvWkFPVk5GNVUwUXdlS05mVgpuS1o3K1NHQnUzayt6V2xlMjVXSWxYbWpnWVF3Z1lFd0RnWURWUjBQQVFIL0JBUURBZ09vTUJNR0ExVWRKUVFNCk1Bb0dDQ3NHQVFVRkJ3TUJNQXdHQTFVZEV3RUIvd1FDTUFBd0h3WURWUjBqQkJnd0ZvQVVQcG00Y05ybFVjU1gKNnpSNitCL2l3d3YveUZ3d0t3WURWUjBSQkNRd0lvSWdZMjV3WnkxM1pXSm9iMjlyTFhObGNuWnBZMlV1WkdWbQpZWFZzZEM1emRtTXdDZ1lJS29aSXpqMEVBd0lEUndBd1JBSWdFSzJXa2lpV01oZ2lkdlJSMG85ZWpYeXgrK05ZCnU0bXd5QmNtNVVVcWdMVUNJRFRLMFFqZ3JhUHRqNWxjRkx1czlqQ3JQSVpHYk9GM2lUcmdHKy8wbEdaMwotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCg== responseObject.webhooks.0.rules.0.resources.0=backups responseObject.webhooks.1.clientConfig.service.path=/mutate-postgresql-cnpg-io-v1-cluster responseObject.metadata.labels.app.kubernetes.io/version=1.25.1 requestObject.webhooks.1.sideEffects=None requestObject.webhooks.1.rules.0.operations.0=CREATE requestObject.webhooks.0.clientConfig.service.path=/mutate-postgresql-cnpg-io-v1-backup requestObject.webhooks.0.rules.0.apiGroups.0=postgresql.cnpg.io responseObject.webhooks.0.reinvocationPolicy=Never sourceIPs.0=10.244.0.8 responseObject.metadata.labels.helm.sh/chart=cloudnative-pg-0.23.2 responseObject.webhooks.1.matchPolicy=Equivalent responseObject.webhooks.0.matchPolicy=Equivalent requestObject.webhooks.0.rules.0.resources.0=backups responseObject.webhooks.1.rules.0.operations.0=CREATE responseObject.webhooks.1.rules.0.apiVersions.0=v1 stage=ResponseComplete requestObject.webhooks.2.sideEffects=None responseObject.metadata.managedFields.1.operation=Update kind=Event responseObject.metadata.managedFields.0.time=2025-04-03T05:21:48Z user.groups.1=system:serviceaccounts:default requestObject.webhooks.0.rules.0.scope=* responseObject.webhooks.0.admissionReviewVersions.0=v1 responseObject.webhooks.2.rules.0.operations.0=CREATE verb=patch responseObject.metadata.name=cnpg-mutating-webhook-configuration responseObject.webhooks.2.name=mscheduledbackup.cnpg.io responseObject.metadata.managedFields.1.time=2025-04-03T05:22:22Z objectRef.resource=mutatingwebhookconfigurations requestObject.webhooks.2.rules.0.resources.0=scheduledbackups responseObject.webhooks.0.name=mbackup.cnpg.io requestObject.webhooks.1.rules.0.scope=* responseObject.webhooks.2.clientConfig.service.name=cnpg-webhook-service responseObject.metadata.labels.app.kubernetes.io/managed-by=tilt responseObject.webhooks.0.rules.0.operations.1=UPDATE responseObject.kind=MutatingWebhookConfiguration user.extra.authentication.kubernetes.io/node-name.0=kind-control-plane objectRef.apiGroup=admissionregistration.k8s.io responseObject.webhooks.2.sideEffects=None requestObject.webhooks.2.rules.0.scope=* responseObject.webhooks.1.clientConfig.service.namespace=default responseObject.webhooks.2.failurePolicy=Fail requestObject.webhooks.1.clientConfig.service.namespace=default requestObject.webhooks.1.reinvocationPolicy=Never requestObject.webhooks.1.matchPolicy=Equivalent responseObject.webhooks.2.rules.0.scope=* responseObject.webhooks.0.rules.0.operations.0=CREATE requestObject.webhooks.2.clientConfig.service.namespace=default user.extra.authentication.kubernetes.io/pod-name.0=cnpg-operator-cloudnative-pg-6c6f45f85-w7l88 responseObject.metadata.annotations.kubectl.kubernetes.io/last-applied-configuration={"apiVersion":"admissionregistration.k8s.io/v1","kind":"MutatingWebhookConfiguration","metadata":{"annotations":{},"labels":{"app.kubernetes.io/instance":"cnpg-operator","app.kubernetes.io/managed-by":"tilt","app.kubernetes.io/name":"cloudnative-pg","app.kubernetes.io/version":"1.25.1","helm.sh/chart":"cloudnative-pg-0.23.2"},"name":"cnpg-mutating-webhook-configuration"},"webhooks":[{"admissionReviewVersions":["v1"],"clientConfig":{"service":{"name":"cnpg-webhook-service","namespace":"default","path":"/mutate-postgresql-cnpg-io-v1-backup","port":443}},"failurePolicy":"Fail","name":"mbackup.cnpg.io","rules":[{"apiGroups":["postgresql.cnpg.io"],"apiVersions":["v1"],"operations":["CREATE","UPDATE"],"resources":["backups"]}],"sideEffects":"None"},{"admissionReviewVersions":["v1"],"clientConfig":{"service":{"name":"cnpg-webhook-service","namespace":"default","path":"/mutate-postgresql-cnpg-io-v1-cluster","port":443}},"failurePolicy":"Fail","name":"mcluster.cnpg.io","rules":[{"apiGroups":["postgresql.cnpg.io"],"apiVersions":["v1"],"operations":["CREATE","UPDATE"],"resources":["clusters"]}],"sideEffects":"None"},{"admissionReviewVersions":["v1"],"clientConfig":{"service":{"name":"cnpg-webhook-service","namespace":"default","path":"/mutate-postgresql-cnpg-io-v1-scheduledbackup","port":443}},"failurePolicy":"Fail","name":"mscheduledbackup.cnpg.io","rules":[{"apiGroups":["postgresql.cnpg.io"],"apiVersions":["v1"],"operations":["CREATE","UPDATE"],"resources":["scheduledbackups"]}],"sideEffects":"None"}]} responseObject.metadata.creationTimestamp=2025-04-03T05:21:48Z requestObject.webhooks.2.rules.0.operations.1=UPDATE requestObject.webhooks.2.rules.0.apiVersions.0=v1 requestObject.webhooks.2.reinvocationPolicy=Never requestObject.webhooks.1.clientConfig.caBundle=LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUIyVENDQVlDZ0F3SUJBZ0lSQU45YW8yL1llSmlHSFNkK2l4ZE5MQ1l3Q2dZSUtvWkl6ajBFQXdJd0t6RVEKTUE0R0ExVUVDeE1IWkdWbVlYVnNkREVYTUJVR0ExVUVBeE1PWTI1d1p5MWpZUzF6WldOeVpYUXdIaGNOTWpVdwpOREF6TURVeE56SXlXaGNOTWpVd056QXlNRFV4TnpJeVdqQXJNU2t3SndZRFZRUURFeUJqYm5CbkxYZGxZbWh2CmIyc3RjMlZ5ZG1salpTNWtaV1poZFd4MExuTjJZekJaTUJNR0J5cUdTTTQ5QWdFR0NDcUdTTTQ5QXdFSEEwSUEKQkEyY3Y3dmFwaFI5blhsdi95MGVoYyttZHRJSFErLy9mZC9ENEJ4ZG82MjY5SGMvWkFPVk5GNVUwUXdlS05mVgpuS1o3K1NHQnUzayt6V2xlMjVXSWxYbWpnWVF3Z1lFd0RnWURWUjBQQVFIL0JBUURBZ09vTUJNR0ExVWRKUVFNCk1Bb0dDQ3NHQVFVRkJ3TUJNQXdHQTFVZEV3RUIvd1FDTUFBd0h3WURWUjBqQkJnd0ZvQVVQcG00Y05ybFVjU1gKNnpSNitCL2l3d3YveUZ3d0t3WURWUjBSQkNRd0lvSWdZMjV3WnkxM1pXSm9iMjlyTFhObGNuWnBZMlV1WkdWbQpZWFZzZEM1emRtTXdDZ1lJS29aSXpqMEVBd0lEUndBd1JBSWdFSzJXa2lpV01oZ2lkdlJSMG85ZWpYeXgrK05ZCnU0bXd5QmNtNVVVcWdMVUNJRFRLMFFqZ3JhUHRqNWxjRkx1czlqQ3JQSVpHYk9GM2lUcmdHKy8wbEdaMwotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCg== responseObject.metadata.managedFields.1.apiVersion=admissionregistration.k8s.io/v1 requestObject.webhooks.0.clientConfig.service.namespace=default apiVersion=audit.k8s.io/v1 responseObject.webhooks.1.admissionReviewVersions.0=v1 responseObject.webhooks.2.clientConfig.service.namespace=default responseObject.webhooks.2.rules.0.apiGroups.0=postgresql.cnpg.io responseObject.metadata.resourceVersion=888 userAgent=manager/v0.0.0 (linux/arm64) kubernetes/$Format requestObject.webhooks.0.rules.0.operations.1=UPDATE responseObject.webhooks.2.rules.0.apiVersions.0=v1 responseObject.webhooks.0.rules.0.apiVersions.0=v1 responseObject.webhooks.2.reinvocationPolicy=Never requestObject.webhooks.2.rules.0.apiGroups.0=postgresql.cnpg.io responseObject.webhooks.1.rules.0.operations.1=UPDATE responseObject.metadata.managedFields.0.fieldsType=FieldsV1 responseObject.metadata.labels.app.kubernetes.io/name=cloudnative-pg responseObject.webhooks.2.admissionReviewVersions.0=v1 responseObject.webhooks.0.sideEffects=None requestObject.webhooks.1.clientConfig.service.path=/mutate-postgresql-cnpg-io-v1-cluster requestObject.webhooks.2.rules.0.operations.0=CREATE annotations.authorization.k8s.io/decision=allow responseObject.webhooks.2.clientConfig.service.path=/mutate-postgresql-cnpg-io-v1-scheduledbackup requestObject.webhooks.0.reinvocationPolicy=Never responseObject.webhooks.1.failurePolicy=Fail requestObject.webhooks.0.sideEffects=None responseObject.webhooks.2.matchPolicy=Equivalent user.groups.0=system:serviceaccounts requestURI=/apis/admissionregistration.k8s.io/v1/mutatingwebhookconfigurations/cnpg-mutating-webhook-configuration requestObject.webhooks.0.name=mbackup.cnpg.io requestObject.webhooks.0.clientConfig.caBundle=LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUIyVENDQVlDZ0F3SUJBZ0lSQU45YW8yL1llSmlHSFNkK2l4ZE5MQ1l3Q2dZSUtvWkl6ajBFQXdJd0t6RVEKTUE0R0ExVUVDeE1IWkdWbVlYVnNkREVYTUJVR0ExVUVBeE1PWTI1d1p5MWpZUzF6WldOeVpYUXdIaGNOTWpVdwpOREF6TURVeE56SXlXaGNOTWpVd056QXlNRFV4TnpJeVdqQXJNU2t3SndZRFZRUURFeUJqYm5CbkxYZGxZbWh2CmIyc3RjMlZ5ZG1salpTNWtaV1poZFd4MExuTjJZekJaTUJNR0J5cUdTTTQ5QWdFR0NDcUdTTTQ5QXdFSEEwSUEKQkEyY3Y3dmFwaFI5blhsdi95MGVoYyttZHRJSFErLy9mZC9ENEJ4ZG82MjY5SGMvWkFPVk5GNVUwUXdlS05mVgpuS1o3K1NHQnUzayt6V2xlMjVXSWxYbWpnWVF3Z1lFd0RnWURWUjBQQVFIL0JBUURBZ09vTUJNR0ExVWRKUVFNCk1Bb0dDQ3NHQVFVRkJ3TUJNQXdHQTFVZEV3RUIvd1FDTUFBd0h3WURWUjBqQkJnd0ZvQVVQcG00Y05ybFVjU1gKNnpSNitCL2l3d3YveUZ3d0t3WURWUjBSQkNRd0lvSWdZMjV3WnkxM1pXSm9iMjlyTFhObGNuWnBZMlV1WkdWbQpZWFZzZEM1emRtTXdDZ1lJS29aSXpqMEVBd0lEUndBd1JBSWdFSzJXa2lpV01oZ2lkdlJSMG85ZWpYeXgrK05ZCnU0bXd5QmNtNVVVcWdMVUNJRFRLMFFqZ3JhUHRqNWxjRkx1czlqQ3JQSVpHYk9GM2lUcmdHKy8wbEdaMwotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCg== responseObject.webhooks.0.timeoutSeconds=10 requestObject.webhooks.1.clientConfig.service.port=443 responseStatus.code=200 responseObject.webhooks.2.timeoutSeconds=10 requestObject.webhooks.2.clientConfig.service.port=443 requestObject.webhooks.1.timeoutSeconds=10 responseObject.metadata.generation=2 responseObject.webhooks.2.clientConfig.service.port=443 responseObject.webhooks.0.clientConfig.service.port=443 requestObject.webhooks.0.clientConfig.service.port=443 requestObject.webhooks.0.timeoutSeconds=10 responseObject.webhooks.1.timeoutSeconds=10 requestObject.webhooks.2.timeoutSeconds=10 responseObject.webhooks.1.clientConfig.service.port=443
+Apr 3 14:22:54.792 |RequestResponse| no message objectRef.resource=mutatingwebhookconfigurations auditID=901d3b21-770e-472d-9dac-13c2cd0d0676 requestReceivedTimestamp=2025-04-03T05:22:54.782140Z responseObject.details.name=cnpg-mutating-webhook-configuration requestObject.propagationPolicy=Background user.username=kubernetes-admin user.groups.0=kubeadm:cluster-admins stage=ResponseComplete requestObject.apiVersion=meta.k8s.io/__internal responseStatus.details.group=admissionregistration.k8s.io responseObject.status=Success responseStatus.details.uid=c487f2d4-2755-4648-b6f8-89a400a05c3d requestURI=/apis/admissionregistration.k8s.io/v1/mutatingwebhookconfigurations/cnpg-mutating-webhook-configuration responseStatus.details.kind=mutatingwebhookconfigurations responseObject.kind=Status user.groups.1=system:authenticated objectRef.name=cnpg-mutating-webhook-configuration objectRef.apiGroup=admissionregistration.k8s.io annotations.authorization.k8s.io/decision=allow responseStatus.status=Success responseObject.details.kind=mutatingwebhookconfigurations objectRef.apiVersion=v1 annotations.authorization.k8s.io/reason=RBAC: allowed by ClusterRoleBinding "kubeadm:cluster-admins" of ClusterRole "cluster-admin" to Group "kubeadm:cluster-admins" verb=delete userAgent=Go-http-client/2.0 responseObject.details.uid=c487f2d4-2755-4648-b6f8-89a400a05c3d sourceIPs.0=192.168.97.1 responseObject.details.group=admissionregistration.k8s.io responseObject.apiVersion=v1 requestObject.kind=DeleteOptions apiVersion=audit.k8s.io/v1 kind=Event responseStatus.details.name=cnpg-mutating-webhook-configuration responseStatus.code=200
+Apr 3 15:10:13.385 |RequestResponse| no message requestObject.webhooks.2.rules.0.operations.0=CREATE responseObject.metadata.resourceVersion=5073 responseObject.metadata.managedFields.1.fieldsType=FieldsV1 requestObject.webhooks.0.clientConfig.service.name=cnpg-webhook-service responseObject.metadata.managedFields.1.manager=manager responseObject.webhooks.0.admissionReviewVersions.0=v1 responseObject.webhooks.1.clientConfig.service.namespace=default responseObject.webhooks.0.clientConfig.service.path=/mutate-postgresql-cnpg-io-v1-backup responseObject.webhooks.0.failurePolicy=Fail responseObject.metadata.labels.app.kubernetes.io/managed-by=tilt responseObject.webhooks.0.reinvocationPolicy=Never responseObject.webhooks.0.matchPolicy=Equivalent responseObject.webhooks.0.sideEffects=None responseObject.webhooks.2.name=mscheduledbackup.cnpg.io user.groups.1=system:serviceaccounts:default responseObject.metadata.managedFields.0.time=2025-04-03T05:22:56Z responseObject.webhooks.1.reinvocationPolicy=Never requestObject.webhooks.1.clientConfig.service.path=/mutate-postgresql-cnpg-io-v1-cluster responseObject.webhooks.2.failurePolicy=Fail responseObject.webhooks.1.rules.0.operations.1=UPDATE annotations.authorization.k8s.io/reason=RBAC: allowed by ClusterRoleBinding "cnpg-operator-cloudnative-pg" of ClusterRole "cnpg-operator-cloudnative-pg" to ServiceAccount "cnpg-operator-cloudnative-pg/default" responseObject.metadata.name=cnpg-mutating-webhook-configuration responseObject.metadata.labels.helm.sh/chart=cloudnative-pg-0.23.2 requestObject.webhooks.0.admissionReviewVersions.0=v1 responseObject.webhooks.1.rules.0.operations.0=CREATE responseObject.webhooks.1.sideEffects=None responseObject.webhooks.0.name=mbackup.cnpg.io responseObject.metadata.managedFields.0.apiVersion=admissionregistration.k8s.io/v1 requestObject.webhooks.0.sideEffects=None requestObject.webhooks.1.rules.0.scope=* requestObject.webhooks.1.rules.0.apiVersions.0=v1 requestObject.webhooks.2.reinvocationPolicy=Never objectRef.name=cnpg-mutating-webhook-configuration requestObject.webhooks.0.clientConfig.service.namespace=default user.extra.authentication.kubernetes.io/pod-uid.0=c07f57c3-6b18-4b12-9c53-b04d36b59901 requestObject.webhooks.0.rules.0.resources.0=backups user.username=system:serviceaccount:default:cnpg-operator-cloudnative-pg requestObject.webhooks.1.matchPolicy=Equivalent apiVersion=audit.k8s.io/v1 verb=patch responseObject.webhooks.0.clientConfig.caBundle=LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUIyVENDQVlDZ0F3SUJBZ0lSQU45YW8yL1llSmlHSFNkK2l4ZE5MQ1l3Q2dZSUtvWkl6ajBFQXdJd0t6RVEKTUE0R0ExVUVDeE1IWkdWbVlYVnNkREVYTUJVR0ExVUVBeE1PWTI1d1p5MWpZUzF6WldOeVpYUXdIaGNOTWpVdwpOREF6TURVeE56SXlXaGNOTWpVd056QXlNRFV4TnpJeVdqQXJNU2t3SndZRFZRUURFeUJqYm5CbkxYZGxZbWh2CmIyc3RjMlZ5ZG1salpTNWtaV1poZFd4MExuTjJZekJaTUJNR0J5cUdTTTQ5QWdFR0NDcUdTTTQ5QXdFSEEwSUEKQkEyY3Y3dmFwaFI5blhsdi95MGVoYyttZHRJSFErLy9mZC9ENEJ4ZG82MjY5SGMvWkFPVk5GNVUwUXdlS05mVgpuS1o3K1NHQnUzayt6V2xlMjVXSWxYbWpnWVF3Z1lFd0RnWURWUjBQQVFIL0JBUURBZ09vTUJNR0ExVWRKUVFNCk1Bb0dDQ3NHQVFVRkJ3TUJNQXdHQTFVZEV3RUIvd1FDTUFBd0h3WURWUjBqQkJnd0ZvQVVQcG00Y05ybFVjU1gKNnpSNitCL2l3d3YveUZ3d0t3WURWUjBSQkNRd0lvSWdZMjV3WnkxM1pXSm9iMjlyTFhObGNuWnBZMlV1WkdWbQpZWFZzZEM1emRtTXdDZ1lJS29aSXpqMEVBd0lEUndBd1JBSWdFSzJXa2lpV01oZ2lkdlJSMG85ZWpYeXgrK05ZCnU0bXd5QmNtNVVVcWdMVUNJRFRLMFFqZ3JhUHRqNWxjRkx1czlqQ3JQSVpHYk9GM2lUcmdHKy8wbEdaMwotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCg== requestObject.webhooks.0.failurePolicy=Fail requestReceivedTimestamp=2025-04-03T06:10:13.362762Z responseObject.metadata.annotations.kubectl.kubernetes.io/last-applied-configuration={"apiVersion":"admissionregistration.k8s.io/v1","kind":"MutatingWebhookConfiguration","metadata":{"annotations":{},"labels":{"app.kubernetes.io/instance":"cnpg-operator","app.kubernetes.io/managed-by":"tilt","app.kubernetes.io/name":"cloudnative-pg","app.kubernetes.io/version":"1.25.1","helm.sh/chart":"cloudnative-pg-0.23.2"},"name":"cnpg-mutating-webhook-configuration"},"webhooks":[{"admissionReviewVersions":["v1"],"clientConfig":{"service":{"name":"cnpg-webhook-service","namespace":"default","path":"/mutate-postgresql-cnpg-io-v1-backup","port":443}},"failurePolicy":"Fail","name":"mbackup.cnpg.io","rules":[{"apiGroups":["postgresql.cnpg.io"],"apiVersions":["v1"],"operations":["CREATE","UPDATE"],"resources":["backups"]}],"sideEffects":"None"},{"admissionReviewVersions":["v1"],"clientConfig":{"service":{"name":"cnpg-webhook-service","namespace":"default","path":"/mutate-postgresql-cnpg-io-v1-cluster","port":443}},"failurePolicy":"Fail","name":"mcluster.cnpg.io","rules":[{"apiGroups":["postgresql.cnpg.io"],"apiVersions":["v1"],"operations":["CREATE","UPDATE"],"resources":["clusters"]}],"sideEffects":"None"},{"admissionReviewVersions":["v1"],"clientConfig":{"service":{"name":"cnpg-webhook-service","namespace":"default","path":"/mutate-postgresql-cnpg-io-v1-scheduledbackup","port":443}},"failurePolicy":"Fail","name":"mscheduledbackup.cnpg.io","rules":[{"apiGroups":["postgresql.cnpg.io"],"apiVersions":["v1"],"operations":["CREATE","UPDATE"],"resources":["scheduledbackups"]}],"sideEffects":"None"}]} responseObject.metadata.managedFields.1.time=2025-04-03T06:10:13Z requestObject.webhooks.1.clientConfig.caBundle=LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUIyVENDQVlDZ0F3SUJBZ0lSQU45YW8yL1llSmlHSFNkK2l4ZE5MQ1l3Q2dZSUtvWkl6ajBFQXdJd0t6RVEKTUE0R0ExVUVDeE1IWkdWbVlYVnNkREVYTUJVR0ExVUVBeE1PWTI1d1p5MWpZUzF6WldOeVpYUXdIaGNOTWpVdwpOREF6TURVeE56SXlXaGNOTWpVd056QXlNRFV4TnpJeVdqQXJNU2t3SndZRFZRUURFeUJqYm5CbkxYZGxZbWh2CmIyc3RjMlZ5ZG1salpTNWtaV1poZFd4MExuTjJZekJaTUJNR0J5cUdTTTQ5QWdFR0NDcUdTTTQ5QXdFSEEwSUEKQkEyY3Y3dmFwaFI5blhsdi95MGVoYyttZHRJSFErLy9mZC9ENEJ4ZG82MjY5SGMvWkFPVk5GNVUwUXdlS05mVgpuS1o3K1NHQnUzayt6V2xlMjVXSWxYbWpnWVF3Z1lFd0RnWURWUjBQQVFIL0JBUURBZ09vTUJNR0ExVWRKUVFNCk1Bb0dDQ3NHQVFVRkJ3TUJNQXdHQTFVZEV3RUIvd1FDTUFBd0h3WURWUjBqQkJnd0ZvQVVQcG00Y05ybFVjU1gKNnpSNitCL2l3d3YveUZ3d0t3WURWUjBSQkNRd0lvSWdZMjV3WnkxM1pXSm9iMjlyTFhObGNuWnBZMlV1WkdWbQpZWFZzZEM1emRtTXdDZ1lJS29aSXpqMEVBd0lEUndBd1JBSWdFSzJXa2lpV01oZ2lkdlJSMG85ZWpYeXgrK05ZCnU0bXd5QmNtNVVVcWdMVUNJRFRLMFFqZ3JhUHRqNWxjRkx1czlqQ3JQSVpHYk9GM2lUcmdHKy8wbEdaMwotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCg== responseObject.metadata.managedFields.1.operation=Update responseObject.webhooks.2.rules.0.scope=* user.extra.authentication.kubernetes.io/node-uid.0=f3f6505f-e302-40fa-b0b4-390a7b375b11 responseObject.metadata.labels.app.kubernetes.io/instance=cnpg-operator requestObject.webhooks.2.sideEffects=None responseObject.webhooks.0.rules.0.scope=* user.extra.authentication.kubernetes.io/node-name.0=kind-control-plane responseObject.webhooks.1.rules.0.apiVersions.0=v1 requestObject.webhooks.2.matchPolicy=Equivalent requestObject.webhooks.0.rules.0.apiGroups.0=postgresql.cnpg.io responseObject.webhooks.1.rules.0.apiGroups.0=postgresql.cnpg.io stage=ResponseComplete responseObject.apiVersion=admissionregistration.k8s.io/v1 user.uid=8194cd32-3854-41f6-a7e3-8eae2174ab14 requestObject.webhooks.2.clientConfig.service.namespace=default annotations.authorization.k8s.io/decision=allow requestObject.webhooks.1.rules.0.resources.0=clusters requestObject.webhooks.0.matchPolicy=Equivalent requestObject.webhooks.2.clientConfig.caBundle=LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUIyVENDQVlDZ0F3SUJBZ0lSQU45YW8yL1llSmlHSFNkK2l4ZE5MQ1l3Q2dZSUtvWkl6ajBFQXdJd0t6RVEKTUE0R0ExVUVDeE1IWkdWbVlYVnNkREVYTUJVR0ExVUVBeE1PWTI1d1p5MWpZUzF6WldOeVpYUXdIaGNOTWpVdwpOREF6TURVeE56SXlXaGNOTWpVd056QXlNRFV4TnpJeVdqQXJNU2t3SndZRFZRUURFeUJqYm5CbkxYZGxZbWh2CmIyc3RjMlZ5ZG1salpTNWtaV1poZFd4MExuTjJZekJaTUJNR0J5cUdTTTQ5QWdFR0NDcUdTTTQ5QXdFSEEwSUEKQkEyY3Y3dmFwaFI5blhsdi95MGVoYyttZHRJSFErLy9mZC9ENEJ4ZG82MjY5SGMvWkFPVk5GNVUwUXdlS05mVgpuS1o3K1NHQnUzayt6V2xlMjVXSWxYbWpnWVF3Z1lFd0RnWURWUjBQQVFIL0JBUURBZ09vTUJNR0ExVWRKUVFNCk1Bb0dDQ3NHQVFVRkJ3TUJNQXdHQTFVZEV3RUIvd1FDTUFBd0h3WURWUjBqQkJnd0ZvQVVQcG00Y05ybFVjU1gKNnpSNitCL2l3d3YveUZ3d0t3WURWUjBSQkNRd0lvSWdZMjV3WnkxM1pXSm9iMjlyTFhObGNuWnBZMlV1WkdWbQpZWFZzZEM1emRtTXdDZ1lJS29aSXpqMEVBd0lEUndBd1JBSWdFSzJXa2lpV01oZ2lkdlJSMG85ZWpYeXgrK05ZCnU0bXd5QmNtNVVVcWdMVUNJRFRLMFFqZ3JhUHRqNWxjRkx1czlqQ3JQSVpHYk9GM2lUcmdHKy8wbEdaMwotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCg== responseObject.webhooks.1.admissionReviewVersions.0=v1 responseObject.webhooks.2.reinvocationPolicy=Never userAgent=manager/v0.0.0 (linux/arm64) kubernetes/$Format requestObject.webhooks.2.rules.0.operations.1=UPDATE responseObject.metadata.managedFields.0.operation=Update responseObject.webhooks.1.clientConfig.service.path=/mutate-postgresql-cnpg-io-v1-cluster responseObject.webhooks.1.rules.0.resources.0=clusters responseObject.metadata.creationTimestamp=2025-04-03T05:22:56Z responseObject.webhooks.1.rules.0.scope=* requestObject.webhooks.0.reinvocationPolicy=Never responseObject.webhooks.1.clientConfig.caBundle=LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUIyVENDQVlDZ0F3SUJBZ0lSQU45YW8yL1llSmlHSFNkK2l4ZE5MQ1l3Q2dZSUtvWkl6ajBFQXdJd0t6RVEKTUE0R0ExVUVDeE1IWkdWbVlYVnNkREVYTUJVR0ExVUVBeE1PWTI1d1p5MWpZUzF6WldOeVpYUXdIaGNOTWpVdwpOREF6TURVeE56SXlXaGNOTWpVd056QXlNRFV4TnpJeVdqQXJNU2t3SndZRFZRUURFeUJqYm5CbkxYZGxZbWh2CmIyc3RjMlZ5ZG1salpTNWtaV1poZFd4MExuTjJZekJaTUJNR0J5cUdTTTQ5QWdFR0NDcUdTTTQ5QXdFSEEwSUEKQkEyY3Y3dmFwaFI5blhsdi95MGVoYyttZHRJSFErLy9mZC9ENEJ4ZG82MjY5SGMvWkFPVk5GNVUwUXdlS05mVgpuS1o3K1NHQnUzayt6V2xlMjVXSWxYbWpnWVF3Z1lFd0RnWURWUjBQQVFIL0JBUURBZ09vTUJNR0ExVWRKUVFNCk1Bb0dDQ3NHQVFVRkJ3TUJNQXdHQTFVZEV3RUIvd1FDTUFBd0h3WURWUjBqQkJnd0ZvQVVQcG00Y05ybFVjU1gKNnpSNitCL2l3d3YveUZ3d0t3WURWUjBSQkNRd0lvSWdZMjV3WnkxM1pXSm9iMjlyTFhObGNuWnBZMlV1WkdWbQpZWFZzZEM1emRtTXdDZ1lJS29aSXpqMEVBd0lEUndBd1JBSWdFSzJXa2lpV01oZ2lkdlJSMG85ZWpYeXgrK05ZCnU0bXd5QmNtNVVVcWdMVUNJRFRLMFFqZ3JhUHRqNWxjRkx1czlqQ3JQSVpHYk9GM2lUcmdHKy8wbEdaMwotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCg== responseObject.webhooks.1.matchPolicy=Equivalent responseObject.webhooks.2.clientConfig.service.name=cnpg-webhook-service requestObject.webhooks.2.rules.0.apiGroups.0=postgresql.cnpg.io requestObject.webhooks.1.admissionReviewVersions.0=v1 responseObject.webhooks.2.clientConfig.service.namespace=default requestObject.webhooks.2.name=mscheduledbackup.cnpg.io requestObject.webhooks.2.rules.0.scope=* responseObject.webhooks.2.clientConfig.caBundle=LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUIyVENDQVlDZ0F3SUJBZ0lSQU45YW8yL1llSmlHSFNkK2l4ZE5MQ1l3Q2dZSUtvWkl6ajBFQXdJd0t6RVEKTUE0R0ExVUVDeE1IWkdWbVlYVnNkREVYTUJVR0ExVUVBeE1PWTI1d1p5MWpZUzF6WldOeVpYUXdIaGNOTWpVdwpOREF6TURVeE56SXlXaGNOTWpVd056QXlNRFV4TnpJeVdqQXJNU2t3SndZRFZRUURFeUJqYm5CbkxYZGxZbWh2CmIyc3RjMlZ5ZG1salpTNWtaV1poZFd4MExuTjJZekJaTUJNR0J5cUdTTTQ5QWdFR0NDcUdTTTQ5QXdFSEEwSUEKQkEyY3Y3dmFwaFI5blhsdi95MGVoYyttZHRJSFErLy9mZC9ENEJ4ZG82MjY5SGMvWkFPVk5GNVUwUXdlS05mVgpuS1o3K1NHQnUzayt6V2xlMjVXSWxYbWpnWVF3Z1lFd0RnWURWUjBQQVFIL0JBUURBZ09vTUJNR0ExVWRKUVFNCk1Bb0dDQ3NHQVFVRkJ3TUJNQXdHQTFVZEV3RUIvd1FDTUFBd0h3WURWUjBqQkJnd0ZvQVVQcG00Y05ybFVjU1gKNnpSNitCL2l3d3YveUZ3d0t3WURWUjBSQkNRd0lvSWdZMjV3WnkxM1pXSm9iMjlyTFhObGNuWnBZMlV1WkdWbQpZWFZzZEM1emRtTXdDZ1lJS29aSXpqMEVBd0lEUndBd1JBSWdFSzJXa2lpV01oZ2lkdlJSMG85ZWpYeXgrK05ZCnU0bXd5QmNtNVVVcWdMVUNJRFRLMFFqZ3JhUHRqNWxjRkx1czlqQ3JQSVpHYk9GM2lUcmdHKy8wbEdaMwotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCg== requestObject.webhooks.1.rules.0.apiGroups.0=postgresql.cnpg.io sourceIPs.0=10.244.0.8 responseObject.webhooks.0.rules.0.resources.0=backups responseObject.webhooks.2.admissionReviewVersions.0=v1 user.groups.2=system:authenticated requestObject.webhooks.1.rules.0.operations.0=CREATE responseObject.webhooks.0.clientConfig.service.name=cnpg-webhook-service requestObject.webhooks.1.name=mcluster.cnpg.io objectRef.apiVersion=v1 requestObject.webhooks.0.clientConfig.service.path=/mutate-postgresql-cnpg-io-v1-backup responseObject.webhooks.0.rules.0.operations.1=UPDATE responseObject.webhooks.0.rules.0.operations.0=CREATE responseObject.webhooks.2.matchPolicy=Equivalent requestObject.webhooks.2.rules.0.apiVersions.0=v1 requestObject.webhooks.0.rules.0.scope=* responseObject.webhooks.0.rules.0.apiGroups.0=postgresql.cnpg.io requestObject.webhooks.0.rules.0.apiVersions.0=v1 responseObject.webhooks.0.clientConfig.service.namespace=default requestObject.webhooks.0.name=mbackup.cnpg.io responseObject.webhooks.2.rules.0.apiVersions.0=v1 requestObject.webhooks.2.clientConfig.service.name=cnpg-webhook-service requestURI=/apis/admissionregistration.k8s.io/v1/mutatingwebhookconfigurations/cnpg-mutating-webhook-configuration requestObject.webhooks.0.rules.0.operations.0=CREATE requestObject.webhooks.2.clientConfig.service.path=/mutate-postgresql-cnpg-io-v1-scheduledbackup user.extra.authentication.kubernetes.io/credential-id.0=JTI=4464c179-5a00-473b-b1ce-22961addef35 responseObject.webhooks.2.rules.0.operations.0=CREATE responseObject.webhooks.1.name=mcluster.cnpg.io requestObject.webhooks.2.failurePolicy=Fail responseObject.metadata.managedFields.0.manager=Go-http-client requestObject.webhooks.0.clientConfig.caBundle=LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUIyVENDQVlDZ0F3SUJBZ0lSQU45YW8yL1llSmlHSFNkK2l4ZE5MQ1l3Q2dZSUtvWkl6ajBFQXdJd0t6RVEKTUE0R0ExVUVDeE1IWkdWbVlYVnNkREVYTUJVR0ExVUVBeE1PWTI1d1p5MWpZUzF6WldOeVpYUXdIaGNOTWpVdwpOREF6TURVeE56SXlXaGNOTWpVd056QXlNRFV4TnpJeVdqQXJNU2t3SndZRFZRUURFeUJqYm5CbkxYZGxZbWh2CmIyc3RjMlZ5ZG1salpTNWtaV1poZFd4MExuTjJZekJaTUJNR0J5cUdTTTQ5QWdFR0NDcUdTTTQ5QXdFSEEwSUEKQkEyY3Y3dmFwaFI5blhsdi95MGVoYyttZHRJSFErLy9mZC9ENEJ4ZG82MjY5SGMvWkFPVk5GNVUwUXdlS05mVgpuS1o3K1NHQnUzayt6V2xlMjVXSWxYbWpnWVF3Z1lFd0RnWURWUjBQQVFIL0JBUURBZ09vTUJNR0ExVWRKUVFNCk1Bb0dDQ3NHQVFVRkJ3TUJNQXdHQTFVZEV3RUIvd1FDTUFBd0h3WURWUjBqQkJnd0ZvQVVQcG00Y05ybFVjU1gKNnpSNitCL2l3d3YveUZ3d0t3WURWUjBSQkNRd0lvSWdZMjV3WnkxM1pXSm9iMjlyTFhObGNuWnBZMlV1WkdWbQpZWFZzZEM1emRtTXdDZ1lJS29aSXpqMEVBd0lEUndBd1JBSWdFSzJXa2lpV01oZ2lkdlJSMG85ZWpYeXgrK05ZCnU0bXd5QmNtNVVVcWdMVUNJRFRLMFFqZ3JhUHRqNWxjRkx1czlqQ3JQSVpHYk9GM2lUcmdHKy8wbEdaMwotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCg== responseObject.metadata.labels.app.kubernetes.io/name=cloudnative-pg kind=Event auditID=beb26a32-7564-442b-bc75-9d123927bab5 responseObject.metadata.managedFields.0.fieldsType=FieldsV1 requestObject.webhooks.0.rules.0.operations.1=UPDATE requestObject.webhooks.1.clientConfig.service.name=cnpg-webhook-service responseObject.metadata.labels.app.kubernetes.io/version=1.25.1 user.extra.authentication.kubernetes.io/pod-name.0=cnpg-operator-cloudnative-pg-6c6f45f85-w7l88 objectRef.apiGroup=admissionregistration.k8s.io responseObject.webhooks.2.rules.0.apiGroups.0=postgresql.cnpg.io responseObject.kind=MutatingWebhookConfiguration requestObject.webhooks.1.sideEffects=None requestObject.webhooks.1.failurePolicy=Fail responseObject.metadata.uid=8d033d52-793f-422e-bf3a-e0cb26b41bfc responseObject.webhooks.2.rules.0.operations.1=UPDATE requestObject.webhooks.1.reinvocationPolicy=Never responseObject.webhooks.2.rules.0.resources.0=scheduledbackups requestObject.webhooks.1.rules.0.operations.1=UPDATE requestObject.webhooks.2.rules.0.resources.0=scheduledbackups responseObject.webhooks.1.clientConfig.service.name=cnpg-webhook-service requestObject.webhooks.1.clientConfig.service.namespace=default responseObject.webhooks.2.clientConfig.service.path=/mutate-postgresql-cnpg-io-v1-scheduledbackup responseObject.webhooks.0.rules.0.apiVersions.0=v1 responseObject.webhooks.2.sideEffects=None responseObject.metadata.managedFields.1.apiVersion=admissionregistration.k8s.io/v1 objectRef.resource=mutatingwebhookconfigurations requestObject.webhooks.2.admissionReviewVersions.0=v1 user.groups.0=system:serviceaccounts responseObject.webhooks.1.failurePolicy=Fail responseObject.webhooks.0.timeoutSeconds=10 responseObject.webhooks.1.clientConfig.service.port=443 responseObject.metadata.generation=2 responseObject.webhooks.2.clientConfig.service.port=443 requestObject.webhooks.2.timeoutSeconds=10 responseStatus.code=200 responseObject.webhooks.2.timeoutSeconds=10 requestObject.webhooks.1.clientConfig.service.port=443 requestObject.webhooks.0.clientConfig.service.port=443 responseObject.webhooks.0.clientConfig.service.port=443 responseObject.webhooks.1.timeoutSeconds=10 requestObject.webhooks.1.timeoutSeconds=10 requestObject.webhooks.2.clientConfig.service.port=443 requestObject.webhooks.0.timeoutSeconds=10
+Apr 3 16:46:19.463 |RequestResponse| no message userAgent=Go-http-client/2.0 objectRef.name=cnpg-mutating-webhook-configuration sourceIPs.0=192.168.97.1 responseObject.status=Success kind=Event objectRef.apiVersion=v1 stage=ResponseComplete auditID=f10b3e76-3905-49de-8fa0-a52b114f18dd responseObject.details.uid=8d033d52-793f-422e-bf3a-e0cb26b41bfc requestObject.propagationPolicy=Background responseStatus.status=Success requestObject.apiVersion=meta.k8s.io/__internal user.username=kubernetes-admin user.groups.1=system:authenticated responseStatus.details.kind=mutatingwebhookconfigurations requestReceivedTimestamp=2025-04-03T07:46:19.443124Z objectRef.resource=mutatingwebhookconfigurations requestURI=/apis/admissionregistration.k8s.io/v1/mutatingwebhookconfigurations/cnpg-mutating-webhook-configuration apiVersion=audit.k8s.io/v1 responseStatus.details.uid=8d033d52-793f-422e-bf3a-e0cb26b41bfc annotations.authorization.k8s.io/decision=allow requestObject.kind=DeleteOptions objectRef.apiGroup=admissionregistration.k8s.io annotations.authorization.k8s.io/reason=RBAC: allowed by ClusterRoleBinding "kubeadm:cluster-admins" of ClusterRole "cluster-admin" to Group "kubeadm:cluster-admins" responseObject.details.group=admissionregistration.k8s.io responseObject.details.name=cnpg-mutating-webhook-configuration responseStatus.details.group=admissionregistration.k8s.io responseObject.details.kind=mutatingwebhookconfigurations responseObject.apiVersion=v1 verb=delete user.groups.0=kubeadm:cluster-admins responseStatus.details.name=cnpg-mutating-webhook-configuration responseObject.kind=Status responseStatus.code=200
+Apr 3 16:47:29.274 |RequestResponse| no message responseObject.webhooks.1.rules.0.scope=* user.uid=a85d3919-9876-4e34-9707-850b6a6f9dd7 requestObject.webhooks.0.rules.0.operations.1=UPDATE requestObject.webhooks.0.reinvocationPolicy=Never requestObject.webhooks.1.rules.0.operations.0=CREATE responseObject.metadata.managedFields.1.manager=manager requestObject.webhooks.2.clientConfig.service.path=/mutate-postgresql-cnpg-io-v1-scheduledbackup responseObject.webhooks.2.failurePolicy=Fail requestObject.webhooks.0.clientConfig.caBundle=LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUIyVENDQVlDZ0F3SUJBZ0lSQU45YW8yL1llSmlHSFNkK2l4ZE5MQ1l3Q2dZSUtvWkl6ajBFQXdJd0t6RVEKTUE0R0ExVUVDeE1IWkdWbVlYVnNkREVYTUJVR0ExVUVBeE1PWTI1d1p5MWpZUzF6WldOeVpYUXdIaGNOTWpVdwpOREF6TURVeE56SXlXaGNOTWpVd056QXlNRFV4TnpJeVdqQXJNU2t3SndZRFZRUURFeUJqYm5CbkxYZGxZbWh2CmIyc3RjMlZ5ZG1salpTNWtaV1poZFd4MExuTjJZekJaTUJNR0J5cUdTTTQ5QWdFR0NDcUdTTTQ5QXdFSEEwSUEKQkEyY3Y3dmFwaFI5blhsdi95MGVoYyttZHRJSFErLy9mZC9ENEJ4ZG82MjY5SGMvWkFPVk5GNVUwUXdlS05mVgpuS1o3K1NHQnUzayt6V2xlMjVXSWxYbWpnWVF3Z1lFd0RnWURWUjBQQVFIL0JBUURBZ09vTUJNR0ExVWRKUVFNCk1Bb0dDQ3NHQVFVRkJ3TUJNQXdHQTFVZEV3RUIvd1FDTUFBd0h3WURWUjBqQkJnd0ZvQVVQcG00Y05ybFVjU1gKNnpSNitCL2l3d3YveUZ3d0t3WURWUjBSQkNRd0lvSWdZMjV3WnkxM1pXSm9iMjlyTFhObGNuWnBZMlV1WkdWbQpZWFZzZEM1emRtTXdDZ1lJS29aSXpqMEVBd0lEUndBd1JBSWdFSzJXa2lpV01oZ2lkdlJSMG85ZWpYeXgrK05ZCnU0bXd5QmNtNVVVcWdMVUNJRFRLMFFqZ3JhUHRqNWxjRkx1czlqQ3JQSVpHYk9GM2lUcmdHKy8wbEdaMwotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCg== responseObject.webhooks.1.reinvocationPolicy=Never requestObject.webhooks.2.clientConfig.service.name=cnpg-webhook-service requestObject.webhooks.1.clientConfig.service.path=/mutate-postgresql-cnpg-io-v1-cluster responseObject.webhooks.2.rules.0.operations.1=UPDATE responseObject.webhooks.1.rules.0.apiGroups.0=postgresql.cnpg.io requestObject.webhooks.0.failurePolicy=Fail responseObject.metadata.annotations.kubectl.kubernetes.io/last-applied-configuration={"apiVersion":"admissionregistration.k8s.io/v1","kind":"MutatingWebhookConfiguration","metadata":{"annotations":{},"labels":{"app.kubernetes.io/instance":"cnpg-operator","app.kubernetes.io/managed-by":"tilt","app.kubernetes.io/name":"cloudnative-pg","app.kubernetes.io/version":"1.25.1","helm.sh/chart":"cloudnative-pg-0.23.2"},"name":"cnpg-mutating-webhook-configuration"},"webhooks":[{"admissionReviewVersions":["v1"],"clientConfig":{"service":{"name":"cnpg-webhook-service","namespace":"default","path":"/mutate-postgresql-cnpg-io-v1-backup","port":443}},"failurePolicy":"Fail","name":"mbackup.cnpg.io","rules":[{"apiGroups":["postgresql.cnpg.io"],"apiVersions":["v1"],"operations":["CREATE","UPDATE"],"resources":["backups"]}],"sideEffects":"None"},{"admissionReviewVersions":["v1"],"clientConfig":{"service":{"name":"cnpg-webhook-service","namespace":"default","path":"/mutate-postgresql-cnpg-io-v1-cluster","port":443}},"failurePolicy":"Fail","name":"mcluster.cnpg.io","rules":[{"apiGroups":["postgresql.cnpg.io"],"apiVersions":["v1"],"operations":["CREATE","UPDATE"],"resources":["clusters"]}],"sideEffects":"None"},{"admissionReviewVersions":["v1"],"clientConfig":{"service":{"name":"cnpg-webhook-service","namespace":"default","path":"/mutate-postgresql-cnpg-io-v1-scheduledbackup","port":443}},"failurePolicy":"Fail","name":"mscheduledbackup.cnpg.io","rules":[{"apiGroups":["postgresql.cnpg.io"],"apiVersions":["v1"],"operations":["CREATE","UPDATE"],"resources":["scheduledbackups"]}],"sideEffects":"None"}]} responseObject.webhooks.2.clientConfig.caBundle=LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUIyVENDQVlDZ0F3SUJBZ0lSQU45YW8yL1llSmlHSFNkK2l4ZE5MQ1l3Q2dZSUtvWkl6ajBFQXdJd0t6RVEKTUE0R0ExVUVDeE1IWkdWbVlYVnNkREVYTUJVR0ExVUVBeE1PWTI1d1p5MWpZUzF6WldOeVpYUXdIaGNOTWpVdwpOREF6TURVeE56SXlXaGNOTWpVd056QXlNRFV4TnpJeVdqQXJNU2t3SndZRFZRUURFeUJqYm5CbkxYZGxZbWh2CmIyc3RjMlZ5ZG1salpTNWtaV1poZFd4MExuTjJZekJaTUJNR0J5cUdTTTQ5QWdFR0NDcUdTTTQ5QXdFSEEwSUEKQkEyY3Y3dmFwaFI5blhsdi95MGVoYyttZHRJSFErLy9mZC9ENEJ4ZG82MjY5SGMvWkFPVk5GNVUwUXdlS05mVgpuS1o3K1NHQnUzayt6V2xlMjVXSWxYbWpnWVF3Z1lFd0RnWURWUjBQQVFIL0JBUURBZ09vTUJNR0ExVWRKUVFNCk1Bb0dDQ3NHQVFVRkJ3TUJNQXdHQTFVZEV3RUIvd1FDTUFBd0h3WURWUjBqQkJnd0ZvQVVQcG00Y05ybFVjU1gKNnpSNitCL2l3d3YveUZ3d0t3WURWUjBSQkNRd0lvSWdZMjV3WnkxM1pXSm9iMjlyTFhObGNuWnBZMlV1WkdWbQpZWFZzZEM1emRtTXdDZ1lJS29aSXpqMEVBd0lEUndBd1JBSWdFSzJXa2lpV01oZ2lkdlJSMG85ZWpYeXgrK05ZCnU0bXd5QmNtNVVVcWdMVUNJRFRLMFFqZ3JhUHRqNWxjRkx1czlqQ3JQSVpHYk9GM2lUcmdHKy8wbEdaMwotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCg== requestObject.webhooks.2.matchPolicy=Equivalent user.username=system:serviceaccount:default:cnpg-operator-cloudnative-pg responseObject.webhooks.1.sideEffects=None annotations.authorization.k8s.io/decision=allow requestObject.webhooks.0.sideEffects=None responseObject.webhooks.1.clientConfig.service.name=cnpg-webhook-service requestReceivedTimestamp=2025-04-03T07:47:29.262207Z stage=ResponseComplete responseObject.webhooks.0.matchPolicy=Equivalent user.extra.authentication.kubernetes.io/credential-id.0=JTI=bbbf8ffd-4f8d-4f63-8607-3e6da1a5ca55 requestObject.webhooks.0.rules.0.operations.0=CREATE requestObject.webhooks.2.rules.0.operations.0=CREATE requestObject.webhooks.1.admissionReviewVersions.0=v1 annotations.authorization.k8s.io/reason=RBAC: allowed by ClusterRoleBinding "cnpg-operator-cloudnative-pg" of ClusterRole "cnpg-operator-cloudnative-pg" to ServiceAccount "cnpg-operator-cloudnative-pg/default" responseObject.webhooks.1.rules.0.apiVersions.0=v1 requestObject.webhooks.1.reinvocationPolicy=Never requestObject.webhooks.0.matchPolicy=Equivalent responseObject.apiVersion=admissionregistration.k8s.io/v1 requestObject.webhooks.1.sideEffects=None requestObject.webhooks.2.admissionReviewVersions.0=v1 responseObject.webhooks.0.sideEffects=None responseObject.webhooks.0.rules.0.scope=* responseObject.metadata.managedFields.0.manager=Go-http-client responseObject.webhooks.2.rules.0.operations.0=CREATE requestObject.webhooks.0.admissionReviewVersions.0=v1 requestObject.webhooks.1.failurePolicy=Fail responseObject.metadata.managedFields.1.operation=Update requestURI=/apis/admissionregistration.k8s.io/v1/mutatingwebhookconfigurations/cnpg-mutating-webhook-configuration sourceIPs.0=10.244.0.8 responseObject.webhooks.1.clientConfig.service.path=/mutate-postgresql-cnpg-io-v1-cluster responseObject.webhooks.0.clientConfig.service.namespace=default requestObject.webhooks.0.rules.0.apiGroups.0=postgresql.cnpg.io requestObject.webhooks.0.rules.0.scope=* requestObject.webhooks.0.rules.0.apiVersions.0=v1 responseObject.webhooks.2.rules.0.apiGroups.0=postgresql.cnpg.io objectRef.name=cnpg-mutating-webhook-configuration responseObject.webhooks.2.matchPolicy=Equivalent requestObject.webhooks.2.clientConfig.caBundle=LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUIyVENDQVlDZ0F3SUJBZ0lSQU45YW8yL1llSmlHSFNkK2l4ZE5MQ1l3Q2dZSUtvWkl6ajBFQXdJd0t6RVEKTUE0R0ExVUVDeE1IWkdWbVlYVnNkREVYTUJVR0ExVUVBeE1PWTI1d1p5MWpZUzF6WldOeVpYUXdIaGNOTWpVdwpOREF6TURVeE56SXlXaGNOTWpVd056QXlNRFV4TnpJeVdqQXJNU2t3SndZRFZRUURFeUJqYm5CbkxYZGxZbWh2CmIyc3RjMlZ5ZG1salpTNWtaV1poZFd4MExuTjJZekJaTUJNR0J5cUdTTTQ5QWdFR0NDcUdTTTQ5QXdFSEEwSUEKQkEyY3Y3dmFwaFI5blhsdi95MGVoYyttZHRJSFErLy9mZC9ENEJ4ZG82MjY5SGMvWkFPVk5GNVUwUXdlS05mVgpuS1o3K1NHQnUzayt6V2xlMjVXSWxYbWpnWVF3Z1lFd0RnWURWUjBQQVFIL0JBUURBZ09vTUJNR0ExVWRKUVFNCk1Bb0dDQ3NHQVFVRkJ3TUJNQXdHQTFVZEV3RUIvd1FDTUFBd0h3WURWUjBqQkJnd0ZvQVVQcG00Y05ybFVjU1gKNnpSNitCL2l3d3YveUZ3d0t3WURWUjBSQkNRd0lvSWdZMjV3WnkxM1pXSm9iMjlyTFhObGNuWnBZMlV1WkdWbQpZWFZzZEM1emRtTXdDZ1lJS29aSXpqMEVBd0lEUndBd1JBSWdFSzJXa2lpV01oZ2lkdlJSMG85ZWpYeXgrK05ZCnU0bXd5QmNtNVVVcWdMVUNJRFRLMFFqZ3JhUHRqNWxjRkx1czlqQ3JQSVpHYk9GM2lUcmdHKy8wbEdaMwotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCg== responseObject.webhooks.0.admissionReviewVersions.0=v1 user.extra.authentication.kubernetes.io/node-name.0=kind-control-plane responseObject.metadata.managedFields.1.fieldsType=FieldsV1 responseObject.metadata.managedFields.0.operation=Update responseObject.metadata.labels.app.kubernetes.io/instance=cnpg-operator responseObject.webhooks.2.sideEffects=None responseObject.webhooks.0.reinvocationPolicy=Never auditID=47a73c51-49a4-441f-8c4c-6d47d9b8b9f1 responseObject.metadata.managedFields.0.apiVersion=admissionregistration.k8s.io/v1 requestObject.webhooks.1.rules.0.operations.1=UPDATE responseObject.webhooks.1.rules.0.operations.1=UPDATE requestObject.webhooks.2.reinvocationPolicy=Never requestObject.webhooks.2.failurePolicy=Fail responseObject.webhooks.0.name=mbackup.cnpg.io requestObject.webhooks.1.clientConfig.caBundle=LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUIyVENDQVlDZ0F3SUJBZ0lSQU45YW8yL1llSmlHSFNkK2l4ZE5MQ1l3Q2dZSUtvWkl6ajBFQXdJd0t6RVEKTUE0R0ExVUVDeE1IWkdWbVlYVnNkREVYTUJVR0ExVUVBeE1PWTI1d1p5MWpZUzF6WldOeVpYUXdIaGNOTWpVdwpOREF6TURVeE56SXlXaGNOTWpVd056QXlNRFV4TnpJeVdqQXJNU2t3SndZRFZRUURFeUJqYm5CbkxYZGxZbWh2CmIyc3RjMlZ5ZG1salpTNWtaV1poZFd4MExuTjJZekJaTUJNR0J5cUdTTTQ5QWdFR0NDcUdTTTQ5QXdFSEEwSUEKQkEyY3Y3dmFwaFI5blhsdi95MGVoYyttZHRJSFErLy9mZC9ENEJ4ZG82MjY5SGMvWkFPVk5GNVUwUXdlS05mVgpuS1o3K1NHQnUzayt6V2xlMjVXSWxYbWpnWVF3Z1lFd0RnWURWUjBQQVFIL0JBUURBZ09vTUJNR0ExVWRKUVFNCk1Bb0dDQ3NHQVFVRkJ3TUJNQXdHQTFVZEV3RUIvd1FDTUFBd0h3WURWUjBqQkJnd0ZvQVVQcG00Y05ybFVjU1gKNnpSNitCL2l3d3YveUZ3d0t3WURWUjBSQkNRd0lvSWdZMjV3WnkxM1pXSm9iMjlyTFhObGNuWnBZMlV1WkdWbQpZWFZzZEM1emRtTXdDZ1lJS29aSXpqMEVBd0lEUndBd1JBSWdFSzJXa2lpV01oZ2lkdlJSMG85ZWpYeXgrK05ZCnU0bXd5QmNtNVVVcWdMVUNJRFRLMFFqZ3JhUHRqNWxjRkx1czlqQ3JQSVpHYk9GM2lUcmdHKy8wbEdaMwotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCg== responseObject.webhooks.1.rules.0.resources.0=clusters responseObject.webhooks.2.rules.0.resources.0=scheduledbackups responseObject.webhooks.2.reinvocationPolicy=Never user.extra.authentication.kubernetes.io/pod-uid.0=c07f57c3-6b18-4b12-9c53-b04d36b59901 responseObject.webhooks.0.rules.0.apiGroups.0=postgresql.cnpg.io responseObject.metadata.managedFields.0.time=2025-04-03T07:46:21Z responseObject.metadata.name=cnpg-mutating-webhook-configuration responseObject.metadata.labels.app.kubernetes.io/version=1.25.1 requestObject.webhooks.2.rules.0.operations.1=UPDATE responseObject.metadata.resourceVersion=16409 requestObject.webhooks.2.rules.0.resources.0=scheduledbackups responseObject.webhooks.0.clientConfig.service.name=cnpg-webhook-service responseObject.metadata.managedFields.0.fieldsType=FieldsV1 responseObject.webhooks.0.clientConfig.caBundle=LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUIyVENDQVlDZ0F3SUJBZ0lSQU45YW8yL1llSmlHSFNkK2l4ZE5MQ1l3Q2dZSUtvWkl6ajBFQXdJd0t6RVEKTUE0R0ExVUVDeE1IWkdWbVlYVnNkREVYTUJVR0ExVUVBeE1PWTI1d1p5MWpZUzF6WldOeVpYUXdIaGNOTWpVdwpOREF6TURVeE56SXlXaGNOTWpVd056QXlNRFV4TnpJeVdqQXJNU2t3SndZRFZRUURFeUJqYm5CbkxYZGxZbWh2CmIyc3RjMlZ5ZG1salpTNWtaV1poZFd4MExuTjJZekJaTUJNR0J5cUdTTTQ5QWdFR0NDcUdTTTQ5QXdFSEEwSUEKQkEyY3Y3dmFwaFI5blhsdi95MGVoYyttZHRJSFErLy9mZC9ENEJ4ZG82MjY5SGMvWkFPVk5GNVUwUXdlS05mVgpuS1o3K1NHQnUzayt6V2xlMjVXSWxYbWpnWVF3Z1lFd0RnWURWUjBQQVFIL0JBUURBZ09vTUJNR0ExVWRKUVFNCk1Bb0dDQ3NHQVFVRkJ3TUJNQXdHQTFVZEV3RUIvd1FDTUFBd0h3WURWUjBqQkJnd0ZvQVVQcG00Y05ybFVjU1gKNnpSNitCL2l3d3YveUZ3d0t3WURWUjBSQkNRd0lvSWdZMjV3WnkxM1pXSm9iMjlyTFhObGNuWnBZMlV1WkdWbQpZWFZzZEM1emRtTXdDZ1lJS29aSXpqMEVBd0lEUndBd1JBSWdFSzJXa2lpV01oZ2lkdlJSMG85ZWpYeXgrK05ZCnU0bXd5QmNtNVVVcWdMVUNJRFRLMFFqZ3JhUHRqNWxjRkx1czlqQ3JQSVpHYk9GM2lUcmdHKy8wbEdaMwotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCg== requestObject.webhooks.0.name=mbackup.cnpg.io responseObject.webhooks.2.clientConfig.service.name=cnpg-webhook-service userAgent=manager/v0.0.0 (linux/arm64) kubernetes/$Format requestObject.webhooks.0.clientConfig.service.name=cnpg-webhook-service verb=patch responseObject.webhooks.2.admissionReviewVersions.0=v1 requestObject.webhooks.2.name=mscheduledbackup.cnpg.io objectRef.apiVersion=v1 requestObject.webhooks.2.rules.0.apiVersions.0=v1 requestObject.webhooks.2.rules.0.apiGroups.0=postgresql.cnpg.io responseObject.webhooks.1.clientConfig.service.namespace=default requestObject.webhooks.1.rules.0.apiGroups.0=postgresql.cnpg.io requestObject.webhooks.0.clientConfig.service.path=/mutate-postgresql-cnpg-io-v1-backup responseObject.webhooks.1.clientConfig.caBundle=LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUIyVENDQVlDZ0F3SUJBZ0lSQU45YW8yL1llSmlHSFNkK2l4ZE5MQ1l3Q2dZSUtvWkl6ajBFQXdJd0t6RVEKTUE0R0ExVUVDeE1IWkdWbVlYVnNkREVYTUJVR0ExVUVBeE1PWTI1d1p5MWpZUzF6WldOeVpYUXdIaGNOTWpVdwpOREF6TURVeE56SXlXaGNOTWpVd056QXlNRFV4TnpJeVdqQXJNU2t3SndZRFZRUURFeUJqYm5CbkxYZGxZbWh2CmIyc3RjMlZ5ZG1salpTNWtaV1poZFd4MExuTjJZekJaTUJNR0J5cUdTTTQ5QWdFR0NDcUdTTTQ5QXdFSEEwSUEKQkEyY3Y3dmFwaFI5blhsdi95MGVoYyttZHRJSFErLy9mZC9ENEJ4ZG82MjY5SGMvWkFPVk5GNVUwUXdlS05mVgpuS1o3K1NHQnUzayt6V2xlMjVXSWxYbWpnWVF3Z1lFd0RnWURWUjBQQVFIL0JBUURBZ09vTUJNR0ExVWRKUVFNCk1Bb0dDQ3NHQVFVRkJ3TUJNQXdHQTFVZEV3RUIvd1FDTUFBd0h3WURWUjBqQkJnd0ZvQVVQcG00Y05ybFVjU1gKNnpSNitCL2l3d3YveUZ3d0t3WURWUjBSQkNRd0lvSWdZMjV3WnkxM1pXSm9iMjlyTFhObGNuWnBZMlV1WkdWbQpZWFZzZEM1emRtTXdDZ1lJS29aSXpqMEVBd0lEUndBd1JBSWdFSzJXa2lpV01oZ2lkdlJSMG85ZWpYeXgrK05ZCnU0bXd5QmNtNVVVcWdMVUNJRFRLMFFqZ3JhUHRqNWxjRkx1czlqQ3JQSVpHYk9GM2lUcmdHKy8wbEdaMwotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCg== requestObject.webhooks.1.rules.0.resources.0=clusters responseObject.webhooks.0.clientConfig.service.path=/mutate-postgresql-cnpg-io-v1-backup responseObject.webhooks.0.rules.0.apiVersions.0=v1 objectRef.apiGroup=admissionregistration.k8s.io responseObject.webhooks.1.rules.0.operations.0=CREATE responseObject.webhooks.0.failurePolicy=Fail responseObject.webhooks.2.name=mscheduledbackup.cnpg.io responseObject.webhooks.2.clientConfig.service.namespace=default user.groups.2=system:authenticated responseObject.webhooks.0.rules.0.operations.1=UPDATE requestObject.webhooks.1.name=mcluster.cnpg.io responseObject.webhooks.1.admissionReviewVersions.0=v1 kind=Event responseObject.webhooks.1.failurePolicy=Fail requestObject.webhooks.1.matchPolicy=Equivalent requestObject.webhooks.0.clientConfig.service.namespace=default responseObject.metadata.labels.helm.sh/chart=cloudnative-pg-0.23.2 requestObject.webhooks.2.sideEffects=None requestObject.webhooks.1.clientConfig.service.namespace=default responseObject.webhooks.0.rules.0.operations.0=CREATE responseObject.webhooks.2.rules.0.scope=* responseObject.metadata.labels.app.kubernetes.io/managed-by=tilt responseObject.metadata.labels.app.kubernetes.io/name=cloudnative-pg responseObject.kind=MutatingWebhookConfiguration responseObject.metadata.managedFields.1.apiVersion=admissionregistration.k8s.io/v1 responseObject.metadata.managedFields.1.time=2025-04-03T07:47:29Z responseObject.webhooks.1.matchPolicy=Equivalent user.extra.authentication.kubernetes.io/pod-name.0=cnpg-operator-cloudnative-pg-6c6f45f85-w7l88 responseObject.metadata.uid=fa57181a-1a5a-4e39-b7f0-6bec4e30015f user.extra.authentication.kubernetes.io/node-uid.0=f3f6505f-e302-40fa-b0b4-390a7b375b11 responseObject.webhooks.0.rules.0.resources.0=backups requestObject.webhooks.0.rules.0.resources.0=backups user.groups.0=system:serviceaccounts responseObject.webhooks.2.clientConfig.service.path=/mutate-postgresql-cnpg-io-v1-scheduledbackup responseObject.webhooks.2.rules.0.apiVersions.0=v1 user.groups.1=system:serviceaccounts:default requestObject.webhooks.1.rules.0.apiVersions.0=v1 requestObject.webhooks.1.clientConfig.service.name=cnpg-webhook-service requestObject.webhooks.1.rules.0.scope=* objectRef.resource=mutatingwebhookconfigurations apiVersion=audit.k8s.io/v1 responseObject.webhooks.1.name=mcluster.cnpg.io responseObject.metadata.creationTimestamp=2025-04-03T07:46:21Z requestObject.webhooks.2.rules.0.scope=* requestObject.webhooks.2.clientConfig.service.namespace=default responseObject.metadata.generation=2 responseObject.webhooks.0.timeoutSeconds=10 responseObject.webhooks.2.clientConfig.service.port=443 requestObject.webhooks.0.timeoutSeconds=10 responseStatus.code=200 responseObject.webhooks.1.clientConfig.service.port=443 requestObject.webhooks.2.timeoutSeconds=10 requestObject.webhooks.2.clientConfig.service.port=443 requestObject.webhooks.1.clientConfig.service.port=443 responseObject.webhooks.2.timeoutSeconds=10 requestObject.webhooks.0.clientConfig.service.port=443 responseObject.webhooks.0.clientConfig.service.port=443 requestObject.webhooks.1.timeoutSeconds=10 responseObject.webhooks.1.timeoutSeconds=10
+```
+
+We can see that Tilt is deleting the `mutatingwebhookconfigurations` whenever I click the "trigger update" button. That's annoying.
+
+## The Boring Reveal
+
+It turns out that when I clicked the "trigger update" button of the shared "unrecognized" resource, with the intent of retrying to create the Postgres cluster, I also caused Tilt to _recreate the CNPG mutating webhook_.
+
+[!](/images/blog/debugging-k8s-audit-logs/tilt-deleting-our-stuff.png)
+
+And since Tilt doesn't know about the inter-dependency (I didn't tell it about it), it happily did both things at the same time, leading to the creation of the Postgres cluster to occur while the webhook was not yet provisioned with a `caBundle`. The solution? Tell Tilt about the dependency, make it group the Postgres cluster in its own block, and make the CNPG webhook join the resource group of the other CNPG components.
+
+That's it!
+
+## Conclusion
+
+These investigations are often caused by [dumb PEBCAK errors](https://en.wiktionary.org/wiki/PEBCAK) (like here!), and the tools required to debug them can be complex. Debugging what's going on inside a local-dev install of Kubernetes is technically possible, but painful. In production, our Kubernetes cluster hopefully sends its audit logs to an observability pipeline (like Humanlog's!). But when it comes to local-dev, we're on our own with grep, tail, jq and patience. These are powerful tool, but when it comes to logs, so is humanlog. And all the research you can do in production can now be done in your local dev environment as well.
+
+Give humanlog a try next time you're trying to debug your distributed system in local dev.
