@@ -8,7 +8,7 @@ import { Tabular } from "api/js/types/v1/query_pb";
 import { useEffect, useState } from "react";
 import { useInView } from "react-intersection-observer";
 
-export const useInfiniteQuery = (query: LogQuery | undefined) => {
+export const useInfiniteQuery = (query?: LogQuery | undefined) => {
   const limit = 100;
 
   const { apiClients, activeEnvironment } = useApiClients();
@@ -43,5 +43,5 @@ export const useInfiniteQuery = (query: LogQuery | undefined) => {
     }
   };
 
-  return { targetRef, isFetching, fetchNext, fetchData, next };
+  return { targetRef, isFetching, fetchNext, fetchData, next, setNext };
 };
