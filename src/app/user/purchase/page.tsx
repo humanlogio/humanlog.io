@@ -300,7 +300,7 @@ function CheckoutForm({
                 Billed Yearly
                 <span
                   className={cn(
-                    "ml-2 rounded-base bg-success px-2 py-1 text-xs font-bold text-white transition-colors duration-200",
+                    "rounded-base bg-success ml-2 px-2 py-1 text-xs font-bold text-white transition-colors duration-200",
                     {
                       "bg-slate-400": !isBilledYearly,
                     },
@@ -338,7 +338,7 @@ function CheckoutForm({
           <div>
             <Label>Payment</Label>
             <div className="grid grid-cols-3 gap-4">
-              <div className="col-span-3 mt-3 rounded-base border-2 border-warning bg-warning/30 p-4 dark:border-warning/50 dark:bg-warning/10 md:col-span-1">
+              <div className="rounded-base border-warning bg-warning/30 dark:border-warning/50 dark:bg-warning/10 col-span-3 mt-3 border-2 p-4 md:col-span-1">
                 <Image
                   src="/images/powered-by-stripe.svg"
                   alt="Powered by Stripe"

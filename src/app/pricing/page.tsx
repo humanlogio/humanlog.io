@@ -63,7 +63,7 @@ export default function Page() {
                 Billed Yearly
                 <span
                   className={cn(
-                    "absolute left-full top-1/2 ml-2 hidden -translate-y-1/2 transform text-nowrap rounded-base bg-success px-2 py-1 text-xs font-bold text-white transition-colors duration-200 sm:block",
+                    "rounded-base bg-success absolute top-1/2 left-full ml-2 hidden -translate-y-1/2 transform px-2 py-1 text-xs font-bold text-nowrap text-white transition-colors duration-200 sm:block",
                     {
                       "bg-slate-400": !isBilledYearly,
                     },
@@ -137,7 +137,7 @@ export default function Page() {
                 return (
                   <div
                     key={product.product.stripeId}
-                    className="flex flex-col justify-between rounded-base border-2 border-border bg-white p-6 dark:border-darkBorder dark:bg-darkBg"
+                    className="rounded-base border-border dark:border-darkBorder dark:bg-darkBg flex flex-col justify-between border-2 bg-white p-6"
                   >
                     <div>
                       <div className="flex items-center justify-between">
@@ -145,12 +145,12 @@ export default function Page() {
                           {product.product.name}
                         </h3>
                         {featured && (
-                          <span className="rounded-base border-2 border-border bg-success px-2 py-0.5 text-sm text-text dark:border-darkBorder">
+                          <span className="rounded-base border-border bg-success text-text dark:border-darkBorder border-2 px-2 py-0.5 text-sm">
                             Most popular
                           </span>
                         )}
                       </div>
-                      <p className="mb-3 mt-2 text-slate-500">
+                      <p className="mt-2 mb-3 text-slate-500">
                         {product.product.description}
                       </p>
                       <div className="flex items-center gap-4">

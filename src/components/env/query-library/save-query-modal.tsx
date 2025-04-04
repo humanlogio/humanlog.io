@@ -176,7 +176,7 @@ export const SaveQueryModal = ({
                 <FormItem className="mt-4 flex flex-col items-start">
                   <FormLabel>Query</FormLabel>
                   <FormControl>
-                    <div className="w-full overflow-hidden rounded-base border-2 border-border py-3">
+                    <div className="rounded-base border-border w-full overflow-hidden border-2 py-3">
                       <MonacoEditor {...field} value={field.value || ""} />
                     </div>
                   </FormControl>

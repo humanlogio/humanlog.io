@@ -121,7 +121,7 @@ const SessionPanel = ({ logEventGroup }: SessionPanelProps) => {
   }, [currentPage, totalPages, handleScroll]);
 
   return (
-    <div className="flex h-full flex-col overflow-hidden rounded-base border-2 border-border">
+    <div className="rounded-base border-border flex h-full flex-col overflow-hidden border-2">
       <div className="flex flex-none flex-row items-center justify-between bg-slate-900 px-4 py-2 dark:bg-slate-800">
         <div className="flex w-1/3 justify-start">
           <h4 className="flex flex-row items-center gap-3 truncate font-bold text-white">
@@ -190,7 +190,7 @@ const SessionPanel = ({ logEventGroup }: SessionPanelProps) => {
             </div>
 
             <Panel defaultSize={40} style={{ height: `${contentHeight}px` }}>
-              <div className="flex w-full flex-col overflow-x-auto scrollbar-hide">
+              <div className="scrollbar-hide flex w-full flex-col overflow-x-auto">
                 {currentLogs?.map((log, index) => (
                   <div
                     key={`${log.id ?? index}-msg`}
@@ -198,7 +198,7 @@ const SessionPanel = ({ logEventGroup }: SessionPanelProps) => {
                   >
                     <div className="h-full px-4 py-2">
                       {log.structured ? (
-                        <div className="h-full scrollbar-hide">
+                        <div className="scrollbar-hide h-full">
                           <code className="whitespace-nowrap">
                             {`${log.structured?.msg}` || (
                               <span className="text-slate-400">no message</span>
@@ -224,7 +224,7 @@ const SessionPanel = ({ logEventGroup }: SessionPanelProps) => {
             />
 
             <Panel style={{ height: `${contentHeight}px` }}>
-              <div className="flex w-full flex-col overflow-x-auto scrollbar-hide">
+              <div className="scrollbar-hide flex w-full flex-col overflow-x-auto">
                 {currentLogs?.map((log, index) => (
                   <div
                     key={`${log.id ?? index}-kvs`}

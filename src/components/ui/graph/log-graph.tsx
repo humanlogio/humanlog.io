@@ -12,7 +12,7 @@ import {
   ReferenceArea,
   Cell,
 } from "recharts";
-import DateRangePicker from "./dateRangePicker";
+import DateRangePicker from "@/components/ui/graph/dateRangePicker";
 import { useApiClients } from "@/context/api-provider";
 import {
   convertToGraphDataPoints,
@@ -226,7 +226,7 @@ export const LogGraph = ({ getTimeRange }: LogGraphProps) => {
       <div className="mt-2 h-48 w-full">
         {eventsList.length === 0 ? (
           <div className="w-full">
-            <p className="mt-1 rounded-md border bg-slate-200 p-4 text-sm font-medium leading-tight text-slate-800 dark:bg-slate-800 dark:text-slate-200">
+            <p className="mt-1 rounded-md border bg-slate-200 p-4 text-sm leading-tight font-medium text-slate-800 dark:bg-slate-800 dark:text-slate-200">
               No log data was found for that time frame.
               <br />
               <br />
