@@ -271,7 +271,7 @@ export function ProductPane({
     <div
       onClick={() => onClick(selectedPrice)}
       className={cn(
-        "cursor-pointer rounded-md border-2 border-border p-6 shadow-light hover:translate-x-boxShadowX hover:translate-y-boxShadowY hover:shadow-none dark:shadow-dark dark:hover:shadow-none",
+        "border-border shadow-light hover:translate-x-boxShadowX hover:translate-y-boxShadowY dark:shadow-dark cursor-pointer rounded-md border-2 p-6 hover:shadow-none dark:hover:shadow-none",
         isSelected &&
           "translate-x-boxShadowX translate-y-boxShadowY bg-main shadow-none",
       )}
@@ -511,7 +511,7 @@ function CheckoutForm({
           />
 
           <div className="relative hidden w-4 items-center md:flex">
-            <span className="absolute left-0 top-10 text-xl font-bold">/</span>
+            <span className="absolute top-10 left-0 text-xl font-bold">/</span>
           </div>
 
           <FormField
@@ -556,7 +556,7 @@ function CheckoutForm({
                 Billed Yearly
                 <span
                   className={cn(
-                    "ml-2 rounded-base bg-success px-2 py-1 text-xs font-bold text-white transition-colors duration-200",
+                    "rounded-base bg-success ml-2 px-2 py-1 text-xs font-bold text-white transition-colors duration-200",
                     {
                       "bg-slate-400": !isBilledYearly,
                     },
@@ -606,7 +606,7 @@ function CheckoutForm({
           <div>
             <Label>Payment</Label>
             <div className="grid grid-cols-3 gap-4">
-              <div className="col-span-3 mt-3 rounded-base border-2 border-warning bg-warning/30 p-4 dark:border-warning/50 dark:bg-warning/10 md:col-span-1">
+              <div className="rounded-base border-warning bg-warning/30 dark:border-warning/50 dark:bg-warning/10 col-span-3 mt-3 border-2 p-4 md:col-span-1">
                 <Image
                   src="/images/powered-by-stripe.svg"
                   alt="Powered by Stripe"

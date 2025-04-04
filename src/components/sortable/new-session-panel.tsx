@@ -1,9 +1,8 @@
-import {
-  copyToClipboard,
-  formatTimestamp,
-  getUnixTimestamp,
-  useInfiniteQuery,
-} from "@/lib/utils";
+import { copyToClipboard } from "@/lib/utils/clipboard";
+import { formatTimestamp } from "@/lib/utils/formatTimeStamp";
+import { getUnixTimestamp } from "@/lib/utils/formatTimeStamp";
+import { useInfiniteQuery } from "@/lib/utils/useInfiniteQuery";
+
 import { IngestedLogEvent } from "api/js/types/v1/logevent_pb";
 import { LogQuery } from "api/js/types/v1/logquery_pb";
 import {
@@ -161,9 +160,9 @@ const NewSessionPanel = ({
   }, [pathname, searchParams]);
 
   return (
-    <div className="flex w-full flex-col rounded-base border-2 border-border">
+    <div className="rounded-base border-border flex w-full flex-col border-2">
       <TooltipProvider>
-        <div className="sticky left-0 right-0 top-0 z-10 flex h-11 w-full flex-none flex-row items-center justify-between bg-slate-900 p-2 dark:bg-slate-800">
+        <div className="sticky top-0 right-0 left-0 z-10 flex h-11 w-full flex-none flex-row items-center justify-between bg-slate-900 p-2 dark:bg-slate-800">
           <div className="flex justify-start">
             <h4 className="flex flex-row items-center gap-3 truncate font-bold text-white">
               {isFetching ? (
@@ -250,7 +249,7 @@ const NewSessionPanel = ({
                         {selectedLines ===
                           `${i + 1}${log.machineId}${log.sessionId}${log.eventId}` &&
                         "bg-slate-400 dark:bg-gray-700" ? (
-                          <div className="z-1 mr-2 flex h-5 w-5 items-center justify-center rounded bg-main shadow-sm">
+                          <div className="bg-main z-1 mr-2 flex h-5 w-5 items-center justify-center rounded shadow-sm">
                             <Ellipsis size={14} />
                             <SelectValue placeholder="" />
                           </div>
@@ -276,7 +275,7 @@ const NewSessionPanel = ({
                         <TooltipTrigger asChild>
                           <code
                             className={twMerge(
-                              "flex gap-1 whitespace-nowrap py-[1px]",
+                              "flex gap-1 py-[1px] whitespace-nowrap",
                             )}
                           >
                             {decodeUint8Array(log.raw)}
@@ -345,7 +344,7 @@ const NewSessionPanel = ({
                                     </span>
                                   </span>
                                 </TooltipTrigger>
-                                <TooltipContent className="bg-transparent bg-white dark:bg-secondaryBlack">
+                                <TooltipContent className="dark:bg-secondaryBlack bg-transparent bg-white">
                                   <KeyValueRow label="Key" value={kv.key} />
                                   <KeyValueRow
                                     label="Type"
@@ -388,7 +387,7 @@ interface MetaDataTooltipProps {
 
 const MetaDataTooltip = ({ log }: MetaDataTooltipProps) => {
   return (
-    <TooltipContent className="bg-white dark:bg-secondaryBlack" align="start">
+    <TooltipContent className="dark:bg-secondaryBlack bg-white" align="start">
       <div>
         <KeyValueRow label="Machine Id" value={log.machineId.toString()} />
         <KeyValueRow label="Session Id" value={log.sessionId.toString()} />

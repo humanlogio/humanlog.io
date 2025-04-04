@@ -1,4 +1,4 @@
-import { useInfiniteQuery } from "@/lib/utils";
+import { useInfiniteQuery } from "@/lib/utils/useInfiniteQuery";
 import { valueToJSX } from "@/lib/utils/valueFormatters";
 import { LogQuery } from "api/js/types/v1/logquery_pb";
 import { FlatArr, TableType_Column } from "api/js/types/v1/types_pb";
@@ -147,7 +147,7 @@ const TableContainer = ({ query }: TableProps) => {
       `}</style>
       <div className="overflow-auto">
         <table className="mt-4 w-full table-fixed">
-          <thead className="border bg-white dark:bg-darkBg">
+          <thead className="dark:bg-darkBg border bg-white">
             {table.getHeaderGroups().map((headerGroup) => (
               <tr key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
@@ -158,7 +158,7 @@ const TableContainer = ({ query }: TableProps) => {
                       overflow: "visible",
                     }}
                     key={header.id}
-                    className="border border-border px-2 dark:border-white"
+                    className="border-border border px-2 dark:border-white"
                   >
                     {header.isPlaceholder
                       ? null
@@ -191,7 +191,7 @@ const TableContainer = ({ query }: TableProps) => {
                       maxWidth: "none",
                     }}
                     key={cell.id}
-                    className="text-ellipsis break-words border border-border px-2 dark:border-white"
+                    className="border-border border px-2 break-words text-ellipsis dark:border-white"
                   >
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </td>
