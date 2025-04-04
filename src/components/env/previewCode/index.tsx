@@ -42,7 +42,7 @@ export default function PreviewCode() {
         >
           <Button
             size="lg"
-            className="h-8 border-darkBg px-2 text-[16px] shadow-[2px_2px_0_0_#000000] shadow-black dark:shadow-black"
+            className="border-darkBg h-8 px-2 text-[16px] shadow-[2px_2px_0_0_#000000] shadow-black dark:shadow-black"
             style={{ padding: "20px 25px" }}
           >
             Get started

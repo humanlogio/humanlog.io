@@ -17,7 +17,7 @@ const Logo = ({ sm = false }) => {
         <span className="text-[16px] text-white">human</span>
         <Button
           size="sm"
-          className="h-8 border-darkBg px-2 text-[16px] shadow-[2px_2px_0_0_#fff] shadow-white dark:shadow-white"
+          className="border-darkBg h-8 px-2 text-[16px] shadow-[2px_2px_0_0_#fff] shadow-white dark:shadow-white"
         >
           log
         </Button>

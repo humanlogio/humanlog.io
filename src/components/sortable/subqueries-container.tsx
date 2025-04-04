@@ -129,11 +129,11 @@ export const SubQueriesContainer = ({ queries }: SubQueriesContainerProps) => {
               return (
                 <Fragment key={list.value}>
                   <Panel minSize={20}>
-                    <div className="relative pr-2 pt-2">
+                    <div className="relative pt-2 pr-2">
                       {selectedSessions.length > 1 && (
                         <button
                           onClick={() => deleteSession(list.value)}
-                          className="absolute right-0 top-0 z-50 rounded-full border border-black bg-white"
+                          className="absolute top-0 right-0 z-50 rounded-full border border-black bg-white"
                         >
                           <X color="black" size={14} />
                         </button>

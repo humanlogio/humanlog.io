@@ -21,7 +21,7 @@ export default async function BlogPage({ params }: any) {
 
   return (
     <div className="container py-5">
-      <div className="prose max-w-none dark:prose-invert">
+      <div className="prose dark:prose-invert max-w-none">
         {post.description && (
           <p className="text-muted-foreground">{post.description}</p>
         )}

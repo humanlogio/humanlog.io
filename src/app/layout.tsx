@@ -35,7 +35,7 @@ export default function RootLayout({
       )}
       <body
         className={cn(
-          "h-screen bg-bg font-mono text-text antialiased dark:bg-darkBg dark:text-darkText",
+          "bg-bg text-text dark:bg-darkBg dark:text-darkText h-screen font-mono antialiased",
           font.variable,
         )}
       >

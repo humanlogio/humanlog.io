@@ -300,7 +300,7 @@ const NewQueryInput = ({
           </Button>
         </div>
         <div>
-          <div className="w-full overflow-hidden rounded-base border-2 border-border py-3">
+          <div className="rounded-base border-border w-full overflow-hidden border-2 py-3">
             <MonacoEditor
               value={editorContent}
               onChange={(value) => setEditorContent(value || "")}
