@@ -40,7 +40,8 @@ import {
 } from "api/js/types/v1/localhost_config_pb";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { cn, TIME_FORMAT } from "@/lib/utils";
+import { cn } from "@/lib/utils";
+import { TIME_FORMAT } from "@/lib/utils/formatTimeStamp";
 import FieldTagsInput from "@/components/ui/field-text-input";
 import { toast } from "sonner";
 import { ThemeEditor } from "@/components/settings/ThemeEditor";

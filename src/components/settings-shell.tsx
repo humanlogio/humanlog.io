@@ -67,16 +67,16 @@ export function SettingsShell({
   return (
     <div className="container-min-h-full container flex">
       {/* Sidebar */}
-      <aside className="w-80 border-r-2 border-border py-6">
+      <aside className="border-border w-80 border-r-2 py-6">
         <nav className="space-y-2">
           {sections.map((section) => (
             <Link
               key={section?.name}
               href={section?.href}
               className={cn(
-                "flex items-center gap-2 rounded-s-base px-4 py-2",
+                "rounded-s-base flex items-center gap-2 px-4 py-2",
                 section?.active
-                  ? "border-r-4 border-r-main bg-slate-200"
+                  ? "border-r-main border-r-4 bg-slate-200"
                   : "hover:bg-slate-100",
               )}
             >
