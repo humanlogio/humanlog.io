@@ -186,7 +186,7 @@ const NewSessionPanel = ({
                 <Button
                   size="icon"
                   className="h-7 w-7"
-                  variant="noShadowNeutral"
+                  // variant="noShadowNeutral"
                   onClick={() => setSectionBreak(!sectionBreak)}
                 >
                   {sectionBreak ? (
