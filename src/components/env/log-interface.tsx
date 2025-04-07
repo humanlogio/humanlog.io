@@ -280,7 +280,7 @@ const LogInterface = () => {
           defaultSize={25}
           maxSize={50}
           minSize={15}
-          className={`border-border dark:bg-darkBg border-l bg-white transition-transform duration-300 ease-in-out ${isLibraryOpen ? "translate-x-0" : "hidden translate-x-full"}`}
+          className={`border-l transition-transform duration-300 ease-in-out ${isLibraryOpen ? "translate-x-0" : "hidden translate-x-full"}`}
         >
           <div className="h-full p-4">
             <div className="mb-4 flex items-center justify-between">

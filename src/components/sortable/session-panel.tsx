@@ -121,7 +121,7 @@ const SessionPanel = ({ logEventGroup }: SessionPanelProps) => {
   }, [currentPage, totalPages, handleScroll]);
 
   return (
-    <div className="rounded-base border-border flex h-full flex-col overflow-hidden border-2">
+    <div className="border-border flex h-full flex-col overflow-hidden rounded-md border-2">
       <div className="flex flex-none flex-row items-center justify-between bg-slate-900 px-4 py-2 dark:bg-slate-800">
         <div className="flex w-1/3 justify-start">
           <h4 className="flex flex-row items-center gap-3 truncate font-bold text-white">
@@ -175,7 +175,7 @@ const SessionPanel = ({ logEventGroup }: SessionPanelProps) => {
                                 ? "text-yellow-600 dark:text-yellow-500"
                                 : log.structured.lvl === "INFO"
                                   ? "text-blue-600 dark:text-blue-500"
-                                  : "text-slate-600 dark:text-slate-500"
+                                  : "dark:text-muted-foreground text-slate-600"
                           }
                         >
                           [{log.structured.lvl}]

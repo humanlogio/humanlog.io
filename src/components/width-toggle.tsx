@@ -13,7 +13,7 @@ export function WidthToggle({ isFullWidth, setIsFullWidth }: WidthToggleProps) {
   return (
     <Button
       size="icon"
-      variant="noShadow"
+      variant="outline"
       onClick={() => setIsFullWidth((prev) => !prev)}
       title="Toggle full width"
       className="group"

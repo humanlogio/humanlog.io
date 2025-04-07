@@ -252,7 +252,7 @@ export const LogGraph = ({ getTimeRange }: LogGraphProps) => {
               />
               <YAxis width={40} />
               <Tooltip
-                labelClassName="text-xs text-white dark:text-slate-500"
+                labelClassName="text-xs text-white dark:text-muted-foreground"
                 contentStyle={{
                   background: "currentColor",
                   fontSize: "0.75rem",

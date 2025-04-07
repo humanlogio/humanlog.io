@@ -91,7 +91,7 @@ const MonacoEditor = ({
       inherit: true,
       rules: [],
       colors: {
-        "editor.background": "#0F172A",
+        "editor.background": "#000000",
       },
     });
     monaco.editor.defineTheme("humanlogql-light", {

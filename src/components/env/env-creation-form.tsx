@@ -277,12 +277,12 @@ export function ProductPane({
       )}
     >
       <div className="flex flex-row items-center justify-between gap-6">
-        <div className="rounded-base bg-slate-200 px-2 py-0.5 font-bold dark:bg-slate-950">
+        <div className="rounded-md bg-slate-200 px-2 py-0.5 font-bold dark:bg-slate-950">
           {product.product.name}
         </div>
         <h5 className="font-bold">
           {isBilledYearly && (
-            <span className="mr-2 text-sm text-slate-500 line-through">
+            <span className="text-muted-foreground mr-2 text-sm line-through">
               ${Number(monthly?.unitAmount || 0) / 100}
             </span>
           )}
@@ -294,7 +294,7 @@ export function ProductPane({
       </div>
       <p
         className={cn(
-          "mt-4 text-sm text-slate-500",
+          "text-muted-foreground mt-4 text-sm",
           isSelected && "text-white",
         )}
       >
@@ -340,7 +340,7 @@ export function TotalPriceSummary({
           <span className="text-text">{frequency}</span>
         </span>
       </span>
-      <p className="text-sm text-slate-500">
+      <p className="text-muted-foreground text-sm">
         {chargedToday}
         <br />
         {nextPayment}
@@ -527,7 +527,7 @@ function CheckoutForm({
                     {...field}
                   />
                 </FormControl>
-                <p className="-mt-1 text-xs text-slate-500">
+                <p className="text-muted-foreground -mt-1 text-xs">
                   Lowercase alphanumeric characters, dashes, and underscores
                   only
                 </p>
@@ -550,13 +550,13 @@ function CheckoutForm({
               <Label
                 htmlFor="billed-monthly"
                 className={cn("transition-colors duration-200", {
-                  "text-slate-500": !isBilledYearly,
+                  "text-muted-foreground": !isBilledYearly,
                 })}
               >
                 Billed Yearly
                 <span
                   className={cn(
-                    "rounded-base bg-success ml-2 px-2 py-1 text-xs font-bold text-white transition-colors duration-200",
+                    "ml-2 rounded-md bg-green-500 px-2 py-1 text-xs font-bold text-white transition-colors duration-200",
                     {
                       "bg-slate-400": !isBilledYearly,
                     },
@@ -606,7 +606,7 @@ function CheckoutForm({
           <div>
             <Label>Payment</Label>
             <div className="grid grid-cols-3 gap-4">
-              <div className="rounded-base border-warning bg-warning/30 dark:border-warning/50 dark:bg-warning/10 col-span-3 mt-3 border-2 p-4 md:col-span-1">
+              <div className="border-warning bg-warning/30 dark:border-warning/50 dark:bg-warning/10 col-span-3 mt-3 rounded-md border-2 p-4 md:col-span-1">
                 <Image
                   src="/images/powered-by-stripe.svg"
                   alt="Powered by Stripe"

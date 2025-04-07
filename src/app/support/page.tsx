@@ -17,7 +17,9 @@ export default function Page() {
       <h1 id="support-heading" className="text-center text-3xl font-bold">
         Support
       </h1>
-      <p className="mt-4 text-center text-slate-500">Need help? Wanna talk?</p>
+      <p className="text-muted-foreground mt-4 text-center">
+        Need help? Wanna talk?
+      </p>
       <p className="mt-2">
         <Link
           href="link/discord"
