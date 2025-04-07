@@ -74,6 +74,7 @@ const formSchema = z.object({
   plan: z.string().min(1, "Please select a plan"),
 });
 
+type FormValues = z.infer<typeof formSchema>;
 interface EnvironmentCreationFormProps {
   orgId: string | null;
 }
@@ -157,7 +158,8 @@ export function EnvironmentCreationForm({
     setStripePromise(loadStripe(stripePK));
   }, [stripePK]);
 
-  const form = useForm<z.infer<typeof formSchema>>({
+  // Use the FormValues type in the useForm hook
+  const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       organization: "",
@@ -363,15 +365,7 @@ function CheckoutForm({
   price,
   setPrice,
 }: {
-  form: UseFormReturn<
-    {
-      organization: string;
-      environmentName: string;
-      plan: string;
-    },
-    any,
-    undefined
-  >;
+  form: UseFormReturn<FormValues>;
   orgId: string | null;
   handleOrganizationChange: (value: string) => void;
   defaultOrg: Organization | null;
