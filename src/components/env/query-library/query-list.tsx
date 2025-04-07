@@ -194,7 +194,7 @@ export const QueryListItem = ({
   return (
     <div
       key={`${index + 1}-${item.id}`}
-      className="group w-full rounded-lg border border-gray-200 p-3"
+      className="group w-full rounded-lg border p-3"
     >
       <div className="flex w-full cursor-pointer items-center justify-between">
         <div className="min-w-0 flex-1">

@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 
 interface Product {
   product: APIProduct;
@@ -44,7 +45,7 @@ export default function Page() {
               <Label
                 htmlFor="billed-monthly"
                 className={cn("transition-colors duration-200", {
-                  "text-slate-500": isBilledYearly,
+                  "text-muted-foreground": isBilledYearly,
                 })}
               >
                 Billed Monthly
@@ -57,26 +58,26 @@ export default function Page() {
               <Label
                 htmlFor="billed-monthly"
                 className={cn("relative transition-colors duration-200", {
-                  "text-slate-500": !isBilledYearly,
+                  "text-muted-foreground": !isBilledYearly,
                 })}
               >
                 Billed Yearly
-                <span
+                <Badge
                   className={cn(
-                    "rounded-base bg-success absolute top-1/2 left-full ml-2 hidden -translate-y-1/2 transform px-2 py-1 text-xs font-bold text-nowrap text-white transition-colors duration-200 sm:block",
+                    "absolute top-1/2 left-full ml-2 hidden -translate-y-1/2 transform rounded-md bg-green-500 font-bold transition-colors duration-200 sm:block",
                     {
                       "bg-slate-400": !isBilledYearly,
                     },
                   )}
                 >
                   SAVE 20%
-                </span>
+                </Badge>
               </Label>
             </div>
 
             <div
               className={cn(
-                "grid w-full grid-cols-1 gap-8 pt-16",
+                "grid w-full grid-cols-1 gap-4 pt-16",
                 products?.length === 1
                   ? "place-items-center" // Center a single item
                   : "lg:grid-cols-2 xl:grid-cols-4",
@@ -137,7 +138,7 @@ export default function Page() {
                 return (
                   <div
                     key={product.product.stripeId}
-                    className="rounded-base border-border dark:border-darkBorder dark:bg-darkBg flex flex-col justify-between border-2 bg-white p-6"
+                    className="flex flex-col justify-between rounded-md border bg-white p-4 dark:bg-neutral-900"
                   >
                     <div>
                       <div className="flex items-center justify-between">
@@ -145,17 +146,20 @@ export default function Page() {
                           {product.product.name}
                         </h3>
                         {featured && (
-                          <span className="rounded-base border-border bg-success text-text dark:border-darkBorder border-2 px-2 py-0.5 text-sm">
+                          <Badge
+                            variant="secondary"
+                            className="bg-green-100 text-green-500"
+                          >
                             Most popular
-                          </span>
+                          </Badge>
                         )}
                       </div>
-                      <p className="mt-2 mb-3 text-slate-500">
+                      <p className="text-muted-foreground mt-2 mb-3">
                         {product.product.description}
                       </p>
                       <div className="flex items-center gap-4">
                         {displayPrice && isBilledYearly ? (
-                          <span className="text-2xl font-bold text-slate-500 line-through">
+                          <span className="text-muted-foreground text-2xl font-bold line-through">
                             ${Number(monthly?.unitAmount || 0) / 100}
                           </span>
                         ) : null}
@@ -184,7 +188,7 @@ export default function Page() {
                     </div>
                     <Button
                       size={featured ? "lg" : "default"}
-                      className={cn("mt-12 w-full", featured && "bg-success")}
+                      className={cn("mt-12 w-full", featured && "bg-green-500")}
                       onClick={onCtaClick}
                     >
                       {ctaMessage}

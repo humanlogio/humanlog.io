@@ -94,7 +94,7 @@ export const AutosizeTextarea = React.forwardRef<
         value={value}
         ref={textAreaRef}
         className={cn(
-          "rounded-base border-border font-base text-text selection:bg-main dark:border-darkBorder dark:bg-darkBg dark:text-darkText flex w-full border-2 bg-white px-3 py-2 text-sm ring-offset-white selection:text-black file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50",
+          "border-border font-base text-text selection:bg-main dark:border-darkBorder dark:bg-darkBg dark:text-darkText flex w-full rounded-md border-2 bg-white px-3 py-2 text-sm ring-offset-white selection:text-black file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50",
           className,
         )}
         onChange={(e) => {

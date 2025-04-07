@@ -558,7 +558,7 @@ const Toggle = ({ name, isChecked, onChange }: ToggleProps) => {
       <Label
         htmlFor={name}
         className={cn("transition-colors duration-200", {
-          "text-slate-500": !isChecked,
+          "text-muted-foreground": !isChecked,
         })}
       >
         {name}

@@ -246,9 +246,9 @@ const QueryInput = ({
         <h1 className="text-2xl font-bold">
           Lorem ipsum dolor sit amet consectetur
         </h1>
-        <p className="mt-2 text-slate-500">subtitle</p>
+        <p className="text-muted-foreground mt-2">subtitle</p>
         <div className="mt-4 ml-[4px] flex flex-row gap-2">
-          <div className="rounded-base border-border w-11/12 border-2 py-3">
+          <div className="border-border w-11/12 rounded-md border-2 py-3">
             <MonacoEditor
               value={queryString}
               onChange={(value) => setQueryString(value || "")}

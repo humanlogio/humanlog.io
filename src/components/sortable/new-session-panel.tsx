@@ -160,11 +160,11 @@ const NewSessionPanel = ({
   }, [pathname, searchParams]);
 
   return (
-    <div className="rounded-base border-border flex w-full flex-col border-2">
+    <div className="flex w-full flex-col rounded-md border">
       <TooltipProvider>
-        <div className="sticky top-0 right-0 left-0 z-10 flex h-11 w-full flex-none flex-row items-center justify-between bg-slate-900 p-2 dark:bg-slate-800">
+        <div className="bg-muted flex h-11 w-full flex-none flex-row items-center justify-between p-2">
           <div className="flex justify-start">
-            <h4 className="flex flex-row items-center gap-3 truncate font-bold text-white">
+            <h4 className="flex flex-row items-center gap-3 truncate font-bold">
               {isFetching ? (
                 <div className="contents" title="Fetching more log data...">
                   <Loader className="animate-spin"></Loader>
@@ -185,7 +185,7 @@ const NewSessionPanel = ({
                 <Button
                   size="icon"
                   className="h-7 w-7"
-                  // variant="noShadowNeutral"
+                  variant="outline"
                   onClick={() => setSectionBreak(!sectionBreak)}
                 >
                   {sectionBreak ? (
@@ -212,10 +212,7 @@ const NewSessionPanel = ({
 
         <div
           ref={containerRef}
-          className={twJoin(
-            "flex flex-grow bg-gradient-to-r from-slate-300 via-slate-200 via-10% to-slate-200 text-sm dark:from-slate-900 dark:via-slate-950 dark:to-slate-950",
-            darkMode && "from-slate-900 via-slate-950 to-slate-950",
-          )}
+          className={twJoin("flex flex-grow text-sm", darkMode && "")}
         >
           <div className="border-separate overflow-x-auto py-2">
             {logs && logs.length > 0 ? (

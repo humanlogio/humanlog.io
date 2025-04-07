@@ -14,14 +14,11 @@ const Logo = ({ sm = false }) => {
         )}
         title="humanlog.io home link"
       >
-        <span className="text-[16px] text-white">human</span>
-        <Button
-          size="sm"
-          className="border-darkBg h-8 px-2 text-[16px] shadow-[2px_2px_0_0_#fff] shadow-white dark:shadow-white"
-        >
+        <span className="text-[16px]">human</span>
+        <Button size="sm" className="h-8 px-2 text-[16px]">
           log
         </Button>
-        <span className="text-[16px] text-white">{config.TLD}</span>
+        <span className="text-[16px]">{config.TLD}</span>
       </div>
     </Link>
   );

@@ -75,14 +75,14 @@ export function OrgDashboard({ orgName }: OrgDashboardProps) {
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {environments.map((env) => (
           <Link key={env.id} href={getEnvUrl(env.name, orgName)}>
-            <Card hoverable className="text-text dark:text-darkText">
+            <Card className="text-text dark:text-darkText">
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="text-xl font-semibold">
                   {env.name}
                 </CardTitle>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="noShadowNeutral" className="h-8 w-8 p-0">
+                    <Button variant="outline" className="h-8 w-8 p-0">
                       <span className="sr-only">Open menu</span>
                       <MoreHorizontal className="h-4 w-4" />
                     </Button>

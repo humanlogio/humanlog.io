@@ -55,7 +55,7 @@ const MarkdownEditor = ({
         </label>
       )}
 
-      <div className="border-border overflow-hidden rounded-md border-2 focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 focus-visible:outline-none">
+      <div className="overflow-hidden rounded-md border focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 focus-visible:outline-none">
         <div className="flex items-center justify-between bg-black px-3 py-2 text-white">
           <div className="flex space-x-2">
             <button

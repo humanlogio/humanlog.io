@@ -21,7 +21,7 @@ export function ModeToggle() {
       <DropdownMenuTrigger asChild>
         <Button
           className="group gap-2 md:w-[35px] md:gap-0 md:px-2"
-          variant="noShadow"
+          variant="outline"
         >
           <Sun
             size={16}
