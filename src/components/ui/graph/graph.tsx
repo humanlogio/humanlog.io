@@ -58,7 +58,7 @@ const Graph = (props: {
   if (!data || data.length === 0) {
     return (
       <div className="w-full">
-        <p className="mt-1 rounded-md border bg-slate-200 p-4 text-sm leading-tight font-medium text-slate-800 dark:bg-slate-800 dark:text-slate-200">
+        <p className="bg-muted mt-1 rounded-md p-4 text-sm leading-tight font-medium">
           No log data was found for that time frame.
           <br />
           <br />

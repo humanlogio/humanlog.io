@@ -76,7 +76,7 @@ export function SettingsShell({
               className={cn(
                 "rounded-s-base flex items-center gap-2 px-4 py-2",
                 section?.active
-                  ? "border-r-main border-r-4 bg-slate-200"
+                  ? "border-r-main bg-muted border-r-4"
                   : "hover:bg-slate-100",
               )}
             >
