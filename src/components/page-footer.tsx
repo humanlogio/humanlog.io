@@ -3,8 +3,8 @@ import Image from "next/image";
 
 import Logo from "@/components/logo";
 import dayjs from "dayjs";
-import { GithubMark } from "./icons/github-mark";
-import { DiscordMark } from "./icons/discord-mark";
+import { GithubMark } from "@/components/icons/github-mark";
+import { DiscordMark } from "@/components/icons/discord-mark";
 
 const iconSocialLinks = [
   {
