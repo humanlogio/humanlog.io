@@ -195,7 +195,7 @@ const NewSessionPanel = ({
                   )}
                 </Button>
               </TooltipTrigger>
-              <TooltipContent side="top" className="bg-white">
+              <TooltipContent side="top">
                 <p>Toggle section line breaks in logs</p>
               </TooltipContent>
             </Tooltip>
@@ -212,7 +212,7 @@ const NewSessionPanel = ({
 
         <div
           ref={containerRef}
-          className={twJoin("flex flex-grow text-sm", darkMode && "")}
+          className={twJoin("flex flex-grow text-sm", darkMode && "bg-black")}
         >
           <div className="border-separate overflow-x-auto py-2">
             {logs && logs.length > 0 ? (
@@ -224,7 +224,7 @@ const NewSessionPanel = ({
                       "relative flex px-2",
                       selectedLines ===
                         `${i + 1}${log.machineId}${log.sessionId}${log.eventId}` &&
-                        "w-full bg-slate-400 dark:bg-gray-700",
+                        "bg-muted w-full",
                       sectionBreak && pretty && "py-1",
                     )}
                   >
@@ -245,8 +245,8 @@ const NewSessionPanel = ({
                       <SelectTrigger>
                         {selectedLines ===
                           `${i + 1}${log.machineId}${log.sessionId}${log.eventId}` &&
-                        "bg-slate-400 dark:bg-gray-700" ? (
-                          <div className="bg-main z-1 mr-2 flex h-5 w-5 items-center justify-center rounded shadow-sm">
+                        "bg-muted" ? (
+                          <div className="bg-main z-1 mr-2 flex h-5 w-5 items-center justify-center rounded border">
                             <Ellipsis size={14} />
                             <SelectValue placeholder="" />
                           </div>
@@ -341,7 +341,7 @@ const NewSessionPanel = ({
                                     </span>
                                   </span>
                                 </TooltipTrigger>
-                                <TooltipContent className="dark:bg-secondaryBlack bg-transparent bg-white">
+                                <TooltipContent>
                                   <KeyValueRow label="Key" value={kv.key} />
                                   <KeyValueRow
                                     label="Type"
@@ -384,7 +384,7 @@ interface MetaDataTooltipProps {
 
 const MetaDataTooltip = ({ log }: MetaDataTooltipProps) => {
   return (
-    <TooltipContent className="dark:bg-secondaryBlack bg-white" align="start">
+    <TooltipContent align="start">
       <div>
         <KeyValueRow label="Machine Id" value={log.machineId.toString()} />
         <KeyValueRow label="Session Id" value={log.sessionId.toString()} />
