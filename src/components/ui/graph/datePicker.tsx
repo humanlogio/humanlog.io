@@ -11,8 +11,7 @@ const DatePicker = (props: {
 }) => {
   const { styles, hideDate, date, maxDate, minDate, setDate } = props;
   const className =
-    "inline-block flex-1 rounded border-slate-400 p-1 focus:border-main dark:border-darkBorder dark:bg-darkBg dark:text-darkText" +
-    styles;
+    "inline-block flex-1 rounded  p-1 focus:border-main" + styles;
 
   return (
     <Flatpickr

@@ -6,10 +6,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@radix-ui/react-select";
-import { getTimeSince } from "@/lib/utils";
+import { getTimeSince } from "@/lib/utils/formatTimeStamp";
 import { Loader } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { copyToClipboard } from "@/lib/utils";
+import { copyToClipboard } from "@/lib/utils/clipboard";
 import { toast } from "sonner";
 import { Cursor } from "api/js/types/v1/cursor_pb";
 import { useInfiniteScroll } from "@/lib/utils/useInfiniteScroll";
@@ -194,7 +194,7 @@ export const QueryListItem = ({
   return (
     <div
       key={`${index + 1}-${item.id}`}
-      className="group w-full rounded-lg border border-gray-200 p-3"
+      className="group w-full rounded-lg border p-3"
     >
       <div className="flex w-full cursor-pointer items-center justify-between">
         <div className="min-w-0 flex-1">
@@ -238,7 +238,7 @@ export const QueryListItem = ({
           </div>
 
           <div className="mt-2 max-w-full overflow-x-auto rounded">
-            <code className="block w-full whitespace-pre text-xs text-gray-700 dark:text-gray-300">
+            <code className="block w-full text-xs whitespace-pre text-gray-700 dark:text-gray-300">
               {item.rawQuery}
             </code>
           </div>
@@ -247,7 +247,7 @@ export const QueryListItem = ({
 
       {hasNote && isNoteExpanded && (
         <div className="mt-3 border-t border-gray-100 pt-2">
-          <div className="prose prose-sm max-w-none rounded-md bg-gray-50 p-2 dark:prose-invert dark:bg-gray-800">
+          <div className="prose prose-sm dark:prose-invert max-w-none rounded-md bg-gray-50 p-2 dark:bg-gray-800">
             <ReactMarkdown>{item.note}</ReactMarkdown>
           </div>
         </div>

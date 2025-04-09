@@ -176,7 +176,7 @@ export const SaveQueryModal = ({
                 <FormItem className="mt-4 flex flex-col items-start">
                   <FormLabel>Query</FormLabel>
                   <FormControl>
-                    <div className="w-full overflow-hidden rounded-base border-2 border-border py-3">
+                    <div className="w-full overflow-hidden rounded-md border py-3">
                       <MonacoEditor {...field} value={field.value || ""} />
                     </div>
                   </FormControl>
@@ -207,14 +207,14 @@ export const SaveQueryModal = ({
 
             <DialogFooter className="mt-4 flex-row">
               <Button
-                variant="neutral"
+                variant="outline"
                 size="sm"
                 onClick={() => setIsSaveQueryModalOpen(false)}
               >
                 Cancel
               </Button>
               <Button
-                // variant="noShadow"
+                variant="outline"
                 size="sm"
                 type="submit"
                 disabled={!form.formState.errors}

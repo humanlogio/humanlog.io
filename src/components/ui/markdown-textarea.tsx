@@ -55,7 +55,7 @@ const MarkdownEditor = ({
         </label>
       )}
 
-      <div className="overflow-hidden rounded-md border-2 border-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2">
+      <div className="overflow-hidden rounded-md border focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 focus-visible:outline-none">
         <div className="flex items-center justify-between bg-black px-3 py-2 text-white">
           <div className="flex space-x-2">
             <button
@@ -83,7 +83,7 @@ const MarkdownEditor = ({
             value={value}
             onChange={handleChange}
             placeholder={placeholder}
-            className={`w-full p-2 focus:outline-none ${className} bg-white dark:bg-darkBg`}
+            className={`w-full p-2 focus:outline-none ${className} dark:bg-darkBg bg-white`}
             autoComplete="off"
             data-form-type="other"
             style={{
@@ -100,7 +100,7 @@ const MarkdownEditor = ({
             {value ? (
               <ReactMarkdown>{value}</ReactMarkdown>
             ) : (
-              <div className="italic text-gray-400">{placeholder}</div>
+              <div className="text-gray-400 italic">{placeholder}</div>
             )}
           </div>
         )}

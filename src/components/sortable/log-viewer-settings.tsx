@@ -31,7 +31,7 @@ export const ToggleShowPretty = () => {
       <Label
         htmlFor="show-pretty"
         className={cn("relative transition-colors duration-200", {
-          "text-slate-500": !(pretty === "false" ? false : true),
+          "text-muted-foreground": !(pretty === "false" ? false : true),
         })}
       >
         Pretty
@@ -67,7 +67,7 @@ export const ToggleSplit = () => {
       <Label
         htmlFor="split-by-default"
         className={cn("relative transition-colors duration-200", {
-          "text-slate-500": !(split === "false" ? false : true),
+          "text-muted-foreground": !(split === "false" ? false : true),
         })}
       >
         Split by Default

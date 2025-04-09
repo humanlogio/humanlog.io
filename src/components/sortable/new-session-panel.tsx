@@ -1,9 +1,8 @@
-import {
-  copyToClipboard,
-  formatTimestamp,
-  getUnixTimestamp,
-  useInfiniteQuery,
-} from "@/lib/utils";
+import { copyToClipboard } from "@/lib/utils/clipboard";
+import { formatTimestamp } from "@/lib/utils/formatTimeStamp";
+import { getUnixTimestamp } from "@/lib/utils/formatTimeStamp";
+import { useInfiniteQuery } from "@/lib/utils/useInfiniteQuery";
+
 import { IngestedLogEvent } from "api/js/types/v1/logevent_pb";
 import { LogQuery } from "api/js/types/v1/logquery_pb";
 import {
@@ -161,11 +160,11 @@ const NewSessionPanel = ({
   }, [pathname, searchParams]);
 
   return (
-    <div className="flex w-full flex-col rounded-base border-2 border-border">
+    <div className="flex w-full flex-col rounded-md border">
       <TooltipProvider>
-        <div className="sticky left-0 right-0 top-0 z-10 flex h-11 w-full flex-none flex-row items-center justify-between bg-slate-900 p-2 dark:bg-slate-800">
+        <div className="bg-muted flex h-11 w-full flex-none flex-row items-center justify-between p-2">
           <div className="flex justify-start">
-            <h4 className="flex flex-row items-center gap-3 truncate font-bold text-white">
+            <h4 className="flex flex-row items-center gap-3 truncate font-bold">
               {isFetching ? (
                 <div className="contents" title="Fetching more log data...">
                   <Loader className="animate-spin"></Loader>
@@ -186,7 +185,7 @@ const NewSessionPanel = ({
                 <Button
                   size="icon"
                   className="h-7 w-7"
-                  variant="noShadowNeutral"
+                  variant="outline"
                   onClick={() => setSectionBreak(!sectionBreak)}
                 >
                   {sectionBreak ? (
@@ -196,7 +195,7 @@ const NewSessionPanel = ({
                   )}
                 </Button>
               </TooltipTrigger>
-              <TooltipContent side="top" className="bg-white">
+              <TooltipContent side="top">
                 <p>Toggle section line breaks in logs</p>
               </TooltipContent>
             </Tooltip>
@@ -213,10 +212,7 @@ const NewSessionPanel = ({
 
         <div
           ref={containerRef}
-          className={twJoin(
-            "flex flex-grow bg-gradient-to-r from-slate-300 via-slate-200 via-10% to-slate-200 text-sm dark:from-slate-900 dark:via-slate-950 dark:to-slate-950",
-            darkMode && "from-slate-900 via-slate-950 to-slate-950",
-          )}
+          className={twJoin("flex flex-grow text-sm", darkMode && "bg-black")}
         >
           <div className="border-separate overflow-x-auto py-2">
             {logs && logs.length > 0 ? (
@@ -228,7 +224,7 @@ const NewSessionPanel = ({
                       "relative flex px-2",
                       selectedLines ===
                         `${i + 1}${log.machineId}${log.sessionId}${log.eventId}` &&
-                        "w-full bg-slate-400 dark:bg-gray-700",
+                        "bg-muted w-full",
                       sectionBreak && pretty && "py-1",
                     )}
                   >
@@ -249,8 +245,8 @@ const NewSessionPanel = ({
                       <SelectTrigger>
                         {selectedLines ===
                           `${i + 1}${log.machineId}${log.sessionId}${log.eventId}` &&
-                        "bg-slate-400 dark:bg-gray-700" ? (
-                          <div className="z-1 mr-2 flex h-5 w-5 items-center justify-center rounded bg-main shadow-sm">
+                        "bg-muted" ? (
+                          <div className="bg-main z-1 mr-2 flex h-5 w-5 items-center justify-center rounded border">
                             <Ellipsis size={14} />
                             <SelectValue placeholder="" />
                           </div>
@@ -276,7 +272,7 @@ const NewSessionPanel = ({
                         <TooltipTrigger asChild>
                           <code
                             className={twMerge(
-                              "flex gap-1 whitespace-nowrap py-[1px]",
+                              "flex gap-1 py-[1px] whitespace-nowrap",
                             )}
                           >
                             {decodeUint8Array(log.raw)}
@@ -345,7 +341,7 @@ const NewSessionPanel = ({
                                     </span>
                                   </span>
                                 </TooltipTrigger>
-                                <TooltipContent className="bg-transparent bg-white dark:bg-secondaryBlack">
+                                <TooltipContent>
                                   <KeyValueRow label="Key" value={kv.key} />
                                   <KeyValueRow
                                     label="Type"
@@ -388,7 +384,7 @@ interface MetaDataTooltipProps {
 
 const MetaDataTooltip = ({ log }: MetaDataTooltipProps) => {
   return (
-    <TooltipContent className="bg-white dark:bg-secondaryBlack" align="start">
+    <TooltipContent align="start">
       <div>
         <KeyValueRow label="Machine Id" value={log.machineId.toString()} />
         <KeyValueRow label="Session Id" value={log.sessionId.toString()} />

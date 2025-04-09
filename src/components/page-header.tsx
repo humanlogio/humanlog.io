@@ -38,7 +38,8 @@ import { ModeToggle } from "@/components/mode-toggle";
 import { useApiClients } from "@/context/api-provider";
 import { useFullWidth } from "@/context/full-width-provider";
 import { PingResponse } from "api/js/svc/localhost/v1/service_pb";
-import { gravatarURL, getEnvUrl, getUserSettingsUrl } from "@/lib/utils";
+import { gravatarURL } from "@/lib/utils/avatar";
+import { getEnvUrl, getUserSettingsUrl } from "@/lib/utils/navigation";
 import { useAllEnvironments, UserState } from "@/context/list-environments";
 import { Button } from "@/components/ui/button";
 import config from "@/features/config";
@@ -164,11 +165,7 @@ const PageHeader: React.FC = () => {
     }
     if (user === "not-logged-in") {
       return (
-        <Button
-          onClick={() => doLogin()}
-          variant="noShadowNeutral"
-          className="w-full"
-        >
+        <Button onClick={() => doLogin()} variant="outline" className="w-full">
           Sign up
         </Button>
       );
@@ -186,7 +183,7 @@ const PageHeader: React.FC = () => {
                 {user?.firstName?.slice(0, 2) || <UserIcon size={16} />}
               </AvatarFallback>
             </Avatar>
-            <p className="font-medium dark:text-white md:order-1 md:text-white">
+            <p className="font-medium md:order-1 md:text-white dark:text-white">
               {user?.firstName || "username"}
             </p>
           </div>
@@ -246,11 +243,7 @@ const PageHeader: React.FC = () => {
       <div className="flex flex-col gap-3 md:flex-row">
         {navLinks.map((link, i) => {
           return (
-            <Link
-              href={link.href}
-              key={i}
-              className="transition-colors hover:underline md:text-main md:hover:text-white"
-            >
+            <Link href={link.href} key={i} className="hover:underline">
               {link.text}
             </Link>
           );
@@ -260,7 +253,7 @@ const PageHeader: React.FC = () => {
   };
 
   return (
-    <header className="sticky left-0 top-0 z-20 bg-darkBg dark:bg-slate-950">
+    <header className="bg-muted sticky top-0 left-0 z-20">
       <div className="container flex flex-row items-center justify-between gap-8 py-3">
         <div className="hidden w-full flex-row items-center justify-between gap-8 md:flex">
           <div className="flex flex-row items-center gap-8">
@@ -288,11 +281,11 @@ const PageHeader: React.FC = () => {
         </div>
         <Sheet>
           <SheetTrigger asChild>
-            <Button size="icon" variant="neutral" className="md:hidden">
+            <Button size="icon" className="md:hidden">
               <Menu />
             </Button>
           </SheetTrigger>
-          <SheetContent className="flex flex-col items-start dark:bg-darkBg">
+          <SheetContent className="dark:bg-darkBg flex flex-col items-start">
             <SheetHeader>
               <SheetTitle>Menu</SheetTitle>
             </SheetHeader>

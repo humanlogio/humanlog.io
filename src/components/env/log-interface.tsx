@@ -29,7 +29,7 @@ import { QueryLibrary } from "@/components/env/query-library";
 import { X } from "lucide-react";
 import { SaveQueryModal } from "@/components/env/query-library/save-query-modal";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
-import { useInfiniteQuery } from "@/lib/utils";
+import { useInfiniteQuery } from "@/lib/utils/useInfiniteQuery";
 
 export type DataCase =
   | "subqueries"
@@ -280,7 +280,7 @@ const LogInterface = () => {
           defaultSize={25}
           maxSize={50}
           minSize={15}
-          className={`border-l border-border bg-white transition-transform duration-300 ease-in-out dark:bg-darkBg ${isLibraryOpen ? "translate-x-0" : "hidden translate-x-full"}`}
+          className={`border-l transition-transform duration-300 ease-in-out ${isLibraryOpen ? "translate-x-0" : "hidden translate-x-full"}`}
         >
           <div className="h-full p-4">
             <div className="mb-4 flex items-center justify-between">

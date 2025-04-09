@@ -209,7 +209,7 @@ export function UserSettingsForm() {
             <Button
               type="submit"
               disabled={isSubmitting || !formChanged}
-              variant={formChanged ? "default" : "noShadow"}
+              variant={formChanged ? "default" : "outline"}
             >
               {isSubmitting ? (
                 <>
@@ -225,7 +225,7 @@ export function UserSettingsForm() {
               <Button
                 type="button"
                 onClick={handleReset}
-                variant="neutral"
+                variant="outline"
                 disabled={isSubmitting}
               >
                 Discard changes

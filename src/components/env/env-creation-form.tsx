@@ -74,6 +74,7 @@ const formSchema = z.object({
   plan: z.string().min(1, "Please select a plan"),
 });
 
+type FormValues = z.infer<typeof formSchema>;
 interface EnvironmentCreationFormProps {
   orgId: string | null;
 }
@@ -157,7 +158,8 @@ export function EnvironmentCreationForm({
     setStripePromise(loadStripe(stripePK));
   }, [stripePK]);
 
-  const form = useForm<z.infer<typeof formSchema>>({
+  // Use the FormValues type in the useForm hook
+  const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       organization: "",
@@ -271,18 +273,18 @@ export function ProductPane({
     <div
       onClick={() => onClick(selectedPrice)}
       className={cn(
-        "cursor-pointer rounded-md border-2 border-border p-6 shadow-light hover:translate-x-boxShadowX hover:translate-y-boxShadowY hover:shadow-none dark:shadow-dark dark:hover:shadow-none",
+        "border-border shadow-light hover:translate-x-boxShadowX hover:translate-y-boxShadowY dark:shadow-dark cursor-pointer rounded-md border-2 p-6 hover:shadow-none dark:hover:shadow-none",
         isSelected &&
           "translate-x-boxShadowX translate-y-boxShadowY bg-main shadow-none",
       )}
     >
       <div className="flex flex-row items-center justify-between gap-6">
-        <div className="rounded-base bg-slate-200 px-2 py-0.5 font-bold dark:bg-slate-950">
+        <div className="rounded-md bg-slate-200 px-2 py-0.5 font-bold dark:bg-slate-950">
           {product.product.name}
         </div>
         <h5 className="font-bold">
           {isBilledYearly && (
-            <span className="mr-2 text-sm text-slate-500 line-through">
+            <span className="text-muted-foreground mr-2 text-sm line-through">
               ${Number(monthly?.unitAmount || 0) / 100}
             </span>
           )}
@@ -294,7 +296,7 @@ export function ProductPane({
       </div>
       <p
         className={cn(
-          "mt-4 text-sm text-slate-500",
+          "text-muted-foreground mt-4 text-sm",
           isSelected && "text-white",
         )}
       >
@@ -340,7 +342,7 @@ export function TotalPriceSummary({
           <span className="text-text">{frequency}</span>
         </span>
       </span>
-      <p className="text-sm text-slate-500">
+      <p className="text-muted-foreground text-sm">
         {chargedToday}
         <br />
         {nextPayment}
@@ -363,15 +365,7 @@ function CheckoutForm({
   price,
   setPrice,
 }: {
-  form: UseFormReturn<
-    {
-      organization: string;
-      environmentName: string;
-      plan: string;
-    },
-    any,
-    undefined
-  >;
+  form: UseFormReturn<FormValues>;
   orgId: string | null;
   handleOrganizationChange: (value: string) => void;
   defaultOrg: Organization | null;
@@ -511,7 +505,7 @@ function CheckoutForm({
           />
 
           <div className="relative hidden w-4 items-center md:flex">
-            <span className="absolute left-0 top-10 text-xl font-bold">/</span>
+            <span className="absolute top-10 left-0 text-xl font-bold">/</span>
           </div>
 
           <FormField
@@ -527,7 +521,7 @@ function CheckoutForm({
                     {...field}
                   />
                 </FormControl>
-                <p className="-mt-1 text-xs text-slate-500">
+                <p className="text-muted-foreground -mt-1 text-xs">
                   Lowercase alphanumeric characters, dashes, and underscores
                   only
                 </p>
@@ -550,13 +544,13 @@ function CheckoutForm({
               <Label
                 htmlFor="billed-monthly"
                 className={cn("transition-colors duration-200", {
-                  "text-slate-500": !isBilledYearly,
+                  "text-muted-foreground": !isBilledYearly,
                 })}
               >
                 Billed Yearly
                 <span
                   className={cn(
-                    "ml-2 rounded-base bg-success px-2 py-1 text-xs font-bold text-white transition-colors duration-200",
+                    "ml-2 rounded-md bg-green-500 px-2 py-1 text-xs font-bold text-white transition-colors duration-200",
                     {
                       "bg-slate-400": !isBilledYearly,
                     },
@@ -606,7 +600,7 @@ function CheckoutForm({
           <div>
             <Label>Payment</Label>
             <div className="grid grid-cols-3 gap-4">
-              <div className="col-span-3 mt-3 rounded-base border-2 border-warning bg-warning/30 p-4 dark:border-warning/50 dark:bg-warning/10 md:col-span-1">
+              <div className="border-warning bg-warning/30 dark:border-warning/50 dark:bg-warning/10 col-span-3 mt-3 rounded-md border-2 p-4 md:col-span-1">
                 <Image
                   src="/images/powered-by-stripe.svg"
                   alt="Powered by Stripe"

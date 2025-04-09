@@ -58,7 +58,7 @@ const Graph = (props: {
   if (!data || data.length === 0) {
     return (
       <div className="w-full">
-        <p className="mt-1 rounded-md border bg-slate-200 p-4 text-sm font-medium leading-tight text-slate-800 dark:bg-slate-800 dark:text-slate-200">
+        <p className="bg-muted mt-1 rounded-md p-4 text-sm leading-tight font-medium">
           No log data was found for that time frame.
           <br />
           <br />
@@ -96,7 +96,7 @@ const Graph = (props: {
           />
           <YAxis width={40} />
           <Tooltip
-            labelClassName="text-xs text-white dark:text-slate-500"
+            labelClassName="text-xs text-white dark:text-muted-foreground"
             contentStyle={{ background: "currentColor", fontSize: "0.75rem" }}
           />
           <Bar
@@ -108,8 +108,6 @@ const Graph = (props: {
             isAnimationActive={activeAnimations}
           />
           <Brush
-            stroke={"rgba(24, 106, 188, 0.6)"}
-            fill="rgba(136, 170, 238, 0.3)"
             height={16}
             dataKey={"date"}
             gap={1}

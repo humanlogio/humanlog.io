@@ -1,6 +1,6 @@
 "use client";
 
-import { copyToClipboard } from "@/lib/utils";
+import { copyToClipboard } from "@/lib/utils/clipboard";
 import { Copy } from "lucide-react";
 
 export const NoLocalhostView = () => {
@@ -19,7 +19,7 @@ export const NoLocalhostView = () => {
         <div
           onClick={() => copyToClipboard(setUpCommand)}
           tabIndex={1}
-          className="flex w-full cursor-pointer flex-row items-center justify-between gap-4 rounded-base bg-slate-200 px-4 py-3 hover:bg-slate-300 focus:ring-4 focus:ring-slate-100 dark:bg-slate-950"
+          className="flex w-full cursor-pointer flex-row items-center justify-between gap-4 rounded-md bg-slate-200 px-4 py-3 hover:bg-slate-300 focus:ring-4 focus:ring-slate-100 dark:bg-slate-950"
         >
           <code className="truncate">{setUpCommand}</code>
           <Copy size={14} className="flex-none" />
@@ -34,7 +34,7 @@ export const NoLocalhostView = () => {
         <div
           onClick={() => copyToClipboard(installCommand)}
           tabIndex={1}
-          className="flex w-full cursor-pointer flex-row items-center justify-between gap-4 rounded-base bg-slate-200 px-4 py-3 hover:bg-slate-300 focus:ring-4 focus:ring-slate-100 dark:bg-slate-950"
+          className="flex w-full cursor-pointer flex-row items-center justify-between gap-4 rounded-md bg-slate-200 px-4 py-3 hover:bg-slate-300 focus:ring-4 focus:ring-slate-100 dark:bg-slate-950"
         >
           <code className="truncate">{installCommand}</code>
           <Copy size={14} className="flex-none" />
@@ -44,7 +44,7 @@ export const NoLocalhostView = () => {
         <div
           onClick={() => copyToClipboard(startCommand)}
           tabIndex={1}
-          className="flex w-full cursor-pointer flex-row items-center justify-between gap-4 rounded-base bg-slate-200 px-4 py-3 hover:bg-slate-300 focus:ring-4 focus:ring-slate-100 dark:bg-slate-950"
+          className="flex w-full cursor-pointer flex-row items-center justify-between gap-4 rounded-md bg-slate-200 px-4 py-3 hover:bg-slate-300 focus:ring-4 focus:ring-slate-100 dark:bg-slate-950"
         >
           <code className="truncate">{startCommand}</code>
           <Copy size={14} className="flex-none" />

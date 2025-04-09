@@ -291,24 +291,23 @@ const NewQueryInput = ({
         !isProd && "grid grid-cols-2",
       )}
     >
-      {/* TEXT INPUT */}
       <div className="col-span-2 md:col-span-1">
-        <div className="mb-2 w-full text-end">
-          <Button onClick={() => executeQuery(editorContent)}>
+        <div className="relative w-full overflow-hidden rounded-md border py-3">
+          <Button
+            onClick={() => executeQuery(editorContent)}
+            className="absolute top-2 right-2 z-1"
+          >
             <Play size={12} />
             <span>Run</span>
           </Button>
+
+          <MonacoEditor
+            value={editorContent}
+            onChange={(value) => setEditorContent(value || "")}
+            onMount={handleEditorDidMount}
+          />
         </div>
-        <div>
-          <div className="w-full overflow-hidden rounded-base border-2 border-border py-3">
-            <MonacoEditor
-              value={editorContent}
-              onChange={(value) => setEditorContent(value || "")}
-              onMount={handleEditorDidMount}
-            />
-          </div>
-          <p className="mt-2 text-xs text-[red]">{errMsg}</p>
-        </div>
+        <p className="mt-2 text-xs text-[red]">{errMsg}</p>
       </div>
 
       {/* CHART */}
