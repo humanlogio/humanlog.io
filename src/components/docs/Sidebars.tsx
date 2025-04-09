@@ -29,11 +29,11 @@ export function DocsSidebar({ docsList }: { docsList: DocSection[] }) {
       {/* Mobile Sidebar */}
       <Sheet>
         <SheetTrigger asChild>
-          <button className="absolute right-4 top-20 rounded border p-1 md:hidden">
+          <button className="absolute top-20 right-4 rounded border p-1 md:hidden">
             <LayoutList className="h-4 w-4" />
           </button>
         </SheetTrigger>
-        <SheetContent className="w-full dark:bg-darkBg dark:text-white">
+        <SheetContent className="dark:bg-darkBg w-full dark:text-white">
           <SheetHeader className="text-left">
             <SheetTitle>Docs</SheetTitle>
           </SheetHeader>

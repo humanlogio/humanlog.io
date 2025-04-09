@@ -83,7 +83,7 @@ const dark: monaco.editor.IStandaloneThemeData = {
     { token: Token.Keyword, foreground: colors.skyBlue },
   ],
   colors: {
-    "editor.background": "#0F172A",
+    "editor.background": "#000000",
     "editorSuggestWidget.selectedBackground": colors.blueSapphire,
   },
 };

@@ -33,12 +33,7 @@ export default function RootLayout({
       {config.TLD === "dev" && (
         <meta name="robots" content="noindex, nofollow" />
       )}
-      <body
-        className={cn(
-          "h-screen bg-bg font-mono text-text antialiased dark:bg-darkBg dark:text-darkText",
-          font.variable,
-        )}
-      >
+      <body className={cn("font-mono antialiased", font.variable)}>
         <ApiClientsProvider>
           <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
             <FullWidthProvider>
@@ -46,9 +41,7 @@ export default function RootLayout({
                 <AuthProvider>
                   <div className="flex min-h-screen flex-col">
                     <PageHeader />
-                    <div className="container-min-h-full flex flex-1 flex-col">
-                      {children}
-                    </div>
+                    <div className="flex flex-1 flex-col">{children}</div>
                     <PageFooter />
                   </div>
                   <Toaster expand={true} />

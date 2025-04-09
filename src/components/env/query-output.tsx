@@ -24,7 +24,7 @@ const QueryOutput = ({ sessions }: { sessions: LogEventGroup[] | null }) => {
         <Label
           htmlFor="pretty"
           className={cn("transition-colors duration-200", {
-            "text-slate-500": isPretty,
+            "text-muted-foreground": isPretty,
           })}
         >
           Raw
@@ -33,7 +33,7 @@ const QueryOutput = ({ sessions }: { sessions: LogEventGroup[] | null }) => {
         <Label
           htmlFor="pretty"
           className={cn("transition-colors duration-200", {
-            "text-slate-500": !isPretty,
+            "text-muted-foreground": !isPretty,
           })}
         >
           Pretty

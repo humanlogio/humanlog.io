@@ -185,7 +185,7 @@ export const SymbolList = ({ onClickSymbol }: SymbolListProps) => {
             </TooltipTrigger>
 
             {node.isLeaf && (
-              <TooltipContent className="bg-white dark:bg-secondaryBlack">
+              <TooltipContent className="dark:bg-secondaryBlack bg-white">
                 <div>{node.fullPath}</div>
               </TooltipContent>
             )}

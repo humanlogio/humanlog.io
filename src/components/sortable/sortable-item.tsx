@@ -64,7 +64,7 @@ export function DragHandle() {
 
   return (
     <div {...attributes} {...listeners} ref={ref} className="cursor-grab">
-      <GripHorizontal className="text-slate-500" />
+      <GripHorizontal className="text-muted-foreground" />
     </div>
   );
 }

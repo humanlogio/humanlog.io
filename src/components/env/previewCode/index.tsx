@@ -16,7 +16,7 @@ export default function PreviewCode() {
         <h1 className="text-center text-4xl font-bold">
           See the Difference Humanlog Makes
         </h1>
-        <p className="mt-4 text-center text-slate-500">
+        <p className="text-muted-foreground mt-4 text-center">
           Messy logs? No problem. <br />
           This is how Humanlog transforms raw, chaotic logs into clean,
           human-readable insights.
@@ -32,22 +32,14 @@ export default function PreviewCode() {
         </div>
       </div>
 
-      <div className="grid gap-12">
+      <div className="flex flex-col items-center gap-12">
         <h2 className="text-center text-3xl font-bold">
           Want to Clean Your Logs? Try Humanlog for Free!
         </h2>
-        <Link
-          href={"/pricing"}
-          style={{ width: "max-content", margin: "auto" }}
-        >
-          <Button
-            size="lg"
-            className="h-8 border-darkBg px-2 text-[16px] shadow-[2px_2px_0_0_#000000] shadow-black dark:shadow-black"
-            style={{ padding: "20px 25px" }}
-          >
-            Get started
-          </Button>
-        </Link>
+
+        <Button asChild>
+          <Link href={"/pricing"}>Get started</Link>
+        </Button>
       </div>
     </div>
   );
@@ -61,7 +53,7 @@ export function Demo() {
         <h2 className="text-center text-4xl font-bold">
           {"Don't wait until production to leverage your logs."}
         </h2>
-        <p className="mt-4 text-center text-slate-500">
+        <p className="text-muted-foreground mt-4 text-center">
           A full log search engine in local dev, all the way to production.
           <br />
           Humanlog makes your structured logs easier to read, and queryable.

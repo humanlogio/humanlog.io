@@ -12,7 +12,7 @@ export default function DocsLayout({
     <div className="flex min-h-screen">
       <DocsSidebar docsList={docsList} />
       <main className="flex-1 p-6">
-        <div className="prose max-w-none dark:prose-invert">{children}</div>
+        <div className="prose dark:prose-invert max-w-none">{children}</div>
       </main>
     </div>
   );

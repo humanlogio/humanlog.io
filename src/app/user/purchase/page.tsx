@@ -294,13 +294,13 @@ function CheckoutForm({
               <Label
                 htmlFor="billed-monthly"
                 className={cn("transition-colors duration-200", {
-                  "text-slate-500": !isBilledYearly,
+                  "text-muted-foreground": !isBilledYearly,
                 })}
               >
                 Billed Yearly
                 <span
                   className={cn(
-                    "ml-2 rounded-base bg-success px-2 py-1 text-xs font-bold text-white transition-colors duration-200",
+                    "ml-2 rounded-md bg-green-500 px-2 py-1 text-xs font-bold text-white transition-colors duration-200",
                     {
                       "bg-slate-400": !isBilledYearly,
                     },
@@ -338,7 +338,7 @@ function CheckoutForm({
           <div>
             <Label>Payment</Label>
             <div className="grid grid-cols-3 gap-4">
-              <div className="col-span-3 mt-3 rounded-base border-2 border-warning bg-warning/30 p-4 dark:border-warning/50 dark:bg-warning/10 md:col-span-1">
+              <div className="border-warning bg-warning/30 dark:border-warning/50 dark:bg-warning/10 col-span-3 mt-3 rounded-md border-2 p-4 md:col-span-1">
                 <Image
                   src="/images/powered-by-stripe.svg"
                   alt="Powered by Stripe"
