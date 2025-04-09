@@ -1,7 +1,7 @@
 import { useApiClients } from "@/context/api-provider";
 import { ConnectError } from "@connectrpc/connect";
 import { ListSymbolsResponse_ListItem } from "api/js/svc/query/v1/service_pb";
-import { ChevronDown, ChevronRight } from "lucide-react";
+import { ChevronDown, ChevronRight, Loader } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import {
@@ -12,6 +12,8 @@ import {
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { useSearchParams } from "next/navigation";
+import { Cursor } from "api/js/types/v1/cursor_pb";
+import { useInfiniteScroll } from "@/lib/utils/useInfiniteScroll";
 
 interface SymbolTreeNode {
   name: string;
@@ -26,6 +28,31 @@ interface SymbolListProps {
 }
 
 export const SymbolList = ({ onClickSymbol }: SymbolListProps) => {
+  const fetchSymbolList = async ({
+    cursor,
+    limit,
+  }: {
+    cursor: Cursor | null;
+    limit: number;
+  }) => {
+    const res = await apiClients?.query.listSymbols({
+      environmentId: activeEnvironment?.id,
+      ...(cursor && { cursor }),
+      limit,
+    });
+    return {
+      items: res?.items || [],
+      next: res?.next || null,
+    };
+  };
+
+  const {
+    data: items,
+    loading,
+    error,
+    targetRef,
+  } = useInfiniteScroll(fetchSymbolList, { limit: 100 });
+
   const searchParams = useSearchParams();
   const { apiClients, activeEnvironment } = useApiClients();
   const [symbolTree, setSymbolTree] = useState<Record<string, SymbolTreeNode>>(
@@ -70,14 +97,8 @@ export const SymbolList = ({ onClickSymbol }: SymbolListProps) => {
 
   const getListSymbols = useCallback(async () => {
     try {
-      const res = await apiClients?.query.listSymbols({
-        environmentId: activeEnvironment?.id,
-        limit: 100,
-      });
-      if (res) {
-        const { items } = res;
+      if (items) {
         const tree = buildSymbolTree(items);
-
         setSymbolTree(tree);
 
         const initialExpandState: Record<string, boolean> = {};
@@ -92,7 +113,7 @@ export const SymbolList = ({ onClickSymbol }: SymbolListProps) => {
 
       throw error;
     }
-  }, [activeEnvironment]);
+  }, [activeEnvironment, items]);
 
   const toggleNode = (nodePath: string) => {
     setExpandedNodes((prev) => ({
@@ -145,6 +166,10 @@ export const SymbolList = ({ onClickSymbol }: SymbolListProps) => {
       }
       onClickSymbol(fullPath);
     };
+
+    if (error) {
+      toast.error(`Failed to fetch items: ${error.message}`);
+    }
 
     return (
       <div
@@ -206,6 +231,15 @@ export const SymbolList = ({ onClickSymbol }: SymbolListProps) => {
   return (
     <div className="h-[calc(100vh-150px)] w-full overflow-y-auto p-2">
       {Object.values(symbolTree).map((node) => renderTreeNode(node, true))}
+      <div
+        className={`flex justify-center ${items.length === 0 && "h-full items-center"}`}
+      >
+        {loading ? (
+          <Loader className="animate-spin"></Loader>
+        ) : (
+          <div ref={targetRef} className="h-1" />
+        )}
+      </div>
     </div>
   );
 };
