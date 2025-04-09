@@ -225,7 +225,7 @@ const LogInterface = () => {
 
   useEffect(() => {
     if (queryString != null) executeQuery(decodeURIComponent(queryString));
-  }, [splitByDefault]);
+  }, [splitByDefault, queryString]);
 
   if (!localhostInfo) {
     return (
