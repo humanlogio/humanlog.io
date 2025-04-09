@@ -209,12 +209,10 @@ const LogInterface = () => {
   const executeQuery = useCallback(
     async (query: string) => {
       setNext(null);
-      const parseRes = await parseQuery({ query });
 
-      if (!parseRes) return;
       await getLogData(query);
     },
-    [apiClients?.query, parseQuery, splitByDefault],
+    [apiClients?.query, splitByDefault],
   );
 
   useEffect(() => {
@@ -227,7 +225,7 @@ const LogInterface = () => {
 
   useEffect(() => {
     if (queryString != null) executeQuery(decodeURIComponent(queryString));
-  }, [splitByDefault, queryString]);
+  }, [splitByDefault]);
 
   if (!localhostInfo) {
     return (
