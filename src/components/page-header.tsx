@@ -243,11 +243,7 @@ const PageHeader: React.FC = () => {
       <div className="flex flex-col gap-3 md:flex-row">
         {navLinks.map((link, i) => {
           return (
-            <Link
-              href={link.href}
-              key={i}
-              className="md:text-main transition-colors hover:underline md:hover:text-white"
-            >
+            <Link href={link.href} key={i} className="hover:underline">
               {link.text}
             </Link>
           );
