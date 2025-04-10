@@ -11,9 +11,6 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import { useSearchParams } from "next/navigation";
-import { Cursor } from "api/js/types/v1/cursor_pb";
-import { useInfiniteScroll } from "@/lib/utils/useInfiniteScroll";
 
 interface SymbolTreeNode {
   name: string;
@@ -25,36 +22,19 @@ interface SymbolTreeNode {
 
 interface SymbolListProps {
   onClickSymbol: (symbolString: string) => void;
+  items: ListSymbolsResponse_ListItem[];
+  loading: boolean;
+  targetRef: (node?: Element | null) => void;
+  error: Error | null;
 }
 
-export const SymbolList = ({ onClickSymbol }: SymbolListProps) => {
-  const fetchSymbolList = async ({
-    cursor,
-    limit,
-  }: {
-    cursor: Cursor | null;
-    limit: number;
-  }) => {
-    const res = await apiClients?.query.listSymbols({
-      environmentId: activeEnvironment?.id,
-      ...(cursor && { cursor }),
-      limit,
-    });
-    return {
-      items: res?.items || [],
-      next: res?.next || null,
-    };
-  };
-
-  const {
-    data: items,
-    loading,
-    error,
-    targetRef,
-  } = useInfiniteScroll(fetchSymbolList, { limit: 100 });
-
-  const searchParams = useSearchParams();
-  const { apiClients, activeEnvironment } = useApiClients();
+export const SymbolList = ({
+  onClickSymbol,
+  items,
+  loading,
+  targetRef,
+  error,
+}: SymbolListProps) => {
   const [symbolTree, setSymbolTree] = useState<Record<string, SymbolTreeNode>>(
     {},
   );
@@ -113,7 +93,7 @@ export const SymbolList = ({ onClickSymbol }: SymbolListProps) => {
 
       throw error;
     }
-  }, [activeEnvironment, items]);
+  }, [items]);
 
   const toggleNode = (nodePath: string) => {
     setExpandedNodes((prev) => ({
@@ -229,7 +209,7 @@ export const SymbolList = ({ onClickSymbol }: SymbolListProps) => {
   };
 
   return (
-    <div className="h-[calc(100vh-150px)] w-full overflow-y-auto p-2">
+    <div>
       {Object.values(symbolTree).map((node) => renderTreeNode(node, true))}
       <div
         className={`flex justify-center ${items.length === 0 && "h-full items-center"}`}
