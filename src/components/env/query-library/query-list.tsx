@@ -11,10 +11,8 @@ import { Loader } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { copyToClipboard } from "@/lib/utils/clipboard";
 import { toast } from "sonner";
-import { Cursor } from "api/js/types/v1/cursor_pb";
-import { useInfiniteScroll } from "@/lib/utils/useInfiniteScroll";
 import ReactMarkdown from "react-markdown";
-import { useState } from "react";
+import { Dispatch, SetStateAction, useState } from "react";
 import { SaveQueryModal } from "@/components/env/query-library/save-query-modal";
 
 interface DropdownMenuItem {
@@ -39,26 +37,32 @@ interface DropdownMenuItem {
 }
 
 interface QueryListProps<T> {
-  fetchItems: (params: { cursor: Cursor | null; limit: number }) => Promise<{
-    items: T[];
-    next: Cursor | null;
-  }>;
+  items: T[];
+  loading: boolean;
+  error: Error | null;
+  setData: Dispatch<SetStateAction<T[]>>;
   getItemData: (item: T) => QueryItem;
   getItemID: (item: T) => bigint | undefined;
   deleteItem?: (id: bigint) => void;
+  targetRef: (node?: Element | null) => void;
   emptyMessage?: string;
   limit?: number;
   enableEdit?: boolean;
+  setSavedQueryId?: Dispatch<SetStateAction<bigint | undefined>>;
 }
 
 export const QueryList = <T,>({
-  fetchItems,
+  items,
+  loading,
+  error,
+  setData,
   getItemData,
   getItemID,
   deleteItem,
+  targetRef,
   emptyMessage = "No recent queries found",
-  limit = 100,
   enableEdit = false,
+  setSavedQueryId,
 }: QueryListProps<T>) => {
   const router = useRouter();
   const [isEditing, setIsEditing] = useState(false);
@@ -70,15 +74,6 @@ export const QueryList = <T,>({
       return itemID !== id;
     };
   };
-
-  const {
-    data: items,
-    loading,
-    error,
-    targetRef,
-    setData,
-    refetch,
-  } = useInfiniteScroll(fetchItems, { limit });
 
   if (error) {
     toast.error(`Failed to fetch items: ${error.message}`);
@@ -101,7 +96,7 @@ export const QueryList = <T,>({
     dropDownMenu.push({
       key: "3",
       text: "Edit",
-      func: (id: bigint, query: string) => {
+      func: (id: bigint) => {
         setEditingQueryId(id);
         setIsEditing(true);
       },
@@ -112,11 +107,11 @@ export const QueryList = <T,>({
     dropDownMenu.push({
       key: "4",
       text: "Delete query",
-      func: (id: bigint, query: string) => {
+      func: (id: bigint) => {
         const fn = makeFilterFn(id);
 
         deleteItem(id);
-        setData((prev) => {
+        setData((prev: T[]) => {
           if (!prev) return [];
           return prev.filter(fn);
         });
@@ -140,7 +135,7 @@ export const QueryList = <T,>({
   }
 
   return (
-    <div className="h-[calc(100vh-160px)] w-full space-y-2 overflow-y-auto">
+    <div className="space-y-2">
       {items.map((item, i) => {
         const itemData = getItemData(item);
         return (
@@ -167,7 +162,7 @@ export const QueryList = <T,>({
           id={editingQueryId}
           isSaveQueryModalOpen={isEditing && !!editingQueryId}
           setIsSaveQueryModalOpen={setIsEditing}
-          refetch={refetch}
+          setSavedQueryId={setSavedQueryId}
         />
       )}
     </div>

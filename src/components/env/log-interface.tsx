@@ -12,7 +12,7 @@ import {
   SplitOperator_ByOperator,
   Statements,
 } from "api/js/types/v1/logquery_pb";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import {
@@ -59,7 +59,6 @@ const LogInterface = () => {
   const { localhostInfo } = useAllEnvironments();
   const { setNext } = useInfiniteQuery();
 
-  const router = useRouter();
   const searchParams = useSearchParams();
   const queryString = searchParams.get("query");
   const splitByDefault = searchParams.get("splitByDefault") !== "false";
@@ -75,6 +74,8 @@ const LogInterface = () => {
   const [isSaveQueryModalOpen, setIsSaveQueryModalOpen] = useState(false);
   const [symbol, setSymbol] = useState("");
   const [editorContent, setEditorContent] = useState<string>("");
+  const [recentQueryId, setRecentQueryId] = useState<bigint>();
+  const [savedQueryId, setSavedQueryId] = useState<bigint>();
 
   const parseQuery = async (parseReq: { query: string }) => {
     try {
@@ -123,11 +124,14 @@ const LogInterface = () => {
           // 1) we don't care about the response
           // 2) we don't want to record the mutated query, so we record it
           // before mutating it with `split by`
-          editorContent.length > 0 &&
-            apiClients.user.recordQueryHistory({
+          if (editorContent.length > 0) {
+            const res = await apiClients.user.recordQueryHistory({
               rawQuery: editorContent,
               query: parseRes.query,
             });
+
+            setRecentQueryId(res.entry?.id);
+          }
 
           if (parseRes.dataType) {
             const { type } = parseRes.dataType;
@@ -165,7 +169,6 @@ const LogInterface = () => {
               if (parseRes.query.query) {
                 parseRes.query.query!.render = renderStmt;
               } else {
-                // TODO: Uncomment after backend's update
                 parseRes.query.query = new Statements({
                   statements: [],
                   render: renderStmt,
@@ -262,7 +265,6 @@ const LogInterface = () => {
             </div>
             <NewQueryInput
               errMsg={errMsg}
-              setIsSaveValid={setIsSaveValid}
               onExecuteQuery={executeQuery}
               symbol={symbol}
               editorContent={editorContent}
@@ -274,29 +276,34 @@ const LogInterface = () => {
 
         <PanelResizeHandle />
 
-        <Panel
-          defaultSize={25}
-          maxSize={50}
-          minSize={15}
-          className={`border-l transition-transform duration-300 ease-in-out ${isLibraryOpen ? "translate-x-0" : "hidden translate-x-full"}`}
-        >
-          <div className="h-full p-4">
-            <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-lg font-bold">Query Library</h2>
-              <button
-                onClick={() => setIsLibraryOpen(false)}
-                className="rounded-full p-1 hover:bg-gray-100"
-              >
-                <X size={18} />
-              </button>
+        {isLibraryOpen && (
+          <Panel
+            defaultSize={25}
+            maxSize={50}
+            minSize={15}
+            className={`border-l`}
+          >
+            <div className="h-full p-4">
+              <div className="mb-4 flex items-center justify-between">
+                <h2 className="text-lg font-bold">Query Library</h2>
+                <button
+                  onClick={() => setIsLibraryOpen(false)}
+                  className="rounded-full p-1 hover:bg-gray-100"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+              <QueryLibrary
+                onClickSymbol={(symbolString) => {
+                  setSymbol(symbolString);
+                }}
+                recentQueryId={recentQueryId}
+                savedQueryId={savedQueryId}
+                setSavedQueryId={setSavedQueryId}
+              />
             </div>
-            <QueryLibrary
-              onClickSymbol={(symbolString) => {
-                setSymbol(symbolString);
-              }}
-            />
-          </div>
-        </Panel>
+          </Panel>
+        )}
       </PanelGroup>
       {isSaveQueryModalOpen && (
         <SaveQueryModal
@@ -304,6 +311,7 @@ const LogInterface = () => {
           isSaveQueryModalOpen={isSaveQueryModalOpen}
           setIsSaveQueryModalOpen={setIsSaveQueryModalOpen}
           parsedQuery={parsedQuery}
+          setSavedQueryId={setSavedQueryId}
         />
       )}
     </section>
