@@ -92,7 +92,7 @@ const MarkdownEditor = ({
           />
         ) : (
           <div
-            className="markdown-preview p-2"
+            className="markdown-preview prose p-2"
             style={{
               minHeight: `${minRows * 24}px`,
             }}
