@@ -28,7 +28,6 @@ import { Input } from "@/components/ui/input";
 import MarkdownEditor from "@/components/ui/markdown-textarea";
 import MonacoEditor from "@/components/editor/monaco-editor";
 import { Loader } from "lucide-react";
-import { Cursor } from "api/js/types/v1/cursor_pb";
 
 interface SaveQueryModalProps {
   id?: bigint;
@@ -36,7 +35,7 @@ interface SaveQueryModalProps {
   isSaveQueryModalOpen: boolean;
   setIsSaveQueryModalOpen: Dispatch<SetStateAction<boolean>>;
   parsedQuery?: LogQuery;
-  refetch?: () => void;
+  setSavedQueryId?: Dispatch<SetStateAction<bigint | undefined>>;
 }
 
 const formSchema = z.object({
@@ -50,26 +49,12 @@ type FormValues = z.infer<typeof formSchema>;
 export const SaveQueryModal = ({
   id,
   query,
-  refetch,
   isSaveQueryModalOpen,
   setIsSaveQueryModalOpen,
   parsedQuery,
+  setSavedQueryId,
 }: SaveQueryModalProps) => {
   const { apiClients } = useApiClients();
-
-  const fetchSavedQueries = useCallback(
-    async ({ cursor, limit }: { cursor: Cursor | null; limit: number }) => {
-      const res = await apiClients?.user.listFavoriteQuery({
-        ...(cursor && { cursor }),
-        limit,
-      });
-      return {
-        items: res?.items || [],
-        next: res?.next || null,
-      };
-    },
-    [apiClients?.user],
-  );
 
   const [isFetching, setIsFetching] = useState(false);
   const form = useForm<FormValues>({
@@ -112,10 +97,12 @@ export const SaveQueryModal = ({
     try {
       if (id) {
         await apiClients?.user.updateFavoriteQuery(requestForm);
+        setSavedQueryId && setSavedQueryId(id);
       } else {
-        await apiClients?.user.createFavoriteQuery(requestForm);
+        const res = await apiClients?.user.createFavoriteQuery(requestForm);
+        setSavedQueryId && setSavedQueryId(res?.favorite?.id as bigint);
       }
-      refetch && refetch();
+
       toast.success(
         <p>
           Saved query <strong>{name}</strong>

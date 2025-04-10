@@ -32,7 +32,6 @@ interface NewQueryInputProps {
   errMsg: string;
   onExecuteQuery: (query: string) => void;
   symbol?: string;
-  setIsSaveValid: Dispatch<SetStateAction<boolean>>;
   editorContent: string;
   setEditorContent: Dispatch<SetStateAction<string>>;
 }
@@ -41,7 +40,6 @@ const NewQueryInput = ({
   errMsg,
   onExecuteQuery,
   symbol,
-  setIsSaveValid,
   editorContent,
   setEditorContent,
 }: NewQueryInputProps) => {

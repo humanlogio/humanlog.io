@@ -1,28 +1,29 @@
 import { useApiClients } from "@/context/api-provider";
-import { useCallback } from "react";
+import { Dispatch, SetStateAction, useCallback } from "react";
 import { ConnectError } from "@connectrpc/connect";
 import { toast } from "sonner";
 import { QueryList } from "@/components/env/query-library/query-list";
 import { ListFavoriteQueryResponse_ListItem } from "api/js/svc/user/v1/service_pb";
 import { Timestamp } from "@bufbuild/protobuf";
-import { Cursor } from "api/js/types/v1/cursor_pb";
 
-export const SavedQuery = () => {
+interface SavedQueryProps {
+  items: ListFavoriteQueryResponse_ListItem[];
+  loading: boolean;
+  error: Error | null;
+  setData: Dispatch<SetStateAction<ListFavoriteQueryResponse_ListItem[]>>;
+  setSavedQueryId: Dispatch<SetStateAction<bigint | undefined>>;
+  targetRef: (node?: Element | null) => void;
+}
+
+export const SavedQuery = ({
+  items,
+  loading,
+  error,
+  setData,
+  setSavedQueryId,
+  targetRef,
+}: SavedQueryProps) => {
   const { apiClients } = useApiClients();
-
-  const fetchSavedQueries = useCallback(
-    async ({ cursor, limit }: { cursor: Cursor | null; limit: number }) => {
-      const res = await apiClients?.user.listFavoriteQuery({
-        ...(cursor && { cursor }),
-        limit,
-      });
-      return {
-        items: res?.items || [],
-        next: res?.next || null,
-      };
-    },
-    [apiClients?.user],
-  );
 
   const getItemData = useCallback(
     (item: ListFavoriteQueryResponse_ListItem) => {
@@ -58,7 +59,12 @@ export const SavedQuery = () => {
 
   return (
     <QueryList<ListFavoriteQueryResponse_ListItem>
-      fetchItems={fetchSavedQueries}
+      items={items}
+      loading={loading}
+      error={error}
+      setData={setData}
+      targetRef={targetRef}
+      setSavedQueryId={setSavedQueryId}
       getItemData={getItemData}
       getItemID={getItemID}
       deleteItem={deleteSavedQuery}
