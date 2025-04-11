@@ -274,8 +274,7 @@ export function ProductPane({
       onClick={() => onClick(selectedPrice)}
       className={cn(
         "border-border shadow-light hover:translate-x-boxShadowX hover:translate-y-boxShadowY dark:shadow-dark cursor-pointer rounded-md border-2 p-6 hover:shadow-none dark:hover:shadow-none",
-        isSelected &&
-          "translate-x-boxShadowX translate-y-boxShadowY bg-main shadow-none",
+        isSelected && "bg-muted",
       )}
     >
       <div className="flex flex-row items-center justify-between gap-6">
@@ -288,18 +287,13 @@ export function ProductPane({
               ${Number(monthly?.unitAmount || 0) / 100}
             </span>
           )}
-          <span className={isSelected ? "text-white" : "text-success"}>
+          <span>
             {price ? `$${(Math.floor(price * 100) / 100).toFixed(2)}` : "Free"}
           </span>
           /month
         </h5>
       </div>
-      <p
-        className={cn(
-          "text-muted-foreground mt-4 text-sm",
-          isSelected && "text-white",
-        )}
-      >
+      <p className={cn("text-muted-foreground mt-4 text-sm")}>
         {product.product.description}
       </p>
       <ul className="mt-4 flex flex-col gap-2">
