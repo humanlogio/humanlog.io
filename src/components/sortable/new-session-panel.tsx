@@ -2,11 +2,11 @@ import { copyToClipboard } from "@/lib/utils/clipboard";
 import { formatTimestamp } from "@/lib/utils/formatTimeStamp";
 import { getUnixTimestamp } from "@/lib/utils/formatTimeStamp";
 import { useInfiniteQuery } from "@/lib/utils/useInfiniteQuery";
-
 import { IngestedLogEvent } from "api/js/types/v1/logevent_pb";
 import { LogQuery } from "api/js/types/v1/logquery_pb";
 import {
   Ellipsis,
+  Filter,
   Loader,
   UnfoldHorizontal,
   UnfoldVertical,
@@ -41,6 +41,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { SelectTrigger } from "@radix-ui/react-select";
+import { KV } from "api/js/types/v1/types_pb";
 
 interface NewSessionPanelProps {
   ids?: { machineId?: string; sessionId?: string };
@@ -48,6 +49,7 @@ interface NewSessionPanelProps {
   fakeData?: IngestedLogEvent[];
   darkMode?: boolean;
   themes?: FormatConfig_Themes;
+  onClickFilterBy: (kv: KV) => void;
 }
 
 const NewSessionPanel = ({
@@ -56,6 +58,7 @@ const NewSessionPanel = ({
   fakeData,
   darkMode,
   themes,
+  onClickFilterBy,
 }: NewSessionPanelProps) => {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -355,6 +358,17 @@ const NewSessionPanel = ({
                                       kv.value?.kind.value?.toString() ?? ""
                                     }
                                   />
+                                  <div className="mt-2 border-t border-gray-200 pt-2">
+                                    <button
+                                      className="bg-muted flex w-full items-center justify-center gap-1 rounded px-2 py-1 text-sm hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black"
+                                      onClick={() => {
+                                        onClickFilterBy(kv);
+                                      }}
+                                    >
+                                      <Filter size={14} />
+                                      <span>Filter by this value</span>
+                                    </button>
+                                  </div>
                                 </TooltipContent>
                               </Tooltip>{" "}
                             </span>
