@@ -17,9 +17,11 @@ import {
   ToggleShowPretty,
   ToggleSplit,
 } from "@/components/sortable/log-viewer-settings";
+import { KV } from "api/js/types/v1/types_pb";
 
 interface SubQueriesContainerProps {
   queries: LogQuery[];
+  onClickFilterBy: (kv: KV) => void;
 }
 
 interface SelectedSessionsType {
@@ -29,7 +31,10 @@ interface SelectedSessionsType {
   query: LogQuery;
 }
 
-export const SubQueriesContainer = ({ queries }: SubQueriesContainerProps) => {
+export const SubQueriesContainer = ({
+  queries,
+  onClickFilterBy,
+}: SubQueriesContainerProps) => {
   const searchParams = useSearchParams();
   const queryString = searchParams.get("query");
   const [originalSessionList, setOriginalSessionList] = useState<
@@ -141,6 +146,7 @@ export const SubQueriesContainer = ({ queries }: SubQueriesContainerProps) => {
                       <NewSessionPanel
                         ids={extractQueryIds(list.query)}
                         query={list.query}
+                        onClickFilterBy={onClickFilterBy}
                       />
                     </div>
                   </Panel>
