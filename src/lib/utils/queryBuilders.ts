@@ -23,14 +23,8 @@ export const newBinaryExpr = (
 };
 
 export const newStrVal = (str: string): Val => {
-  const type = new VarType({
-    1: {
-      value: ScalarType.str,
-      case: "scalar",
-    },
-  });
   return new Val({
-    type: type,
+    type: new VarType({}),
     kind: {
       case: "str",
       value: str,
@@ -39,14 +33,8 @@ export const newStrVal = (str: string): Val => {
 };
 
 export const newI64Val = (v: bigint): Val => {
-  const type = new VarType({
-    1: {
-      value: ScalarType.i64,
-      case: "scalar",
-    },
-  });
   return new Val({
-    type: type,
+    type: new VarType({}),
     kind: {
       case: "i64",
       value: v,
@@ -71,7 +59,3 @@ export const newLiteralExpr = (val: Val): Expr => {
     },
   });
 };
-
-// const newFilterStmt = (expr: Expr): Statement => {
-//   // return
-// }
