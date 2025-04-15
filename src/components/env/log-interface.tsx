@@ -8,9 +8,7 @@ import {
   useState,
 } from "react";
 import { useSearchParams } from "next/navigation";
-import { toast } from "sonner";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
-import { X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import NewQueryInput from "@/components/env/new-query-input";
@@ -23,17 +21,16 @@ import { useApiClients } from "@/context/api-provider";
 import { useAllEnvironments } from "@/context/list-environments";
 import { useInfiniteQuery } from "@/lib/utils/useInfiniteQuery";
 
-import { Code, ConnectError } from "@connectrpc/connect";
-import { ParseResponse, QueryRequest } from "api/js/svc/query/v1/service_pb";
 import {
-  BinaryOp_Operator,
-  Expr,
-  FilterOperator,
+  ParseResponse,
+  QueryRequest,
+  QueryResponse,
+} from "api/js/svc/query/v1/service_pb";
+import {
   LogQuery,
   RenderStatement,
   SplitOperator,
   SplitOperator_ByOperator,
-  Statement,
   Statements,
 } from "api/js/types/v1/logquery_pb";
 import { KV, Val } from "api/js/types/v1/types_pb";
@@ -43,6 +40,11 @@ import {
   Tabular,
   VectorTimeseries,
 } from "api/js/types/v1/query_pb";
+import { newIdentifierExpr } from "@/lib/utils/queryBuilders";
+import { X } from "lucide-react";
+import { getQuery, parseQuery, QueryClientType } from "@/services/queryService";
+import { recordQueryHistory } from "@/services/userService";
+import { RecordQueryHistoryResponse } from "api/js/svc/user/v1/service_pb";
 
 export type DataCase =
   | "subqueries"
@@ -98,18 +100,8 @@ const LogInterface = () => {
         value: new SplitOperator({
           by: new SplitOperator_ByOperator({
             scalars: [
-              {
-                expr: {
-                  case: "identifier",
-                  value: { name: "machine" },
-                },
-              },
-              {
-                expr: {
-                  case: "identifier",
-                  value: { name: "session" },
-                },
-              },
+              newIdentifierExpr("machine"),
+              newIdentifierExpr("session"),
             ],
           }),
         }),
@@ -117,72 +109,10 @@ const LogInterface = () => {
     });
   };
 
-  const createFilterStatement = (kv: KV) => {
-    const { key, value } = kv;
-
-    return new Statement({
-      stmt: {
-        case: "filter",
-        value: new FilterOperator({
-          expr: new Expr({
-            expr: {
-              case: "binary",
-              value: {
-                lhs: new Expr({
-                  expr: {
-                    case: "identifier",
-                    value: { name: key },
-                  },
-                }),
-                op: BinaryOp_Operator.CMP_EQ,
-                rhs: new Expr({
-                  expr: {
-                    case: "literal",
-                    value: value as Val,
-                  },
-                }),
-              },
-            },
-          }),
-        }),
-      },
-    });
-  };
-
-  const parseQuery = async (parseReq: { query: string }) => {
-    try {
-      const parsedQuery = await apiClients?.query.parse(parseReq);
-      setQueryParseErrMsg("");
-      return parsedQuery;
-    } catch (error) {
-      if (error instanceof ConnectError) {
-        setLogData({
-          case: undefined,
-          value: undefined,
-        });
-        let alertMsg = "Query parsing failed. Please check your query syntax.";
-        const { code, rawMessage, message } = error;
-
-        if (code === Code.Unimplemented) {
-          toast.error(message);
-        }
-
-        if (code === Code.InvalidArgument) {
-          toast.error(`Your query is invalid: ${alertMsg}`);
-          setQueryParseErrMsg(`${rawMessage}`);
-        }
-
-        console.error("Query parsing error:", error);
-      }
-    }
-  };
-
   const processQueryModifiers = (
     parseRes: ParseResponse,
-    options: { splitByDefault: boolean; filterByKv?: KV },
+    splitByDefault: boolean,
   ) => {
-    const { splitByDefault = false, filterByKv = null } = options;
-
     if (parseRes.dataType) {
       const { type } = parseRes.dataType;
 
@@ -192,21 +122,18 @@ const LogInterface = () => {
         type.value?.type?.case === "logEvents"
       ) {
         let renderStmt;
-        let statements;
+        let statements = parseRes.query.query?.statements ?? [];
 
         if (splitByDefault) {
           renderStmt = createSplitRenderStatement();
         }
 
-        if (filterByKv) {
-          statements = [createFilterStatement(filterByKv)];
-        }
-
         if (parseRes.query.query) {
           parseRes.query.query.render = renderStmt;
-        } else {
+        }
+        {
           parseRes.query.query = new Statements({
-            statements: statements ?? [],
+            statements: statements,
             render: renderStmt,
           });
         }
@@ -216,29 +143,29 @@ const LogInterface = () => {
     return parseRes.query;
   };
 
-  const handleQueryError = (error: any) => {
-    if (error instanceof ConnectError) {
-      const { code, message } = error;
-      if (code === Code.Unauthenticated) {
-        toast.error(message);
-      }
+  const handleRecordQueryHistory = (rawQuery: string, query: LogQuery) => {
+    if (!apiClients || rawQuery.length === 0) return;
+    recordQueryHistory(apiClients?.user, rawQuery, query, {
+      onSuccess: (res: RecordQueryHistoryResponse) =>
+        setRecentQueryId(res.entry?.id),
+    });
+  };
 
-      setLogData({
-        case: undefined,
-        value: undefined,
-      });
-      console.error(error);
-    }
+  const handleQueryData = (
+    queryClient: QueryClientType,
+    queryReq: QueryRequest,
+  ) => {
+    getQuery(queryClient, queryReq, {
+      onSuccess: (res: QueryResponse) => {
+        res.data && setLogData(res.data.shape);
+      },
+    });
   };
 
   const getLogData = useCallback(
-    async (
-      editorContent: string,
-      options: { splitByDefault: boolean; filterByKv?: KV },
-    ) => {
-      const { splitByDefault = false, filterByKv = undefined } = options;
-
-      if (!apiClients?.query) {
+    async (editorContent: string, splitByDefault: boolean) => {
+      const queryClient = apiClients?.query;
+      if (!queryClient) {
         console.log("Invalid content or missing API client:", {
           editorContent,
           hasApiClient: !!apiClients?.query,
@@ -246,45 +173,30 @@ const LogInterface = () => {
         return null;
       }
 
-      try {
-        const parseReq = { query: editorContent };
-        const parseRes = await parseQuery(parseReq);
+      const parseReq = { query: editorContent };
 
-        if (parseRes) {
-          if (editorContent.length > 0) {
-            const res = await apiClients.user.recordQueryHistory({
-              rawQuery: editorContent,
-              query: parseRes.query,
-            });
-            setRecentQueryId(res.entry?.id);
-          }
+      await parseQuery(queryClient, parseReq, {
+        onSuccess: (res: ParseResponse) => {
+          if (!res.query) return;
+          setQueryParseErrMsg("");
 
-          parseRes.query = processQueryModifiers(parseRes, {
-            splitByDefault,
-            filterByKv,
-          });
-
-          setParsedQuery(parseRes.query);
+          handleRecordQueryHistory(editorContent, res.query);
+          res.query = processQueryModifiers(res, splitByDefault);
+          setParsedQuery(res.query);
 
           const queryReq = new QueryRequest({
             environmentId: activeEnvironment?.id,
-            query: parseRes.query,
+            query: res.query,
             limit,
           });
 
-          const queryRes = await apiClients.query.query(queryReq);
-
-          if (queryRes.data) {
-            setLogData(queryRes.data.shape);
-          }
-
-          return parseRes;
-        }
-      } catch (error) {
-        handleQueryError(error);
-      }
-
-      return null;
+          handleQueryData(queryClient, queryReq);
+        },
+        onError: () => {
+          setLogData({ case: undefined, value: undefined });
+          return null;
+        },
+      });
     },
     [apiClients, activeEnvironment, limit],
   );
@@ -292,13 +204,9 @@ const LogInterface = () => {
   const executeQuery = useCallback(
     async (query: string) => {
       setNext(null);
-
-      return await getLogData(query, {
-        splitByDefault,
-        filterByKv,
-      });
+      return await getLogData(query, splitByDefault);
     },
-    [getLogData, setNext, splitByDefault, filterByKv],
+    [getLogData, setNext, splitByDefault],
   );
 
   useEffect(() => {
@@ -309,7 +217,7 @@ const LogInterface = () => {
     if (queryString != null) {
       executeQuery(decodeURIComponent(queryString));
     }
-  }, [splitByDefault, queryString, filterByKv, executeQuery]);
+  }, [splitByDefault, queryString, executeQuery]);
 
   if (!localhostInfo) {
     return (
@@ -350,6 +258,7 @@ const LogInterface = () => {
               errMsg={queryParseErrMsg}
               onExecuteQuery={executeQuery}
               symbol={symbol}
+              filterByKv={filterByKv}
               editorContent={editorContent}
               setEditorContent={setEditorContent}
             />

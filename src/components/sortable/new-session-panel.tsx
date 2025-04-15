@@ -49,7 +49,7 @@ interface NewSessionPanelProps {
   fakeData?: IngestedLogEvent[];
   darkMode?: boolean;
   themes?: FormatConfig_Themes;
-  onClickFilterBy: (kv: KV) => void;
+  onClickFilterBy?: (kv: KV) => void;
 }
 
 const NewSessionPanel = ({
@@ -362,7 +362,7 @@ const NewSessionPanel = ({
                                     <button
                                       className="bg-muted flex w-full items-center justify-center gap-1 rounded px-2 py-1 text-sm hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black"
                                       onClick={() => {
-                                        onClickFilterBy(kv);
+                                        onClickFilterBy && onClickFilterBy(kv);
                                       }}
                                     >
                                       <Filter size={14} />
