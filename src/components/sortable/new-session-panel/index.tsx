@@ -106,16 +106,14 @@ const NewSessionPanel = ({
 
   const handleClickLine = (line: string) => {
     const params = new URLSearchParams(searchParams);
-    params.set("line", line);
-    router.push(`?${params}`, { scroll: false });
-  };
 
-  const updateSelection = (
-    value: string,
-    text: Uint8Array<ArrayBufferLike>,
-  ) => {
-    const selected = dropDownMenu?.find((select) => select.key === value);
-    selected?.func(decodeUint8Array(text));
+    if (selectedLines === line) {
+      params.delete("line");
+    } else {
+      params.set("line", line);
+    }
+
+    router.push(`?${params}`, { scroll: false });
   };
 
   const isStructuredLog = (log: IngestedLogEvent) => {
@@ -127,6 +125,43 @@ const NewSessionPanel = ({
       return true;
     }
     return false;
+  };
+
+  const formatKvText = (kvs?: KV[], sectionBreak?: boolean): string => {
+    if (!kvs || kvs.length === 0) return "";
+
+    let result = "";
+    kvs.forEach((kv, index) => {
+      if (sectionBreak && index > 0) {
+        result += "\n";
+      }
+      result += `${kv.key}=${kv.value?.kind.value} `;
+    });
+
+    return result;
+  };
+
+  const updateSelection = (value: string, log: IngestedLogEvent) => {
+    const selected = dropDownMenu?.find((select) => select.key === value);
+    if (!selected) return;
+
+    let text: string;
+
+    if (!pretty || !isStructuredLog(log)) {
+      text = decodeUint8Array(log.raw);
+    } else {
+      const timestamp = formatTimestamp(
+        (log.structured?.timestamp as Timestamp) ?? log.parsedAt,
+        config?.formatter?.time?.format ?? "",
+      );
+
+      const level = log.structured?.lvl ?? "EMPTY";
+      const message = log.structured?.msg ?? "no message";
+      const kvText = formatKvText(log.structured?.kvs, sectionBreak);
+      text = `${timestamp} |${level}| ${message} ${kvText}`;
+    }
+
+    selected.func(text);
   };
 
   useEffect(() => {
@@ -226,10 +261,10 @@ const NewSessionPanel = ({
                   <div
                     key={`${i + 1}-${log.machineId}-${log.sessionId}-${log.eventId}`}
                     className={twMerge(
-                      "relative flex px-2",
+                      "relative flex w-full px-2",
                       selectedLines ===
                         `${i + 1}${log.machineId}${log.sessionId}${log.eventId}` &&
-                        "bg-muted w-full",
+                        "bg-muted",
                       sectionBreak && pretty && "py-1",
                     )}
                   >
@@ -245,7 +280,7 @@ const NewSessionPanel = ({
                     </button>
                     <Select
                       value=""
-                      onValueChange={(value) => updateSelection(value, log.raw)}
+                      onValueChange={(value) => updateSelection(value, log)}
                     >
                       <SelectTrigger>
                         {selectedLines ===
@@ -289,6 +324,7 @@ const NewSessionPanel = ({
                       <pre
                         className={twMerge(
                           "log-line flex whitespace-nowrap",
+
                           sectionBreak && "flex-col",
                         )}
                       >
