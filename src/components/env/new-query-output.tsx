@@ -2,8 +2,7 @@
 
 import { Data_SubQueries, Tabular } from "api/js/types/v1/query_pb";
 import { ReactNode, useEffect, useState } from "react";
-import { LogQuery } from "api/js/types/v1/logquery_pb";
-import NewSessionPanel from "@/components/sortable/new-session-panel";
+import { BinaryOp_Operator, LogQuery } from "api/js/types/v1/logquery_pb";
 import TableContainer from "@/components/sortable/table-container";
 import { useSearchParams } from "next/navigation";
 import { LogData } from "@/components/env/log-interface";
@@ -15,11 +14,12 @@ import {
   ToggleSplit,
 } from "@/components/sortable/log-viewer-settings";
 import { KV } from "api/js/types/v1/types_pb";
+import NewSessionPanel from "@/components/sortable/new-session-panel";
 
 interface NewQueryOutputProps {
   logData: LogData;
   parsedQuery: LogQuery | undefined;
-  onClickFilterBy: (kv: KV) => void;
+  onClickFilterBy: (kv: KV, op?: BinaryOp_Operator) => void;
 }
 
 const NewQueryOutput = ({

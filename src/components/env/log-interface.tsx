@@ -27,6 +27,7 @@ import {
   QueryResponse,
 } from "api/js/svc/query/v1/service_pb";
 import {
+  BinaryOp_Operator,
   LogQuery,
   RenderStatement,
   SplitOperator,
@@ -88,7 +89,10 @@ const LogInterface = () => {
   const [isSaveValid, setIsSaveValid] = useState(false);
   const [isSaveQueryModalOpen, setIsSaveQueryModalOpen] = useState(false);
   const [symbol, setSymbol] = useState("");
-  const [filterByKv, setFilterByKv] = useState<KV>();
+  const [filterByKv, setFilterByKv] = useState<{
+    kv: KV;
+    op?: BinaryOp_Operator;
+  }>();
   const [editorContent, setEditorContent] = useState<string>("");
   const [recentQueryId, setRecentQueryId] = useState<bigint>();
   const [savedQueryId, setSavedQueryId] = useState<bigint>();
@@ -265,7 +269,9 @@ const LogInterface = () => {
             <NewQueryOutput
               logData={logData}
               parsedQuery={parsedQuery}
-              onClickFilterBy={(kv: KV) => setFilterByKv(kv)}
+              onClickFilterBy={(kv: KV, op?: BinaryOp_Operator) =>
+                setFilterByKv({ kv, op })
+              }
             />
           </div>
         </Panel>

@@ -272,6 +272,7 @@ export const Preview = ({ themes, isDark, timeformat }: PreviewProps) => {
 
   return (
     <NewSessionPanel
+      onClickFilterBy={() => {}}
       fakeData={fakeData}
       query={undefined}
       darkMode={isDark}

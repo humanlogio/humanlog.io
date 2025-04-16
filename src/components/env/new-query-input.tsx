@@ -47,7 +47,10 @@ interface NewQueryInputProps {
   onExecuteQuery: (query: string) => void;
   symbol?: string;
   editorContent: string;
-  filterByKv?: KV;
+  filterByKv?: {
+    kv: KV;
+    op?: BinaryOp_Operator;
+  };
   setEditorContent: Dispatch<SetStateAction<string>>;
 }
 
@@ -249,11 +252,16 @@ const NewQueryInput = ({
 
   const addFilterByStatement = (
     parseRes: ParseResponse,
-    kv: KV,
-    op?: BinaryOp_Operator,
+    filter: {
+      kv: KV;
+      op?: BinaryOp_Operator;
+    },
   ) => {
     if (!parseRes.query) return parseRes.query;
-    const { key, value } = kv;
+    const {
+      kv: { key, value },
+      op,
+    } = filter;
 
     const statements: Statement[] = parseRes.query?.query?.statements ?? [];
 
@@ -296,9 +304,9 @@ const NewQueryInput = ({
     formatQuery(apiClients?.query, formatReq, {
       onSuccess: (formatted: string) => {
         if (!editorRef.current) return;
+        editorRef.current.focus();
         editorRef.current.setValue(formatted);
         setEditorContent(formatted);
-        editorRef.current.focus();
       },
     });
   };
