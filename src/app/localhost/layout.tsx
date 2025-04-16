@@ -1,8 +1,8 @@
 "use client";
 
-import { ReactNode } from "react";
+import { ReactNode, useEffect } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Activity, Database, Bell, BarChart3 } from "lucide-react";
 import config from "@/features/config";
 
@@ -12,6 +12,7 @@ interface LocalhostLayoutProps {
 
 const LocalhostLayout = ({ children }: LocalhostLayoutProps) => {
   const pathname = usePathname();
+  const router = useRouter();
   const isProd = config.NEXT_PUBLIC_IS_PROD;
 
   const navItems = [
@@ -36,6 +37,16 @@ const LocalhostLayout = ({ children }: LocalhostLayoutProps) => {
       icon: <Bell size={16} />,
     },
   ];
+
+  useEffect(() => {
+    if (
+      isProd &&
+      pathname !== "/localhost/query" &&
+      pathname.startsWith("/localhost/")
+    ) {
+      router.push("/localhost/query");
+    }
+  }, [isProd, pathname, router]);
 
   return (
     <div className="flex w-full flex-col">
