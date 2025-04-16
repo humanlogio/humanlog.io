@@ -1,7 +1,6 @@
-import { LogQuery } from "api/js/types/v1/logquery_pb";
+import { BinaryOp_Operator, LogQuery } from "api/js/types/v1/logquery_pb";
 import { Fragment, useEffect, useState } from "react";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
-import NewSessionPanel from "@/components/sortable/new-session-panel";
 import { extractQueryIds } from "@/lib/utils/extractQueryIds";
 import {
   Select,
@@ -17,9 +16,12 @@ import {
   ToggleShowPretty,
   ToggleSplit,
 } from "@/components/sortable/log-viewer-settings";
+import { KV } from "api/js/types/v1/types_pb";
+import NewSessionPanel from "@/components/sortable/new-session-panel";
 
 interface SubQueriesContainerProps {
   queries: LogQuery[];
+  onClickFilterBy: (kv: KV, op?: BinaryOp_Operator) => void;
 }
 
 interface SelectedSessionsType {
@@ -29,7 +31,10 @@ interface SelectedSessionsType {
   query: LogQuery;
 }
 
-export const SubQueriesContainer = ({ queries }: SubQueriesContainerProps) => {
+export const SubQueriesContainer = ({
+  queries,
+  onClickFilterBy,
+}: SubQueriesContainerProps) => {
   const searchParams = useSearchParams();
   const queryString = searchParams.get("query");
   const [originalSessionList, setOriginalSessionList] = useState<
@@ -141,6 +146,7 @@ export const SubQueriesContainer = ({ queries }: SubQueriesContainerProps) => {
                       <NewSessionPanel
                         ids={extractQueryIds(list.query)}
                         query={list.query}
+                        onClickFilterBy={onClickFilterBy}
                       />
                     </div>
                   </Panel>
