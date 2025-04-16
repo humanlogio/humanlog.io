@@ -1,12 +1,11 @@
 import { copyToClipboard } from "@/lib/utils/clipboard";
 import { formatTimestamp } from "@/lib/utils/formatTimeStamp";
-import { getUnixTimestamp } from "@/lib/utils/formatTimeStamp";
+
 import { useInfiniteQuery } from "@/lib/utils/useInfiniteQuery";
 import { IngestedLogEvent } from "api/js/types/v1/logevent_pb";
-import { LogQuery } from "api/js/types/v1/logquery_pb";
+import { BinaryOp_Operator, LogQuery } from "api/js/types/v1/logquery_pb";
 import {
   Ellipsis,
-  Filter,
   Loader,
   UnfoldHorizontal,
   UnfoldVertical,
@@ -42,6 +41,9 @@ import {
 } from "@/components/ui/select";
 import { SelectTrigger } from "@radix-ui/react-select";
 import { KV } from "api/js/types/v1/types_pb";
+import { MetaDataTooltip } from "@/components/sortable/new-session-panel/metadata-tooltip";
+import { KeyValueRow } from "@/components/sortable/new-session-panel/key-value-row";
+import { FilterByKeyValue } from "@/components/sortable/new-session-panel/filter-by-kvs";
 
 interface NewSessionPanelProps {
   ids?: { machineId?: string; sessionId?: string };
@@ -49,7 +51,7 @@ interface NewSessionPanelProps {
   fakeData?: IngestedLogEvent[];
   darkMode?: boolean;
   themes?: FormatConfig_Themes;
-  onClickFilterBy?: (kv: KV) => void;
+  onClickFilterBy: (kv: KV, op?: BinaryOp_Operator) => void;
 }
 
 const NewSessionPanel = ({
@@ -358,19 +360,12 @@ const NewSessionPanel = ({
                                       kv.value?.kind.value?.toString() ?? ""
                                     }
                                   />
-                                  <div className="mt-2 border-t border-gray-200 pt-2">
-                                    <button
-                                      className="bg-muted flex w-full items-center justify-center gap-1 rounded px-2 py-1 text-sm hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black"
-                                      onClick={() => {
-                                        onClickFilterBy && onClickFilterBy(kv);
-                                      }}
-                                    >
-                                      <Filter size={14} />
-                                      <span>Filter by this value</span>
-                                    </button>
-                                  </div>
+                                  <FilterByKeyValue
+                                    kv={kv}
+                                    onClickFilterBy={onClickFilterBy}
+                                  />
                                 </TooltipContent>
-                              </Tooltip>{" "}
+                              </Tooltip>
                             </span>
                           ))}
                         </div>
@@ -391,54 +386,3 @@ const NewSessionPanel = ({
 };
 
 export default NewSessionPanel;
-
-interface MetaDataTooltipProps {
-  log: IngestedLogEvent;
-}
-
-const MetaDataTooltip = ({ log }: MetaDataTooltipProps) => {
-  return (
-    <TooltipContent align="start">
-      <div>
-        <KeyValueRow label="Machine Id" value={log.machineId.toString()} />
-        <KeyValueRow label="Session Id" value={log.sessionId.toString()} />
-        <KeyValueRow label="Event Id" value={log.eventId.toString()} />
-        <KeyValueRow
-          label="Local"
-          value={formatTimestamp(
-            (log.structured?.timestamp as Timestamp) ?? log.parsedAt,
-            "Jan _2 15:04:05.000",
-          )}
-        />
-        <KeyValueRow
-          label="UTC"
-          value={formatTimestamp(
-            (log.structured?.timestamp as Timestamp) ?? log.parsedAt,
-            "Jan _2 15:04:05.000",
-            true,
-          )}
-        />
-        <KeyValueRow
-          label="Timestamp"
-          value={getUnixTimestamp(
-            (log.structured?.timestamp as Timestamp) ?? log.parsedAt,
-          ).toString()}
-        />
-      </div>
-    </TooltipContent>
-  );
-};
-
-interface KeyValueRowProps {
-  label: string;
-  value: string | bigint;
-}
-
-const KeyValueRow = ({ label, value }: KeyValueRowProps) => {
-  return value ? (
-    <div className="flex">
-      <span className="w-28 text-gray-400">{label} </span>
-      <span>{value}</span>
-    </div>
-  ) : null;
-};

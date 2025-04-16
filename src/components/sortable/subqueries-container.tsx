@@ -1,7 +1,6 @@
-import { LogQuery } from "api/js/types/v1/logquery_pb";
+import { BinaryOp_Operator, LogQuery } from "api/js/types/v1/logquery_pb";
 import { Fragment, useEffect, useState } from "react";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
-import NewSessionPanel from "@/components/sortable/new-session-panel";
 import { extractQueryIds } from "@/lib/utils/extractQueryIds";
 import {
   Select,
@@ -18,10 +17,11 @@ import {
   ToggleSplit,
 } from "@/components/sortable/log-viewer-settings";
 import { KV } from "api/js/types/v1/types_pb";
+import NewSessionPanel from "@/components/sortable/new-session-panel";
 
 interface SubQueriesContainerProps {
   queries: LogQuery[];
-  onClickFilterBy: (kv: KV) => void;
+  onClickFilterBy: (kv: KV, op?: BinaryOp_Operator) => void;
 }
 
 interface SelectedSessionsType {
