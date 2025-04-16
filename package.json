@@ -39,7 +39,7 @@
     "@tanstack/react-table": "^8.21.2",
     "@types/mdx": "^2.0.13",
     "@types/react-flatpickr": "^3.8.11",
-    "api": "github:humanlogio/api#e2cb490f8c6ae07bc7547436118b3217fbcf3f20",
+    "api": "github:humanlogio/api#ec7aae4ce05e13d823bf4e8dde72aca8808149de",
     "asciinema-player": "^3.8.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

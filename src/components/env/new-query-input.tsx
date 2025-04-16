@@ -27,12 +27,30 @@ import * as monaco from "monaco-editor";
 import config from "@/features/config";
 import { Button } from "@/components/ui/button";
 import { Play } from "lucide-react";
+import {
+  BinaryOp_Operator,
+  FilterOperator,
+  LogQuery,
+  Statement,
+} from "api/js/types/v1/logquery_pb";
+import { FormatRequest, ParseResponse } from "api/js/svc/query/v1/service_pb";
+import { KV } from "api/js/types/v1/types_pb";
+import {
+  newBinaryExpr,
+  newIdentifierExpr,
+  newLiteralExpr,
+} from "@/lib/utils/queryBuilders";
+import { formatQuery, parseQuery } from "@/services/queryService";
 
 interface NewQueryInputProps {
   errMsg: string;
   onExecuteQuery: (query: string) => void;
   symbol?: string;
   editorContent: string;
+  filterByKv?: {
+    kv: KV;
+    op?: BinaryOp_Operator;
+  };
   setEditorContent: Dispatch<SetStateAction<string>>;
 }
 
@@ -41,6 +59,7 @@ const NewQueryInput = ({
   onExecuteQuery,
   symbol,
   editorContent,
+  filterByKv,
   setEditorContent,
 }: NewQueryInputProps) => {
   const isProd = config.NEXT_PUBLIC_IS_PROD;
@@ -231,6 +250,83 @@ const NewQueryInput = ({
     setEditorContent(query);
   };
 
+  const addFilterByStatement = (
+    parseRes: ParseResponse,
+    filter: {
+      kv: KV;
+      op?: BinaryOp_Operator;
+    },
+  ) => {
+    if (!parseRes.query) return parseRes.query;
+    const {
+      kv: { key, value },
+      op,
+    } = filter;
+
+    const statements: Statement[] = parseRes.query?.query?.statements ?? [];
+
+    const nextFilter = newBinaryExpr(
+      newIdentifierExpr(key),
+      op ?? BinaryOp_Operator.CMP_EQ,
+      newLiteralExpr(value!),
+    );
+
+    const filterStmt = new Statement({
+      stmt: {
+        case: "filter",
+        value: new FilterOperator({
+          expr: nextFilter,
+        }),
+      },
+    });
+
+    statements.unshift(filterStmt);
+
+    const newQuery = new LogQuery({
+      ...parseRes.query,
+      query: {
+        statements,
+      },
+    });
+
+    return newQuery;
+  };
+
+  const handleFormatQuery = async (query?: LogQuery) => {
+    if (!apiClients || !query) return;
+
+    const formatReq = new FormatRequest({
+      query: {
+        value: query,
+        case: "parsed",
+      },
+    });
+    formatQuery(apiClients?.query, formatReq, {
+      onSuccess: (formatted: string) => {
+        if (!editorRef.current) return;
+        editorRef.current.focus();
+        editorRef.current.setValue(formatted);
+        setEditorContent(formatted);
+      },
+    });
+  };
+
+  useEffect(() => {
+    if (!apiClients || !filterByKv) return;
+
+    parseQuery(
+      apiClients?.query,
+      {
+        query: editorContent,
+      },
+      {
+        onSuccess: (parseRes: ParseResponse) => {
+          handleFormatQuery(addFilterByStatement(parseRes, filterByKv));
+        },
+      },
+    );
+  }, [filterByKv]);
+
   useEffect(() => {
     updateGraphRange(startDate, endDate);
   }, [startDate, endDate]);
@@ -269,6 +365,8 @@ const NewQueryInput = ({
       }
     }
   }, [symbol]);
+
+  console.log("editorContent", editorContent);
 
   useEffect(() => {
     if (editorRef.current && monacoRef.current) {

@@ -2,8 +2,7 @@
 
 import { Data_SubQueries, Tabular } from "api/js/types/v1/query_pb";
 import { ReactNode, useEffect, useState } from "react";
-import { LogQuery } from "api/js/types/v1/logquery_pb";
-import NewSessionPanel from "@/components/sortable/new-session-panel";
+import { BinaryOp_Operator, LogQuery } from "api/js/types/v1/logquery_pb";
 import TableContainer from "@/components/sortable/table-container";
 import { useSearchParams } from "next/navigation";
 import { LogData } from "@/components/env/log-interface";
@@ -14,16 +13,19 @@ import {
   ToggleShowPretty,
   ToggleSplit,
 } from "@/components/sortable/log-viewer-settings";
+import { KV } from "api/js/types/v1/types_pb";
+import NewSessionPanel from "@/components/sortable/new-session-panel";
 
 interface NewQueryOutputProps {
   logData: LogData;
   parsedQuery: LogQuery | undefined;
+  onClickFilterBy: (kv: KV, op?: BinaryOp_Operator) => void;
 }
 
 const NewQueryOutput = ({
   logData,
-
   parsedQuery,
+  onClickFilterBy,
 }: NewQueryOutputProps) => {
   const searchParams = useSearchParams();
   const queryString = searchParams.get("query");
@@ -55,6 +57,7 @@ const NewQueryOutput = ({
                 <NewSessionPanel
                   query={parsedQuery}
                   ids={extractQueryIds(parsedQuery as LogQuery)}
+                  onClickFilterBy={onClickFilterBy}
                 />
               </div>
             </>,
@@ -76,7 +79,10 @@ const NewQueryOutput = ({
       const { queries } = value;
       setOutput(
         <div className="container flex-1">
-          <SubQueriesContainer queries={queries} />
+          <SubQueriesContainer
+            queries={queries}
+            onClickFilterBy={onClickFilterBy}
+          />
         </div>,
       );
       return;
