@@ -68,7 +68,7 @@ const NewSessionPanel = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const { theme } = useTheme();
 
-  const isDark = darkMode
+  const isDark = fakeData
     ? darkMode
     : theme === "dark" ||
       (theme === "system" &&
@@ -93,7 +93,7 @@ const NewSessionPanel = ({
   const [config, setConfig] = useState<LocalhostConfig>();
   const [sectionBreak, setSectionBreak] = useState(false);
   const { getColor, getLevelColor } = useThemeColors(
-    isDark,
+    isDark ?? false,
     themes ?? config?.formatter?.themes,
   );
   const [selectedLines, setSelectedLines] = useState<string | null>();
@@ -105,6 +105,8 @@ const NewSessionPanel = ({
   }, []);
 
   const handleClickLine = (line: string) => {
+    if (fakeData) return;
+
     const params = new URLSearchParams(searchParams);
 
     if (selectedLines === line) {
@@ -200,7 +202,9 @@ const NewSessionPanel = ({
   }, [pathname, searchParams]);
 
   return (
-    <div className="flex w-full flex-col rounded-md border">
+    <div
+      className={`flex w-full flex-col rounded-md border ${isDark ? "bg-black" : "bg-white"}`}
+    >
       <TooltipProvider>
         <div className="bg-muted flex h-11 w-full flex-none flex-row items-center justify-between p-2">
           <div className="flex justify-start">
@@ -269,7 +273,8 @@ const NewSessionPanel = ({
                     )}
                   >
                     <button
-                      className="w-5 flex-none hover:text-white"
+                      type="button"
+                      className={`w-5 flex-none hover:text-gray-400 ${isDark ? "text-white" : "text-black"}`}
                       onClick={() =>
                         handleClickLine(
                           `${i + 1}${log.machineId}${log.sessionId}${log.eventId}`,
