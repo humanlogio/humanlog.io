@@ -82,6 +82,7 @@ const NewQueryInput = ({
     startDate: Date;
     endDate: Date;
   }>({ startDate, endDate: new Date() });
+  const [isHovered, setIsHovered] = useState(false);
 
   const isFirstFocusRef = useRef(true);
   const editorRef = useRef<monacoEditor.IStandaloneCodeEditor>();
@@ -388,10 +389,14 @@ const NewQueryInput = ({
       )}
     >
       <div className="col-span-2 md:col-span-1">
-        <div className="relative w-full overflow-hidden rounded-md border py-3">
+        <div
+          onMouseOver={() => setIsHovered(true)}
+          onMouseOut={() => setIsHovered(false)}
+          className="relative w-full overflow-hidden rounded-md border py-3"
+        >
           <Button
             onClick={() => executeQuery(editorContent)}
-            className="absolute top-2 right-2 z-1"
+            className={`absolute top-2 right-2 z-1 ${!isHovered && "hidden"}`}
           >
             <Play size={12} />
             <span>Run</span>
