@@ -113,7 +113,7 @@ const PageHeader: React.FC = () => {
     const path = localhostInfo
       ? {
           name: `localhost ${localhostVersion(localhostInfo)}`,
-          path: "/localhost",
+          path: "/localhost/query",
           value: "localhost",
         }
       : {
