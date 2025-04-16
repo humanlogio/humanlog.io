@@ -1,7 +1,5 @@
 import LogInterface from "@/components/env/log-interface";
 
-const Localhost = () => {
+export default function Query() {
   return <LogInterface />;
-};
-
-export default Localhost;
+}
