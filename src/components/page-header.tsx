@@ -207,7 +207,7 @@ const PageHeader: React.FC = () => {
               </AvatarFallback>
             </Avatar>
 
-            <p className="font-medium md:order-1">
+            <p className="font-medium whitespace-nowrap md:order-1">
               {user?.firstName || "username"}
             </p>
           </div>
