@@ -46,6 +46,7 @@ import { X } from "lucide-react";
 import { getQuery, parseQuery, QueryClientType } from "@/services/queryService";
 import { recordQueryHistory } from "@/services/userService";
 import { RecordQueryHistoryResponse } from "api/js/svc/user/v1/service_pb";
+import { useFullWidth } from "@/context/full-width-provider";
 
 export type DataCase =
   | "subqueries"
@@ -72,6 +73,7 @@ const LogInterface = () => {
   const limit = 100;
 
   const { apiClients, activeEnvironment } = useApiClients();
+  const { isFullWidth } = useFullWidth();
   const { localhostInfo } = useAllEnvironments();
   const { setNext } = useInfiniteQuery();
 
@@ -254,7 +256,7 @@ const LogInterface = () => {
       <PanelGroup direction="horizontal">
         <Panel defaultSize={80} minSize={30}>
           <div
-            className={`flex h-full flex-col gap-4 py-8 ${isLibraryOpen && "overflow-y-auto"}`}
+            className={`flex h-full flex-col gap-4 px-10 py-8 ${isLibraryOpen && "overflow-y-auto"} ${!isFullWidth && "container"}`}
           >
             {renderHeader()}
 
