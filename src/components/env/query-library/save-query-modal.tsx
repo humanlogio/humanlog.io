@@ -40,7 +40,7 @@ interface SaveQueryModalProps {
 
 const formSchema = z.object({
   query: z.string(),
-  name: z.string().min(1, "Name is required"),
+  name: z.string().optional(),
   note: z.string().optional(),
 });
 
@@ -138,9 +138,24 @@ export const SaveQueryModal = ({
           <form onSubmit={form.handleSubmit(onSubmit)} autoComplete="off">
             <FormField
               control={form.control}
-              name="name"
+              name="query"
               render={({ field, fieldState }) => (
                 <FormItem className="flex flex-col items-start">
+                  <FormLabel>Query</FormLabel>
+                  <FormControl>
+                    <div className="w-full overflow-hidden rounded-md border py-3">
+                      <MonacoEditor {...field} value={field.value || ""} />
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field, fieldState }) => (
+                <FormItem className="mt-4 flex flex-col items-start">
                   <FormLabel>Name</FormLabel>
                   <FormControl>
                     <Input
@@ -149,23 +164,7 @@ export const SaveQueryModal = ({
                       autoComplete="off"
                       placeholder="Give your query a name..."
                       className="w-full"
-                      required
                     />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="query"
-              render={({ field, fieldState }) => (
-                <FormItem className="mt-4 flex flex-col items-start">
-                  <FormLabel>Query</FormLabel>
-                  <FormControl>
-                    <div className="w-full overflow-hidden rounded-md border py-3">
-                      <MonacoEditor {...field} value={field.value || ""} />
-                    </div>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
