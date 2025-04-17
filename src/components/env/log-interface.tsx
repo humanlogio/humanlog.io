@@ -254,7 +254,7 @@ const LogInterface = () => {
       <PanelGroup direction="horizontal">
         <Panel defaultSize={80} minSize={30}>
           <div
-            className={`container flex h-full flex-col gap-4 py-8 ${isLibraryOpen && "overflow-y-auto"}`}
+            className={`flex h-full flex-col gap-4 py-8 ${isLibraryOpen && "overflow-y-auto"}`}
           >
             {renderHeader()}
 

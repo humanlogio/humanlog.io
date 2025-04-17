@@ -36,7 +36,7 @@ const NewQueryOutput = ({
 
     if (!dataCase && !logData.value) {
       setOutput(
-        <div className="container flex flex-1 items-center justify-center">
+        <div className="flex flex-1 items-center justify-center">
           <NoLogsView />
         </div>,
       );
@@ -53,7 +53,7 @@ const NewQueryOutput = ({
                 <ToggleShowPretty />
                 <ToggleSplit />
               </div>
-              <div className="container flex-1">
+              <div className="flex-1">
                 <NewSessionPanel
                   query={parsedQuery}
                   ids={extractQueryIds(parsedQuery as LogQuery)}
@@ -66,7 +66,7 @@ const NewQueryOutput = ({
 
         case "freeForm":
           setOutput(
-            <div className="container flex-1">
+            <div className="flex-1">
               <TableContainer query={parsedQuery} />
             </div>,
           );
@@ -78,7 +78,7 @@ const NewQueryOutput = ({
     if (dataCase === "subqueries" && value instanceof Data_SubQueries) {
       const { queries } = value;
       setOutput(
-        <div className="container flex-1">
+        <div className="flex-1">
           <SubQueriesContainer
             queries={queries}
             onClickFilterBy={onClickFilterBy}

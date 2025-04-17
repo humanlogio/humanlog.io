@@ -383,10 +383,7 @@ const NewQueryInput = ({
 
   return (
     <div
-      className={twMerge(
-        "container items-center gap-8",
-        !isProd && "grid grid-cols-2",
-      )}
+      className={twMerge("items-center gap-8", !isProd && "grid grid-cols-2")}
     >
       <div className="col-span-2 md:col-span-1">
         <div
