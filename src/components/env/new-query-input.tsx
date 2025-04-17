@@ -26,7 +26,7 @@ import { twMerge } from "tailwind-merge";
 import * as monaco from "monaco-editor";
 import config from "@/features/config";
 import { Button } from "@/components/ui/button";
-import { Play } from "lucide-react";
+import { List, Play, Star } from "lucide-react";
 import {
   BinaryOp_Operator,
   FilterOperator,
@@ -41,6 +41,13 @@ import {
   newLiteralExpr,
 } from "@/lib/utils/queryBuilders";
 import { formatQuery, parseQuery } from "@/services/queryService";
+import { SaveQueryModal } from "@/components/env/query-library/save-query-modal";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface NewQueryInputProps {
   errMsg: string;
@@ -52,6 +59,9 @@ interface NewQueryInputProps {
     op?: BinaryOp_Operator;
   };
   setEditorContent: Dispatch<SetStateAction<string>>;
+  parsedQuery?: LogQuery;
+  setSavedQueryId?: Dispatch<SetStateAction<bigint | undefined>>;
+  setIsLibraryOpen: Dispatch<SetStateAction<boolean>>;
 }
 
 const NewQueryInput = ({
@@ -61,6 +71,9 @@ const NewQueryInput = ({
   editorContent,
   filterByKv,
   setEditorContent,
+  parsedQuery,
+  setSavedQueryId,
+  setIsLibraryOpen,
 }: NewQueryInputProps) => {
   const isProd = config.NEXT_PUBLIC_IS_PROD;
   const router = useRouter();
@@ -82,7 +95,9 @@ const NewQueryInput = ({
     startDate: Date;
     endDate: Date;
   }>({ startDate, endDate: new Date() });
-  const [isHovered, setIsHovered] = useState(false);
+  // const [isHovered, setIsHovered] = useState(false);
+  const [isSaveValid, setIsSaveValid] = useState(false);
+  const [isSaveQueryModalOpen, setIsSaveQueryModalOpen] = useState(false);
 
   const isFirstFocusRef = useRef(true);
   const editorRef = useRef<monacoEditor.IStandaloneCodeEditor>();
@@ -367,8 +382,6 @@ const NewQueryInput = ({
     }
   }, [symbol]);
 
-  console.log("editorContent", editorContent);
-
   useEffect(() => {
     if (editorRef.current && monacoRef.current) {
       editorRef.current.addCommand(
@@ -381,24 +394,54 @@ const NewQueryInput = ({
     }
   }, [searchParams, onExecuteQuery]);
 
+  useEffect(() => {
+    setIsSaveValid(editorContent.length > 0);
+  }, [editorContent]);
+
   return (
     <div
       className={twMerge("items-center gap-8", !isProd && "grid grid-cols-2")}
     >
       <div className="col-span-2 md:col-span-1">
-        <div
-          onMouseOver={() => setIsHovered(true)}
-          onMouseOut={() => setIsHovered(false)}
-          className="relative w-full overflow-hidden rounded-md border py-3"
-        >
-          <Button
-            onClick={() => executeQuery(editorContent)}
-            className={`absolute top-2 right-2 z-1 ${!isHovered && "hidden"}`}
-          >
-            <Play size={12} />
-            <span>Run</span>
-          </Button>
-
+        <div className="w-full overflow-hidden rounded-md border py-2">
+          <div className="mr-2 flex justify-end gap-1 text-sm">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger>
+                  <Button size="xs" variant="outline">
+                    <Play size={10} />
+                    Run
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>⌘+Enter</TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger>
+                  <Button
+                    size="xs"
+                    variant="outline"
+                    onClick={() => setIsLibraryOpen((prev) => !prev)}
+                  >
+                    <List size={12} />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Query Library</TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger>
+                  <Button
+                    size="xs"
+                    variant="outline"
+                    disabled={!isSaveValid}
+                    onClick={() => setIsSaveQueryModalOpen(true)}
+                  >
+                    <Star size={12} />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Save Query</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
           <MonacoEditor
             value={editorContent}
             onChange={(value) => setEditorContent(value || "")}
@@ -407,6 +450,17 @@ const NewQueryInput = ({
         </div>
         <p className="mt-2 text-xs text-[red]">{errMsg}</p>
       </div>
+
+      {/* Save Query Modal */}
+      {isSaveQueryModalOpen && (
+        <SaveQueryModal
+          query={editorContent || ""}
+          isSaveQueryModalOpen={isSaveQueryModalOpen}
+          setIsSaveQueryModalOpen={setIsSaveQueryModalOpen}
+          parsedQuery={parsedQuery}
+          setSavedQueryId={setSavedQueryId}
+        />
+      )}
 
       {/* CHART */}
       {!isProd && (
