@@ -9,6 +9,7 @@ import {
   User as UserIcon,
   LogOut,
   Menu,
+  ArrowUpCircle,
 } from "lucide-react";
 import Logo from "@/components/logo";
 import {
@@ -45,6 +46,14 @@ import { Button } from "@/components/ui/button";
 import config from "@/features/config";
 import dynamic from "next/dynamic";
 import { getFirstDoc } from "@/lib/docs";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Badge } from "@/components/ui/badge";
+import { getAllowedUsage } from "@/services/featureService";
 
 const WidthToggle = dynamic(() => import("@/components/width-toggle"), {
   ssr: false,
@@ -76,7 +85,7 @@ const PageHeader: React.FC = () => {
   const pathname = usePathname();
   const isProd = config.NEXT_PUBLIC_IS_PROD;
 
-  const { setActiveEnvironment, doLogout } = useApiClients();
+  const { setActiveEnvironment, doLogout, apiClients } = useApiClients();
   const { isFullWidth, setIsFullWidth } = useFullWidth();
 
   const {
@@ -90,6 +99,7 @@ const PageHeader: React.FC = () => {
 
   const [sources, setSources] = useState<Source[]>();
   const [selected, setSelected] = useState<Source>();
+  const [isPersonalUse, setIsPersonalUse] = useState<boolean | null>(null);
 
   const router = useRouter();
 
@@ -107,6 +117,16 @@ const PageHeader: React.FC = () => {
       router.push(_selected?.path);
     }
   };
+
+  const handleAllowedUsage = async () => {
+    if (!apiClients) return;
+    const res = await getAllowedUsage(apiClients.feature);
+    setIsPersonalUse(res?.localhostUsage === 1);
+  };
+
+  useEffect(() => {
+    handleAllowedUsage();
+  }, []);
 
   useEffect(() => {
     let _sources: { name: string; path: string; value: string }[] = [];
@@ -183,7 +203,8 @@ const PageHeader: React.FC = () => {
                 {user?.firstName?.slice(0, 2) || <UserIcon size={16} />}
               </AvatarFallback>
             </Avatar>
-            <p className="font-medium md:order-1 md:text-white dark:text-white">
+
+            <p className="font-medium md:order-1">
               {user?.firstName || "username"}
             </p>
           </div>
@@ -252,6 +273,41 @@ const PageHeader: React.FC = () => {
     );
   };
 
+  const renderSubcriptionBadge = () => {
+    if (isPersonalUse === null) return;
+
+    if (!isPersonalUse) {
+      return (
+        <Link href={`/pricing`}>
+          <Badge className="ml-1 border-0 bg-gradient-to-r from-blue-500/90 to-indigo-600/90 text-white transition-all hover:from-blue-600/90 hover:to-indigo-700/90">
+            Pro
+          </Badge>
+        </Link>
+      );
+    }
+
+    return (
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Link href={`/pricing`}>
+              <Badge className="ml-1 flex items-center gap-1 border-0 bg-gray-200 text-gray-700 transition-all hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
+                Free
+                <ArrowUpCircle
+                  size={12}
+                  className="text-blue-500 dark:text-blue-400"
+                />
+              </Badge>
+            </Link>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Upgrade to Pro for commercial usage and advanced features.</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    );
+  };
+
   return (
     <header className="bg-muted sticky top-0 left-0 z-20">
       <div className="container flex flex-row items-center justify-between gap-8 py-3">
@@ -264,6 +320,9 @@ const PageHeader: React.FC = () => {
             {renderNavBlock()}
             <div className="ml-4 flex flex-row items-center gap-4">
               {renderAvatarBlock(user)}
+              <div className="mx-1 h-6 border-l border-gray-300 dark:border-gray-700" />
+              {renderSubcriptionBadge()}
+
               <div className="flex flex-row items-center gap-2">
                 <ModeToggle />
                 {pathname === "/" && (
