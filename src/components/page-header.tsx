@@ -54,6 +54,7 @@ import {
 } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
 import { getAllowedUsage } from "@/services/featureService";
+import { AllowedUsageResponse } from "api/js/svc/feature/v1/service_pb";
 
 const WidthToggle = dynamic(() => import("@/components/width-toggle"), {
   ssr: false,
@@ -119,14 +120,16 @@ const PageHeader: React.FC = () => {
   };
 
   const handleAllowedUsage = async () => {
-    if (!apiClients) return;
-    const res = await getAllowedUsage(apiClients.feature);
-    setIsPersonalUse(res?.localhostUsage === 1);
+    if (!apiClients || user === "loading" || user === "not-logged-in") return;
+    await getAllowedUsage(apiClients.feature, {
+      onSuccess: (res: AllowedUsageResponse) =>
+        setIsPersonalUse(res?.localhostUsage === 1),
+    });
   };
 
   useEffect(() => {
     handleAllowedUsage();
-  }, []);
+  }, [user]);
 
   useEffect(() => {
     let _sources: { name: string; path: string; value: string }[] = [];
