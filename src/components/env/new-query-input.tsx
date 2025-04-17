@@ -413,7 +413,7 @@ const NewQueryInput = ({
                     Run
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent>⌘+Enter</TooltipContent>
+                <TooltipContent>Run the query (⌘+Enter)</TooltipContent>
               </Tooltip>
               <Tooltip>
                 <TooltipTrigger>
@@ -425,7 +425,7 @@ const NewQueryInput = ({
                     <List size={12} />
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent>Query Library</TooltipContent>
+                <TooltipContent>Open the Query Library</TooltipContent>
               </Tooltip>
               <Tooltip>
                 <TooltipTrigger>
