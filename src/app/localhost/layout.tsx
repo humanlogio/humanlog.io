@@ -5,12 +5,14 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Activity, Database, Bell, BarChart3 } from "lucide-react";
 import config from "@/features/config";
+import { useFullWidth } from "@/context/full-width-provider";
 
 interface LocalhostLayoutProps {
   children: ReactNode;
 }
 
 const LocalhostLayout = ({ children }: LocalhostLayoutProps) => {
+  const { isFullWidth } = useFullWidth();
   const pathname = usePathname();
   const router = useRouter();
   const isProd = config.NEXT_PUBLIC_IS_PROD;
@@ -49,10 +51,10 @@ const LocalhostLayout = ({ children }: LocalhostLayoutProps) => {
   }, [isProd, pathname, router]);
 
   return (
-    <div className="flex w-full flex-col">
+    <div className="flex w-full flex-col px-10">
       {!isProd && (
         <nav className="bg-background border-b">
-          <div className="container py-2">
+          <div className={`py-2 ${!isFullWidth && "container"}`}>
             <ul className="flex gap-4">
               {navItems.map((item) => {
                 return (
@@ -76,7 +78,9 @@ const LocalhostLayout = ({ children }: LocalhostLayoutProps) => {
         </nav>
       )}
 
-      <main className="flex-1">{children}</main>
+      <main className={`flex-1 ${!isFullWidth && "container"}`}>
+        {children}
+      </main>
     </div>
   );
 };
