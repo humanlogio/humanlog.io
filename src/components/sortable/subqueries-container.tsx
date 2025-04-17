@@ -90,7 +90,7 @@ export const SubQueriesContainer = ({
   return (
     selectedSessions && (
       <>
-        <div className="container mt-2 flex w-full items-end justify-between">
+        <div className={`mt-2 flex w-full items-end justify-between`}>
           <div className="flex flex-col gap-1">
             <ToggleShowPretty />
             <ToggleSplit />
@@ -128,7 +128,7 @@ export const SubQueriesContainer = ({
         <div className="mt-3 flex">
           <PanelGroup
             direction="horizontal"
-            className="container flex flex-1 overflow-y-auto"
+            className="flex flex-1 overflow-y-auto"
           >
             {selectedSessions?.map((list, i) => {
               return (
