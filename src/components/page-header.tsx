@@ -221,7 +221,6 @@ const PageHeader: React.FC = () => {
           <DropdownMenuItem onClick={doLogout} aria-label="logout">
             <LogOut size={16} className="mr-2" />
             <span>Log out</span>
-            <DropdownMenuShortcut>⇧⌘Q</DropdownMenuShortcut>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
