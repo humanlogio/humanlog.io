@@ -10,8 +10,9 @@ const SetupGuide: React.FC = () => {
     <div className="container flex flex-grow flex-col items-center justify-center gap-8">
       <div>
         <h1 className="text-center text-4xl font-bold">Get Started</h1>
+        <h2 className="text-center text-2xl font-bold">100% Local</h2>
         <p className="text-muted-foreground mt-4 text-center">
-          Logs for humans to read.
+          Free and 100% local data on your localhost. Try it with confidence.
         </p>
       </div>
       <div className="flex flex-row items-center gap-2">
