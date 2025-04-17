@@ -88,8 +88,7 @@ const LogInterface = () => {
     value: undefined,
   });
   const [isLibraryOpen, setIsLibraryOpen] = useState(false);
-  const [isSaveValid, setIsSaveValid] = useState(false);
-  const [isSaveQueryModalOpen, setIsSaveQueryModalOpen] = useState(false);
+
   const [symbol, setSymbol] = useState("");
   const [filterByKv, setFilterByKv] = useState<{
     kv: KV;
@@ -216,10 +215,6 @@ const LogInterface = () => {
   );
 
   useEffect(() => {
-    setIsSaveValid(editorContent.length > 0);
-  }, [editorContent]);
-
-  useEffect(() => {
     if (queryString != null) {
       executeQuery(decodeURIComponent(queryString));
     }
@@ -233,24 +228,6 @@ const LogInterface = () => {
     );
   }
 
-  const renderHeader = () => (
-    <div className="mb-2 flex w-full flex-row items-center justify-between">
-      <div />
-      <div className="flex gap-2 text-sm">
-        <Button
-          disabled={!isSaveValid}
-          size="sm"
-          onClick={() => setIsSaveQueryModalOpen(true)}
-        >
-          Save
-        </Button>
-        <Button size="sm" onClick={() => setIsLibraryOpen((prev) => !prev)}>
-          Query Library
-        </Button>
-      </div>
-    </div>
-  );
-
   return (
     <section className={isLibraryOpen ? "h-[calc(100vh-4rem)]" : ""}>
       <PanelGroup direction="horizontal">
@@ -258,8 +235,6 @@ const LogInterface = () => {
           <div
             className={`flex h-full flex-col gap-4 px-10 py-8 ${isLibraryOpen && "overflow-y-auto"} ${!isFullWidth && "container"}`}
           >
-            {renderHeader()}
-
             <NewQueryInput
               errMsg={queryParseErrMsg}
               onExecuteQuery={executeQuery}
@@ -267,6 +242,9 @@ const LogInterface = () => {
               filterByKv={filterByKv}
               editorContent={editorContent}
               setEditorContent={setEditorContent}
+              parsedQuery={parsedQuery}
+              setSavedQueryId={setSavedQueryId}
+              setIsLibraryOpen={setIsLibraryOpen}
             />
             <NewQueryOutput
               logData={logData}
@@ -289,16 +267,6 @@ const LogInterface = () => {
           setSavedQueryId={setSavedQueryId}
         />
       </PanelGroup>
-
-      {isSaveQueryModalOpen && (
-        <SaveQueryModal
-          query={editorContent || ""}
-          isSaveQueryModalOpen={isSaveQueryModalOpen}
-          setIsSaveQueryModalOpen={setIsSaveQueryModalOpen}
-          parsedQuery={parsedQuery}
-          setSavedQueryId={setSavedQueryId}
-        />
-      )}
     </section>
   );
 };
