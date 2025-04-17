@@ -325,7 +325,7 @@ const PageHeader: React.FC = () => {
 
               <div className="flex flex-row items-center gap-2">
                 <ModeToggle />
-                {pathname === "/" && (
+                {pathname.includes("localhost") && (
                   <WidthToggle
                     isFullWidth={isFullWidth}
                     setIsFullWidth={setIsFullWidth}
