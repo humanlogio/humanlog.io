@@ -1,47 +1,95 @@
 "use client";
 
-import { useState } from "react";
-import SessionContainer, {
-  LogEventGroup,
-} from "@/components/sortable/session-container";
-import { useFullWidth } from "@/context/full-width-provider";
-import { cn } from "@/lib/utils";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
+import { Data_SubQueries, Tabular } from "api/js/types/v1/query_pb";
+import { ReactNode, useEffect, useState } from "react";
+import { BinaryOp_Operator, LogQuery } from "api/js/types/v1/logquery_pb";
+import TableContainer from "@/components/sortable/table-container";
+import { useSearchParams } from "next/navigation";
+import { LogData } from "@/components/env/log-interface";
+import { NoLogsView } from "@/components/sortable/no-logs-view";
+import { SubQueriesContainer } from "@/components/sortable/subqueries-container";
+import { extractQueryIds } from "@/lib/utils/extractQueryIds";
+import {
+  ToggleShowPretty,
+  ToggleSplit,
+} from "@/components/sortable/log-viewer-settings";
+import { KV } from "api/js/types/v1/types_pb";
+import SessionPanel from "@/components/sortable/session-panel";
 
-const QueryOutput = ({ sessions }: { sessions: LogEventGroup[] | null }) => {
-  const [isPretty, setIsPretty] = useState(true);
-  const { isFullWidth } = useFullWidth();
+interface QueryOutputProps {
+  logData: LogData;
+  parsedQuery: LogQuery | undefined;
+  onClickFilterBy: (kv: KV, op?: BinaryOp_Operator) => void;
+}
 
-  return (
-    <div
-      className={cn(
-        "mx-auto flex w-full flex-1 flex-grow flex-col gap-4 overflow-y-auto px-4 transition-all duration-300",
-        isFullWidth ? "max-w-full" : "max-w-screen-xl",
-      )}
-    >
-      <div className="flex flex-none flex-row items-center gap-2">
-        <Label
-          htmlFor="pretty"
-          className={cn("transition-colors duration-200", {
-            "text-muted-foreground": isPretty,
-          })}
-        >
-          Raw
-        </Label>
-        <Switch id="pretty" checked={isPretty} onCheckedChange={setIsPretty} />
-        <Label
-          htmlFor="pretty"
-          className={cn("transition-colors duration-200", {
-            "text-muted-foreground": !isPretty,
-          })}
-        >
-          Pretty
-        </Label>
-      </div>
-      <SessionContainer sessions={sessions} />
-    </div>
-  );
+const QueryOutput = ({
+  logData,
+  parsedQuery,
+  onClickFilterBy,
+}: QueryOutputProps) => {
+  const searchParams = useSearchParams();
+  const queryString = searchParams.get("query");
+  const [output, setOutput] = useState<ReactNode>();
+
+  useEffect(() => {
+    const { case: dataCase, value } = logData;
+
+    if (!dataCase && !logData.value) {
+      setOutput(
+        <div className="flex flex-1 items-center justify-center">
+          <NoLogsView />
+        </div>,
+      );
+    }
+
+    if (dataCase === "tabular" && value instanceof Tabular) {
+      const { case: shapeCase } = value.shape;
+      switch (shapeCase) {
+        case "logEvents":
+          setOutput(
+            <>
+              {/* TODO: Remove condition after backend's update */}
+              <div className="mt-2 flex flex-col gap-1">
+                <ToggleShowPretty />
+                <ToggleSplit />
+              </div>
+              <div className="flex-1">
+                <SessionPanel
+                  query={parsedQuery}
+                  ids={extractQueryIds(parsedQuery as LogQuery)}
+                  onClickFilterBy={onClickFilterBy}
+                />
+              </div>
+            </>,
+          );
+          break;
+
+        case "freeForm":
+          setOutput(
+            <div className="flex-1">
+              <TableContainer query={parsedQuery} />
+            </div>,
+          );
+          break;
+      }
+      return;
+    }
+
+    if (dataCase === "subqueries" && value instanceof Data_SubQueries) {
+      const { queries } = value;
+      setOutput(
+        <div className="flex-1">
+          <SubQueriesContainer
+            queries={queries}
+            onClickFilterBy={onClickFilterBy}
+          />
+        </div>,
+      );
+      return;
+    }
+  }, [logData, queryString]);
+
+  return output;
 };
 
 export default QueryOutput;

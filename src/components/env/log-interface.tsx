@@ -11,8 +11,8 @@ import { useSearchParams } from "next/navigation";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 
 import { Button } from "@/components/ui/button";
-import NewQueryInput from "@/components/env/new-query-input";
-import NewQueryOutput from "@/components/env/new-query-output";
+import QueryInput from "@/components/env/query-input";
+import QueryOutput from "@/components/env/query-output";
 import { QueryLibrary } from "@/components/env/query-library";
 import { SaveQueryModal } from "@/components/env/query-library/save-query-modal";
 import { NoLocalhostView } from "@/components/sortable/no-localhost-view";
@@ -235,7 +235,7 @@ const LogInterface = () => {
           <div
             className={`flex h-full flex-col gap-4 px-10 py-8 ${isLibraryOpen && "overflow-y-auto"} ${!isFullWidth && "container"}`}
           >
-            <NewQueryInput
+            <QueryInput
               errMsg={queryParseErrMsg}
               onExecuteQuery={executeQuery}
               symbol={symbol}
@@ -246,7 +246,7 @@ const LogInterface = () => {
               setSavedQueryId={setSavedQueryId}
               setIsLibraryOpen={setIsLibraryOpen}
             />
-            <NewQueryOutput
+            <QueryOutput
               logData={logData}
               parsedQuery={parsedQuery}
               onClickFilterBy={(kv: KV, op?: BinaryOp_Operator) =>

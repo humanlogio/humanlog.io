@@ -22,7 +22,7 @@ export const ToggleShowPretty = () => {
   };
 
   return (
-    <div className="container flex items-center gap-2">
+    <div className="flex items-center gap-2">
       <Switch
         id="show-pretty"
         checked={pretty === "false" ? false : true}
@@ -58,7 +58,7 @@ export const ToggleSplit = () => {
   };
 
   return (
-    <div className="container flex items-center gap-2">
+    <div className="flex items-center gap-2">
       <Switch
         id="split-by-default"
         checked={split === "false" ? false : true}

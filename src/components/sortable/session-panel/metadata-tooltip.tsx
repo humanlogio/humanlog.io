@@ -1,6 +1,6 @@
 import { TooltipContent } from "@/components/ui/tooltip";
 import { IngestedLogEvent } from "api/js/types/v1/logevent_pb";
-import { KeyValueRow } from "@/components/sortable/new-session-panel/key-value-row";
+import { KeyValueRow } from "@/components/sortable/session-panel/key-value-row";
 import { formatTimestamp, getUnixTimestamp } from "@/lib/utils/formatTimeStamp";
 import { Timestamp } from "@bufbuild/protobuf";
 
