@@ -127,7 +127,6 @@ const TableContainer = ({ query }: TableProps) => {
           right: -2px;
           height: 100%;
           width: 3px;
-          background: rgba(0, 0, 0, 0.4);
           cursor: col-resize;
           user-select: none;
           touch-action: none;
@@ -147,7 +146,7 @@ const TableContainer = ({ query }: TableProps) => {
       `}</style>
       <div className="overflow-auto">
         <table className="mt-4 w-full table-fixed">
-          <thead className="dark:bg-darkBg border bg-white">
+          <thead className="dark:bg-darkBg bg-muted border">
             {table.getHeaderGroups().map((headerGroup) => (
               <tr key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
