@@ -407,7 +407,7 @@ const NewQueryInput = ({
           <div className="mr-2 flex justify-end gap-1 text-sm">
             <TooltipProvider>
               <Tooltip>
-                <TooltipTrigger>
+                <TooltipTrigger asChild>
                   <Button size="xs" variant="outline">
                     <Play size={10} />
                     Run
@@ -416,7 +416,7 @@ const NewQueryInput = ({
                 <TooltipContent>Run the query (⌘+Enter)</TooltipContent>
               </Tooltip>
               <Tooltip>
-                <TooltipTrigger>
+                <TooltipTrigger asChild>
                   <Button
                     size="xs"
                     variant="outline"
@@ -428,7 +428,7 @@ const NewQueryInput = ({
                 <TooltipContent>Open the Query Library</TooltipContent>
               </Tooltip>
               <Tooltip>
-                <TooltipTrigger>
+                <TooltipTrigger asChild>
                   <Button
                     size="xs"
                     variant="outline"
