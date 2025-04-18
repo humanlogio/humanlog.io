@@ -207,7 +207,7 @@ const PageHeader: React.FC = () => {
               </AvatarFallback>
             </Avatar>
 
-            <p className="font-medium md:order-1">
+            <p className="font-medium whitespace-nowrap md:order-1">
               {user?.firstName || "username"}
             </p>
           </div>
@@ -221,7 +221,6 @@ const PageHeader: React.FC = () => {
           <DropdownMenuItem onClick={doLogout} aria-label="logout">
             <LogOut size={16} className="mr-2" />
             <span>Log out</span>
-            <DropdownMenuShortcut>⇧⌘Q</DropdownMenuShortcut>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
