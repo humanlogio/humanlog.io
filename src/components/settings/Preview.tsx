@@ -5,7 +5,7 @@ import {
   StructuredLogEvent,
 } from "api/js/types/v1/logevent_pb";
 import { KV, Val } from "api/js/types/v1/types_pb";
-import NewSessionPanel from "@/components/sortable/new-session-panel";
+import SessionPanel from "@/components/sortable/session-panel";
 
 const SAMPLE_LOGS = [
   {
@@ -271,7 +271,7 @@ export const Preview = ({ themes, isDark, timeformat }: PreviewProps) => {
   const fakeData = convertSampleLogs();
 
   return (
-    <NewSessionPanel
+    <SessionPanel
       onClickFilterBy={() => {}}
       fakeData={fakeData}
       query={undefined}

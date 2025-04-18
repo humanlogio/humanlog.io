@@ -60,10 +60,11 @@ export function Demo() {
         </p>
       </div>
 
-      <div className="mx-auto flex max-w-screen-xl flex-col justify-center gap-7 py-16 sm:flex-row">
+      <div className="relative mx-auto mt-4 flex h-0 w-3/4 flex-col justify-center gap-7 py-16 pt-[56%] sm:flex-row">
         <iframe
-          width="738"
-          height="641"
+          // width="738"
+          // height="641"
+          className="absolute top-0 left-0 h-full w-full"
           src={`https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&loop=1&playlist=${videoId}`}
           title="YouTube video player"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"

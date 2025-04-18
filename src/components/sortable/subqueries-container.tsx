@@ -17,7 +17,7 @@ import {
   ToggleSplit,
 } from "@/components/sortable/log-viewer-settings";
 import { KV } from "api/js/types/v1/types_pb";
-import NewSessionPanel from "@/components/sortable/new-session-panel";
+import SessionPanel from "@/components/sortable/session-panel";
 
 interface SubQueriesContainerProps {
   queries: LogQuery[];
@@ -143,7 +143,7 @@ export const SubQueriesContainer = ({
                           <X color="black" size={14} />
                         </button>
                       )}
-                      <NewSessionPanel
+                      <SessionPanel
                         ids={extractQueryIds(list.query)}
                         query={list.query}
                         onClickFilterBy={onClickFilterBy}

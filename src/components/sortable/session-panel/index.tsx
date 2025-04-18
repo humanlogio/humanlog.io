@@ -41,11 +41,11 @@ import {
 } from "@/components/ui/select";
 import { SelectTrigger } from "@radix-ui/react-select";
 import { KV } from "api/js/types/v1/types_pb";
-import { MetaDataTooltip } from "@/components/sortable/new-session-panel/metadata-tooltip";
-import { KeyValueRow } from "@/components/sortable/new-session-panel/key-value-row";
-import { FilterByKeyValue } from "@/components/sortable/new-session-panel/filter-by-kvs";
+import { MetaDataTooltip } from "@/components/sortable/session-panel/metadata-tooltip";
+import { KeyValueRow } from "@/components/sortable/session-panel/key-value-row";
+import { FilterByKeyValue } from "@/components/sortable/session-panel/filter-by-kvs";
 
-interface NewSessionPanelProps {
+interface SessionPanelProps {
   ids?: { machineId?: string; sessionId?: string };
   query: LogQuery | undefined;
   fakeData?: IngestedLogEvent[];
@@ -54,14 +54,14 @@ interface NewSessionPanelProps {
   onClickFilterBy: (kv: KV, op?: BinaryOp_Operator) => void;
 }
 
-const NewSessionPanel = ({
+const SessionPanel = ({
   ids,
   query,
   fakeData,
   darkMode,
   themes,
   onClickFilterBy,
-}: NewSessionPanelProps) => {
+}: SessionPanelProps) => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
@@ -426,4 +426,4 @@ const NewSessionPanel = ({
   );
 };
 
-export default NewSessionPanel;
+export default SessionPanel;
