@@ -65,9 +65,9 @@ export function SettingsShell({
   }
 
   return (
-    <div className="container-min-h-full container flex">
+    <div className="flex">
       {/* Sidebar */}
-      <aside className="border-border w-80 border-r-2 py-6">
+      <aside className="border-border min-h-[calc(100vh-225px)] w-80 border-r-2 py-6">
         <nav className="space-y-2">
           {sections.map((section) => (
             <Link
