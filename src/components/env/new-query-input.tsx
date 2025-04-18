@@ -408,7 +408,11 @@ const NewQueryInput = ({
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button size="xs" variant="outline">
+                  <Button
+                    onClick={() => executeQuery(editorContent)}
+                    size="xs"
+                    variant="outline"
+                  >
                     <Play size={10} />
                     Run
                   </Button>
