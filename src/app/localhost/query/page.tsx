@@ -1,4 +1,4 @@
-import LogInterface from "@/components/env/log-interface";
+import LogInterface from "@/components/log-interface";
 
 export default function Query() {
   return <LogInterface />;

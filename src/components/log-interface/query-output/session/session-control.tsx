@@ -1,15 +1,66 @@
+import { TooltipContent } from "@/components/ui/tooltip";
+import { IngestedLogEvent } from "api/js/types/v1/logevent_pb";
+
+import { formatTimestamp, getUnixTimestamp } from "@/lib/utils/formatTimeStamp";
+import { Timestamp } from "@bufbuild/protobuf";
+
+export const KeyValueRow = ({
+  label,
+  value,
+}: {
+  label: string;
+  value: string | bigint;
+}) => {
+  return value ? (
+    <div className="flex">
+      <span className="w-28 text-gray-400">{label} </span>
+      <span>{value}</span>
+    </div>
+  ) : null;
+};
+
+export const MetaDataTooltip = ({ log }: { log: IngestedLogEvent }) => {
+  return (
+    <TooltipContent align="start">
+      <div>
+        <KeyValueRow label="Machine Id" value={log.machineId.toString()} />
+        <KeyValueRow label="Session Id" value={log.sessionId.toString()} />
+        <KeyValueRow label="Event Id" value={log.eventId.toString()} />
+        <KeyValueRow
+          label="Local"
+          value={formatTimestamp(
+            (log.structured?.timestamp as Timestamp) ?? log.parsedAt,
+            "Jan _2 15:04:05.000",
+          )}
+        />
+        <KeyValueRow
+          label="UTC"
+          value={formatTimestamp(
+            (log.structured?.timestamp as Timestamp) ?? log.parsedAt,
+            "Jan _2 15:04:05.000",
+            true,
+          )}
+        />
+        <KeyValueRow
+          label="Timestamp"
+          value={getUnixTimestamp(
+            (log.structured?.timestamp as Timestamp) ?? log.parsedAt,
+          ).toString()}
+        />
+      </div>
+    </TooltipContent>
+  );
+};
 import { BinaryOp_Operator } from "api/js/types/v1/logquery_pb";
 import { KV } from "api/js/types/v1/types_pb";
-
-interface FilterByKeyValueProps {
-  kv: KV;
-  onClickFilterBy: (kv: KV, op?: BinaryOp_Operator) => void;
-}
 
 export const FilterByKeyValue = ({
   kv,
   onClickFilterBy,
-}: FilterByKeyValueProps) => {
+}: {
+  kv: KV;
+  onClickFilterBy: (kv: KV, op?: BinaryOp_Operator) => void;
+}) => {
   const OPERATORS = [
     {
       label: "equals (==)",

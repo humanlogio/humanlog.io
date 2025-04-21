@@ -13,7 +13,7 @@ import { copyToClipboard } from "@/lib/utils/clipboard";
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
 import { Dispatch, SetStateAction, useState } from "react";
-import { SaveQueryModal } from "@/components/env/query-library/save-query-modal";
+import { SaveQueryModal } from "@/components/log-interface/query-library/save-query-modal";
 
 interface DropdownMenuItem {
   key: string;

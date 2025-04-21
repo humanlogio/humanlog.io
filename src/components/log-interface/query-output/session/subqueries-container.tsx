@@ -15,9 +15,9 @@ import { useSearchParams } from "next/navigation";
 import {
   ToggleShowPretty,
   ToggleSplit,
-} from "@/components/sortable/log-viewer-settings";
+} from "@/components/log-interface/query-output/toggles";
 import { KV } from "api/js/types/v1/types_pb";
-import SessionPanel from "@/components/sortable/session-panel";
+import SessionPanel from "@/components/log-interface/query-output/session/session-panel";
 
 interface SubQueriesContainerProps {
   queries: LogQuery[];
