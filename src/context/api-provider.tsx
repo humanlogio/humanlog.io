@@ -26,6 +26,10 @@ import { LocalhostService } from "api/js/svc/localhost/v1/service_connect";
 import { QueryService } from "api/js/svc/query/v1/service_connect";
 import { ProductService } from "api/js/svc/product/v1/service_connect";
 import { FeatureService } from "api/js/svc/feature/v1/service_connect";
+import {
+  PublicShareService,
+  UserShareService,
+} from "api/js/svc/share/v1/service_connect";
 import { getAPIURL, getSelfURL } from "@/lib/envs";
 import { useCookies } from "react-cookie";
 import { Environment } from "api/js/types/v1/environment_pb";
@@ -53,8 +57,10 @@ type ApiClients = {
   org: Client<typeof OrganizationService>;
   user: Client<typeof UserService>;
   localhost: Client<typeof LocalhostService>;
-  query: Client<typeof QueryService>;
   feature: Client<typeof FeatureService>;
+  publicShare: Client<typeof PublicShareService>;
+  userShare: Client<typeof UserShareService>;
+  query: Client<typeof QueryService>;
 
   apiTransport: Transport;
   localhostTransport: Transport;
@@ -156,7 +162,10 @@ export function ApiClientsProvider({
       org: createClient(OrganizationService, apiTpt),
       user: createClient(UserService, apiTpt),
       feature: createClient(FeatureService, apiTpt),
+      publicShare: createClient(PublicShareService, apiTpt),
+      userShare: createClient(UserShareService, apiTpt),
       query: createClient(QueryService, activeTransport),
+
       apiTransport: apiTpt,
       localhostTransport: localhostTransport,
       activeTransport: activeTransport,

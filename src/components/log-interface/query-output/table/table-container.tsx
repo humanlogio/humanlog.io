@@ -1,6 +1,6 @@
 import { useInfiniteQuery } from "@/lib/utils/useInfiniteQuery";
 import { valueToJSX } from "@/lib/utils/valueFormatters";
-import { LogQuery } from "api/js/types/v1/logquery_pb";
+import { Query } from "api/js/types/v1/query_pb";
 import { FlatArr, TableType_Column } from "api/js/types/v1/types_pb";
 import { useEffect, useMemo, useState } from "react";
 import {
@@ -11,7 +11,7 @@ import {
 } from "@tanstack/react-table";
 
 interface TableProps {
-  query: LogQuery | undefined;
+  query: Query | undefined;
 }
 
 const TableContainer = ({ query }: TableProps) => {

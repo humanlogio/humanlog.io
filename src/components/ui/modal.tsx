@@ -15,8 +15,8 @@ export const Modal = ({ open = true, children }: ModalProps) => {
   return (
     <Dialog open={open}>
       <DialogPortal>
-        <DialogOverlay className="fixed inset-0" />
-        <DialogContent className="fixed top-1/2 left-1/2 z-50 max-h-[90%] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-lg bg-white p-8 text-center text-black shadow-lg dark:border dark:bg-black dark:text-white">
+        <DialogOverlay className="fixed inset-0 bg-black/40 dark:bg-black/60" />
+        <DialogContent className="fixed top-[50%] left-[50%] translate-x-[-50%] translate-y-[-50%] rounded-lg border bg-white p-6 shadow-lg dark:border-gray-800 dark:bg-gray-900">
           {children}
         </DialogContent>
       </DialogPortal>

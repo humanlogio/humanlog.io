@@ -861,7 +861,7 @@ type Storage interface {
 }
 
 type Queryable interface {
-    Query(context.Context, *typesv1.LogQuery) ([]Cursor, error)
+    Query(context.Context, *typesv1.Query) ([]Cursor, error)
 }
 ```
 
@@ -908,7 +908,7 @@ func (str *MemStorage) SinkFor(ctx context.Context, machineID, sessionID int64) 
 To `Query`, we start by finding all the sinks that would match the query object, and returning cursors:
 
 ```go
-func (str *MemStorage) Query(ctx context.Context, q *typesv1.LogQuery) ([]localstorage.Cursor, error) {
+func (str *MemStorage) Query(ctx context.Context, q *typesv1.Query) ([]localstorage.Cursor, error) {
     str.sinksMu.Lock()
     defer str.sinksMu.Unlock()
     var cursors []localstorage.Cursor
@@ -928,7 +928,7 @@ func (str *MemStorage) Query(ctx context.Context, q *typesv1.LogQuery) ([]locals
 The sinks do the brute-force lookup by iterating over all events and returning the first one that matches. Remember, we're crafting a user experience here, not going for performance.
 
 ```go
-func (snk *MemStorageSink) firstMatch(ctx context.Context, q *typesv1.LogQuery) (index int, ok bool, err error) {
+func (snk *MemStorageSink) firstMatch(ctx context.Context, q *typesv1.Query) (index int, ok bool, err error) {
     snk.mu.RLock()
     defer snk.mu.RUnlock()
 
@@ -946,7 +946,7 @@ The cursors that get returned are essentially windows on the `sink` they represe
 
 ```go
 type MemSinkCursor struct {
-    q  *typesv1.LogQuery
+    q  *typesv1.Query
     cur  int
     next int
     more bool
@@ -973,7 +973,7 @@ func (crs *MemSinkCursor) Next(ctx context.Context) bool {
 It finds the matches by evaluating the query object against each log event in the sink's list:
 
 ```go
-func eventMatches(q *typesv1.LogQuery, ev *typesv1.LogEvent) bool {
+func eventMatches(q *typesv1.Query, ev *typesv1.LogEvent) bool {
     ts := ev.ParsedAt.AsTime()
     from := q.From.AsTime()
     atOrAfter := ts.Equal(from) || ts.After(from)

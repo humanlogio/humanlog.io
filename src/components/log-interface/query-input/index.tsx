@@ -30,9 +30,9 @@ import { List, Play, Star } from "lucide-react";
 import {
   BinaryOp_Operator,
   FilterOperator,
-  LogQuery,
+  Query,
   Statement,
-} from "api/js/types/v1/logquery_pb";
+} from "api/js/types/v1/query_pb";
 import { FormatRequest, ParseResponse } from "api/js/svc/query/v1/service_pb";
 import { KV } from "api/js/types/v1/types_pb";
 import {
@@ -48,6 +48,9 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { SaveQueryModal } from "@/components/log-interface/query-library/save-query-modal";
+import { ShareQuery } from "@/components/log-interface/share-query";
+import { QueryHistoryEntry } from "api/js/types/v1/query_history_entry_pb";
+import { Data } from "api/js/types/v1/data_pb";
 
 interface QueryInputProps {
   errMsg: string;
@@ -59,9 +62,11 @@ interface QueryInputProps {
     op?: BinaryOp_Operator;
   };
   setEditorContent: Dispatch<SetStateAction<string>>;
-  parsedQuery?: LogQuery;
+  parsedQuery?: Query;
   setSavedQueryId?: Dispatch<SetStateAction<bigint | undefined>>;
   setIsLibraryOpen: Dispatch<SetStateAction<boolean>>;
+  queryHistoryEntry?: QueryHistoryEntry;
+  data?: Data;
 }
 
 const QueryInput = ({
@@ -74,9 +79,10 @@ const QueryInput = ({
   parsedQuery,
   setSavedQueryId,
   setIsLibraryOpen,
+  queryHistoryEntry,
+  data,
 }: QueryInputProps) => {
   const isProd = config.NEXT_PUBLIC_IS_PROD;
-  const router = useRouter();
   const searchParams = useSearchParams();
   const queryString = searchParams.get("query");
 
@@ -95,10 +101,8 @@ const QueryInput = ({
     startDate: Date;
     endDate: Date;
   }>({ startDate, endDate: new Date() });
-  // const [isHovered, setIsHovered] = useState(false);
   const [isSaveValid, setIsSaveValid] = useState(false);
   const [isSaveQueryModalOpen, setIsSaveQueryModalOpen] = useState(false);
-  const [isQueryShareModalOpen, setIsQueryShareModalOpen] = useState(false);
 
   const isFirstFocusRef = useRef(true);
   const editorRef = useRef<monacoEditor.IStandaloneCodeEditor>();
@@ -250,19 +254,12 @@ const QueryInput = ({
 
     editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, () => {
       const currentValue = editor.getValue();
-      const params = new URLSearchParams(searchParams);
-      params.set("query", encodeURIComponent(currentValue));
-      router.push(`?${params}`);
       onExecuteQuery(currentValue);
-
       setEditorContent(currentValue);
     });
   };
 
   const executeQuery = (query: string) => {
-    const params = new URLSearchParams(searchParams);
-    params.set("query", encodeURIComponent(query));
-    router.push(`?${params}`);
     onExecuteQuery(query);
     setEditorContent(query);
   };
@@ -299,7 +296,7 @@ const QueryInput = ({
 
     statements.unshift(filterStmt);
 
-    const newQuery = new LogQuery({
+    const newQuery = new Query({
       ...parseRes.query,
       query: {
         statements,
@@ -309,7 +306,7 @@ const QueryInput = ({
     return newQuery;
   };
 
-  const handleFormatQuery = async (query?: LogQuery) => {
+  const handleFormatQuery = async (query?: Query) => {
     if (!apiClients || !query) return;
 
     const formatReq = new FormatRequest({
@@ -447,14 +444,10 @@ const QueryInput = ({
               </Tooltip>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button
-                    size="xs"
-                    variant="outline"
-                    // disabled={!isSaveValid}
-                    // onClick={() => setIsSaveQueryModalOpen(true)}
-                  >
-                    <Share2 size={12} />
-                  </Button>
+                  <ShareQuery
+                    queryHistoryEntry={queryHistoryEntry}
+                    data={data}
+                  />
                 </TooltipTrigger>
                 <TooltipContent>Share Query</TooltipContent>
               </Tooltip>

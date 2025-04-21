@@ -1,4 +1,4 @@
-import { BinaryOp_Operator, LogQuery } from "api/js/types/v1/logquery_pb";
+import { BinaryOp_Operator, Query } from "api/js/types/v1/query_pb";
 import { Fragment, useEffect, useState } from "react";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import { extractQueryIds } from "@/lib/utils/extractQueryIds";
@@ -20,7 +20,7 @@ import { KV } from "api/js/types/v1/types_pb";
 import SessionPanel from "@/components/log-interface/query-output/session/session-panel";
 
 interface SubQueriesContainerProps {
-  queries: LogQuery[];
+  queries: Query[];
   onClickFilterBy: (kv: KV, op?: BinaryOp_Operator) => void;
 }
 
@@ -28,7 +28,7 @@ interface SelectedSessionsType {
   value: string;
   sessionId: any;
   machineId: any;
-  query: LogQuery;
+  query: Query;
 }
 
 export const SubQueriesContainer = ({

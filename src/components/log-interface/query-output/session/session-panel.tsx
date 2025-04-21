@@ -3,7 +3,7 @@ import { formatTimestamp } from "@/lib/utils/formatTimeStamp";
 
 import { useInfiniteQuery } from "@/lib/utils/useInfiniteQuery";
 import { IngestedLogEvent } from "api/js/types/v1/logevent_pb";
-import { BinaryOp_Operator, LogQuery } from "api/js/types/v1/logquery_pb";
+import { BinaryOp_Operator, Query } from "api/js/types/v1/query_pb";
 import {
   Ellipsis,
   Loader,
@@ -49,7 +49,7 @@ import {
 
 interface SessionPanelProps {
   ids?: { machineId?: string; sessionId?: string };
-  query: LogQuery | undefined;
+  query: Query | undefined;
   fakeData?: IngestedLogEvent[];
   darkMode?: boolean;
   themes?: FormatConfig_Themes;

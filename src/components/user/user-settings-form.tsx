@@ -20,10 +20,12 @@ import { useApiClients } from "@/context/api-provider";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { ConnectError } from "@connectrpc/connect";
+import { updateUser } from "@/services/userService";
 
 const formSchema = z.object({
   firstName: z.string().min(1, "First Name is required"),
   lastName: z.string().optional(),
+  username: z.string().optional(),
 });
 
 export function UserSettingsForm() {
@@ -46,6 +48,10 @@ export function UserSettingsForm() {
         user !== "loading" && user !== "not-logged-in"
           ? user.lastName || ""
           : "",
+      username:
+        user !== "loading" && user !== "not-logged-in"
+          ? user.username || ""
+          : "",
     },
   });
 
@@ -59,11 +65,13 @@ export function UserSettingsForm() {
     const initialValues = {
       firstName: user.firstName || "",
       lastName: user.lastName || "",
+      username: user.username || "",
     };
 
     const hasChanged =
       watchedValues.firstName !== initialValues.firstName ||
-      watchedValues.lastName !== initialValues.lastName;
+      watchedValues.lastName !== initialValues.lastName ||
+      watchedValues.username !== initialValues.username;
 
     setFormChanged(hasChanged);
   }, [watchedValues, user]);
@@ -92,6 +100,7 @@ export function UserSettingsForm() {
       form.reset({
         firstName: user.firstName || "",
         lastName: user.lastName || "",
+        username: user.username || "",
       });
     }
   };
@@ -102,30 +111,21 @@ export function UserSettingsForm() {
   }, [user, form]);
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    try {
-      setIsSubmitting(true);
-      await apiClients?.user.updateUser({
-        firstName: values.firstName,
-        lastName: values.lastName ?? "",
-      });
-
-      toast.success("Settings updated", {
-        description: "Your profile information has been updated successfully.",
-      });
-
-      // refetch user info
-      getUserInfo();
-    } catch (error) {
-      console.error("Form submission error:", error);
-      if (error instanceof ConnectError) {
-        toast.error("Error", {
+    if (!apiClients) return;
+    const { firstName, lastName, username } = values;
+    setIsSubmitting(true);
+    await updateUser(apiClients?.user, firstName, lastName, username, {
+      onSuccess: () => {
+        toast.success("Settings updated", {
           description:
-            error.message ?? "Failed to update settings. Please try again.",
+            "Your profile information has been updated successfully.",
         });
-      }
-    } finally {
-      setIsSubmitting(false);
-    }
+        // refetch user info
+        getUserInfo();
+        setIsSubmitting(false);
+      },
+      onError: () => setIsSubmitting(false),
+    });
   };
 
   // Billing portal section
@@ -198,6 +198,21 @@ export function UserSettingsForm() {
                 <FormLabel>Last Name (optional)</FormLabel>
                 <FormControl>
                   <Input placeholder="Last Name" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {/* User  Name Field */}
+          <FormField
+            control={form.control}
+            name="username"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>User Name (optional)</FormLabel>
+                <FormControl>
+                  <Input placeholder="User Name" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
