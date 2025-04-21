@@ -51,7 +51,7 @@ export const MetaDataTooltip = ({ log }: { log: IngestedLogEvent }) => {
     </TooltipContent>
   );
 };
-import { BinaryOp_Operator } from "api/js/types/v1/logquery_pb";
+import { BinaryOp_Operator } from "api/js/types/v1/query_pb";
 import { KV } from "api/js/types/v1/types_pb";
 
 export const FilterByKeyValue = ({

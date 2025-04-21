@@ -1,8 +1,4 @@
-import {
-  BinaryOp_Operator,
-  Expr,
-  Identifier,
-} from "api/js/types/v1/logquery_pb";
+import { BinaryOp_Operator, Expr, Identifier } from "api/js/types/v1/query_pb";
 import { ScalarType, Val, VarType } from "api/js/types/v1/types_pb";
 
 export const newBinaryExpr = (

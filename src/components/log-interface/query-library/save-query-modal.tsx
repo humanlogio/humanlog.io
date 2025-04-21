@@ -12,7 +12,7 @@ import {
   useEffect,
   useState,
 } from "react";
-import { LogQuery } from "api/js/types/v1/logquery_pb";
+import { Query } from "api/js/types/v1/query_pb";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -34,7 +34,7 @@ interface SaveQueryModalProps {
   query?: string;
   isSaveQueryModalOpen: boolean;
   setIsSaveQueryModalOpen: Dispatch<SetStateAction<boolean>>;
-  parsedQuery?: LogQuery;
+  parsedQuery?: Query;
   setSavedQueryId?: Dispatch<SetStateAction<bigint | undefined>>;
 }
 

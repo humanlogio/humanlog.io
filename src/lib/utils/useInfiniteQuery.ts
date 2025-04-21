@@ -3,12 +3,12 @@
 import { useApiClients } from "@/context/api-provider";
 import { QueryRequest } from "api/js/svc/query/v1/service_pb";
 import { Cursor } from "api/js/types/v1/cursor_pb";
-import { LogQuery } from "api/js/types/v1/logquery_pb";
-import { Tabular } from "api/js/types/v1/query_pb";
-import { useEffect, useState } from "react";
+import { Query } from "api/js/types/v1/query_pb";
+import { Tabular } from "api/js/types/v1/data_pb";
+import { useState } from "react";
 import { useInView } from "react-intersection-observer";
 
-export const useInfiniteQuery = (query?: LogQuery | undefined) => {
+export const useInfiniteQuery = (query?: Query | undefined) => {
   const limit = 100;
 
   const { apiClients, activeEnvironment } = useApiClients();
