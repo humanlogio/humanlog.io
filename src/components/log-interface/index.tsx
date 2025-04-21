@@ -11,11 +11,7 @@ import { useSearchParams } from "next/navigation";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 
 import { Button } from "@/components/ui/button";
-import QueryInput from "@/components/env/query-input";
-import QueryOutput from "@/components/env/query-output";
-import { QueryLibrary } from "@/components/env/query-library";
-import { SaveQueryModal } from "@/components/env/query-library/save-query-modal";
-import { NoLocalhostView } from "@/components/sortable/no-localhost-view";
+import { NoLocalhostView } from "@/components/log-interface/views/no-localhost-view";
 
 import { useApiClients } from "@/context/api-provider";
 import { useAllEnvironments } from "@/context/list-environments";
@@ -47,6 +43,9 @@ import { getQuery, parseQuery, QueryClientType } from "@/services/queryService";
 import { recordQueryHistory } from "@/services/userService";
 import { RecordQueryHistoryResponse } from "api/js/svc/user/v1/service_pb";
 import { useFullWidth } from "@/context/full-width-provider";
+import QueryInput from "@/components/log-interface/query-input";
+import QueryOutput from "@/components/log-interface/query-output";
+import { QueryLibrary } from "@/components/log-interface/query-library";
 
 export type DataCase =
   | "subqueries"

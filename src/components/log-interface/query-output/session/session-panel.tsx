@@ -27,7 +27,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { NoLogsView } from "@/components/sortable/no-logs-view";
+import { NoLogsView } from "@/components/log-interface/views/no-logs-view";
 import { twJoin, twMerge } from "tailwind-merge";
 import { usePathname, useSearchParams } from "next/navigation";
 import { decodeUint8Array } from "@/lib/utils/decode";
@@ -41,9 +41,11 @@ import {
 } from "@/components/ui/select";
 import { SelectTrigger } from "@radix-ui/react-select";
 import { KV } from "api/js/types/v1/types_pb";
-import { MetaDataTooltip } from "@/components/sortable/session-panel/metadata-tooltip";
-import { KeyValueRow } from "@/components/sortable/session-panel/key-value-row";
-import { FilterByKeyValue } from "@/components/sortable/session-panel/filter-by-kvs";
+import {
+  FilterByKeyValue,
+  KeyValueRow,
+  MetaDataTooltip,
+} from "@/components/log-interface/query-output/session/session-control";
 
 interface SessionPanelProps {
   ids?: { machineId?: string; sessionId?: string };

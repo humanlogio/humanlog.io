@@ -41,13 +41,13 @@ import {
   newLiteralExpr,
 } from "@/lib/utils/queryBuilders";
 import { formatQuery, parseQuery } from "@/services/queryService";
-import { SaveQueryModal } from "@/components/env/query-library/save-query-modal";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { SaveQueryModal } from "@/components/log-interface/query-library/save-query-modal";
 
 interface QueryInputProps {
   errMsg: string;
@@ -98,6 +98,7 @@ const QueryInput = ({
   // const [isHovered, setIsHovered] = useState(false);
   const [isSaveValid, setIsSaveValid] = useState(false);
   const [isSaveQueryModalOpen, setIsSaveQueryModalOpen] = useState(false);
+  const [isQueryShareModalOpen, setIsQueryShareModalOpen] = useState(false);
 
   const isFirstFocusRef = useRef(true);
   const editorRef = useRef<monacoEditor.IStandaloneCodeEditor>();
@@ -443,6 +444,19 @@ const QueryInput = ({
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>Save Query</TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    size="xs"
+                    variant="outline"
+                    // disabled={!isSaveValid}
+                    // onClick={() => setIsSaveQueryModalOpen(true)}
+                  >
+                    <Share2 size={12} />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Share Query</TooltipContent>
               </Tooltip>
             </TooltipProvider>
           </div>

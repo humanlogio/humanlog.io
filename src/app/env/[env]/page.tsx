@@ -1,7 +1,7 @@
 import EnvSwitcher from "@/components/env/env-switcher";
-import LogInterface from "@/components/env/log-interface";
 import { notFound } from "next/navigation";
 import config from "@/features/config";
+import LogInterface from "@/components/log-interface";
 
 export default async function EnvironmentPage({
   params,

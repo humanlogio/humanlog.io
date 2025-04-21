@@ -3,18 +3,18 @@
 import { Data_SubQueries, Tabular } from "api/js/types/v1/query_pb";
 import { ReactNode, useEffect, useState } from "react";
 import { BinaryOp_Operator, LogQuery } from "api/js/types/v1/logquery_pb";
-import TableContainer from "@/components/sortable/table-container";
+import TableContainer from "@/components/log-interface/query-output/table/table-container";
 import { useSearchParams } from "next/navigation";
-import { LogData } from "@/components/env/log-interface";
-import { NoLogsView } from "@/components/sortable/no-logs-view";
-import { SubQueriesContainer } from "@/components/sortable/subqueries-container";
+import { LogData } from "@/components/log-interface";
+import { NoLogsView } from "@/components/log-interface/views/no-logs-view";
+import { SubQueriesContainer } from "@/components/log-interface/query-output/session/subqueries-container";
 import { extractQueryIds } from "@/lib/utils/extractQueryIds";
 import {
   ToggleShowPretty,
   ToggleSplit,
-} from "@/components/sortable/log-viewer-settings";
+} from "@/components/log-interface/query-output/toggles";
 import { KV } from "api/js/types/v1/types_pb";
-import SessionPanel from "@/components/sortable/session-panel";
+import SessionPanel from "@/components/log-interface/query-output/session/session-panel";
 
 interface QueryOutputProps {
   logData: LogData;
