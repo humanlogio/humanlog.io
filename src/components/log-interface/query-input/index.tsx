@@ -26,7 +26,7 @@ import { twMerge } from "tailwind-merge";
 import * as monaco from "monaco-editor";
 import config from "@/features/config";
 import { Button } from "@/components/ui/button";
-import { List, Play, Star } from "lucide-react";
+import { List, Play, Share, Star } from "lucide-react";
 import {
   BinaryOp_Operator,
   FilterOperator,
