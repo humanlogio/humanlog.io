@@ -11,11 +11,16 @@ import React, {
 import { getSelfURL } from "@/lib/envs";
 import { usePathname, useRouter } from "next/navigation";
 import { useAllEnvironments } from "@/context/list-environments";
-import { Modal } from "@/components/ui/modal";
-import { DialogFooter, DialogHeader } from "@/components/ui/dialog";
-import { DialogTitle } from "@radix-ui/react-dialog";
-import { Button } from "@/components/ui/button";
 import { Loader } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogContent,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 type AuthContextType = {
   isAuthModalOpen: boolean;
@@ -71,7 +76,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } else {
       router.push("/");
     }
-  }, [pathname]);
+  }, [pathname, router, isLoginRequired, previousPath]);
 
   useEffect(() => {
     setPreviousPath(pathname);
@@ -84,7 +89,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } else if (user !== "loading") {
       setIsAuthModalOpen(false);
     }
-  }, [pathname, user]);
+  }, [pathname, user, isLoginRequired]);
 
   if (isLoginRequired(pathname) && user === "loading") {
     return (
@@ -105,25 +110,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         authMessage,
       }}
     >
-      {isAuthModalOpen ? (
-        <Modal open={isAuthModalOpen}>
-          <DialogHeader>
-            <DialogTitle>{authMessage}</DialogTitle>
-          </DialogHeader>
-          <DialogFooter className="mt-4 flex-row">
-            <Button
+      <AlertDialog open={isAuthModalOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{authMessage}</AlertDialogTitle>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="mt-4 flex-row">
+            <AlertDialogCancel onClick={closeAuthModal}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
               onClick={() => {
                 doLogin(`${getSelfURL()}${pathname}`);
               }}
             >
               Login
-            </Button>
-            <Button onClick={closeAuthModal}>Cancel</Button>
-          </DialogFooter>
-        </Modal>
-      ) : (
-        children
-      )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      {children}
     </AuthContext.Provider>
   );
 }
