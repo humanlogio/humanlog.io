@@ -28,7 +28,6 @@ interface ShareQueryProps {
 export const ShareQuery = ({ queryHistoryEntry, data }: ShareQueryProps) => {
   const { user } = useAllEnvironments();
   const { apiClients } = useApiClients();
-  if (!apiClients) return;
 
   const [username, setUsername] = useState("");
   const [isValid, setIsValid] = useState(
@@ -36,7 +35,7 @@ export const ShareQuery = ({ queryHistoryEntry, data }: ShareQueryProps) => {
   );
 
   const handleUpdateUser = async () => {
-    if (user === "loading" || user === "not-logged-in") return;
+    if (user === "loading" || user === "not-logged-in" || !apiClients) return;
     await updateUser(apiClients.user, user.firstName, user.lastName, username, {
       onSuccess: () => {
         toast.success("Username successfully updated");
@@ -47,6 +46,7 @@ export const ShareQuery = ({ queryHistoryEntry, data }: ShareQueryProps) => {
   };
 
   const handleShareQuery = async (visibility: SharedResultVisibility) => {
+    if (!apiClients) return;
     await createUserSharedResult(
       apiClients.userShare,
       queryHistoryEntry,
@@ -108,9 +108,9 @@ export const ShareQuery = ({ queryHistoryEntry, data }: ShareQueryProps) => {
                 </div>
 
                 <div className="mt-1 text-sm text-yellow-700 dark:text-yellow-300/90">
-                  When you share this query, it will be stored in our cloud
+                  {` When you share this query, it will be stored in our cloud
                   service. Make sure your query doesn't contain any sensitive
-                  information.
+                  information.`}
                 </div>
               </div>
             </div>
