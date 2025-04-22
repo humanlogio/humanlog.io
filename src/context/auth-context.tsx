@@ -21,6 +21,7 @@ import {
   AlertDialogContent,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { useApiClients } from "@/context/api-provider";
 
 type AuthContextType = {
   isAuthModalOpen: boolean;
@@ -39,6 +40,7 @@ const loginRequiredPaths = [
 ];
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+  const { authenticated } = useApiClients();
   const { doLogin, user } = useAllEnvironments();
   const router = useRouter();
   const pathname = usePathname();
@@ -76,7 +78,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } else {
       router.push("/");
     }
-  }, [pathname, router, isLoginRequired, previousPath]);
+  }, [pathname, router, isLoginRequired, previousPath, authenticated]);
 
   useEffect(() => {
     setPreviousPath(pathname);
@@ -89,7 +91,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } else if (user !== "loading") {
       setIsAuthModalOpen(false);
     }
-  }, [pathname, user, isLoginRequired]);
+  }, [pathname, user, isLoginRequired, authenticated]);
 
   if (isLoginRequired(pathname) && user === "loading") {
     return (

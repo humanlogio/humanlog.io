@@ -33,13 +33,8 @@ import {
 import { getAPIURL, getSelfURL } from "@/lib/envs";
 import { useCookies } from "react-cookie";
 import { Environment } from "api/js/types/v1/environment_pb";
-import { useRouter } from "next/navigation";
 import config from "@/features/config";
 import { v4 as uuidv4 } from "uuid";
-import dayjs from "dayjs";
-import { RefreshUserTokenResponse } from "api/js/svc/user/v1/service_pb";
-import { Timestamp } from "@bufbuild/protobuf";
-import { toast } from "sonner";
 
 type ApiProviderType = {
   apiClients: ApiClients | null;
@@ -47,6 +42,7 @@ type ApiProviderType = {
   setActiveEnvironment: React.Dispatch<
     React.SetStateAction<Environment | undefined>
   >;
+  authenticated: boolean;
   doLogout: () => void;
 };
 
@@ -84,10 +80,7 @@ export function ApiClientsProvider({
   const [activeEnvironment, setActiveEnvironment] = useState<
     Environment | undefined
   >();
-  const [refreshToken, setRefreshToken] =
-    useState<RefreshUserTokenResponse | null>();
-
-  const router = useRouter();
+  const [authenticated, setAuthenticated] = useState(false);
 
   let humanlogSessionCookie = cookies["hlog_session"];
 
@@ -119,24 +112,34 @@ export function ApiClientsProvider({
         }
         req.header.set("Request-Id", uuidv4());
 
-        const res = await next(req);
-        const newToken =
-          res.header.get("UseAuthorization") ||
-          res.header.get("useauthorization");
+        try {
+          const res = await next(req);
+          const newToken =
+            res.header.get("UseAuthorization") ||
+            res.header.get("useauthorization");
 
-        !isProd && console.log("res.header", res.header);
+          !isProd && console.log("res.header", res.header);
 
-        if (newToken) {
-          console.log("Received new authorization token");
-          token = newToken;
-          setCookie("hlog_session", newToken, {
-            path: "/",
-            domain: `.humanlog${config.TLD}`,
-            secure: true,
-            sameSite: "none",
-          });
+          if (newToken) {
+            console.log("Received new authorization token");
+            token = newToken;
+            setCookie("hlog_session", newToken, {
+              path: "/",
+              domain: `.humanlog${config.TLD}`,
+              secure: true,
+              sameSite: "none",
+            });
+          }
+          setAuthenticated(true);
+          return res;
+        } catch (error) {
+          if (error instanceof ConnectError) {
+            if (error.code === Code.Unauthenticated) {
+              setAuthenticated(false);
+            }
+          }
+          throw error;
         }
-        return res;
       };
     };
 
@@ -180,6 +183,7 @@ export function ApiClientsProvider({
             apiClients,
             activeEnvironment,
             setActiveEnvironment,
+            authenticated,
             doLogout,
           }}
         >
