@@ -192,10 +192,6 @@ const LogInterface = () => {
           if (!res.query) return;
           setQueryParseErrMsg("");
 
-          const params = new URLSearchParams(searchParams);
-          params.set("query", encodeURIComponent(editorContent));
-          router.push(`?${params}`);
-
           handleRecordQueryHistory(editorContent, res.query);
           res.query = processQueryModifiers(res, splitByDefault);
           setParsedQuery(res.query);
