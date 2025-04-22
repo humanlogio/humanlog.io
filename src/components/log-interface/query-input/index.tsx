@@ -463,15 +463,13 @@ const QueryInput = ({
       </div>
 
       {/* Save Query Modal */}
-      {isSaveQueryModalOpen && (
-        <SaveQueryModal
-          query={editorContent || ""}
-          isSaveQueryModalOpen={isSaveQueryModalOpen}
-          setIsSaveQueryModalOpen={setIsSaveQueryModalOpen}
-          parsedQuery={parsedQuery}
-          setSavedQueryId={setSavedQueryId}
-        />
-      )}
+      <SaveQueryModal
+        query={editorContent || ""}
+        isSaveQueryModalOpen={isSaveQueryModalOpen}
+        setIsSaveQueryModalOpen={setIsSaveQueryModalOpen}
+        parsedQuery={parsedQuery}
+        setSavedQueryId={setSavedQueryId}
+      />
 
       {/* CHART */}
       {!isProd && (

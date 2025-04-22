@@ -1,7 +1,11 @@
 import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
-import { DialogTitle } from "@radix-ui/react-dialog";
-import { DialogFooter, DialogHeader } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogFooter,
+  DialogTitle,
+  DialogContent,
+} from "@/components/ui/dialog";
 import { ConnectError } from "@connectrpc/connect";
 import { toast } from "sonner";
 import { useApiClients } from "@/context/api-provider";
@@ -127,90 +131,90 @@ export const SaveQueryModal = ({
   }, [isSaveQueryModalOpen, form, query]);
 
   return (
-    <Modal open={isSaveQueryModalOpen}>
-      <DialogHeader>
-        <DialogTitle></DialogTitle>
-      </DialogHeader>
-      {isFetching ? (
-        <Loader className="animate-spin" />
-      ) : (
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} autoComplete="off">
-            <FormField
-              control={form.control}
-              name="query"
-              render={({ field, fieldState }) => (
-                <FormItem className="flex flex-col items-start">
-                  <FormLabel>Query</FormLabel>
-                  <FormControl>
-                    <div className="w-full overflow-hidden rounded-md border py-3">
-                      <MonacoEditor {...field} value={field.value || ""} />
-                    </div>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field, fieldState }) => (
-                <FormItem className="mt-4 flex flex-col items-start">
-                  <FormLabel>Name</FormLabel>
-                  <FormControl>
-                    <Input
-                      {...field}
-                      type="text"
-                      autoComplete="off"
-                      placeholder="Give your query a name..."
-                      className="w-full"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="note"
-              render={({ field }) => (
-                <FormItem className="mt-4 flex flex-col items-start">
-                  <FormLabel>Note</FormLabel>
-                  <FormControl>
-                    <MarkdownEditor
-                      id="query-note"
-                      value={field.value || ""}
-                      onChange={field.onChange}
-                      placeholder="Add optional notes or description (supports Markdown)"
-                      label=""
-                      error={form.formState.errors.note?.message}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+    <Dialog open={isSaveQueryModalOpen} onOpenChange={setIsSaveQueryModalOpen}>
+      <DialogContent>
+        <DialogTitle />
+        {isFetching ? (
+          <Loader className="animate-spin" />
+        ) : (
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} autoComplete="off">
+              <FormField
+                control={form.control}
+                name="query"
+                render={({ field, fieldState }) => (
+                  <FormItem className="flex flex-col items-start">
+                    <FormLabel>Query</FormLabel>
+                    <FormControl>
+                      <div className="w-full overflow-hidden rounded-md border py-3">
+                        <MonacoEditor {...field} value={field.value || ""} />
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field, fieldState }) => (
+                  <FormItem className="mt-4 flex flex-col items-start">
+                    <FormLabel>Name</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        type="text"
+                        autoComplete="off"
+                        placeholder="Give your query a name..."
+                        className="w-full"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="note"
+                render={({ field }) => (
+                  <FormItem className="mt-4 flex flex-col items-start">
+                    <FormLabel>Note</FormLabel>
+                    <FormControl>
+                      <MarkdownEditor
+                        id="query-note"
+                        value={field.value || ""}
+                        onChange={field.onChange}
+                        placeholder="Add optional notes or description (supports Markdown)"
+                        label=""
+                        error={form.formState.errors.note?.message}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-            <DialogFooter className="mt-4 flex-row">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setIsSaveQueryModalOpen(false)}
-              >
-                Cancel
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                type="submit"
-                disabled={!form.formState.errors}
-              >
-                Save
-              </Button>
-            </DialogFooter>
-          </form>
-        </Form>
-      )}
-    </Modal>
+              <DialogFooter className="mt-4 flex-row">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsSaveQueryModalOpen(false)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  type="submit"
+                  disabled={!form.formState.errors}
+                >
+                  Save
+                </Button>
+              </DialogFooter>
+            </form>
+          </Form>
+        )}
+      </DialogContent>
+    </Dialog>
   );
 };

@@ -48,7 +48,7 @@ const MarkdownEditor = ({
   };
 
   return (
-    <div className="w-full min-w-[500px]">
+    <div className="w-full">
       {label && (
         <label htmlFor={id} className="mb-1 block text-sm font-medium">
           {label}
