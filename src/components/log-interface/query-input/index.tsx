@@ -83,6 +83,7 @@ const QueryInput = ({
   data,
 }: QueryInputProps) => {
   const isProd = config.NEXT_PUBLIC_IS_PROD;
+  const router = useRouter();
   const searchParams = useSearchParams();
   const queryString = searchParams.get("query");
 
@@ -254,12 +255,18 @@ const QueryInput = ({
 
     editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, () => {
       const currentValue = editor.getValue();
+      const params = new URLSearchParams(searchParams);
+      params.set("query", encodeURIComponent(currentValue));
+      router.push(`?${params}`);
       onExecuteQuery(currentValue);
       setEditorContent(currentValue);
     });
   };
 
   const executeQuery = (query: string) => {
+    const params = new URLSearchParams(searchParams);
+    params.set("query", encodeURIComponent(query));
+    router.push(`?${params}`);
     onExecuteQuery(query);
     setEditorContent(query);
   };
