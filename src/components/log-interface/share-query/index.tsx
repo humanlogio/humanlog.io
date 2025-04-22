@@ -12,13 +12,22 @@ import { createUserSharedResult } from "@/services/shareService";
 import { QueryHistoryEntry } from "api/js/types/v1/query_history_entry_pb";
 import { Data } from "api/js/types/v1/data_pb";
 import { SharedResultVisibility } from "api/js/types/v1/shared_result_pb";
-import { Share, TriangleAlert } from "lucide-react";
+import { Check, Copy, Share, TriangleAlert } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { updateUser } from "@/services/userService";
 import { useState } from "react";
 import { useAllEnvironments } from "@/context/list-environments";
 import { toast } from "sonner";
+import { useSearchParams } from "next/navigation";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { copyToClipboard } from "@/lib/utils/clipboard";
+import { getSelfURL } from "@/lib/envs";
 
 interface ShareQueryProps {
   queryHistoryEntry?: QueryHistoryEntry;
@@ -26,6 +35,10 @@ interface ShareQueryProps {
 }
 
 export const ShareQuery = ({ queryHistoryEntry, data }: ShareQueryProps) => {
+  const selfURL = getSelfURL();
+
+  const searchParams = useSearchParams();
+  const queryString = searchParams.get("query");
   const { user } = useAllEnvironments();
   const { apiClients } = useApiClients();
 
@@ -33,13 +46,17 @@ export const ShareQuery = ({ queryHistoryEntry, data }: ShareQueryProps) => {
   const [isValid, setIsValid] = useState(
     user === "loading" || user === "not-logged-in" ? false : !!user.username,
   );
+  const [shareLink, setShareLink] = useState<string | null>();
+  const [copied, setCopied] = useState(false);
 
   const handleUpdateUser = async () => {
     if (user === "loading" || user === "not-logged-in" || !apiClients) return;
     await updateUser(apiClients.user, user.firstName, user.lastName, username, {
-      onSuccess: () => {
-        toast.success("Username successfully updated");
-        setIsValid(true);
+      onSuccess: (res) => {
+        if (res.user?.username) {
+          toast.success("Username successfully updated");
+          setIsValid(true);
+        }
       },
       onError: () => setIsValid(false),
     });
@@ -53,29 +70,59 @@ export const ShareQuery = ({ queryHistoryEntry, data }: ShareQueryProps) => {
       data,
       visibility,
       {
-        onSuccess: (res) => console.log("res", res),
-        onError: (error) => {},
+        onSuccess: (res) => {
+          if (
+            visibility === SharedResultVisibility.ANYONE_WITH_LINK &&
+            res.sharedResult?.visibility.case === "anyoneWithLink"
+          ) {
+            const { randomPrefix, shareId } =
+              res.sharedResult?.visibility.value;
+
+            const link = `${selfURL}/share/${randomPrefix}/${shareId}`;
+            setShareLink(link);
+          } else if (
+            visibility === SharedResultVisibility.PUBLIC &&
+            res.sharedResult?.visibility.case === "public"
+          ) {
+            const { shareId } = res.sharedResult?.visibility.value;
+            const link = `${selfURL}/share/${shareId}`;
+            setShareLink(link);
+          }
+        },
       },
     );
+  };
+
+  const handleCopyToClipboard = async (value: string) => {
+    const res = await copyToClipboard(value);
+    if (res) {
+      setCopied(true);
+    } else {
+      setCopied(false);
+    }
+  };
+
+  const resetLink = () => {
+    setShareLink(null);
+    setCopied(false);
   };
 
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button disabled={!data} size="xs" variant="outline">
+        <Button disabled={!data || !queryString} size="xs" variant="outline">
           <Share size={12} />
         </Button>
       </DialogTrigger>
 
-      <DialogContent className="sm:max-w-md">
+      <DialogContent>
         <DialogHeader>
-          <DialogTitle>Share Query</DialogTitle>
+          <DialogTitle>Share Results</DialogTitle>
           <div className="space-y-3">
             <div>
-              Create a permanent link to share your query with others. Anyone
-              with this link will be able to view and run this query.
+              Create a permanent link to share your query and the results with
+              others.
             </div>
-
             {!isValid && (
               <div>
                 <Label>Pick a username</Label>
@@ -89,12 +136,35 @@ export const ShareQuery = ({ queryHistoryEntry, data }: ShareQueryProps) => {
                   </Button>
                 </div>
                 <p className="mt-1 text-xs text-red-400">
-                  You need a userinfo to share query results.
+                  You need a username to share query results.
                 </p>
               </div>
             )}
 
-            <div className="rounded-md bg-yellow-50 p-4 dark:bg-yellow-900/30">
+            {shareLink && (
+              <div className="mt-4">
+                <Label htmlFor="share-link">Share Link</Label>
+                <div className="mt-1 flex">
+                  <Input
+                    id="share-link"
+                    readOnly
+                    value={shareLink}
+                    className="pr-10"
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="ml-2"
+                    onClick={() => handleCopyToClipboard(shareLink)}
+                  >
+                    {copied ? <Check className="text-green-500" /> : <Copy />}
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            <div className="rounded-md bg-yellow-50 p-3 dark:bg-yellow-900/30">
               <div>
                 <div className="flex items-center gap-1">
                   <TriangleAlert
@@ -108,29 +178,52 @@ export const ShareQuery = ({ queryHistoryEntry, data }: ShareQueryProps) => {
                 </div>
 
                 <div className="mt-1 text-sm text-yellow-700 dark:text-yellow-300/90">
-                  {` When you share this query, it will be stored in our cloud
-                  service. Make sure your query doesn't contain any sensitive
-                  information.`}
+                  {`This will upload the query and the results to our cloud.`}
                 </div>
               </div>
             </div>
           </div>
         </DialogHeader>
+
         <DialogFooter>
-          <Button
-            disabled={!isValid}
-            onClick={() => handleShareQuery(SharedResultVisibility.PUBLIC)}
-          >
-            Public
-          </Button>
-          <Button
-            disabled={!isValid}
-            onClick={() =>
-              handleShareQuery(SharedResultVisibility.ANYONE_WITH_LINK)
-            }
-          >
-            Anyone with the link
-          </Button>
+          {shareLink ? (
+            <Button onClick={resetLink}>Create New Link</Button>
+          ) : (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    disabled={!isValid}
+                    onClick={() =>
+                      handleShareQuery(SharedResultVisibility.PUBLIC)
+                    }
+                  >
+                    Public
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  Share with the public.
+                  <br /> This will appear on your user profile page.
+                </TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    disabled={!isValid}
+                    onClick={() =>
+                      handleShareQuery(SharedResultVisibility.ANYONE_WITH_LINK)
+                    }
+                  >
+                    Anyone with the link
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  Share only to those who have the link.
+                  <br /> This will not appear on your user profile page.
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>
