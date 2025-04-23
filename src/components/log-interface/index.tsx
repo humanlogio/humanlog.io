@@ -7,15 +7,11 @@ import {
   useEffect,
   useState,
 } from "react";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 
 import { Button } from "@/components/ui/button";
-import QueryInput from "@/components/env/query-input";
-import QueryOutput from "@/components/env/query-output";
-import { QueryLibrary } from "@/components/env/query-library";
-import { SaveQueryModal } from "@/components/env/query-library/save-query-modal";
-import { NoLocalhostView } from "@/components/sortable/no-localhost-view";
+import { NoLocalhostView } from "@/components/log-interface/views/no-localhost-view";
 
 import { useApiClients } from "@/context/api-provider";
 import { useAllEnvironments } from "@/context/list-environments";
@@ -28,25 +24,31 @@ import {
 } from "api/js/svc/query/v1/service_pb";
 import {
   BinaryOp_Operator,
-  LogQuery,
+  Expr,
+  Query,
   RenderStatement,
   SplitOperator,
   SplitOperator_ByOperator,
   Statements,
-} from "api/js/types/v1/logquery_pb";
-import { KV, Val } from "api/js/types/v1/types_pb";
-import {
-  Data_SubQueries,
-  ScalarTimeseries,
-  Tabular,
-  VectorTimeseries,
 } from "api/js/types/v1/query_pb";
+import { KV, Val } from "api/js/types/v1/types_pb";
 import { newIdentifierExpr } from "@/lib/utils/queryBuilders";
 import { X } from "lucide-react";
 import { getQuery, parseQuery, QueryClientType } from "@/services/queryService";
 import { recordQueryHistory } from "@/services/userService";
 import { RecordQueryHistoryResponse } from "api/js/svc/user/v1/service_pb";
 import { useFullWidth } from "@/context/full-width-provider";
+import QueryInput from "@/components/log-interface/query-input";
+import QueryOutput from "@/components/log-interface/query-output";
+import { QueryLibrary } from "@/components/log-interface/query-library";
+import { QueryHistoryEntry } from "api/js/types/v1/query_history_entry_pb";
+import {
+  Data,
+  Data_SubQueries,
+  ScalarTimeseries,
+  Tabular,
+  VectorTimeseries,
+} from "api/js/types/v1/data_pb";
 
 export type DataCase =
   | "subqueries"
@@ -72,6 +74,7 @@ export interface LogData {
 const LogInterface = () => {
   const limit = 100;
 
+  const router = useRouter();
   const { apiClients, activeEnvironment } = useApiClients();
   const { isFullWidth } = useFullWidth();
   const { localhostInfo } = useAllEnvironments();
@@ -82,7 +85,7 @@ const LogInterface = () => {
   const splitByDefault = searchParams.get("splitByDefault") !== "false";
 
   const [queryParseErrMsg, setQueryParseErrMsg] = useState("");
-  const [parsedQuery, setParsedQuery] = useState<LogQuery>();
+  const [parsedQuery, setParsedQuery] = useState<Query>();
   const [logData, setLogData] = useState<LogData>({
     case: undefined,
     value: undefined,
@@ -90,13 +93,16 @@ const LogInterface = () => {
   const [isLibraryOpen, setIsLibraryOpen] = useState(false);
 
   const [symbol, setSymbol] = useState("");
-  const [filterByKv, setFilterByKv] = useState<{
-    kv: KV;
+  const [filterBySymbol, setFilterBySymbol] = useState<{
+    symbolName: string;
+    symbolValue: Expr;
     op?: BinaryOp_Operator;
   }>();
   const [editorContent, setEditorContent] = useState<string>("");
-  const [recentQueryId, setRecentQueryId] = useState<bigint>();
+  const [queryHistoryEntry, setQueryHistoryEntry] =
+    useState<QueryHistoryEntry>();
   const [savedQueryId, setSavedQueryId] = useState<bigint>();
+  const [isQueryHistoryLoading, setIsQueryHistoryLoading] = useState(false);
 
   const createSplitRenderStatement = () => {
     return new RenderStatement({
@@ -148,11 +154,16 @@ const LogInterface = () => {
     return parseRes.query;
   };
 
-  const handleRecordQueryHistory = (rawQuery: string, query: LogQuery) => {
+  const handleRecordQueryHistory = (rawQuery: string, query: Query) => {
     if (!apiClients || rawQuery.length === 0) return;
+    setIsQueryHistoryLoading(true);
     recordQueryHistory(apiClients?.user, rawQuery, query, {
-      onSuccess: (res: RecordQueryHistoryResponse) =>
-        setRecentQueryId(res.entry?.id),
+      onSuccess: (res: RecordQueryHistoryResponse) => {
+        setQueryHistoryEntry(res.entry), setIsQueryHistoryLoading(false);
+      },
+      onError: () => {
+        setIsQueryHistoryLoading(false);
+      },
     });
   };
 
@@ -162,7 +173,9 @@ const LogInterface = () => {
   ) => {
     getQuery(queryClient, queryReq, {
       onSuccess: (res: QueryResponse) => {
-        res.data && setLogData(res.data.shape);
+        if (res.data) {
+          setLogData(res.data.shape);
+        }
       },
     });
   };
@@ -197,7 +210,8 @@ const LogInterface = () => {
 
           handleQueryData(queryClient, queryReq);
         },
-        onError: () => {
+        onError: (error) => {
+          setQueryParseErrMsg(error.message);
           setLogData({ case: undefined, value: undefined });
           return null;
         },
@@ -239,20 +253,25 @@ const LogInterface = () => {
               errMsg={queryParseErrMsg}
               onExecuteQuery={executeQuery}
               symbol={symbol}
-              filterByKv={filterByKv}
+              filterBySymbol={filterBySymbol}
               editorContent={editorContent}
               setEditorContent={setEditorContent}
               parsedQuery={parsedQuery}
               setSavedQueryId={setSavedQueryId}
               setIsLibraryOpen={setIsLibraryOpen}
             />
-            <QueryOutput
-              logData={logData}
-              parsedQuery={parsedQuery}
-              onClickFilterBy={(kv: KV, op?: BinaryOp_Operator) =>
-                setFilterByKv({ kv, op })
-              }
-            />
+            {!isQueryHistoryLoading && (
+              <QueryOutput
+                logData={logData}
+                parsedQuery={parsedQuery}
+                queryHistoryEntry={queryHistoryEntry}
+                onClickFilterBy={(
+                  symbolName: string,
+                  symbolValue: Expr,
+                  op?: BinaryOp_Operator,
+                ) => setFilterBySymbol({ symbolName, symbolValue, op })}
+              />
+            )}
           </div>
         </Panel>
 
@@ -262,7 +281,7 @@ const LogInterface = () => {
           isOpen={isLibraryOpen}
           onClose={() => setIsLibraryOpen(false)}
           onClickSymbol={(symbolString) => setSymbol(symbolString)}
-          recentQueryId={recentQueryId}
+          recentQueryId={queryHistoryEntry?.id}
           savedQueryId={savedQueryId}
           setSavedQueryId={setSavedQueryId}
         />

@@ -6,9 +6,6 @@ import {
   useState,
 } from "react";
 import { twMerge } from "tailwind-merge";
-import { RecentQuery } from "@/components/env/query-library/recent-query";
-import { SavedQuery } from "@/components/env/query-library/saved-query";
-import { SymbolList } from "@/components/env/query-library/symbol-list";
 import { useApiClients } from "@/context/api-provider";
 import { Cursor } from "api/js/types/v1/cursor_pb";
 import { useInfiniteScroll } from "@/lib/utils/useInfiniteScroll";
@@ -16,6 +13,9 @@ import {
   ListFavoriteQueryResponse_ListItem,
   ListQueryHistoryResponse_ListItem,
 } from "api/js/svc/user/v1/service_pb";
+import { SymbolList } from "@/components/log-interface/query-library/symbol-list";
+import { SavedQuery } from "@/components/log-interface/query-library/saved-query";
+import { RecentQuery } from "@/components/log-interface/query-library/recent-query";
 
 interface QueryLibraryProps {
   onClickSymbol: (symbolString: string) => void;
