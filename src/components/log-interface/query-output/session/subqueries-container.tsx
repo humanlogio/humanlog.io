@@ -1,4 +1,4 @@
-import { BinaryOp_Operator, LogQuery } from "api/js/types/v1/logquery_pb";
+import { BinaryOp_Operator, Expr, Query } from "api/js/types/v1/query_pb";
 import { Fragment, useEffect, useState } from "react";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import { extractQueryIds } from "@/lib/utils/extractQueryIds";
@@ -15,24 +15,31 @@ import { useSearchParams } from "next/navigation";
 import {
   ToggleShowPretty,
   ToggleSplit,
-} from "@/components/sortable/log-viewer-settings";
+} from "@/components/log-interface/query-output/toggles";
 import { KV } from "api/js/types/v1/types_pb";
-import SessionPanel from "@/components/sortable/session-panel";
+import SessionPanel from "@/components/log-interface/query-output/session/session-panel";
+import { QueryHistoryEntry } from "api/js/types/v1/query_history_entry_pb";
 
 interface SubQueriesContainerProps {
-  queries: LogQuery[];
-  onClickFilterBy: (kv: KV, op?: BinaryOp_Operator) => void;
+  queries: Query[];
+  queryHistoryEntry?: QueryHistoryEntry;
+  onClickFilterBy: (
+    symbolName: string,
+    symbolValue: Expr,
+    op?: BinaryOp_Operator,
+  ) => void;
 }
 
 interface SelectedSessionsType {
   value: string;
   sessionId: any;
   machineId: any;
-  query: LogQuery;
+  query: Query;
 }
 
 export const SubQueriesContainer = ({
   queries,
+  queryHistoryEntry,
   onClickFilterBy,
 }: SubQueriesContainerProps) => {
   const searchParams = useSearchParams();
@@ -146,6 +153,7 @@ export const SubQueriesContainer = ({
                       <SessionPanel
                         ids={extractQueryIds(list.query)}
                         query={list.query}
+                        queryHistoryEntry={queryHistoryEntry}
                         onClickFilterBy={onClickFilterBy}
                       />
                     </div>

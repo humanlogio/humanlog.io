@@ -1,30 +1,37 @@
 "use client";
 
-import { Data_SubQueries, Tabular } from "api/js/types/v1/query_pb";
+import { Data_SubQueries, Tabular } from "api/js/types/v1/data_pb";
 import { ReactNode, useEffect, useState } from "react";
-import { BinaryOp_Operator, LogQuery } from "api/js/types/v1/logquery_pb";
-import TableContainer from "@/components/sortable/table-container";
+import { BinaryOp_Operator, Expr, Query } from "api/js/types/v1/query_pb";
+import TableContainer from "@/components/log-interface/query-output/table/table-container";
 import { useSearchParams } from "next/navigation";
-import { LogData } from "@/components/env/log-interface";
-import { NoLogsView } from "@/components/sortable/no-logs-view";
-import { SubQueriesContainer } from "@/components/sortable/subqueries-container";
+import { LogData } from "@/components/log-interface";
+import { NoLogsView } from "@/components/log-interface/views/no-logs-view";
+import { SubQueriesContainer } from "@/components/log-interface/query-output/session/subqueries-container";
 import { extractQueryIds } from "@/lib/utils/extractQueryIds";
 import {
   ToggleShowPretty,
   ToggleSplit,
-} from "@/components/sortable/log-viewer-settings";
+} from "@/components/log-interface/query-output/toggles";
 import { KV } from "api/js/types/v1/types_pb";
-import SessionPanel from "@/components/sortable/session-panel";
+import SessionPanel from "@/components/log-interface/query-output/session/session-panel";
+import { QueryHistoryEntry } from "api/js/types/v1/query_history_entry_pb";
 
 interface QueryOutputProps {
   logData: LogData;
-  parsedQuery: LogQuery | undefined;
-  onClickFilterBy: (kv: KV, op?: BinaryOp_Operator) => void;
+  parsedQuery: Query | undefined;
+  queryHistoryEntry?: QueryHistoryEntry;
+  onClickFilterBy: (
+    symbolName: string,
+    symbolValue: Expr,
+    op?: BinaryOp_Operator,
+  ) => void;
 }
 
 const QueryOutput = ({
   logData,
   parsedQuery,
+  queryHistoryEntry,
   onClickFilterBy,
 }: QueryOutputProps) => {
   const searchParams = useSearchParams();
@@ -56,7 +63,8 @@ const QueryOutput = ({
               <div className="flex-1">
                 <SessionPanel
                   query={parsedQuery}
-                  ids={extractQueryIds(parsedQuery as LogQuery)}
+                  queryHistoryEntry={queryHistoryEntry}
+                  ids={extractQueryIds(parsedQuery as Query)}
                   onClickFilterBy={onClickFilterBy}
                 />
               </div>
@@ -67,7 +75,10 @@ const QueryOutput = ({
         case "freeForm":
           setOutput(
             <div className="flex-1">
-              <TableContainer query={parsedQuery} />
+              <TableContainer
+                query={parsedQuery}
+                queryHistoryEntry={queryHistoryEntry}
+              />
             </div>,
           );
           break;
@@ -81,6 +92,7 @@ const QueryOutput = ({
         <div className="flex-1">
           <SubQueriesContainer
             queries={queries}
+            queryHistoryEntry={queryHistoryEntry}
             onClickFilterBy={onClickFilterBy}
           />
         </div>,

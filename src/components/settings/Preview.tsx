@@ -5,7 +5,7 @@ import {
   StructuredLogEvent,
 } from "api/js/types/v1/logevent_pb";
 import { KV, Val } from "api/js/types/v1/types_pb";
-import SessionPanel from "@/components/sortable/session-panel";
+import SessionPanel from "@/components/log-interface/query-output/session/session-panel";
 
 const SAMPLE_LOGS = [
   {
@@ -223,11 +223,11 @@ const SAMPLE_LOGS = [
 
 interface PreviewProps {
   themes: FormatConfig_Themes;
-  isDark: boolean;
+  mode: "dark" | "light";
   timeformat: string;
 }
 
-export const Preview = ({ themes, isDark, timeformat }: PreviewProps) => {
+export const Preview = ({ themes, mode, timeformat }: PreviewProps) => {
   const convertSampleLogs = () => {
     const convertedLogs = [];
 
@@ -268,14 +268,14 @@ export const Preview = ({ themes, isDark, timeformat }: PreviewProps) => {
     return convertedLogs;
   };
 
-  const fakeData = convertSampleLogs();
+  const providedData = convertSampleLogs();
 
   return (
     <SessionPanel
       onClickFilterBy={() => {}}
-      fakeData={fakeData}
+      providedData={providedData}
       query={undefined}
-      darkMode={isDark}
+      mode={mode}
       themes={themes}
     />
   );

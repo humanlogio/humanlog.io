@@ -26,40 +26,41 @@ import { twMerge } from "tailwind-merge";
 import * as monaco from "monaco-editor";
 import config from "@/features/config";
 import { Button } from "@/components/ui/button";
-import { List, Play, Star } from "lucide-react";
+import { List, Play, Share, Star } from "lucide-react";
 import {
   BinaryOp_Operator,
+  Expr,
   FilterOperator,
-  LogQuery,
+  Query,
   Statement,
-} from "api/js/types/v1/logquery_pb";
+} from "api/js/types/v1/query_pb";
 import { FormatRequest, ParseResponse } from "api/js/svc/query/v1/service_pb";
-import { KV } from "api/js/types/v1/types_pb";
 import {
   newBinaryExpr,
   newIdentifierExpr,
   newLiteralExpr,
 } from "@/lib/utils/queryBuilders";
 import { formatQuery, parseQuery } from "@/services/queryService";
-import { SaveQueryModal } from "@/components/env/query-library/save-query-modal";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { SaveQueryModal } from "@/components/log-interface/query-library/save-query-modal";
 
 interface QueryInputProps {
   errMsg: string;
   onExecuteQuery: (query: string) => void;
   symbol?: string;
   editorContent: string;
-  filterByKv?: {
-    kv: KV;
+  filterBySymbol?: {
+    symbolName: string;
+    symbolValue: Expr;
     op?: BinaryOp_Operator;
   };
   setEditorContent: Dispatch<SetStateAction<string>>;
-  parsedQuery?: LogQuery;
+  parsedQuery?: Query;
   setSavedQueryId?: Dispatch<SetStateAction<bigint | undefined>>;
   setIsLibraryOpen: Dispatch<SetStateAction<boolean>>;
 }
@@ -69,7 +70,7 @@ const QueryInput = ({
   onExecuteQuery,
   symbol,
   editorContent,
-  filterByKv,
+  filterBySymbol,
   setEditorContent,
   parsedQuery,
   setSavedQueryId,
@@ -95,7 +96,6 @@ const QueryInput = ({
     startDate: Date;
     endDate: Date;
   }>({ startDate, endDate: new Date() });
-  // const [isHovered, setIsHovered] = useState(false);
   const [isSaveValid, setIsSaveValid] = useState(false);
   const [isSaveQueryModalOpen, setIsSaveQueryModalOpen] = useState(false);
 
@@ -253,7 +253,6 @@ const QueryInput = ({
       params.set("query", encodeURIComponent(currentValue));
       router.push(`?${params}`);
       onExecuteQuery(currentValue);
-
       setEditorContent(currentValue);
     });
   };
@@ -266,25 +265,23 @@ const QueryInput = ({
     setEditorContent(query);
   };
 
-  const addFilterByStatement = (
+  const addFilterSymbolByStatement = (
     parseRes: ParseResponse,
     filter: {
-      kv: KV;
+      symbolName: string;
+      symbolValue: Expr;
       op?: BinaryOp_Operator;
     },
   ) => {
     if (!parseRes.query) return parseRes.query;
-    const {
-      kv: { key, value },
-      op,
-    } = filter;
+    const { symbolName, symbolValue, op } = filter;
 
     const statements: Statement[] = parseRes.query?.query?.statements ?? [];
 
     const nextFilter = newBinaryExpr(
-      newIdentifierExpr(key),
+      newIdentifierExpr(symbolName),
       op ?? BinaryOp_Operator.CMP_EQ,
-      newLiteralExpr(value!),
+      symbolValue,
     );
 
     const filterStmt = new Statement({
@@ -298,7 +295,7 @@ const QueryInput = ({
 
     statements.unshift(filterStmt);
 
-    const newQuery = new LogQuery({
+    const newQuery = new Query({
       ...parseRes.query,
       query: {
         statements,
@@ -308,7 +305,7 @@ const QueryInput = ({
     return newQuery;
   };
 
-  const handleFormatQuery = async (query?: LogQuery) => {
+  const handleFormatQuery = async (query?: Query) => {
     if (!apiClients || !query) return;
 
     const formatReq = new FormatRequest({
@@ -328,7 +325,7 @@ const QueryInput = ({
   };
 
   useEffect(() => {
-    if (!apiClients || !filterByKv) return;
+    if (!apiClients || !filterBySymbol) return;
 
     parseQuery(
       apiClients?.query,
@@ -337,11 +334,13 @@ const QueryInput = ({
       },
       {
         onSuccess: (parseRes: ParseResponse) => {
-          handleFormatQuery(addFilterByStatement(parseRes, filterByKv));
+          handleFormatQuery(
+            addFilterSymbolByStatement(parseRes, filterBySymbol),
+          );
         },
       },
     );
-  }, [filterByKv]);
+  }, [filterBySymbol]);
 
   useEffect(() => {
     updateGraphRange(startDate, endDate);
@@ -403,9 +402,9 @@ const QueryInput = ({
       className={twMerge("items-center gap-8", !isProd && "grid grid-cols-2")}
     >
       <div className="col-span-2 md:col-span-1">
-        <div className="w-full overflow-hidden rounded-md border py-2">
-          <div className="mr-2 flex justify-end gap-1 text-sm">
-            <TooltipProvider>
+        <div className="relative w-full overflow-hidden rounded-md border py-2">
+          <TooltipProvider>
+            <div className="absolute top-2 right-2 z-1 flex gap-1 text-sm">
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
@@ -444,8 +443,8 @@ const QueryInput = ({
                 </TooltipTrigger>
                 <TooltipContent>Save Query</TooltipContent>
               </Tooltip>
-            </TooltipProvider>
-          </div>
+            </div>
+          </TooltipProvider>
           <MonacoEditor
             value={editorContent}
             onChange={(value) => setEditorContent(value || "")}
@@ -456,15 +455,13 @@ const QueryInput = ({
       </div>
 
       {/* Save Query Modal */}
-      {isSaveQueryModalOpen && (
-        <SaveQueryModal
-          query={editorContent || ""}
-          isSaveQueryModalOpen={isSaveQueryModalOpen}
-          setIsSaveQueryModalOpen={setIsSaveQueryModalOpen}
-          parsedQuery={parsedQuery}
-          setSavedQueryId={setSavedQueryId}
-        />
-      )}
+      <SaveQueryModal
+        query={editorContent || ""}
+        isSaveQueryModalOpen={isSaveQueryModalOpen}
+        setIsSaveQueryModalOpen={setIsSaveQueryModalOpen}
+        parsedQuery={parsedQuery}
+        setSavedQueryId={setSavedQueryId}
+      />
 
       {/* CHART */}
       {!isProd && (

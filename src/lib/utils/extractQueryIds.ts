@@ -1,7 +1,7 @@
-import { BinaryOp, LogQuery } from "api/js/types/v1/logquery_pb";
+import { BinaryOp, Query } from "api/js/types/v1/query_pb";
 import { Val } from "api/js/types/v1/types_pb";
 
-export const extractQueryIds = (query: LogQuery) => {
+export const extractQueryIds = (query: Query) => {
   let sessionId = undefined;
   let machineId = undefined;
   if (

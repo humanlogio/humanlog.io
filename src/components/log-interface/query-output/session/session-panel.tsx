@@ -3,10 +3,11 @@ import { formatTimestamp } from "@/lib/utils/formatTimeStamp";
 
 import { useInfiniteQuery } from "@/lib/utils/useInfiniteQuery";
 import { IngestedLogEvent } from "api/js/types/v1/logevent_pb";
-import { BinaryOp_Operator, LogQuery } from "api/js/types/v1/logquery_pb";
+import { BinaryOp_Operator, Expr, Query } from "api/js/types/v1/query_pb";
 import {
   Ellipsis,
   Loader,
+  Share,
   UnfoldHorizontal,
   UnfoldVertical,
 } from "lucide-react";
@@ -27,7 +28,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { NoLogsView } from "@/components/sortable/no-logs-view";
+import { NoLogsView } from "@/components/log-interface/views/no-logs-view";
 import { twJoin, twMerge } from "tailwind-merge";
 import { usePathname, useSearchParams } from "next/navigation";
 import { decodeUint8Array } from "@/lib/utils/decode";
@@ -41,39 +42,55 @@ import {
 } from "@/components/ui/select";
 import { SelectTrigger } from "@radix-ui/react-select";
 import { KV } from "api/js/types/v1/types_pb";
-import { MetaDataTooltip } from "@/components/sortable/session-panel/metadata-tooltip";
-import { KeyValueRow } from "@/components/sortable/session-panel/key-value-row";
-import { FilterByKeyValue } from "@/components/sortable/session-panel/filter-by-kvs";
+import {
+  FilterByKeyValue,
+  KeyValueRow,
+  MetaDataTooltip,
+} from "@/components/log-interface/query-output/session/session-control";
+import { newLiteralExpr } from "@/lib/utils/queryBuilders";
+import { Data, LogEvents, Tabular } from "api/js/types/v1/data_pb";
+import { newLogEventsTablular, newTabularData } from "@/lib/utils/dataBuilders";
+import { ShareQuery } from "@/components/log-interface/share-query";
+import { QueryHistoryEntry } from "api/js/types/v1/query_history_entry_pb";
 
 interface SessionPanelProps {
   ids?: { machineId?: string; sessionId?: string };
-  query: LogQuery | undefined;
-  fakeData?: IngestedLogEvent[];
-  darkMode?: boolean;
+  query: Query | undefined;
+  providedData?: IngestedLogEvent[];
+  mode?: "dark" | "light";
   themes?: FormatConfig_Themes;
-  onClickFilterBy: (kv: KV, op?: BinaryOp_Operator) => void;
+  queryHistoryEntry?: QueryHistoryEntry;
+  onClickFilterBy: (
+    symbolName: string,
+    symbolValue: Expr,
+    op?: BinaryOp_Operator,
+  ) => void;
 }
 
 const SessionPanel = ({
   ids,
   query,
-  fakeData,
-  darkMode,
+  providedData,
+  mode,
   themes,
+  queryHistoryEntry,
   onClickFilterBy,
 }: SessionPanelProps) => {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const queryString = searchParams.get("query");
   const pathname = usePathname();
   const containerRef = useRef<HTMLDivElement>(null);
   const { theme } = useTheme();
 
-  const isDark = fakeData
-    ? darkMode
+  const isDark = mode
+    ? mode === "dark"
     : theme === "dark" ||
       (theme === "system" &&
         window.matchMedia("(prefers-color-scheme: dark)").matches);
+
   const pretty = searchParams.get("pretty") !== "false";
+
   const { apiClients } = useApiClients();
 
   const { targetRef, isFetching, fetchNext, fetchData, next } =
@@ -97,6 +114,7 @@ const SessionPanel = ({
     themes ?? config?.formatter?.themes,
   );
   const [selectedLines, setSelectedLines] = useState<string | null>();
+  const [sharedData, setSharedData] = useState<Data | null>(null);
 
   const getConfig = useCallback(async () => {
     const res = await apiClients?.localhost.getConfig({});
@@ -105,7 +123,7 @@ const SessionPanel = ({
   }, []);
 
   const handleClickLine = (line: string) => {
-    if (fakeData) return;
+    if (providedData) return;
 
     const params = new URLSearchParams(searchParams);
 
@@ -171,8 +189,8 @@ const SessionPanel = ({
   }, []);
 
   useEffect(() => {
-    if (fakeData) {
-      setLogs(fakeData);
+    if (providedData) {
+      setLogs(providedData);
       return;
     }
     fetchData(({ value: shapeValue }) => {
@@ -189,8 +207,16 @@ const SessionPanel = ({
             return [...prev, ...shapeValue.events];
           }
         });
+        setSharedData(shapeValue.events);
       });
   }, [fetchNext]);
+
+  const onClickShare = () => {
+    const data = newTabularData(
+      newLogEventsTablular(new LogEvents({ events: logs })),
+    );
+    setSharedData(data);
+  };
 
   useEffect(() => {
     const line = searchParams.get("line");
@@ -222,28 +248,45 @@ const SessionPanel = ({
               )}
             </h4>
           </div>
-
-          {pretty && (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  size="icon"
-                  className="h-7 w-7"
-                  variant="outline"
-                  onClick={() => setSectionBreak(!sectionBreak)}
-                >
-                  {sectionBreak ? (
-                    <UnfoldHorizontal size={13} />
-                  ) : (
-                    <UnfoldVertical size={13} />
-                  )}
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="top">
-                <p>Toggle section line breaks in logs</p>
-              </TooltipContent>
-            </Tooltip>
-          )}
+          <div className="flex gap-1">
+            {queryHistoryEntry && queryString && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button onClick={onClickShare} size="xs" variant="outline">
+                    <Share size={12} />
+                  </Button>
+                </TooltipTrigger>
+                {sharedData && (
+                  <ShareQuery
+                    sharedData={sharedData}
+                    setSharedData={setSharedData}
+                    queryHistoryEntry={queryHistoryEntry}
+                  />
+                )}
+                <TooltipContent>Share Query</TooltipContent>
+              </Tooltip>
+            )}
+            {pretty && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    size="xs"
+                    variant="outline"
+                    onClick={() => setSectionBreak(!sectionBreak)}
+                  >
+                    {sectionBreak ? (
+                      <UnfoldHorizontal size={13} />
+                    ) : (
+                      <UnfoldVertical size={13} />
+                    )}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="top">
+                  <p>Toggle section line breaks in logs</p>
+                </TooltipContent>
+              </Tooltip>
+            )}
+          </div>
 
           {/* TODO: later.. */}
           {/* 
@@ -256,9 +299,12 @@ const SessionPanel = ({
 
         <div
           ref={containerRef}
-          className={twJoin("flex flex-grow text-sm", darkMode && "bg-black")}
+          className={twJoin(
+            "flex flex-grow text-sm",
+            mode === "dark" && "bg-black",
+          )}
         >
-          <div className="border-separate overflow-x-auto py-2">
+          <div className="flex-1 border-separate overflow-x-auto py-2">
             {logs && logs.length > 0 ? (
               logs?.map((log, i) => {
                 return (
@@ -323,7 +369,10 @@ const SessionPanel = ({
                             {decodeUint8Array(log.raw)}
                           </code>
                         </TooltipTrigger>
-                        <MetaDataTooltip log={log} />
+                        <MetaDataTooltip
+                          log={log}
+                          onClickFilterBy={onClickFilterBy}
+                        />
                       </Tooltip>
                     ) : (
                       <pre
@@ -354,17 +403,20 @@ const SessionPanel = ({
                                 </span>
                                 |{" "}
                               </span>
+
                               <span
                                 style={{ color: getColor("msg") }}
                                 className="mr-1"
                               >
                                 {log.structured?.msg || "no message"}
-                              </span>{" "}
+                              </span>
                             </span>
                           </TooltipTrigger>
-                          <MetaDataTooltip log={log} />
+                          <MetaDataTooltip
+                            log={log}
+                            onClickFilterBy={onClickFilterBy}
+                          />
                         </Tooltip>
-
                         <div
                           className={twMerge(
                             "flex",
@@ -401,8 +453,11 @@ const SessionPanel = ({
                                       kv.value?.kind.value?.toString() ?? ""
                                     }
                                   />
+                                  <div className="mt-2 border-t border-gray-200 pt-2" />
                                   <FilterByKeyValue
-                                    kv={kv}
+                                    symbolName={kv.key}
+                                    symbolValue={newLiteralExpr(kv.value!)}
+                                    symbolCase={kv.value?.kind.case}
                                     onClickFilterBy={onClickFilterBy}
                                   />
                                 </TooltipContent>

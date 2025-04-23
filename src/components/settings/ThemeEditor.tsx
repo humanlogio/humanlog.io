@@ -108,7 +108,7 @@ export const ThemeEditor = ({
       <div>
         <Preview
           themes={formValues.themes}
-          isDark={mode === "dark"}
+          mode={mode}
           timeformat={formValues.format}
         />
       </div>

@@ -47,7 +47,7 @@ import { toast } from "sonner";
 import { ThemeEditor } from "@/components/settings/ThemeEditor";
 import { ConnectError } from "@connectrpc/connect";
 import { useAllEnvironments } from "@/context/list-environments";
-import { NoLocalhostView } from "@/components/sortable/no-localhost-view";
+import { NoLocalhostView } from "@/components/log-interface/views/no-localhost-view";
 
 const COLOR_MODE_OPTIONS = [
   { value: FormatConfig_ColorMode.COLORMODE_AUTO.toString(), label: "Auto" },
