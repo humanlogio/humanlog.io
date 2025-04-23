@@ -102,6 +102,7 @@ const LogInterface = () => {
   const [queryHistoryEntry, setQueryHistoryEntry] =
     useState<QueryHistoryEntry>();
   const [savedQueryId, setSavedQueryId] = useState<bigint>();
+  const [isQueryHistoryLoading, setIsQueryHistoryLoading] = useState(false);
 
   const createSplitRenderStatement = () => {
     return new RenderStatement({
@@ -155,9 +156,14 @@ const LogInterface = () => {
 
   const handleRecordQueryHistory = (rawQuery: string, query: Query) => {
     if (!apiClients || rawQuery.length === 0) return;
+    setIsQueryHistoryLoading(true);
     recordQueryHistory(apiClients?.user, rawQuery, query, {
-      onSuccess: (res: RecordQueryHistoryResponse) =>
-        setQueryHistoryEntry(res.entry),
+      onSuccess: (res: RecordQueryHistoryResponse) => {
+        setQueryHistoryEntry(res.entry), setIsQueryHistoryLoading(false);
+      },
+      onError: () => {
+        setIsQueryHistoryLoading(false);
+      },
     });
   };
 
@@ -254,7 +260,7 @@ const LogInterface = () => {
               setSavedQueryId={setSavedQueryId}
               setIsLibraryOpen={setIsLibraryOpen}
             />
-            {queryHistoryEntry && (
+            {!isQueryHistoryLoading && (
               <QueryOutput
                 logData={logData}
                 parsedQuery={parsedQuery}

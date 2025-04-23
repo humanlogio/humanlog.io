@@ -22,7 +22,7 @@ import { QueryHistoryEntry } from "api/js/types/v1/query_history_entry_pb";
 
 interface SubQueriesContainerProps {
   queries: Query[];
-  queryHistoryEntry: QueryHistoryEntry;
+  queryHistoryEntry?: QueryHistoryEntry;
   onClickFilterBy: (
     symbolName: string,
     symbolValue: Expr,
