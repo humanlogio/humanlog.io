@@ -108,7 +108,7 @@ export const ShareQuery = ({ queryHistoryEntry, data }: ShareQueryProps) => {
   };
 
   return (
-    <Dialog>
+    <Dialog onOpenChange={resetLink}>
       <DialogTrigger asChild>
         <Button disabled={!data || !queryString} size="xs" variant="outline">
           <Share size={12} />
@@ -184,46 +184,49 @@ export const ShareQuery = ({ queryHistoryEntry, data }: ShareQueryProps) => {
             </div>
           </div>
         </DialogHeader>
-
         <DialogFooter>
-          {shareLink ? (
-            <Button onClick={resetLink}>Create New Link</Button>
-          ) : (
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    disabled={!isValid}
-                    onClick={() =>
-                      handleShareQuery(SharedResultVisibility.PUBLIC)
-                    }
-                  >
-                    Public
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  Share with the public.
-                  <br /> This will appear on your user profile page.
-                </TooltipContent>
-              </Tooltip>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    disabled={!isValid}
-                    onClick={() =>
-                      handleShareQuery(SharedResultVisibility.ANYONE_WITH_LINK)
-                    }
-                  >
-                    Anyone with the link
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  Share only to those who have the link.
-                  <br /> This will not appear on your user profile page.
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          )}
+          <div className="flex justify-end gap-2">
+            {shareLink ? (
+              <Button onClick={resetLink}>Create New Link</Button>
+            ) : (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      disabled={!isValid}
+                      onClick={() =>
+                        handleShareQuery(SharedResultVisibility.PUBLIC)
+                      }
+                    >
+                      Public
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="top" sideOffset={5}>
+                    <p>Share with the public.</p>
+                    <p>This will appear on your user profile page.</p>
+                  </TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      disabled={!isValid}
+                      onClick={() =>
+                        handleShareQuery(
+                          SharedResultVisibility.ANYONE_WITH_LINK,
+                        )
+                      }
+                    >
+                      Anyone with the link
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="top" sideOffset={5}>
+                    <p>Share only to those who have the link.</p>
+                    <p>This will not appear on your user profile page.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>
