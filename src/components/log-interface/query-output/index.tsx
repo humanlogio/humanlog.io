@@ -15,10 +15,12 @@ import {
 } from "@/components/log-interface/query-output/toggles";
 import { KV } from "api/js/types/v1/types_pb";
 import SessionPanel from "@/components/log-interface/query-output/session/session-panel";
+import { QueryHistoryEntry } from "api/js/types/v1/query_history_entry_pb";
 
 interface QueryOutputProps {
   logData: LogData;
   parsedQuery: Query | undefined;
+  queryHistoryEntry: QueryHistoryEntry;
   onClickFilterBy: (
     symbolName: string,
     symbolValue: Expr,
@@ -29,6 +31,7 @@ interface QueryOutputProps {
 const QueryOutput = ({
   logData,
   parsedQuery,
+  queryHistoryEntry,
   onClickFilterBy,
 }: QueryOutputProps) => {
   const searchParams = useSearchParams();
@@ -60,6 +63,7 @@ const QueryOutput = ({
               <div className="flex-1">
                 <SessionPanel
                   query={parsedQuery}
+                  queryHistoryEntry={queryHistoryEntry}
                   ids={extractQueryIds(parsedQuery as Query)}
                   onClickFilterBy={onClickFilterBy}
                 />
@@ -71,7 +75,10 @@ const QueryOutput = ({
         case "freeForm":
           setOutput(
             <div className="flex-1">
-              <TableContainer query={parsedQuery} />
+              <TableContainer
+                query={parsedQuery}
+                queryHistoryEntry={queryHistoryEntry}
+              />
             </div>,
           );
           break;
@@ -85,6 +92,7 @@ const QueryOutput = ({
         <div className="flex-1">
           <SubQueriesContainer
             queries={queries}
+            queryHistoryEntry={queryHistoryEntry}
             onClickFilterBy={onClickFilterBy}
           />
         </div>,

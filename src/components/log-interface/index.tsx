@@ -90,7 +90,6 @@ const LogInterface = () => {
     case: undefined,
     value: undefined,
   });
-  const [data, setData] = useState<Data>();
   const [isLibraryOpen, setIsLibraryOpen] = useState(false);
 
   const [symbol, setSymbol] = useState("");
@@ -169,7 +168,6 @@ const LogInterface = () => {
     getQuery(queryClient, queryReq, {
       onSuccess: (res: QueryResponse) => {
         if (res.data) {
-          setData(res.data);
           setLogData(res.data.shape);
         }
       },
@@ -255,18 +253,19 @@ const LogInterface = () => {
               parsedQuery={parsedQuery}
               setSavedQueryId={setSavedQueryId}
               setIsLibraryOpen={setIsLibraryOpen}
-              data={data}
-              queryHistoryEntry={queryHistoryEntry}
             />
-            <QueryOutput
-              logData={logData}
-              parsedQuery={parsedQuery}
-              onClickFilterBy={(
-                symbolName: string,
-                symbolValue: Expr,
-                op?: BinaryOp_Operator,
-              ) => setFilterBySymbol({ symbolName, symbolValue, op })}
-            />
+            {queryHistoryEntry && (
+              <QueryOutput
+                logData={logData}
+                parsedQuery={parsedQuery}
+                queryHistoryEntry={queryHistoryEntry}
+                onClickFilterBy={(
+                  symbolName: string,
+                  symbolValue: Expr,
+                  op?: BinaryOp_Operator,
+                ) => setFilterBySymbol({ symbolName, symbolValue, op })}
+              />
+            )}
           </div>
         </Panel>
 

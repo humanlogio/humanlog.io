@@ -268,12 +268,12 @@ export const Preview = ({ themes, isDark, timeformat }: PreviewProps) => {
     return convertedLogs;
   };
 
-  const fakeData = convertSampleLogs();
+  const providedData = convertSampleLogs();
 
   return (
     <SessionPanel
       onClickFilterBy={() => {}}
-      fakeData={fakeData}
+      providedData={providedData}
       query={undefined}
       darkMode={isDark}
       themes={themes}

@@ -48,9 +48,6 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { SaveQueryModal } from "@/components/log-interface/query-library/save-query-modal";
-import { ShareQuery } from "@/components/log-interface/share-query";
-import { QueryHistoryEntry } from "api/js/types/v1/query_history_entry_pb";
-import { Data } from "api/js/types/v1/data_pb";
 
 interface QueryInputProps {
   errMsg: string;
@@ -66,8 +63,6 @@ interface QueryInputProps {
   parsedQuery?: Query;
   setSavedQueryId?: Dispatch<SetStateAction<bigint | undefined>>;
   setIsLibraryOpen: Dispatch<SetStateAction<boolean>>;
-  queryHistoryEntry?: QueryHistoryEntry;
-  data?: Data;
 }
 
 const QueryInput = ({
@@ -80,8 +75,6 @@ const QueryInput = ({
   parsedQuery,
   setSavedQueryId,
   setIsLibraryOpen,
-  queryHistoryEntry,
-  data,
 }: QueryInputProps) => {
   const isProd = config.NEXT_PUBLIC_IS_PROD;
   const router = useRouter();
@@ -409,9 +402,9 @@ const QueryInput = ({
       className={twMerge("items-center gap-8", !isProd && "grid grid-cols-2")}
     >
       <div className="col-span-2 md:col-span-1">
-        <div className="w-full overflow-hidden rounded-md border py-2">
-          <div className="mr-2 flex justify-end gap-1 text-sm">
-            <TooltipProvider>
+        <div className="relative w-full overflow-hidden rounded-md border py-2">
+          <TooltipProvider>
+            <div className="absolute top-2 right-2 z-1 flex gap-1 text-sm">
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
@@ -450,17 +443,8 @@ const QueryInput = ({
                 </TooltipTrigger>
                 <TooltipContent>Save Query</TooltipContent>
               </Tooltip>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <ShareQuery
-                    queryHistoryEntry={queryHistoryEntry}
-                    data={data}
-                  />
-                </TooltipTrigger>
-                <TooltipContent>Share Query</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </div>
+            </div>
+          </TooltipProvider>
           <MonacoEditor
             value={editorContent}
             onChange={(value) => setEditorContent(value || "")}

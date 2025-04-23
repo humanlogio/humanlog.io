@@ -18,9 +18,11 @@ import {
 } from "@/components/log-interface/query-output/toggles";
 import { KV } from "api/js/types/v1/types_pb";
 import SessionPanel from "@/components/log-interface/query-output/session/session-panel";
+import { QueryHistoryEntry } from "api/js/types/v1/query_history_entry_pb";
 
 interface SubQueriesContainerProps {
   queries: Query[];
+  queryHistoryEntry: QueryHistoryEntry;
   onClickFilterBy: (
     symbolName: string,
     symbolValue: Expr,
@@ -37,6 +39,7 @@ interface SelectedSessionsType {
 
 export const SubQueriesContainer = ({
   queries,
+  queryHistoryEntry,
   onClickFilterBy,
 }: SubQueriesContainerProps) => {
   const searchParams = useSearchParams();
@@ -150,6 +153,7 @@ export const SubQueriesContainer = ({
                       <SessionPanel
                         ids={extractQueryIds(list.query)}
                         query={list.query}
+                        queryHistoryEntry={queryHistoryEntry}
                         onClickFilterBy={onClickFilterBy}
                       />
                     </div>
