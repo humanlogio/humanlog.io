@@ -20,7 +20,7 @@ import { QueryHistoryEntry } from "api/js/types/v1/query_history_entry_pb";
 interface QueryOutputProps {
   logData: LogData;
   parsedQuery: Query | undefined;
-  queryHistoryEntry: QueryHistoryEntry;
+  queryHistoryEntry?: QueryHistoryEntry;
   onClickFilterBy: (
     symbolName: string,
     symbolValue: Expr,

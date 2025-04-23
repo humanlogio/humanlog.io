@@ -249,7 +249,7 @@ const SessionPanel = ({
             </h4>
           </div>
           <div className="flex gap-1">
-            {queryHistoryEntry && (
+            {queryHistoryEntry && queryString && (
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button onClick={onClickShare} size="xs" variant="outline">
