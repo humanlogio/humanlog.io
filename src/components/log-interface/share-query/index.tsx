@@ -5,21 +5,19 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { useApiClients } from "@/context/api-provider";
 import { createUserSharedResult } from "@/services/shareService";
 import { QueryHistoryEntry } from "api/js/types/v1/query_history_entry_pb";
-import { Data } from "api/js/types/v1/data_pb";
 import { SharedResultVisibility } from "api/js/types/v1/shared_result_pb";
-import { Check, Copy, Share, TriangleAlert } from "lucide-react";
+import { Check, Copy, TriangleAlert } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { updateUser } from "@/services/userService";
-import { useState } from "react";
+import { Dispatch, SetStateAction, useState } from "react";
 import { useAllEnvironments } from "@/context/list-environments";
 import { toast } from "sonner";
-import { useSearchParams } from "next/navigation";
+
 import {
   Tooltip,
   TooltipContent,
@@ -28,17 +26,21 @@ import {
 } from "@/components/ui/tooltip";
 import { copyToClipboard } from "@/lib/utils/clipboard";
 import { getSelfURL } from "@/lib/envs";
+import { Data } from "api/js/types/v1/data_pb";
 
 interface ShareQueryProps {
-  queryHistoryEntry?: QueryHistoryEntry;
-  data?: Data;
+  queryHistoryEntry: QueryHistoryEntry;
+  sharedData: Data | null;
+  setSharedData: Dispatch<SetStateAction<Data | null>>;
 }
 
-export const ShareQuery = ({ queryHistoryEntry, data }: ShareQueryProps) => {
+export const ShareQuery = ({
+  queryHistoryEntry,
+  sharedData,
+  setSharedData,
+}: ShareQueryProps) => {
   const selfURL = getSelfURL();
 
-  const searchParams = useSearchParams();
-  const queryString = searchParams.get("query");
   const { user } = useAllEnvironments();
   const { apiClients } = useApiClients();
 
@@ -63,11 +65,11 @@ export const ShareQuery = ({ queryHistoryEntry, data }: ShareQueryProps) => {
   };
 
   const handleShareQuery = async (visibility: SharedResultVisibility) => {
-    if (!apiClients) return;
+    if (!apiClients || !sharedData) return;
     await createUserSharedResult(
       apiClients.userShare,
       queryHistoryEntry,
-      data,
+      sharedData,
       visibility,
       {
         onSuccess: (res) => {
@@ -78,14 +80,14 @@ export const ShareQuery = ({ queryHistoryEntry, data }: ShareQueryProps) => {
             const { randomPrefix, shareId } =
               res.sharedResult?.visibility.value;
 
-            const link = `${selfURL}/share/${randomPrefix}/${shareId}`;
+            const link = `${selfURL}/share/private/${randomPrefix}/${shareId}`;
             setShareLink(link);
           } else if (
             visibility === SharedResultVisibility.PUBLIC &&
             res.sharedResult?.visibility.case === "public"
           ) {
             const { shareId } = res.sharedResult?.visibility.value;
-            const link = `${selfURL}/share/${shareId}`;
+            const link = `${selfURL}/share/public/${shareId}`;
             setShareLink(link);
           }
         },
@@ -107,14 +109,13 @@ export const ShareQuery = ({ queryHistoryEntry, data }: ShareQueryProps) => {
     setCopied(false);
   };
 
-  return (
-    <Dialog onOpenChange={resetLink}>
-      <DialogTrigger asChild>
-        <Button disabled={!data || !queryString} size="xs" variant="outline">
-          <Share size={12} />
-        </Button>
-      </DialogTrigger>
+  const onOpenChange = () => {
+    resetLink();
+    setSharedData(null);
+  };
 
+  return (
+    <Dialog open={!!sharedData} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Share Results</DialogTitle>
