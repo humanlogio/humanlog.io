@@ -24,6 +24,7 @@ import {
 } from "api/js/svc/query/v1/service_pb";
 import {
   BinaryOp_Operator,
+  Expr,
   Query,
   RenderStatement,
   SplitOperator,
@@ -93,8 +94,9 @@ const LogInterface = () => {
   const [isLibraryOpen, setIsLibraryOpen] = useState(false);
 
   const [symbol, setSymbol] = useState("");
-  const [filterByKv, setFilterByKv] = useState<{
-    kv: KV;
+  const [filterBySymbol, setFilterBySymbol] = useState<{
+    symbolName: string;
+    symbolValue: Expr;
     op?: BinaryOp_Operator;
   }>();
   const [editorContent, setEditorContent] = useState<string>("");
@@ -247,7 +249,7 @@ const LogInterface = () => {
               errMsg={queryParseErrMsg}
               onExecuteQuery={executeQuery}
               symbol={symbol}
-              filterByKv={filterByKv}
+              filterBySymbol={filterBySymbol}
               editorContent={editorContent}
               setEditorContent={setEditorContent}
               parsedQuery={parsedQuery}
@@ -259,9 +261,11 @@ const LogInterface = () => {
             <QueryOutput
               logData={logData}
               parsedQuery={parsedQuery}
-              onClickFilterBy={(kv: KV, op?: BinaryOp_Operator) =>
-                setFilterByKv({ kv, op })
-              }
+              onClickFilterBy={(
+                symbolName: string,
+                symbolValue: Expr,
+                op?: BinaryOp_Operator,
+              ) => setFilterBySymbol({ symbolName, symbolValue, op })}
             />
           </div>
         </Panel>
