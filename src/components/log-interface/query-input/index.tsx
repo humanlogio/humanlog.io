@@ -29,12 +29,12 @@ import { Button } from "@/components/ui/button";
 import { List, Play, Share, Star } from "lucide-react";
 import {
   BinaryOp_Operator,
+  Expr,
   FilterOperator,
   Query,
   Statement,
 } from "api/js/types/v1/query_pb";
 import { FormatRequest, ParseResponse } from "api/js/svc/query/v1/service_pb";
-import { KV } from "api/js/types/v1/types_pb";
 import {
   newBinaryExpr,
   newIdentifierExpr,
@@ -57,8 +57,9 @@ interface QueryInputProps {
   onExecuteQuery: (query: string) => void;
   symbol?: string;
   editorContent: string;
-  filterByKv?: {
-    kv: KV;
+  filterBySymbol?: {
+    symbolName: string;
+    symbolValue: Expr;
     op?: BinaryOp_Operator;
   };
   setEditorContent: Dispatch<SetStateAction<string>>;
@@ -74,7 +75,7 @@ const QueryInput = ({
   onExecuteQuery,
   symbol,
   editorContent,
-  filterByKv,
+  filterBySymbol,
   setEditorContent,
   parsedQuery,
   setSavedQueryId,
@@ -271,25 +272,23 @@ const QueryInput = ({
     setEditorContent(query);
   };
 
-  const addFilterByStatement = (
+  const addFilterSymbolByStatement = (
     parseRes: ParseResponse,
     filter: {
-      kv: KV;
+      symbolName: string;
+      symbolValue: Expr;
       op?: BinaryOp_Operator;
     },
   ) => {
     if (!parseRes.query) return parseRes.query;
-    const {
-      kv: { key, value },
-      op,
-    } = filter;
+    const { symbolName, symbolValue, op } = filter;
 
     const statements: Statement[] = parseRes.query?.query?.statements ?? [];
 
     const nextFilter = newBinaryExpr(
-      newIdentifierExpr(key),
+      newIdentifierExpr(symbolName),
       op ?? BinaryOp_Operator.CMP_EQ,
-      newLiteralExpr(value!),
+      symbolValue,
     );
 
     const filterStmt = new Statement({
@@ -333,7 +332,7 @@ const QueryInput = ({
   };
 
   useEffect(() => {
-    if (!apiClients || !filterByKv) return;
+    if (!apiClients || !filterBySymbol) return;
 
     parseQuery(
       apiClients?.query,
@@ -342,11 +341,13 @@ const QueryInput = ({
       },
       {
         onSuccess: (parseRes: ParseResponse) => {
-          handleFormatQuery(addFilterByStatement(parseRes, filterByKv));
+          handleFormatQuery(
+            addFilterSymbolByStatement(parseRes, filterBySymbol),
+          );
         },
       },
     );
-  }, [filterByKv]);
+  }, [filterBySymbol]);
 
   useEffect(() => {
     updateGraphRange(startDate, endDate);

@@ -3,7 +3,7 @@ import { formatTimestamp } from "@/lib/utils/formatTimeStamp";
 
 import { useInfiniteQuery } from "@/lib/utils/useInfiniteQuery";
 import { IngestedLogEvent } from "api/js/types/v1/logevent_pb";
-import { BinaryOp_Operator, Query } from "api/js/types/v1/query_pb";
+import { BinaryOp_Operator, Expr, Query } from "api/js/types/v1/query_pb";
 import {
   Ellipsis,
   Loader,
@@ -46,6 +46,7 @@ import {
   KeyValueRow,
   MetaDataTooltip,
 } from "@/components/log-interface/query-output/session/session-control";
+import { newLiteralExpr } from "@/lib/utils/queryBuilders";
 
 interface SessionPanelProps {
   ids?: { machineId?: string; sessionId?: string };
@@ -53,7 +54,11 @@ interface SessionPanelProps {
   fakeData?: IngestedLogEvent[];
   darkMode?: boolean;
   themes?: FormatConfig_Themes;
-  onClickFilterBy: (kv: KV, op?: BinaryOp_Operator) => void;
+  onClickFilterBy: (
+    symbolName: string,
+    symbolValue: Expr,
+    op?: BinaryOp_Operator,
+  ) => void;
 }
 
 const SessionPanel = ({
@@ -325,7 +330,10 @@ const SessionPanel = ({
                             {decodeUint8Array(log.raw)}
                           </code>
                         </TooltipTrigger>
-                        <MetaDataTooltip log={log} />
+                        <MetaDataTooltip
+                          log={log}
+                          onClickFilterBy={onClickFilterBy}
+                        />
                       </Tooltip>
                     ) : (
                       <pre
@@ -356,17 +364,20 @@ const SessionPanel = ({
                                 </span>
                                 |{" "}
                               </span>
+
                               <span
                                 style={{ color: getColor("msg") }}
                                 className="mr-1"
                               >
                                 {log.structured?.msg || "no message"}
-                              </span>{" "}
+                              </span>
                             </span>
                           </TooltipTrigger>
-                          <MetaDataTooltip log={log} />
+                          <MetaDataTooltip
+                            log={log}
+                            onClickFilterBy={onClickFilterBy}
+                          />
                         </Tooltip>
-
                         <div
                           className={twMerge(
                             "flex",
@@ -403,8 +414,11 @@ const SessionPanel = ({
                                       kv.value?.kind.value?.toString() ?? ""
                                     }
                                   />
+                                  <div className="mt-2 border-t border-gray-200 pt-2" />
                                   <FilterByKeyValue
-                                    kv={kv}
+                                    symbolName={kv.key}
+                                    symbolValue={newLiteralExpr(kv.value!)}
+                                    symbolCase={kv.value?.kind.case}
                                     onClickFilterBy={onClickFilterBy}
                                   />
                                 </TooltipContent>

@@ -2,7 +2,7 @@
 
 import { Data_SubQueries, Tabular } from "api/js/types/v1/data_pb";
 import { ReactNode, useEffect, useState } from "react";
-import { BinaryOp_Operator, Query } from "api/js/types/v1/query_pb";
+import { BinaryOp_Operator, Expr, Query } from "api/js/types/v1/query_pb";
 import TableContainer from "@/components/log-interface/query-output/table/table-container";
 import { useSearchParams } from "next/navigation";
 import { LogData } from "@/components/log-interface";
@@ -19,7 +19,11 @@ import SessionPanel from "@/components/log-interface/query-output/session/sessio
 interface QueryOutputProps {
   logData: LogData;
   parsedQuery: Query | undefined;
-  onClickFilterBy: (kv: KV, op?: BinaryOp_Operator) => void;
+  onClickFilterBy: (
+    symbolName: string,
+    symbolValue: Expr,
+    op?: BinaryOp_Operator,
+  ) => void;
 }
 
 const QueryOutput = ({
