@@ -85,7 +85,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [pathname]);
 
   useEffect(() => {
-    if (user === "not-logged-in" && isLoginRequired(pathname)) {
+    if (!authenticated && isLoginRequired(pathname)) {
       setAuthMessage(`You need to login to access this page.`);
       setIsAuthModalOpen(true);
     } else if (user !== "loading") {
