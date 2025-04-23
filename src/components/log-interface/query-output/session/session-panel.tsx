@@ -57,7 +57,7 @@ interface SessionPanelProps {
   ids?: { machineId?: string; sessionId?: string };
   query: Query | undefined;
   providedData?: IngestedLogEvent[];
-  darkMode?: boolean;
+  mode?: "dark" | "light";
   themes?: FormatConfig_Themes;
   queryHistoryEntry?: QueryHistoryEntry;
   onClickFilterBy: (
@@ -71,7 +71,7 @@ const SessionPanel = ({
   ids,
   query,
   providedData,
-  darkMode,
+  mode,
   themes,
   queryHistoryEntry,
   onClickFilterBy,
@@ -83,11 +83,12 @@ const SessionPanel = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const { theme } = useTheme();
 
-  const isDark = providedData
-    ? darkMode
+  const isDark = mode
+    ? mode === "dark"
     : theme === "dark" ||
       (theme === "system" &&
         window.matchMedia("(prefers-color-scheme: dark)").matches);
+
   const pretty = searchParams.get("pretty") !== "false";
 
   const { apiClients } = useApiClients();
@@ -298,7 +299,10 @@ const SessionPanel = ({
 
         <div
           ref={containerRef}
-          className={twJoin("flex flex-grow text-sm", darkMode && "bg-black")}
+          className={twJoin(
+            "flex flex-grow text-sm",
+            mode === "dark" && "bg-black",
+          )}
         >
           <div className="flex-1 border-separate overflow-x-auto py-2">
             {logs && logs.length > 0 ? (

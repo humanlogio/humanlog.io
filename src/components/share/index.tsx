@@ -158,7 +158,6 @@ export const SharedQuery = ({ sharedId, prefix }: SharedQueryProps) => {
             {logData && (
               <div className="p-4">
                 <SessionPanel
-                  darkMode={theme === "dark"}
                   onClickFilterBy={() => {}}
                   providedData={logData}
                   query={undefined}

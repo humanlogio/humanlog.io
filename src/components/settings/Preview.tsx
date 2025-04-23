@@ -223,11 +223,11 @@ const SAMPLE_LOGS = [
 
 interface PreviewProps {
   themes: FormatConfig_Themes;
-  isDark: boolean;
+  mode: "dark" | "light";
   timeformat: string;
 }
 
-export const Preview = ({ themes, isDark, timeformat }: PreviewProps) => {
+export const Preview = ({ themes, mode, timeformat }: PreviewProps) => {
   const convertSampleLogs = () => {
     const convertedLogs = [];
 
@@ -275,7 +275,7 @@ export const Preview = ({ themes, isDark, timeformat }: PreviewProps) => {
       onClickFilterBy={() => {}}
       providedData={providedData}
       query={undefined}
-      darkMode={isDark}
+      mode={mode}
       themes={themes}
     />
   );
