@@ -14,11 +14,16 @@ import {
 } from "api/js/svc/auth/v1/service_pb";
 import { getSelfURL } from "@/lib/envs";
 import { usePathname, useRouter } from "next/navigation";
-import { useCookies } from "react-cookie";
-import { toast } from "sonner";
 import config from "@/features/config";
+import { BinaryOp_Operator, Expr } from "api/js/types/v1/query_pb";
 
 export type UserState = User | "loading" | "not-logged-in";
+
+export type FilterBySymbol = {
+  symbolName: string;
+  symbolValue: Expr;
+  op?: BinaryOp_Operator;
+};
 
 type AllEnvironments = {
   user: UserState;
@@ -28,6 +33,12 @@ type AllEnvironments = {
   listEnvironments: ListEnvironmentResponse_ListItem[];
   doLogin: (returnUrl?: string) => void;
   getUserInfo: () => void;
+  filterBySymbol: FilterBySymbol | null;
+  onClickFilterBy: (
+    symbolName: string,
+    symbolValue: Expr,
+    op?: BinaryOp_Operator,
+  ) => void;
 };
 
 const ListEnvironmentContext = createContext<AllEnvironments>({
@@ -38,6 +49,8 @@ const ListEnvironmentContext = createContext<AllEnvironments>({
   listEnvironments: [],
   doLogin: () => {},
   getUserInfo: () => {},
+  filterBySymbol: null,
+  onClickFilterBy: () => {},
 });
 
 export function ListEnvironmentsProvider({
@@ -60,7 +73,9 @@ export function ListEnvironmentsProvider({
     ListEnvironmentResponse_ListItem[]
   >([]);
   const [environmentPage, setEnvironmentPage] = useState<Cursor>(new Cursor());
-  const [cookies, setCookie] = useCookies();
+  const [filterBySymbol, setFilterBySymbol] = useState<FilterBySymbol | null>(
+    null,
+  );
 
   // TODO: broken🛠️
   // const getRefreshToken = async () => {
@@ -203,6 +218,14 @@ export function ListEnvironmentsProvider({
     }
   };
 
+  const onClickFilterBy = (
+    symbolName: string,
+    symbolValue: Expr,
+    op?: BinaryOp_Operator,
+  ) => {
+    setFilterBySymbol({ symbolName, symbolValue, op });
+  };
+
   useEffect(() => {
     (async () => {
       try {
@@ -254,6 +277,8 @@ export function ListEnvironmentsProvider({
         defaultOrg,
         listEnvironments,
         doLogin,
+        filterBySymbol,
+        onClickFilterBy,
       }}
     >
       {children}
