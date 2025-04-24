@@ -45,6 +45,7 @@ const defaultOptions: editor.IStandaloneEditorConstructionOptions = {
     useShadows: false,
   },
   language: LANGUAGE_ID,
+  placeholder: "The query language is defined in the docs :)",
 };
 
 const MonacoEditor = ({
@@ -195,7 +196,6 @@ const MonacoEditor = ({
       height={height}
       defaultLanguage={LANGUAGE_ID}
       theme={isDarkMode ? "humanlogql-dark" : "humanlogql-light"}
-      defaultValue="// The query language is defined in the docs :)"
       value={value}
       onChange={onChange}
       options={mergedOptions}

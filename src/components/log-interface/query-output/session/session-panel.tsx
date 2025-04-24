@@ -411,10 +411,12 @@ const SessionPanel = ({
                               </span>
                             </span>
                           </TooltipTrigger>
-                          <MetaDataTooltip
-                            log={log}
-                            onClickFilterBy={onClickFilterBy}
-                          />
+                          {!providedData && (
+                            <MetaDataTooltip
+                              log={log}
+                              onClickFilterBy={onClickFilterBy}
+                            />
+                          )}
                         </Tooltip>
                         <div
                           className={twMerge(
@@ -438,28 +440,30 @@ const SessionPanel = ({
                                     </span>
                                   </span>
                                 </TooltipTrigger>
-                                <TooltipContent>
-                                  <KeyValueRow label="Key" value={kv.key} />
-                                  <KeyValueRow
-                                    label="Type"
-                                    value={
-                                      kv.value?.kind.case?.toString() ?? ""
-                                    }
-                                  />
-                                  <KeyValueRow
-                                    label="Value"
-                                    value={
-                                      kv.value?.kind.value?.toString() ?? ""
-                                    }
-                                  />
-                                  <div className="mt-2 border-t border-gray-200 pt-2" />
-                                  <FilterByKeyValue
-                                    symbolName={kv.key}
-                                    symbolValue={newLiteralExpr(kv.value!)}
-                                    symbolCase={kv.value?.kind.case}
-                                    onClickFilterBy={onClickFilterBy}
-                                  />
-                                </TooltipContent>
+                                {!providedData && (
+                                  <TooltipContent>
+                                    <KeyValueRow label="Key" value={kv.key} />
+                                    <KeyValueRow
+                                      label="Type"
+                                      value={
+                                        kv.value?.kind.case?.toString() ?? ""
+                                      }
+                                    />
+                                    <KeyValueRow
+                                      label="Value"
+                                      value={
+                                        kv.value?.kind.value?.toString() ?? ""
+                                      }
+                                    />
+                                    <div className="mt-2 border-t border-gray-200 pt-2" />
+                                    <FilterByKeyValue
+                                      symbolName={kv.key}
+                                      symbolValue={newLiteralExpr(kv.value!)}
+                                      symbolCase={kv.value?.kind.case}
+                                      onClickFilterBy={onClickFilterBy}
+                                    />
+                                  </TooltipContent>
+                                )}
                               </Tooltip>
                             </span>
                           ))}
