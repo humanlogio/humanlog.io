@@ -20,8 +20,8 @@ import {
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
-import MonacoEditor from "@/components/editor/monaco-editor";
 import QueryInput from "@/components/log-interface/query-input";
+import { useRouter } from "next/navigation";
 
 interface SharedQueryProps {
   sharedId: string;
@@ -29,6 +29,7 @@ interface SharedQueryProps {
 }
 
 export const SharedQuery = ({ sharedId, prefix }: SharedQueryProps) => {
+  const router = useRouter();
   const { apiClients } = useApiClients();
   const { theme } = useTheme();
 
@@ -40,6 +41,7 @@ export const SharedQuery = ({ sharedId, prefix }: SharedQueryProps) => {
   const [logData, setLogData] = useState<IngestedLogEvent[] | null>(null);
   const [tableData, setTableData] = useState<Table | null>(null);
   const [sharedTimestamp, setSharedTimestamp] = useState<any>(null);
+  const [editorContent, setEditorContent] = useState("");
 
   const handleSharedResult = async () => {
     if (!apiClients) {
@@ -84,6 +86,10 @@ export const SharedQuery = ({ sharedId, prefix }: SharedQueryProps) => {
   useEffect(() => {
     handleSharedResult();
   }, [apiClients, sharedId, prefix]);
+
+  useEffect(() => {
+    setEditorContent(query?.rawQuery ?? "");
+  }, [query]);
 
   if (isLoading) {
     return (
@@ -137,20 +143,14 @@ export const SharedQuery = ({ sharedId, prefix }: SharedQueryProps) => {
             </h2>
           </div>
           <div className="overflow-x-auto rounded-lg border border-gray-200 p-2">
-            <MonacoEditor
-              value={query?.rawQuery ?? ""}
-              options={{ readOnly: true }}
-            />
-
-            {/* TODO */}
-            {/* <QueryInput
+            <QueryInput
               errMsg=""
               onExecuteQuery={() => {}}
-              setIsLibraryOpen={() => {}}
-              editorContent={query?.rawQuery ?? ""}
-              setEditorContent={() => {}}
+              editorContent={editorContent}
+              setEditorContent={(val) => setEditorContent(val)}
               parsedQuery={query?.query}
-            /> */}
+              fromExternalPage
+            />
           </div>
         </div>
 
@@ -166,11 +166,7 @@ export const SharedQuery = ({ sharedId, prefix }: SharedQueryProps) => {
           <div className="overflow-hidden rounded-lg border border-gray-200">
             {logData && (
               <div className="p-4">
-                <SessionPanel
-                  onClickFilterBy={() => {}}
-                  providedData={logData}
-                  query={undefined}
-                />
+                <SessionPanel providedData={logData} query={undefined} />
               </div>
             )}
 

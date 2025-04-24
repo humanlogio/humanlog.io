@@ -272,7 +272,6 @@ export const Preview = ({ themes, mode, timeformat }: PreviewProps) => {
 
   return (
     <SessionPanel
-      onClickFilterBy={() => {}}
       providedData={providedData}
       query={undefined}
       mode={mode}

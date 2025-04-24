@@ -21,18 +21,12 @@ interface QueryOutputProps {
   logData: LogData;
   parsedQuery: Query | undefined;
   queryHistoryEntry?: QueryHistoryEntry;
-  onClickFilterBy: (
-    symbolName: string,
-    symbolValue: Expr,
-    op?: BinaryOp_Operator,
-  ) => void;
 }
 
 const QueryOutput = ({
   logData,
   parsedQuery,
   queryHistoryEntry,
-  onClickFilterBy,
 }: QueryOutputProps) => {
   const searchParams = useSearchParams();
   const queryString = searchParams.get("query");
@@ -65,7 +59,6 @@ const QueryOutput = ({
                   query={parsedQuery}
                   queryHistoryEntry={queryHistoryEntry}
                   ids={extractQueryIds(parsedQuery as Query)}
-                  onClickFilterBy={onClickFilterBy}
                 />
               </div>
             </>,
@@ -93,7 +86,6 @@ const QueryOutput = ({
           <SubQueriesContainer
             queries={queries}
             queryHistoryEntry={queryHistoryEntry}
-            onClickFilterBy={onClickFilterBy}
           />
         </div>,
       );
