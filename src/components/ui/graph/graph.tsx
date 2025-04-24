@@ -20,7 +20,7 @@ import {
   convertToTimestamp,
 } from "@/components/env/graph-utils";
 import { useDebouncer } from "@/lib/utils/useDebouncer";
-import DateRangePicker from "./dateRangePicker";
+import DateRangePicker from "@/components/ui/graph/dateRangePicker";
 
 export type ZoomType = {
   startIndex?: number;

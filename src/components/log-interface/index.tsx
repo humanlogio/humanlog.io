@@ -51,7 +51,7 @@ import {
 } from "api/js/types/v1/data_pb";
 import { twMerge } from "tailwind-merge";
 import config from "@/features/config";
-import Graph from "../ui/graph/graph";
+import Graph from "@/components/ui/graph/graph";
 
 export type DataCase =
   | "subqueries"

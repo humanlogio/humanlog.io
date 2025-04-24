@@ -21,8 +21,8 @@ import {
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
-import MonacoEditor from "../editor/monaco-editor";
-import QueryInput from "../log-interface/query-input";
+import MonacoEditor from "@/components/editor/monaco-editor";
+import QueryInput from "@/components/log-interface/query-input";
 
 interface SharedQueryProps {
   sharedId: string;
