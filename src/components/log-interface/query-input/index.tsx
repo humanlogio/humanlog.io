@@ -73,20 +73,12 @@ const QueryInput = ({
   const [isSaveValid, setIsSaveValid] = useState(false);
   const [isSaveQueryModalOpen, setIsSaveQueryModalOpen] = useState(false);
 
-  const isFirstFocusRef = useRef(true);
   const editorRef = useRef<monacoEditor.IStandaloneCodeEditor>();
   const monacoRef = useRef<typeof monaco>();
 
   const handleEditorDidMount: OnMount = (editor, monaco) => {
     editorRef.current = editor;
     monacoRef.current = monaco;
-
-    editor.onDidFocusEditorText(() => {
-      if (isFirstFocusRef.current) {
-        !queryString && editor.setValue("");
-        isFirstFocusRef.current = false;
-      }
-    });
 
     editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, () => {
       const currentValue = editor.getValue();
