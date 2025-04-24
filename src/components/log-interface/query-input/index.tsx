@@ -36,17 +36,13 @@ import {
 } from "@/components/ui/tooltip";
 import { SaveQueryModal } from "@/components/log-interface/query-library/save-query-modal";
 import Graph from "@/components/ui/graph/graph";
+import { useAllEnvironments } from "@/context/list-environments";
 
 interface QueryInputProps {
   errMsg: string;
   onExecuteQuery: (query: string) => void;
   symbol?: string;
   editorContent: string;
-  filterBySymbol?: {
-    symbolName: string;
-    symbolValue: Expr;
-    op?: BinaryOp_Operator;
-  };
   setEditorContent: Dispatch<SetStateAction<string>>;
   parsedQuery?: Query;
   setSavedQueryId?: Dispatch<SetStateAction<bigint | undefined>>;
@@ -58,7 +54,6 @@ const QueryInput = ({
   onExecuteQuery,
   symbol,
   editorContent,
-  filterBySymbol,
   setEditorContent,
   parsedQuery,
   setSavedQueryId,
@@ -68,7 +63,8 @@ const QueryInput = ({
   const searchParams = useSearchParams();
   const queryString = searchParams.get("query");
 
-  const { apiClients, activeEnvironment } = useApiClients();
+  const { apiClients } = useApiClients();
+  const { filterBySymbol } = useAllEnvironments();
 
   const [isSaveValid, setIsSaveValid] = useState(false);
   const [isSaveQueryModalOpen, setIsSaveQueryModalOpen] = useState(false);
