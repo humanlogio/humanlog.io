@@ -48,6 +48,7 @@ import { ThemeEditor } from "@/components/settings/ThemeEditor";
 import { ConnectError } from "@connectrpc/connect";
 import { useAllEnvironments } from "@/context/list-environments";
 import { NoLocalhostView } from "@/components/log-interface/views/no-localhost-view";
+import { defaultConfig, getConfig } from "@/services/localhostService";
 
 const COLOR_MODE_OPTIONS = [
   { value: FormatConfig_ColorMode.COLORMODE_AUTO.toString(), label: "Auto" },
@@ -94,41 +95,36 @@ const LocalhostSettings = () => {
 
   const formValues = form.watch();
 
-  const getConfig = async () => {
-    try {
-      const res = await apiClients?.localhost.getConfig({});
-      if (res?.config) {
-        const { config: _config } = res;
+  const handleConfig = async () => {
+    if (!apiClients) return;
 
-        form.reset({
-          // runtime
-          skipCheckForUpdates: !!_config.runtime?.skipCheckForUpdates,
-          interrupt: !!_config.runtime?.interrupt,
-          //parser
-          timestamp: _config.parser?.timestamp?.fieldNames,
-          message: _config.parser?.message?.fieldNames,
-          level: _config.parser?.level?.fieldNames,
-          // formatter
-          skipFields: _config.formatter?.skipFields,
-          keepFields: _config.formatter?.keepFields,
-          sortLongest: !!_config.formatter?.sortLongest,
-          skipUnchanged: !!_config.formatter?.skipUnchanged,
-          format: _config.formatter?.time?.format,
-          timezone: _config.formatter?.time?.timezone,
-          themes: _config.formatter?.themes,
-          terminalColorMode:
-            _config.formatter?.terminalColorMode?.toString() ?? "0",
-        });
-
-        setInitialConfig(_config);
-      }
-    } catch (error) {
-      console.error(error);
-      if (error instanceof ConnectError) {
-        const { message } = error;
-        toast.error(`Failed to load settings.\n Error: ${message}`);
-      }
-    }
+    await getConfig(apiClients.localhost, {
+      onSuccess: (res) => {
+        if (res.config) {
+          const { config } = res;
+          form.reset({
+            // runtime
+            skipCheckForUpdates: !!config.runtime?.skipCheckForUpdates,
+            interrupt: !!config.runtime?.interrupt,
+            //parser
+            timestamp: config.parser?.timestamp?.fieldNames,
+            message: config.parser?.message?.fieldNames,
+            level: config.parser?.level?.fieldNames,
+            // formatter
+            skipFields: config.formatter?.skipFields,
+            keepFields: config.formatter?.keepFields,
+            sortLongest: !!config.formatter?.sortLongest,
+            skipUnchanged: !!config.formatter?.skipUnchanged,
+            format: config.formatter?.time?.format,
+            timezone: config.formatter?.time?.timezone,
+            themes: config.formatter?.themes,
+            terminalColorMode:
+              config.formatter?.terminalColorMode?.toString() ?? "0",
+          });
+          setInitialConfig(config);
+        }
+      },
+    });
   };
 
   const submitConfig = async (config: LocalhostConfig) => {
@@ -224,7 +220,7 @@ const LocalhostSettings = () => {
   };
 
   useEffect(() => {
-    getConfig();
+    handleConfig();
   }, []);
 
   if (!localhostInfo) {
