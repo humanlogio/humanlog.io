@@ -207,7 +207,6 @@ const SessionPanel = ({
             return [...prev, ...shapeValue.events];
           }
         });
-        setSharedData(shapeValue.events);
       });
   }, [fetchNext]);
 
