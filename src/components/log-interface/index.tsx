@@ -220,6 +220,10 @@ const LogInterface = () => {
   const executeQuery = useCallback(
     async (query: string) => {
       setNext(null);
+      const params = new URLSearchParams(searchParams);
+      params.set("query", encodeURIComponent(query));
+      router.push(`?${params}`);
+
       return await getLogData(query, splitByDefault);
     },
     [getLogData, setNext, splitByDefault],
