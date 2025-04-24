@@ -62,11 +62,6 @@ interface SessionPanelProps {
   mode?: "dark" | "light";
   themes?: FormatConfig_Themes;
   queryHistoryEntry?: QueryHistoryEntry;
-  onClickFilterBy: (
-    symbolName: string,
-    symbolValue: Expr,
-    op?: BinaryOp_Operator,
-  ) => void;
 }
 
 const SessionPanel = ({
@@ -76,7 +71,6 @@ const SessionPanel = ({
   mode,
   themes,
   queryHistoryEntry,
-  onClickFilterBy,
 }: SessionPanelProps) => {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -373,10 +367,7 @@ const SessionPanel = ({
                             {decodeUint8Array(log.raw)}
                           </code>
                         </TooltipTrigger>
-                        <MetaDataTooltip
-                          log={log}
-                          onClickFilterBy={onClickFilterBy}
-                        />
+                        <MetaDataTooltip log={log} />
                       </Tooltip>
                     ) : (
                       <pre
@@ -416,12 +407,8 @@ const SessionPanel = ({
                               </span>
                             </span>
                           </TooltipTrigger>
-                          {!providedData && (
-                            <MetaDataTooltip
-                              log={log}
-                              onClickFilterBy={onClickFilterBy}
-                            />
-                          )}
+
+                          <MetaDataTooltip log={log} />
                         </Tooltip>
                         <div
                           className={twMerge(
@@ -445,30 +432,28 @@ const SessionPanel = ({
                                     </span>
                                   </span>
                                 </TooltipTrigger>
-                                {!providedData && (
-                                  <TooltipContent>
-                                    <KeyValueRow label="Key" value={kv.key} />
-                                    <KeyValueRow
-                                      label="Type"
-                                      value={
-                                        kv.value?.kind.case?.toString() ?? ""
-                                      }
-                                    />
-                                    <KeyValueRow
-                                      label="Value"
-                                      value={
-                                        kv.value?.kind.value?.toString() ?? ""
-                                      }
-                                    />
-                                    <div className="mt-2 border-t border-gray-200 pt-2" />
-                                    <FilterByKeyValue
-                                      symbolName={kv.key}
-                                      symbolValue={newLiteralExpr(kv.value!)}
-                                      symbolCase={kv.value?.kind.case}
-                                      onClickFilterBy={onClickFilterBy}
-                                    />
-                                  </TooltipContent>
-                                )}
+
+                                <TooltipContent>
+                                  <KeyValueRow label="Key" value={kv.key} />
+                                  <KeyValueRow
+                                    label="Type"
+                                    value={
+                                      kv.value?.kind.case?.toString() ?? ""
+                                    }
+                                  />
+                                  <KeyValueRow
+                                    label="Value"
+                                    value={
+                                      kv.value?.kind.value?.toString() ?? ""
+                                    }
+                                  />
+                                  <div className="mt-2 border-t border-gray-200 pt-2" />
+                                  <FilterByKeyValue
+                                    symbolName={kv.key}
+                                    symbolValue={newLiteralExpr(kv.value!)}
+                                    symbolCase={kv.value?.kind.case}
+                                  />
+                                </TooltipContent>
                               </Tooltip>
                             </span>
                           ))}

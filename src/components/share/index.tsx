@@ -22,6 +22,7 @@ import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 import MonacoEditor from "@/components/editor/monaco-editor";
 import QueryInput from "@/components/log-interface/query-input";
+import { BinaryOp_Operator, Expr } from "api/js/types/v1/query_pb";
 
 interface SharedQueryProps {
   sharedId: string;
@@ -137,20 +138,14 @@ export const SharedQuery = ({ sharedId, prefix }: SharedQueryProps) => {
             </h2>
           </div>
           <div className="overflow-x-auto rounded-lg border border-gray-200 p-2">
-            <MonacoEditor
-              value={query?.rawQuery ?? ""}
-              options={{ readOnly: true }}
-            />
-
-            {/* TODO */}
-            {/* <QueryInput
+            <QueryInput
               errMsg=""
               onExecuteQuery={() => {}}
               setIsLibraryOpen={() => {}}
               editorContent={query?.rawQuery ?? ""}
               setEditorContent={() => {}}
               parsedQuery={query?.query}
-            /> */}
+            />
           </div>
         </div>
 
@@ -166,11 +161,7 @@ export const SharedQuery = ({ sharedId, prefix }: SharedQueryProps) => {
           <div className="overflow-hidden rounded-lg border border-gray-200">
             {logData && (
               <div className="p-4">
-                <SessionPanel
-                  onClickFilterBy={() => {}}
-                  providedData={logData}
-                  query={undefined}
-                />
+                <SessionPanel providedData={logData} query={undefined} />
               </div>
             )}
 

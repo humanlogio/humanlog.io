@@ -23,11 +23,6 @@ import { QueryHistoryEntry } from "api/js/types/v1/query_history_entry_pb";
 interface SubQueriesContainerProps {
   queries: Query[];
   queryHistoryEntry?: QueryHistoryEntry;
-  onClickFilterBy: (
-    symbolName: string,
-    symbolValue: Expr,
-    op?: BinaryOp_Operator,
-  ) => void;
 }
 
 interface SelectedSessionsType {
@@ -40,7 +35,6 @@ interface SelectedSessionsType {
 export const SubQueriesContainer = ({
   queries,
   queryHistoryEntry,
-  onClickFilterBy,
 }: SubQueriesContainerProps) => {
   const searchParams = useSearchParams();
   const queryString = searchParams.get("query");
@@ -154,7 +148,6 @@ export const SubQueriesContainer = ({
                         ids={extractQueryIds(list.query)}
                         query={list.query}
                         queryHistoryEntry={queryHistoryEntry}
-                        onClickFilterBy={onClickFilterBy}
                       />
                     </div>
                   </Panel>

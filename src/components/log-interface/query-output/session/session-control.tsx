@@ -9,6 +9,7 @@ import {
   newTimestampExpr,
 } from "@/lib/utils/queryBuilders";
 import { LocalhostConfig } from "api/js/types/v1/localhost_config_pb";
+import { useAllEnvironments } from "@/context/list-environments";
 
 const OPERATORS = [
   {
@@ -75,16 +76,8 @@ export const KeyValueRow = ({
 
 interface MetaDataTooltipProps {
   log: IngestedLogEvent;
-  onClickFilterBy: (
-    symbolName: string,
-    symbolValue: Expr,
-    op?: BinaryOp_Operator,
-  ) => void;
 }
-export const MetaDataTooltip = ({
-  log,
-  onClickFilterBy,
-}: MetaDataTooltipProps) => {
+export const MetaDataTooltip = ({ log }: MetaDataTooltipProps) => {
   return (
     <TooltipContent align="start">
       <div>
@@ -94,7 +87,6 @@ export const MetaDataTooltip = ({
             <FilterByKeyValue
               symbolName="machine"
               symbolValue={newI64Expr(log.machineId)}
-              onClickFilterBy={onClickFilterBy}
             />
           </div>
         )}
@@ -104,7 +96,6 @@ export const MetaDataTooltip = ({
           <FilterByKeyValue
             symbolName="session"
             symbolValue={newI64Expr(log.sessionId)}
-            onClickFilterBy={onClickFilterBy}
           />
         </div>
         <div className="flex justify-between gap-2">
@@ -112,7 +103,6 @@ export const MetaDataTooltip = ({
           <FilterByKeyValue
             symbolName="event"
             symbolValue={newI64Expr(log.eventId)}
-            onClickFilterBy={onClickFilterBy}
           />
         </div>
         <div className="flex justify-between gap-2">
@@ -123,7 +113,6 @@ export const MetaDataTooltip = ({
           <FilterByKeyValue
             symbolName="lvl"
             symbolValue={newStrExpr(log.structured?.lvl)}
-            onClickFilterBy={onClickFilterBy}
           />
         </div>
         <div className="flex justify-between gap-2">
@@ -134,7 +123,6 @@ export const MetaDataTooltip = ({
           <FilterByKeyValue
             symbolName="msg"
             symbolValue={newStrExpr(log.structured?.msg)}
-            onClickFilterBy={onClickFilterBy}
             symbolCase="str"
           />
         </div>
@@ -148,7 +136,6 @@ export const MetaDataTooltip = ({
           <FilterByKeyValue
             symbolName="ts"
             symbolValue={newTimestampExpr(log.structured?.timestamp)}
-            onClickFilterBy={onClickFilterBy}
             symbolCase="ts"
           />
         </div>
@@ -178,17 +165,12 @@ export const FilterByKeyValue = ({
   symbolName,
   symbolValue,
   symbolCase,
-  onClickFilterBy,
 }: {
   symbolName: string;
   symbolValue: Expr;
   symbolCase?: string;
-  onClickFilterBy: (
-    symbolName: string,
-    symbolValue: Expr,
-    op?: BinaryOp_Operator,
-  ) => void;
 }) => {
+  const { onClickFilterBy } = useAllEnvironments();
   return (
     <div className="mb-2 flex w-auto flex-wrap gap-1">
       {OPERATORS.filter((op) => {

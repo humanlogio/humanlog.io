@@ -95,11 +95,6 @@ const LogInterface = () => {
   const [isLibraryOpen, setIsLibraryOpen] = useState(false);
 
   const [symbol, setSymbol] = useState("");
-  const [filterBySymbol, setFilterBySymbol] = useState<{
-    symbolName: string;
-    symbolValue: Expr;
-    op?: BinaryOp_Operator;
-  }>();
   const [editorContent, setEditorContent] = useState<string>("");
   const [queryHistoryEntry, setQueryHistoryEntry] =
     useState<QueryHistoryEntry>();
@@ -261,7 +256,6 @@ const LogInterface = () => {
                 errMsg={queryParseErrMsg}
                 onExecuteQuery={executeQuery}
                 symbol={symbol}
-                filterBySymbol={filterBySymbol}
                 editorContent={editorContent}
                 setEditorContent={setEditorContent}
                 parsedQuery={parsedQuery}
@@ -276,11 +270,6 @@ const LogInterface = () => {
                 logData={logData}
                 parsedQuery={parsedQuery}
                 queryHistoryEntry={queryHistoryEntry}
-                onClickFilterBy={(
-                  symbolName: string,
-                  symbolValue: Expr,
-                  op?: BinaryOp_Operator,
-                ) => setFilterBySymbol({ symbolName, symbolValue, op })}
               />
             )}
           </div>
