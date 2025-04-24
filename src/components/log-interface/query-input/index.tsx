@@ -46,7 +46,8 @@ interface QueryInputProps {
   setEditorContent: Dispatch<SetStateAction<string>>;
   parsedQuery?: Query;
   setSavedQueryId?: Dispatch<SetStateAction<bigint | undefined>>;
-  setIsLibraryOpen: Dispatch<SetStateAction<boolean>>;
+  setIsLibraryOpen?: Dispatch<SetStateAction<boolean>>;
+  fromExternalPage?: boolean;
 }
 
 const QueryInput = ({
@@ -58,13 +59,14 @@ const QueryInput = ({
   parsedQuery,
   setSavedQueryId,
   setIsLibraryOpen,
+  fromExternalPage = false,
 }: QueryInputProps) => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const queryString = searchParams.get("query");
 
   const { apiClients } = useApiClients();
-  const { filterBySymbol } = useAllEnvironments();
+  const { filterBySymbol, user } = useAllEnvironments();
 
   const [isSaveValid, setIsSaveValid] = useState(false);
   const [isSaveQueryModalOpen, setIsSaveQueryModalOpen] = useState(false);
@@ -78,20 +80,22 @@ const QueryInput = ({
 
     editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, () => {
       const currentValue = editor.getValue();
-      const params = new URLSearchParams(searchParams);
-      params.set("query", encodeURIComponent(currentValue));
-      router.push(`?${params}`);
+
       onExecuteQuery(currentValue);
       setEditorContent(currentValue);
     });
   };
 
-  const executeQuery = (query: string) => {
-    const params = new URLSearchParams(searchParams);
-    params.set("query", encodeURIComponent(query));
-    router.push(`?${params}`);
-    onExecuteQuery(query);
-    setEditorContent(query);
+  const executeQuery = (query: string, fromExternalPage?: boolean) => {
+    if (fromExternalPage) {
+      window.open(
+        `/localhost/query?query=${encodeURIComponent(query)}`,
+        "_blank",
+      );
+    } else {
+      onExecuteQuery(query);
+      setEditorContent(query);
+    }
   };
 
   const addFilterSymbolByStatement = (
@@ -212,7 +216,7 @@ const QueryInput = ({
         monacoRef.current.KeyMod.CtrlCmd | monacoRef.current.KeyCode.Enter,
         () => {
           const currentValue = editorRef.current?.getValue() || "";
-          executeQuery(currentValue);
+          executeQuery(currentValue, fromExternalPage);
         },
       );
     }
@@ -231,7 +235,9 @@ const QueryInput = ({
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
-                    onClick={() => executeQuery(editorContent)}
+                    onClick={() =>
+                      executeQuery(editorContent, fromExternalPage)
+                    }
                     size="xs"
                     variant="outline"
                   >
@@ -239,33 +245,41 @@ const QueryInput = ({
                     Run
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent>Run the query (⌘+Enter)</TooltipContent>
+                <TooltipContent>
+                  {!fromExternalPage
+                    ? "Run the query (⌘+Enter)"
+                    : "Run the query on your machine"}
+                </TooltipContent>
               </Tooltip>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    size="xs"
-                    variant="outline"
-                    onClick={() => setIsLibraryOpen((prev) => !prev)}
-                  >
-                    <List size={12} />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Open the Query Library</TooltipContent>
-              </Tooltip>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    size="xs"
-                    variant="outline"
-                    disabled={!isSaveValid}
-                    onClick={() => setIsSaveQueryModalOpen(true)}
-                  >
-                    <Star size={12} />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Save Query</TooltipContent>
-              </Tooltip>
+              {setIsLibraryOpen && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      size="xs"
+                      variant="outline"
+                      onClick={() => setIsLibraryOpen((prev) => !prev)}
+                    >
+                      <List size={12} />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Open the Query Library</TooltipContent>
+                </Tooltip>
+              )}
+              {user !== "not-logged-in" && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      size="xs"
+                      variant="outline"
+                      disabled={!isSaveValid}
+                      onClick={() => setIsSaveQueryModalOpen(true)}
+                    >
+                      <Star size={12} />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Save Query</TooltipContent>
+                </Tooltip>
+              )}
             </div>
           </TooltipProvider>
           <MonacoEditor
