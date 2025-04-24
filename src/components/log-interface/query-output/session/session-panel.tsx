@@ -43,7 +43,6 @@ import {
 import { SelectTrigger } from "@radix-ui/react-select";
 import { KV } from "api/js/types/v1/types_pb";
 import {
-  defaultConfig,
   FilterByKeyValue,
   KeyValueRow,
   MetaDataTooltip,
@@ -53,6 +52,7 @@ import { Data, LogEvents, Tabular } from "api/js/types/v1/data_pb";
 import { newLogEventsTablular, newTabularData } from "@/lib/utils/dataBuilders";
 import { ShareQuery } from "@/components/log-interface/share-query";
 import { QueryHistoryEntry } from "api/js/types/v1/query_history_entry_pb";
+import { defaultConfig, getConfig } from "@/services/localhostService";
 
 interface SessionPanelProps {
   ids?: { machineId?: string; sessionId?: string };
@@ -117,11 +117,13 @@ const SessionPanel = ({
   const [selectedLines, setSelectedLines] = useState<string | null>();
   const [sharedData, setSharedData] = useState<Data | null>(null);
 
-  const getConfig = useCallback(async () => {
-    const res = await apiClients?.localhost.getConfig({});
-
-    setConfig(res?.config ?? defaultConfig);
-  }, []);
+  const handleConfig = async () => {
+    if (!apiClients) return;
+    await getConfig(apiClients.localhost, {
+      onSuccess: (res) => setConfig(res.config ?? defaultConfig),
+      onError: (res) => setConfig(defaultConfig),
+    });
+  };
 
   const handleClickLine = (line: string) => {
     if (providedData) return;
@@ -186,7 +188,7 @@ const SessionPanel = ({
   };
 
   useEffect(() => {
-    getConfig();
+    handleConfig();
   }, []);
 
   useEffect(() => {
