@@ -35,7 +35,6 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ModeToggle } from "@/components/mode-toggle";
 import { useApiClients } from "@/context/api-provider";
-import { useFullWidth } from "@/context/full-width-provider";
 import { PingResponse } from "api/js/svc/localhost/v1/service_pb";
 import { gravatarURL } from "@/lib/utils/avatar";
 import { getEnvUrl, getUserSettingsUrl } from "@/lib/utils/navigation";
@@ -56,10 +55,6 @@ import {
   AllowedUsageResponse,
   AllowedUsageResponse_LocalhostUsage,
 } from "api/js/svc/feature/v1/service_pb";
-
-const WidthToggle = dynamic(() => import("@/components/width-toggle"), {
-  ssr: false,
-});
 
 interface Source {
   name: string;
@@ -88,7 +83,6 @@ const PageHeader: React.FC = () => {
   const isProd = config.NEXT_PUBLIC_IS_PROD;
 
   const { setActiveEnvironment, doLogout, apiClients } = useApiClients();
-  const { isFullWidth, setIsFullWidth } = useFullWidth();
 
   const {
     user,
@@ -308,10 +302,6 @@ const PageHeader: React.FC = () => {
 
               <div className="flex flex-row items-center gap-2">
                 <ModeToggle />
-                <WidthToggle
-                  isFullWidth={isFullWidth}
-                  setIsFullWidth={setIsFullWidth}
-                />
               </div>
             </div>
           </div>
