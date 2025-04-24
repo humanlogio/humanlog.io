@@ -3,7 +3,6 @@
 import SessionPanel from "@/components/log-interface/query-output/session/session-panel";
 import TableContainer from "@/components/log-interface/query-output/table/table-container";
 import { useApiClients } from "@/context/api-provider";
-import { useFullWidth } from "@/context/full-width-provider";
 import { formatTimestamp, getTimeSince } from "@/lib/utils/formatTimeStamp";
 import { getPublicSharedResult } from "@/services/shareService";
 
@@ -31,7 +30,6 @@ interface SharedQueryProps {
 
 export const SharedQuery = ({ sharedId, prefix }: SharedQueryProps) => {
   const { apiClients } = useApiClients();
-  const { isFullWidth } = useFullWidth();
   const { theme } = useTheme();
 
   const [isLoading, setIsLoading] = useState(true);
@@ -96,12 +94,10 @@ export const SharedQuery = ({ sharedId, prefix }: SharedQueryProps) => {
   }
 
   return (
-    <div
-      className={`min-h-screen pb-12 ${!isFullWidth && "container mx-auto"}`}
-    >
+    <div className={`min-h-screen pb-12`}>
       {/* Header Section */}
       <div className="mb-8 border-b border-gray-200">
-        <div className={`px-8 py-6 ${!isFullWidth && "container mx-auto"}`}>
+        <div className={`px-8 py-6`}>
           <div className="mb-4 flex items-center">
             <Share2 className="mr-2 h-5 w-5 text-blue-600 dark:text-blue-400" />
             <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-200">
@@ -131,7 +127,7 @@ export const SharedQuery = ({ sharedId, prefix }: SharedQueryProps) => {
         </div>
       </div>
 
-      <div className={`px-8 ${!isFullWidth && "container mx-auto"}`}>
+      <div className={`px-8`}>
         {/* Query Section */}
         <div className="mb-8">
           <div className="mb-3 flex items-center">
