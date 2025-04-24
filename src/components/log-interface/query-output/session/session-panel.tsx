@@ -53,6 +53,7 @@ import { newLogEventsTablular, newTabularData } from "@/lib/utils/dataBuilders";
 import { ShareQuery } from "@/components/log-interface/share-query";
 import { QueryHistoryEntry } from "api/js/types/v1/query_history_entry_pb";
 import { defaultConfig, getConfig } from "@/services/localhostService";
+import { useAllEnvironments } from "@/context/list-environments";
 
 interface SessionPanelProps {
   ids?: { machineId?: string; sessionId?: string };
@@ -93,6 +94,7 @@ const SessionPanel = ({
   const pretty = searchParams.get("pretty") !== "false";
 
   const { apiClients } = useApiClients();
+  const { localhostInfo, user } = useAllEnvironments();
 
   const { targetRef, isFetching, fetchNext, fetchData, next } =
     useInfiniteQuery(query);
@@ -189,7 +191,7 @@ const SessionPanel = ({
 
   useEffect(() => {
     handleConfig();
-  }, []);
+  }, [localhostInfo, user]);
 
   useEffect(() => {
     if (providedData) {

@@ -13,7 +13,6 @@ import {
   X,
 } from "lucide-react";
 import config from "@/features/config";
-import { useFullWidth } from "@/context/full-width-provider";
 import {
   Tooltip,
   TooltipContent,
@@ -26,7 +25,6 @@ interface LocalhostLayoutProps {
 }
 
 const LocalhostLayout = ({ children }: LocalhostLayoutProps) => {
-  const { isFullWidth } = useFullWidth();
   const pathname = usePathname();
   const router = useRouter();
   const isProd = config.NEXT_PUBLIC_IS_PROD;
@@ -73,9 +71,7 @@ const LocalhostLayout = ({ children }: LocalhostLayoutProps) => {
     <div className="flex w-full flex-col">
       <div className={`sticky top-14 z-20`}>
         <nav className="bg-background border-b">
-          <div
-            className={`flex justify-between px-10 py-2 ${!isFullWidth && "container"}`}
-          >
+          <div className={`flex justify-between px-10 py-2`}>
             <ul className="flex gap-4">
               {navItems.map((item) => {
                 return (

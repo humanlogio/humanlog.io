@@ -37,7 +37,6 @@ import { X } from "lucide-react";
 import { getQuery, parseQuery, QueryClientType } from "@/services/queryService";
 import { recordQueryHistory } from "@/services/userService";
 import { RecordQueryHistoryResponse } from "api/js/svc/user/v1/service_pb";
-import { useFullWidth } from "@/context/full-width-provider";
 import QueryInput from "@/components/log-interface/query-input";
 import QueryOutput from "@/components/log-interface/query-output";
 import { QueryLibrary } from "@/components/log-interface/query-library";
@@ -80,7 +79,6 @@ const LogInterface = () => {
 
   const router = useRouter();
   const { apiClients, activeEnvironment } = useApiClients();
-  const { isFullWidth } = useFullWidth();
   const { localhostInfo } = useAllEnvironments();
   const { setNext } = useInfiniteQuery();
 
@@ -251,7 +249,7 @@ const LogInterface = () => {
       <PanelGroup direction="horizontal">
         <Panel defaultSize={80} minSize={30}>
           <div
-            className={`flex h-full flex-col gap-4 px-10 py-8 ${isLibraryOpen && "overflow-y-auto"} ${!isFullWidth && "container"}`}
+            className={`flex h-full flex-col gap-4 px-10 py-8 ${isLibraryOpen && "overflow-y-auto"}`}
           >
             <div
               className={twMerge(
