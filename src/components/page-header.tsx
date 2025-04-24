@@ -9,7 +9,6 @@ import {
   User as UserIcon,
   LogOut,
   Menu,
-  ArrowUpCircle,
 } from "lucide-react";
 import Logo from "@/components/logo";
 import {
@@ -24,7 +23,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
@@ -54,7 +52,10 @@ import {
 } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
 import { getAllowedUsage } from "@/services/featureService";
-import { AllowedUsageResponse } from "api/js/svc/feature/v1/service_pb";
+import {
+  AllowedUsageResponse,
+  AllowedUsageResponse_LocalhostUsage,
+} from "api/js/svc/feature/v1/service_pb";
 
 const WidthToggle = dynamic(() => import("@/components/width-toggle"), {
   ssr: false,
@@ -100,7 +101,8 @@ const PageHeader: React.FC = () => {
 
   const [sources, setSources] = useState<Source[]>();
   const [selected, setSelected] = useState<Source>();
-  const [isPersonalUse, setIsPersonalUse] = useState<boolean | null>(null);
+  const [allowedUsage, setAllowedUsage] =
+    useState<AllowedUsageResponse_LocalhostUsage>();
 
   const router = useRouter();
 
@@ -122,8 +124,10 @@ const PageHeader: React.FC = () => {
   const handleAllowedUsage = async () => {
     if (!apiClients || user === "loading" || user === "not-logged-in") return;
     await getAllowedUsage(apiClients.feature, {
-      onSuccess: (res: AllowedUsageResponse) =>
-        setIsPersonalUse(res?.localhostUsage === 1),
+      onSuccess: (res: AllowedUsageResponse) => {
+        console.log("res", res);
+        setAllowedUsage(res.localhostUsage);
+      },
     });
   };
 
@@ -200,16 +204,30 @@ const PageHeader: React.FC = () => {
             className="flex cursor-pointer flex-row items-center gap-2 md:flex-row-reverse"
             aria-label="user-dropdown"
           >
-            <Avatar>
-              <AvatarImage src={gravatarURL(user?.email)} />
-              <AvatarFallback className="uppercase">
-                {user?.firstName?.slice(0, 2) || <UserIcon size={16} />}
-              </AvatarFallback>
-            </Avatar>
+            <div className="relative">
+              <Avatar>
+                <AvatarImage src={gravatarURL(user?.email)} />
+                <AvatarFallback className="uppercase">
+                  {user?.firstName?.slice(0, 2) || <UserIcon size={16} />}
+                </AvatarFallback>
 
-            <p className="font-medium whitespace-nowrap md:order-1">
-              {user?.firstName || "username"}
-            </p>
+                <div
+                  className={`absolute bottom-0 left-0 z-10 h-3 w-3 rounded-full ${allowedUsage === 2 && "bg-emerald-500"}`}
+                />
+              </Avatar>
+            </div>
+            <div className="text-end">
+              <p className="font-medium whitespace-nowrap md:order-1">
+                {user?.username ?? user.firstName}
+              </p>
+              {allowedUsage === 1 ? (
+                <p className="text-xs text-orange-400">Personal use</p>
+              ) : allowedUsage === 2 ? (
+                <p className="text-xs text-emerald-500">Pro</p>
+              ) : (
+                <></>
+              )}
+            </div>
           </div>
         </DropdownMenuTrigger>
         <DropdownMenuContent className="w-56">
@@ -275,41 +293,6 @@ const PageHeader: React.FC = () => {
     );
   };
 
-  const renderSubcriptionBadge = () => {
-    if (isPersonalUse === null) return;
-
-    if (!isPersonalUse) {
-      return (
-        <Link href={`/pricing`}>
-          <Badge className="ml-1 border-0 bg-gradient-to-r from-blue-500/90 to-indigo-600/90 text-white transition-all hover:from-blue-600/90 hover:to-indigo-700/90">
-            Pro
-          </Badge>
-        </Link>
-      );
-    }
-
-    return (
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Link href={`/pricing`}>
-              <Badge className="ml-1 flex items-center gap-1 border-0 bg-gray-200 text-gray-700 transition-all hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
-                Free
-                <ArrowUpCircle
-                  size={12}
-                  className="text-blue-500 dark:text-blue-400"
-                />
-              </Badge>
-            </Link>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>Upgrade to Pro for commercial usage and advanced features.</p>
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
-    );
-  };
-
   return (
     <header className="bg-muted sticky top-0 left-0 z-30">
       <div className="container flex flex-row items-center justify-between gap-8 py-2">
@@ -322,8 +305,6 @@ const PageHeader: React.FC = () => {
             {renderNavBlock()}
             <div className="ml-4 flex flex-row items-center gap-4">
               {renderAvatarBlock(user)}
-              <div className="mx-1 h-6 border-l border-gray-300 dark:border-gray-700" />
-              {renderSubcriptionBadge()}
 
               <div className="flex flex-row items-center gap-2">
                 <ModeToggle />
