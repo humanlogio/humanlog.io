@@ -43,6 +43,7 @@ import {
 import { SelectTrigger } from "@radix-ui/react-select";
 import { KV } from "api/js/types/v1/types_pb";
 import {
+  defaultConfig,
   FilterByKeyValue,
   KeyValueRow,
   MetaDataTooltip,
@@ -119,7 +120,7 @@ const SessionPanel = ({
   const getConfig = useCallback(async () => {
     const res = await apiClients?.localhost.getConfig({});
 
-    setConfig(res?.config);
+    setConfig(res?.config ?? defaultConfig);
   }, []);
 
   const handleClickLine = (line: string) => {
