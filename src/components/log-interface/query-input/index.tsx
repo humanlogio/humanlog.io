@@ -247,8 +247,8 @@ const QueryInput = ({
                 </TooltipTrigger>
                 <TooltipContent>
                   {!fromExternalPage
-                    ? "Run the query (⌘+Enter)"
-                    : "Run the query on your machine"}
+                    ? "Run this query (⌘+Enter)"
+                    : "Run this query on your machine"}
                 </TooltipContent>
               </Tooltip>
               {setIsLibraryOpen && (
