@@ -21,6 +21,8 @@ import {
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
+import MonacoEditor from "@/components/editor/monaco-editor";
+import QueryInput from "@/components/log-interface/query-input";
 
 interface SharedQueryProps {
   sharedId: string;
@@ -138,10 +140,21 @@ export const SharedQuery = ({ sharedId, prefix }: SharedQueryProps) => {
               Query
             </h2>
           </div>
-          <div className="overflow-x-auto rounded-lg border border-gray-200">
-            <pre className="p-4 font-mono text-sm break-words whitespace-pre-wrap text-gray-800 dark:text-gray-200">
-              {query?.rawQuery}
-            </pre>
+          <div className="overflow-x-auto rounded-lg border border-gray-200 p-2">
+            <MonacoEditor
+              value={query?.rawQuery ?? ""}
+              options={{ readOnly: true }}
+            />
+
+            {/* TODO */}
+            {/* <QueryInput
+              errMsg=""
+              onExecuteQuery={() => {}}
+              setIsLibraryOpen={() => {}}
+              editorContent={query?.rawQuery ?? ""}
+              setEditorContent={() => {}}
+              parsedQuery={query?.query}
+            /> */}
           </div>
         </div>
 

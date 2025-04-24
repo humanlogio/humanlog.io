@@ -49,6 +49,9 @@ import {
   Tabular,
   VectorTimeseries,
 } from "api/js/types/v1/data_pb";
+import { twMerge } from "tailwind-merge";
+import config from "@/features/config";
+import Graph from "@/components/ui/graph/graph";
 
 export type DataCase =
   | "subqueries"
@@ -72,6 +75,7 @@ export interface LogData {
 }
 
 const LogInterface = () => {
+  const isProd = config.NEXT_PUBLIC_IS_PROD;
   const limit = 100;
 
   const router = useRouter();
@@ -249,17 +253,26 @@ const LogInterface = () => {
           <div
             className={`flex h-full flex-col gap-4 px-10 py-8 ${isLibraryOpen && "overflow-y-auto"} ${!isFullWidth && "container"}`}
           >
-            <QueryInput
-              errMsg={queryParseErrMsg}
-              onExecuteQuery={executeQuery}
-              symbol={symbol}
-              filterBySymbol={filterBySymbol}
-              editorContent={editorContent}
-              setEditorContent={setEditorContent}
-              parsedQuery={parsedQuery}
-              setSavedQueryId={setSavedQueryId}
-              setIsLibraryOpen={setIsLibraryOpen}
-            />
+            <div
+              className={twMerge(
+                "items-center gap-8",
+                !isProd && "grid grid-cols-2",
+              )}
+            >
+              <QueryInput
+                errMsg={queryParseErrMsg}
+                onExecuteQuery={executeQuery}
+                symbol={symbol}
+                filterBySymbol={filterBySymbol}
+                editorContent={editorContent}
+                setEditorContent={setEditorContent}
+                parsedQuery={parsedQuery}
+                setSavedQueryId={setSavedQueryId}
+                setIsLibraryOpen={setIsLibraryOpen}
+              />
+              {/* CHART */}
+              {!isProd && <Graph />}
+            </div>
             {!isQueryHistoryLoading && (
               <QueryOutput
                 logData={logData}
