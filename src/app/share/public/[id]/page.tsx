@@ -4,7 +4,6 @@ import { Metadata } from "next";
 import { getSelfURL } from "@/lib/envs";
 import { createServerGrpcClient } from "@/lib/server-grpc";
 import { unstable_cache } from "next/cache";
-import { gravatarURL } from "@/lib/utils/avatar";
 
 const getSharedResultData = unstable_cache(
   async (shareId: string) => {
@@ -30,7 +29,6 @@ export async function generateMetadata({
 
   try {
     const response = await getSharedResultData(id);
-    console.log("⭐️⭐️⭐️⭐️response⭐️⭐️⭐️⭐️", response);
 
     const sharedBy = response?.sharedBy;
     const queryText = response?.sharedResult?.query?.rawQuery || "Shared Query";
@@ -59,7 +57,7 @@ export async function generateMetadata({
         siteName: "HumanLog",
         images: [
           {
-            url: `${gravatarURL(sharedBy?.email)}`,
+            url: `${sharedBy?.profilePictureUrl}`,
             width: 1200,
             height: 630,
             alt: "HumanLog Shared Query",
@@ -71,7 +69,7 @@ export async function generateMetadata({
         card: "summary_large_image",
         title: `Shared Query by ${sharedBy?.username} | HumanLog`,
         description: truncatedQuery,
-        images: [`${gravatarURL(sharedBy?.email)}`],
+        images: [`${sharedBy?.profilePictureUrl}`],
         creator: "@humanlog",
       },
 
