@@ -19,16 +19,22 @@ import {
   User as UserIcon,
 } from "lucide-react";
 import { useTheme } from "next-themes";
-import { useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 import QueryInput from "@/components/log-interface/query-input";
 import { useRouter } from "next/navigation";
+import { ViewSharedResultResponse } from "api/js/svc/share/v1/service_pb";
 
 interface SharedQueryProps {
   sharedId: string;
   prefix?: string;
+  // shraedData: ViewSharedResultResponse;
 }
 
-export const SharedQuery = ({ sharedId, prefix }: SharedQueryProps) => {
+export const SharedQuery = ({
+  sharedId,
+  prefix,
+  // shraedData,
+}: SharedQueryProps) => {
   const router = useRouter();
   const { apiClients } = useApiClients();
   const { theme } = useTheme();
@@ -86,6 +92,13 @@ export const SharedQuery = ({ sharedId, prefix }: SharedQueryProps) => {
   useEffect(() => {
     handleSharedResult();
   }, [apiClients, sharedId, prefix]);
+
+  // useEffect(() => {
+  //   const { sharedBy, sharedResult } = shraedData;
+  //   setSharedBy(sharedBy ?? null);
+  //   setQuery(sharedResult?.query || null);
+  //   setSharedTimestamp(sharedResult?.createdAt || null);
+  // }, [shraedData]);
 
   useEffect(() => {
     setEditorContent(query?.rawQuery ?? "");
