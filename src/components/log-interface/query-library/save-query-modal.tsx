@@ -29,8 +29,13 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import MarkdownEditor from "@/components/ui/markdown-textarea";
-import MonacoEditor from "@/components/editor/monaco-editor";
 import { Loader } from "lucide-react";
+import dynamic from "next/dynamic";
+
+const MonacoEditor = dynamic(
+  () => import("@/components/editor/monaco-editor"),
+  { ssr: false },
+);
 
 interface SaveQueryModalProps {
   id?: bigint;
