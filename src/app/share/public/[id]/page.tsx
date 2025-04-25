@@ -4,6 +4,7 @@ import { Metadata } from "next";
 import { getSelfURL } from "@/lib/envs";
 import { createServerGrpcClient } from "@/lib/server-grpc";
 import { unstable_cache } from "next/cache";
+import { gravatarURL } from "@/lib/utils/avatar";
 
 const getSharedResultData = unstable_cache(
   async (shareId: string) => {
@@ -31,13 +32,13 @@ export async function generateMetadata({
     const response = await getSharedResultData(id);
     console.log("⭐️⭐️⭐️⭐️response⭐️⭐️⭐️⭐️", response);
 
-    const sharedBy = response?.sharedBy?.username || "User";
+    const sharedBy = response?.sharedBy;
     const queryText = response?.sharedResult?.query?.rawQuery || "Shared Query";
     const truncatedQuery =
       queryText.length > 160 ? queryText.substring(0, 157) + "..." : queryText;
 
     return {
-      title: `Shared Query by ${sharedBy} | HumanLog`,
+      title: `Shared Query by ${sharedBy?.username} | HumanLog`,
       description: truncatedQuery,
       keywords: [
         "query",
@@ -50,14 +51,14 @@ export async function generateMetadata({
       ],
 
       openGraph: {
-        title: `Shared Query by ${sharedBy}`,
+        title: `Shared Query by ${sharedBy?.username}`,
         description: truncatedQuery,
         type: "website",
         url: `${selfBaseURL}/share/public/${id}`,
         siteName: "HumanLog",
         images: [
           {
-            url: ``,
+            url: `${gravatarURL(sharedBy?.email)}`,
             width: 1200,
             height: 630,
             alt: "HumanLog Shared Query",
@@ -67,9 +68,9 @@ export async function generateMetadata({
 
       twitter: {
         card: "summary_large_image",
-        title: `Shared Query by ${sharedBy} | HumanLog`,
+        title: `Shared Query by ${sharedBy?.username} | HumanLog`,
         description: truncatedQuery,
-        images: [``],
+        images: [`${gravatarURL(sharedBy?.email)}`],
         creator: "@humanlog",
       },
 
