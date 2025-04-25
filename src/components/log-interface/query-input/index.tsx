@@ -10,7 +10,6 @@ import React, {
 } from "react";
 
 import { useApiClients } from "@/context/api-provider";
-import MonacoEditor from "@/components/editor/monaco-editor";
 import { editor as monacoEditor } from "monaco-editor";
 import type { OnMount } from "@monaco-editor/react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -37,6 +36,12 @@ import {
 import { SaveQueryModal } from "@/components/log-interface/query-library/save-query-modal";
 import Graph from "@/components/ui/graph/graph";
 import { useAllEnvironments } from "@/context/list-environments";
+import dynamic from "next/dynamic";
+
+const MonacoEditor = dynamic(
+  () => import("@/components/editor/monaco-editor"),
+  { ssr: false },
+);
 
 interface QueryInputProps {
   errMsg: string;
