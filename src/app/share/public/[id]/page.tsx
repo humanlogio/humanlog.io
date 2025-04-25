@@ -41,13 +41,14 @@ export async function generateMetadata({
       title: `Shared Query by ${sharedBy?.username} | HumanLog`,
       description: truncatedQuery,
       keywords: [
-        "query",
-        "logs",
-        "database",
-        "share",
-        "humanlog",
-        "analytics",
-        "data",
+        "opentelemetry",
+        "siem",
+        "monitoring",
+        "observability",
+        "telemetry",
+        "metrics",
+        "metric",
+        "tracing",
       ],
 
       openGraph: {
