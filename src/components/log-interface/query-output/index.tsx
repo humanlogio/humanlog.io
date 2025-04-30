@@ -16,6 +16,7 @@ import {
 import { KV } from "api/js/types/v1/types_pb";
 import SessionPanel from "@/components/log-interface/query-output/session/session-panel";
 import { QueryHistoryEntry } from "api/js/types/v1/query_history_entry_pb";
+import Histogram from "@/components/log-interface/query-output/table/histogram-container";
 
 interface QueryOutputProps {
   logData: LogData;
@@ -44,7 +45,7 @@ const QueryOutput = ({
     }
 
     if (dataCase === "tabular" && value instanceof Tabular) {
-      const { case: shapeCase } = value.shape;
+      const { case: shapeCase, value: shapeValue } = value.shape;
       switch (shapeCase) {
         case "logEvents":
           setOutput(
@@ -66,14 +67,28 @@ const QueryOutput = ({
           break;
 
         case "freeForm":
-          setOutput(
-            <div className="flex-1">
-              <TableContainer
-                query={parsedQuery}
-                queryHistoryEntry={queryHistoryEntry}
-              />
-            </div>,
-          );
+          if (shapeValue.type) {
+            const { columns } = shapeValue.type;
+            if (columns.find((col) => col.type?.type.case === "map")) {
+              setOutput(
+                <div className="flex-1">
+                  <Histogram
+                    query={parsedQuery}
+                    queryHistoryEntry={queryHistoryEntry}
+                  />
+                </div>,
+              );
+            } else {
+              setOutput(
+                <div className="flex-1">
+                  <TableContainer
+                    query={parsedQuery}
+                    queryHistoryEntry={queryHistoryEntry}
+                  />
+                </div>,
+              );
+            }
+          }
           break;
       }
       return;
