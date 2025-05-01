@@ -3,7 +3,7 @@
 import { Data_SubQueries, Tabular } from "api/js/types/v1/data_pb";
 import { ReactNode, useEffect, useState } from "react";
 import { BinaryOp_Operator, Expr, Query } from "api/js/types/v1/query_pb";
-import TableContainer from "@/components/log-interface/query-output/table/table-container";
+import TableContainer from "@/components/log-interface/query-output/freeform/table-container";
 import { useSearchParams } from "next/navigation";
 import { LogData } from "@/components/log-interface";
 import { NoLogsView } from "@/components/log-interface/views/no-logs-view";
@@ -13,10 +13,9 @@ import {
   ToggleShowPretty,
   ToggleSplit,
 } from "@/components/log-interface/query-output/toggles";
-import { KV } from "api/js/types/v1/types_pb";
 import SessionPanel from "@/components/log-interface/query-output/session/session-panel";
 import { QueryHistoryEntry } from "api/js/types/v1/query_history_entry_pb";
-import Histogram from "@/components/log-interface/query-output/table/histogram-container";
+import { FreeFormContainer } from "@/components/log-interface/query-output/freeform";
 
 interface QueryOutputProps {
   logData: LogData;
@@ -67,28 +66,12 @@ const QueryOutput = ({
           break;
 
         case "freeForm":
-          if (shapeValue.type) {
-            const { columns } = shapeValue.type;
-            if (columns.find((col) => col.type?.type.case === "map")) {
-              setOutput(
-                <div className="flex-1">
-                  <Histogram
-                    query={parsedQuery}
-                    queryHistoryEntry={queryHistoryEntry}
-                  />
-                </div>,
-              );
-            } else {
-              setOutput(
-                <div className="flex-1">
-                  <TableContainer
-                    query={parsedQuery}
-                    queryHistoryEntry={queryHistoryEntry}
-                  />
-                </div>,
-              );
-            }
-          }
+          setOutput(
+            <FreeFormContainer
+              query={parsedQuery}
+              queryHistoryEntry={queryHistoryEntry}
+            />,
+          );
           break;
       }
       return;

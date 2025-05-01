@@ -1,11 +1,9 @@
 "use client";
 
 import SessionPanel from "@/components/log-interface/query-output/session/session-panel";
-import TableContainer from "@/components/log-interface/query-output/table/table-container";
 import { useApiClients } from "@/context/api-provider";
 import { formatTimestamp, getTimeSince } from "@/lib/utils/formatTimeStamp";
 import { getPublicSharedResult } from "@/services/shareService";
-
 import { IngestedLogEvent } from "api/js/types/v1/logevent_pb";
 import { QueryHistoryEntry } from "api/js/types/v1/query_history_entry_pb";
 import { Table } from "api/js/types/v1/types_pb";
@@ -19,23 +17,17 @@ import {
   User as UserIcon,
 } from "lucide-react";
 import { useTheme } from "next-themes";
-import { use, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import QueryInput from "@/components/log-interface/query-input";
 import { useRouter } from "next/navigation";
-import { ViewSharedResultResponse } from "api/js/svc/share/v1/service_pb";
-import Histogram from "@/components/log-interface/query-output/table/histogram-container";
+import { FreeFormContainer } from "@/components/log-interface/query-output/freeform";
 
 interface SharedQueryProps {
   sharedId: string;
   prefix?: string;
-  // shraedData: ViewSharedResultResponse;
 }
 
-export const SharedQuery = ({
-  sharedId,
-  prefix,
-  // shraedData,
-}: SharedQueryProps) => {
+export const SharedQuery = ({ sharedId, prefix }: SharedQueryProps) => {
   const router = useRouter();
   const { apiClients } = useApiClients();
   const { theme } = useTheme();
@@ -46,8 +38,7 @@ export const SharedQuery = ({
   const [query, setQuery] = useState<QueryHistoryEntry | null>(null);
 
   const [logData, setLogData] = useState<IngestedLogEvent[] | null>(null);
-  const [tableData, setTableData] = useState<Table | null>(null);
-  const [histogramData, setHistogramData] = useState<Table | null>();
+  const [freeFormData, setFreeFormData] = useState<Table | null>();
   const [sharedTimestamp, setSharedTimestamp] = useState<any>(null);
   const [editorContent, setEditorContent] = useState("");
 
@@ -79,13 +70,8 @@ export const SharedQuery = ({
               if (shapeCase === "logEvents") {
                 setLogData(shapeValue.events || null);
               }
-              if (shapeCase === "freeForm" && shapeValue.type) {
-                const { columns } = shapeValue.type;
-                if (columns.find((col) => col.type?.type.case === "map")) {
-                  setHistogramData(shapeValue || null);
-                } else {
-                  setTableData(shapeValue || null);
-                }
+              if (shapeCase === "freeForm") {
+                setFreeFormData(shapeValue);
               }
             }
           }
@@ -102,13 +88,6 @@ export const SharedQuery = ({
   useEffect(() => {
     handleSharedResult();
   }, [apiClients, sharedId, prefix]);
-
-  // useEffect(() => {
-  //   const { sharedBy, sharedResult } = shraedData;
-  //   setSharedBy(sharedBy ?? null);
-  //   setQuery(sharedResult?.query || null);
-  //   setSharedTimestamp(sharedResult?.createdAt || null);
-  // }, [shraedData]);
 
   useEffect(() => {
     setEditorContent(query?.rawQuery ?? "");
@@ -193,19 +172,16 @@ export const SharedQuery = ({
               </div>
             )}
 
-            {tableData && (
+            {freeFormData && (
               <div className="p-4">
-                <TableContainer query={undefined} providedData={tableData} />
+                <FreeFormContainer
+                  query={undefined}
+                  providedData={freeFormData}
+                />
               </div>
             )}
 
-            {histogramData && (
-              <div className="p-4">
-                <Histogram query={undefined} providedData={histogramData} />
-              </div>
-            )}
-
-            {!logData && !tableData && !histogramData && (
+            {!logData && !freeFormData && (
               <div className="p-6 text-center text-gray-500">
                 No result data to display.
               </div>
