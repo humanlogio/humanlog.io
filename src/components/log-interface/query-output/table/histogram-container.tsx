@@ -2,16 +2,10 @@ import { Arr, Table } from "api/js/types/v1/types_pb";
 import { Query } from "api/js/types/v1/query_pb";
 import { QueryHistoryEntry } from "api/js/types/v1/query_history_entry_pb";
 import { useInfiniteQuery } from "@/lib/utils/useInfiniteQuery";
-import { useEffect, useState, useMemo, useCallback } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import { formatTimestamp } from "@/lib/utils/formatTimeStamp";
 import { Loader } from "lucide-react";
-import { ConnectError } from "@connectrpc/connect";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import * as d3 from "d3";
 
 interface HistogramProps {
   query: Query | undefined;
@@ -33,7 +27,15 @@ interface ProcessedData {
   maxCount: number;
 }
 
-export default function Histogram({
+interface Cell {
+  bucket: number;
+  time: string;
+  count: number;
+  x: number;
+  y: number;
+}
+
+export default function D3Histogram({
   query,
   providedData,
   queryHistoryEntry,
@@ -42,47 +44,13 @@ export default function Histogram({
   const [timeColumns, setTimeColumns] = useState<string[]>([]);
   const [items, setItems] = useState<Arr[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-  const [hoveredBucket, setHoveredBucket] = useState<number | null>();
-  const [hoveredTime, setHoveredTime] = useState<string | null>();
+  const [tooltipData, setTooltipData] = useState<Cell[] | null>(null);
+  const [hoveredCell, setHoveredCell] = useState<Cell | null>(null);
+
+  const svgRef = useRef<SVGSVGElement>(null);
+  const tooltipRef = useRef<HTMLDivElement>(null);
 
   const { targetRef, fetchData, next } = useInfiniteQuery(query);
-
-  useEffect(() => {
-    if (!query && !providedData) return;
-
-    setLoading(true);
-
-    if (providedData) {
-      processProvidedData(providedData);
-      setLoading(false);
-    } else {
-      fetchData(({ value: shapeValue }) => {
-        try {
-          if (shapeValue?.rows) {
-            const loadedItems: Arr[] = shapeValue.rows;
-
-            const timeColumns: string[] = [];
-            loadedItems.forEach((item) => {
-              item.items.forEach((val) => {
-                if (val.kind.case === "ts") {
-                  timeColumns.push(
-                    formatTimestamp(val.kind.value, "MMM D HH:mm:ss.SSS"),
-                  );
-                }
-              });
-            });
-
-            setTimeColumns(timeColumns);
-            setItems(loadedItems);
-            setData(shapeValue);
-            setLoading(false);
-          }
-        } catch (error) {
-          setLoading(false);
-        }
-      });
-    }
-  }, [query, providedData]);
 
   const processProvidedData = (data: Table) => {
     try {
@@ -93,9 +61,7 @@ export default function Histogram({
         loadedItems.forEach((item) => {
           item.items.forEach((val) => {
             if (val.kind.case === "ts") {
-              timeColumns.push(
-                formatTimestamp(val.kind.value, "MMM D HH:mm:ss.SSS"),
-              );
+              timeColumns.push(formatTimestamp(val.kind.value));
             }
           });
         });
@@ -119,8 +85,7 @@ export default function Histogram({
         let formattedTime = timeColumns[i] || "";
 
         if (item.items[0]?.kind.case === "ts") {
-          const tsValue = item.items[0]?.kind.value;
-          timestamp = tsValue.toDate().toISOString();
+          timestamp = formatTimestamp(item.items[0]?.kind.value);
         }
 
         if (item.items[1]?.kind.case === "map") {
@@ -154,11 +119,11 @@ export default function Histogram({
 
       const bucketValues = [
         ...new Set(histogramPoints.map((point) => point.bucket)),
-      ].reverse();
+      ].sort((a, b) => b - a);
 
       const maxCount = Math.max(
         ...histogramPoints.map((point) => point.count),
-        0,
+        1,
       );
 
       return {
@@ -172,17 +137,269 @@ export default function Histogram({
     }
   }, [items, timeColumns]);
 
-  const getColor = (count: number): string => {
-    if (count === 0) return "rgba(59, 130, 246, 0)";
+  useEffect(() => {
+    if (!query && !providedData) return;
 
-    const ratio = Math.min(1, count / processedData.maxCount);
-    return `rgba(59, 130, 246, ${ratio})`;
-  };
+    setLoading(true);
 
-  const getCellSize = useCallback(() => {
-    const size = 300 / processedData.bucketValues.length;
-    return `${size}px`;
-  }, [items]);
+    if (providedData) {
+      processProvidedData(providedData);
+      setLoading(false);
+    } else {
+      fetchData(({ value: shapeValue }) => {
+        try {
+          if (shapeValue?.rows) {
+            const loadedItems: Arr[] = shapeValue.rows;
+
+            const timeColumns: string[] = [];
+            loadedItems.forEach((item) => {
+              item.items.forEach((val) => {
+                if (val.kind.case === "ts") {
+                  timeColumns.push(formatTimestamp(val.kind.value));
+                }
+              });
+            });
+
+            setTimeColumns(timeColumns);
+            setItems(loadedItems);
+            setData(shapeValue);
+            setLoading(false);
+          }
+        } catch (error) {
+          setLoading(false);
+        }
+      });
+    }
+  }, [query, providedData]);
+
+  // D3 visualization
+  useEffect(() => {
+    if (loading || !svgRef.current || processedData.heatmapData.length === 0)
+      return;
+
+    const svg = d3.select(svgRef.current);
+    svg.selectAll("*").remove(); // Clear previous visualization
+
+    const margin = { top: 0, right: 50, bottom: 0, left: 30 };
+    const width = Math.max(600, processedData.timePoints.length * 20);
+    const height = 400;
+
+    svg
+      .attr("width", width + margin.left + margin.right)
+      .attr("height", height + margin.top + margin.bottom)
+      .attr(
+        "viewBox",
+        `0 0 ${width + margin.left + margin.right} ${height + margin.top + margin.bottom}`,
+      )
+      .attr("preserveAspectRatio", "xMidYMid meet");
+
+    const g = svg
+      .append("g")
+      .attr("transform", `translate(${margin.left}, ${margin.top})`);
+
+    const xScale = d3
+      .scaleBand()
+      .domain(processedData.timePoints)
+      .range([0, width]);
+    // .padding(0.1);
+
+    const yScale = d3
+      .scaleBand()
+      .domain(processedData.bucketValues.map(String))
+      .range([0, height]);
+    // .padding(0.1);
+
+    const colorScale = d3
+      .scaleSequential()
+      .domain([0, processedData.maxCount])
+      .interpolator(d3.interpolateBlues);
+
+    g.selectAll(".cell")
+      .data(processedData.heatmapData)
+      .enter()
+      .append("rect")
+      .attr("class", "cell")
+      .attr("x", (d) => xScale(d.formattedTime) || 0)
+      .attr("y", (d) => yScale(String(d.bucket)) || 0)
+      .attr("width", xScale.bandwidth())
+      .attr("height", yScale.bandwidth())
+      .attr("fill", (d) =>
+        d.count === 0 ? "transparent" : colorScale(d.count),
+      )
+      .on("mouseover", (event, d) => {
+        const [mouseX, mouseY] = d3.pointer(event, document.body);
+
+        setHoveredCell({
+          bucket: d.bucket,
+          time: d.formattedTime,
+          count: d.count,
+          x: mouseX,
+          y: mouseY,
+        });
+
+        const columnData = processedData.heatmapData
+          .filter((point) => point.formattedTime === d.formattedTime)
+          .sort((a, b) => b.bucket - a.bucket)
+          .map((point) => ({
+            bucket: point.bucket,
+            time: point.formattedTime,
+            count: point.count,
+            x: mouseX,
+            y: mouseY,
+          }));
+
+        setTooltipData(columnData);
+
+        g.selectAll(".highlight-row").remove();
+        g.selectAll(".highlight-col").remove();
+
+        g.append("rect")
+          .attr("class", "highlight-row")
+          .attr("x", 0)
+          .attr("y", yScale(String(d.bucket)) || 0)
+          .attr("width", width)
+          .attr("height", 1)
+          .attr("fill", "rgba(200, 200, 200, 0.5)")
+          .attr("pointer-events", "none");
+
+        g.append("rect")
+          .attr("class", "highlight-col")
+          .attr("x", xScale(d.formattedTime) || 0)
+          .attr("y", 0)
+          .attr("width", 1)
+          .attr("height", height)
+          .attr("fill", "rgba(200, 200, 200, 0.5)")
+          .attr("pointer-events", "none");
+      })
+      .on("mouseout", () => {
+        setTooltipData(null);
+        g.selectAll(".highlight-row").remove();
+        g.selectAll(".highlight-col").remove();
+      });
+
+    const xAxis = g
+      .append("g")
+      .attr("transform", `translate(0, ${height})`)
+      .call(
+        d3.axisBottom(xScale).tickFormat((d, i) => {
+          return i % (processedData.timePoints.length / 20) === 0 ? d : "";
+        }),
+      );
+
+    xAxis
+      .selectAll("text")
+      .style("text-anchor", "end")
+      .attr("dx", "-.8em")
+      .attr("dy", ".15em")
+      .attr("transform", "rotate(-45)");
+
+    g.append("g").call(
+      d3.axisLeft(yScale).tickFormat((d, i) => {
+        return i % (processedData.bucketValues.length / 10) === 0 ? d : "";
+      }),
+    );
+
+    // svg
+    //   .append("text")
+    //   .attr("x", (width + margin.left + margin.right) / 2)
+    //   .attr("y", margin.top / 2)
+    //   .attr("text-anchor", "middle")
+    //   .style("font-size", "16px")
+    //   .style("font-weight", "bold")
+    //   .text(
+    //     data?.type?.columns.map((col) => col.name).join(" - ") || "Histogram",
+    //   );
+
+    const legendWidth = 20;
+    const legendHeight = height;
+    const legend = svg
+      .append("g")
+      .attr(
+        "transform",
+        `translate(${width + margin.left + 10}, ${margin.top})`,
+      );
+
+    const legendScale = d3
+      .scaleSequential()
+      .domain([0, processedData.maxCount])
+      .interpolator(d3.interpolateBlues);
+
+    const defs = svg.append("defs");
+    const linearGradient = defs
+      .append("linearGradient")
+      .attr("id", "linear-gradient")
+      .attr("x1", "0%")
+      .attr("y1", "100%")
+      .attr("x2", "0%")
+      .attr("y2", "0%");
+
+    const numStops = 10;
+    for (let i = 0; i <= numStops; i++) {
+      const offset = i / numStops;
+      const value = offset * processedData.maxCount;
+      linearGradient
+        .append("stop")
+        .attr("offset", `${offset * 100}%`)
+        .attr("stop-color", legendScale(value));
+    }
+
+    legend
+      .append("rect")
+      .attr("width", legendWidth)
+      .attr("height", legendHeight)
+      .style("fill", "url(#linear-gradient)");
+
+    const legendAxis = d3
+      .axisRight(
+        d3
+          .scaleLinear()
+          .domain([0, processedData.maxCount])
+          .range([legendHeight, 0]),
+      )
+      .ticks(5);
+
+    legend
+      .append("g")
+      .attr("transform", `translate(${legendWidth}, 0)`)
+      .call(legendAxis);
+
+    legend
+      .append("text")
+      .attr("transform", "rotate(90)")
+      .attr("x", legendHeight / 2)
+      .attr("y", -legendWidth - 35)
+      .style("text-anchor", "middle")
+      .text("Count");
+  }, [processedData, loading]);
+
+  useEffect(() => {
+    if (!tooltipData || !tooltipRef.current) return;
+
+    const tooltip = tooltipRef.current;
+    const padding = 10;
+
+    const firstPoint = tooltipData[0];
+
+    let left = firstPoint.x + padding;
+    let top = firstPoint.y + padding;
+
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+
+    const tooltipRect = tooltip.getBoundingClientRect();
+
+    if (left + tooltipRect.width > viewportWidth - padding) {
+      left = firstPoint.x - tooltipRect.width - padding;
+    }
+
+    if (top + tooltipRect.height > viewportHeight - padding) {
+      top = firstPoint.y - tooltipRect.height - padding;
+    }
+
+    tooltip.style.left = `${left}px`;
+    tooltip.style.top = `${top}px`;
+    tooltip.style.visibility = "visible";
+  }, [tooltipData]);
 
   if (loading) {
     return (
@@ -202,7 +419,7 @@ export default function Histogram({
 
   return (
     <div className="overflow-auto p-4">
-      <div className="flex items-end justify-between">
+      <div className="mb-4 flex items-end justify-between">
         <div>
           {data?.type?.columns.map((col, i) => {
             return (
@@ -220,111 +437,29 @@ export default function Histogram({
         </div>
       </div>
 
-      <div className="overflow-x-auto text-xs">
-        <div className="flex">
-          {/* Y - bucket value */}
-          <div className="flex-shrink-0 pr-2">
-            <div className="h-8"></div>
-            {processedData.bucketValues.map((bucket, i) => (
-              <div
-                key={i}
-                className={`flex items-center justify-end`}
-                style={{ height: getCellSize() }}
-              >
-                {i % (processedData.bucketValues.length / 10) === 0
-                  ? bucket
-                  : ""}
-              </div>
-            ))}
-          </div>
-          <TooltipProvider delayDuration={0}>
-            <Tooltip>
-              <TooltipTrigger>
-                <div className="flex-1">
-                  <div className="flex">
-                    {processedData.timePoints.map((time, i) => (
-                      <div
-                        key={i}
-                        className="mt-6 flex-1 origin-bottom-left -rotate-45 transform text-center text-xs"
-                      >
-                        {/* {time} */}
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* data cell */}
-                  {processedData.bucketValues.map((bucket, rowIndex) => (
-                    <div key={rowIndex} className="flex">
-                      {processedData.timePoints.map((time, colIndex) => {
-                        const dataPoint = processedData.heatmapData.find(
-                          (d) =>
-                            d.formattedTime === time && d.bucket === bucket,
-                        );
-
-                        return (
-                          <div key={colIndex}>
-                            <div
-                              className={`$ relative flex w-4 flex-1 items-center justify-center`}
-                              title={`time: ${time}, bucket: ${bucket}, count: ${dataPoint?.count}`}
-                              style={{
-                                height: getCellSize(),
-                                background: getColor(dataPoint?.count ?? 0),
-                              }}
-                              onMouseEnter={() => {
-                                setHoveredBucket(bucket);
-                                setHoveredTime(time);
-                              }}
-                              onMouseLeave={() => {
-                                setHoveredBucket(null);
-                                setHoveredTime(null);
-                              }}
-                            >
-                              {hoveredBucket === bucket && (
-                                <div className="bg-muted absolute top-1/2 left-1/2 z-1 h-[1px] w-full" />
-                              )}
-                              {hoveredTime === time && (
-                                <div className="bg-muted absolute top-1/2 left-1/2 z-1 h-full w-[1px]" />
-                              )}
-                              {/* {dataPoint?.count} */}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  ))}
-                </div>
-              </TooltipTrigger>
-              <TooltipContent>
-                <div>
-                  {processedData.bucketValues.map((bucket, i) => {
-                    const dataPoint = processedData.heatmapData.find(
-                      (d) =>
-                        d.bucket === bucket && d.formattedTime === hoveredTime,
-                    );
-                    return (
-                      <div
-                        key={`${i}-${bucket}`}
-                        className={`flex w-32 items-center justify-between text-xs ${bucket === hoveredBucket && "bg-muted"}`}
-                      >
-                        <div className="flex items-center gap-1">
-                          <div
-                            className="h-2 w-2"
-                            style={{
-                              background: getColor(dataPoint?.count ?? 0),
-                            }}
-                          />
-                          <div>{bucket}</div>
-                        </div>
-                        <div>{dataPoint?.count}</div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        </div>
+      <div>
+        <svg ref={svgRef} className="w-full overflow-visible"></svg>
       </div>
+
+      {tooltipData && (
+        <div
+          ref={tooltipRef}
+          className="absolute z-50 rounded border bg-white p-2 shadow-lg dark:bg-black dark:text-white"
+        >
+          <h3 className="mb-2 font-semibold">{hoveredCell?.time}</h3>
+          {tooltipData.map((data, i) => {
+            return (
+              <div
+                key={`${i}-${data.x}-${data.y}`}
+                className={`flex justify-between text-xs opacity-50 ${data.bucket === hoveredCell?.bucket && "bg-muted opacity-100"}`}
+              >
+                <div>{data.bucket}</div>
+                <div>{data.count}</div>
+              </div>
+            );
+          })}
+        </div>
+      )}
 
       {/* {next && <div ref={targetRef} className="mt-4 h-4" />} */}
     </div>
