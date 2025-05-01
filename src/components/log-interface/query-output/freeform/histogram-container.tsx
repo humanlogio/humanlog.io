@@ -1,30 +1,16 @@
 import { Arr, Table, TableType_Column } from "api/js/types/v1/types_pb";
-import { Query } from "api/js/types/v1/query_pb";
-import { QueryHistoryEntry } from "api/js/types/v1/query_history_entry_pb";
-import { useInfiniteQuery } from "@/lib/utils/useInfiniteQuery";
 import { useEffect, useState, useMemo, useRef } from "react";
 import { formatTimestamp } from "@/lib/utils/formatTimeStamp";
-import { Loader, Share } from "lucide-react";
+import { Loader } from "lucide-react";
 import * as d3 from "d3";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { Button } from "@/components/ui/button";
-import { ShareQuery } from "@/components/log-interface/share-query";
-import {
-  newFreeFormTablular,
-  newTable,
-  newTabularData,
-} from "@/lib/utils/dataBuilders";
 import { Data } from "api/js/types/v1/data_pb";
 
 interface HistogramProps {
-  query: Query | undefined;
-  providedData?: Table;
-  queryHistoryEntry?: QueryHistoryEntry;
+  data?: Table;
+  tableColumns?: TableType_Column[];
+  tableRows?: Arr[];
+  targetRef: (node?: Element | null) => void;
+  loading?: boolean;
 }
 
 interface HistogramDataPoint {
@@ -50,54 +36,26 @@ interface Cell {
 }
 
 export default function Histogram({
-  query,
-  providedData,
-  queryHistoryEntry,
+  data,
+  tableColumns,
+  tableRows,
+  targetRef,
+  loading,
 }: HistogramProps) {
-  const [data, setData] = useState<Table | undefined>(providedData);
   const [timeColumns, setTimeColumns] = useState<string[]>([]);
   const [items, setItems] = useState<Arr[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
   const [tooltipData, setTooltipData] = useState<Cell[] | null>(null);
   const [hoveredCell, setHoveredCell] = useState<Cell | null>(null);
   const [sharedData, setSharedData] = useState<Data | null>(null);
-  const [tableColumns, setTableColumns] = useState<TableType_Column[]>();
-  const [tableRows, setTableRows] = useState<Arr[]>();
 
   const svgRef = useRef<SVGSVGElement>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
 
-  const { targetRef, fetchData, next } = useInfiniteQuery(query);
-
-  const processProvidedData = (data: Table) => {
-    try {
-      if (data?.rows) {
-        const loadedItems: Arr[] = data.rows;
-
-        const timeColumns: string[] = [];
-        loadedItems.forEach((item) => {
-          item.items.forEach((val) => {
-            if (val.kind.case === "ts") {
-              timeColumns.push(formatTimestamp(val.kind.value));
-            }
-          });
-        });
-
-        setTimeColumns(timeColumns);
-        setItems(loadedItems);
-      }
-    } catch (error) {}
-  };
-
   const processedData = useMemo<ProcessedData>(() => {
-    if (!items || items.length === 0) {
-      return { timePoints: [], bucketValues: [], heatmapData: [], maxCount: 0 };
-    }
-
     try {
       const histogramPoints: HistogramDataPoint[] = [];
 
-      items.forEach((item, i) => {
+      tableRows?.forEach((item, i) => {
         let timestamp = "";
         let formattedTime = timeColumns[i] || "";
 
@@ -155,43 +113,24 @@ export default function Histogram({
   }, [items, timeColumns]);
 
   useEffect(() => {
-    if (!query && !providedData) return;
+    try {
+      if (tableRows) {
+        const loadedItems: Arr[] = tableRows;
 
-    setLoading(true);
+        const timeColumns: string[] = [];
+        loadedItems.forEach((item) => {
+          item.items.forEach((val) => {
+            if (val.kind.case === "ts") {
+              timeColumns.push(formatTimestamp(val.kind.value));
+            }
+          });
+        });
 
-    if (providedData) {
-      processProvidedData(providedData);
-      setLoading(false);
-    } else {
-      fetchData(({ value: shapeValue }) => {
-        try {
-          if (shapeValue?.type) {
-            setTableColumns(shapeValue.type?.columns);
-          }
-          if (shapeValue?.rows) {
-            setTableRows(shapeValue.rows);
-            const loadedItems: Arr[] = shapeValue.rows;
-
-            const timeColumns: string[] = [];
-            loadedItems.forEach((item) => {
-              item.items.forEach((val) => {
-                if (val.kind.case === "ts") {
-                  timeColumns.push(formatTimestamp(val.kind.value));
-                }
-              });
-            });
-
-            setTimeColumns(timeColumns);
-            setItems(loadedItems);
-            setData(shapeValue);
-            setLoading(false);
-          }
-        } catch (error) {
-          setLoading(false);
-        }
-      });
-    }
-  }, [query, providedData]);
+        setTimeColumns(timeColumns);
+        setItems(loadedItems);
+      }
+    } catch (error) {}
+  }, []);
 
   useEffect(() => {
     if (loading || !svgRef.current || processedData.heatmapData.length === 0)
@@ -437,42 +376,8 @@ export default function Histogram({
     );
   }
 
-  const onClickShare = () => {
-    const data = newTabularData(
-      newFreeFormTablular(newTable(tableColumns, tableRows)),
-    );
-    setSharedData(data);
-  };
-
   return (
     <div className="overflow-auto p-4">
-      {queryHistoryEntry && (
-        <div className="flex w-full justify-end">
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  onClick={onClickShare}
-                  size="xs"
-                  variant="outline"
-                  className="mb-2"
-                >
-                  <Share size={12} />
-                </Button>
-              </TooltipTrigger>
-              {sharedData && (
-                <ShareQuery
-                  sharedData={sharedData}
-                  setSharedData={setSharedData}
-                  queryHistoryEntry={queryHistoryEntry}
-                />
-              )}
-
-              <TooltipContent>Share Query</TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        </div>
-      )}
       <div className="mb-4 flex items-end justify-between">
         <div>
           {data?.type?.columns.map((col, i) => {
