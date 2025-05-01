@@ -23,6 +23,7 @@ import { use, useEffect, useState } from "react";
 import QueryInput from "@/components/log-interface/query-input";
 import { useRouter } from "next/navigation";
 import { ViewSharedResultResponse } from "api/js/svc/share/v1/service_pb";
+import Histogram from "@/components/log-interface/query-output/table/histogram-container";
 
 interface SharedQueryProps {
   sharedId: string;
@@ -46,6 +47,7 @@ export const SharedQuery = ({
 
   const [logData, setLogData] = useState<IngestedLogEvent[] | null>(null);
   const [tableData, setTableData] = useState<Table | null>(null);
+  const [histogramData, setHistogramData] = useState<Table | null>();
   const [sharedTimestamp, setSharedTimestamp] = useState<any>(null);
   const [editorContent, setEditorContent] = useState("");
 
@@ -71,11 +73,19 @@ export const SharedQuery = ({
             setSharedTimestamp(createdAt || null);
 
             if (_result?.shape.case === "tabular") {
-              if (_result.shape.value.shape.case === "logEvents") {
-                setLogData(_result.shape.value.shape.value.events || null);
+              const { case: shapeCase, value: shapeValue } =
+                _result.shape.value.shape;
+
+              if (shapeCase === "logEvents") {
+                setLogData(shapeValue.events || null);
               }
-              if (_result.shape.value.shape.case === "freeForm") {
-                setTableData(_result.shape.value.shape.value || null);
+              if (shapeCase === "freeForm" && shapeValue.type) {
+                const { columns } = shapeValue.type;
+                if (columns.find((col) => col.type?.type.case === "map")) {
+                  setHistogramData(shapeValue || null);
+                } else {
+                  setTableData(shapeValue || null);
+                }
               }
             }
           }
@@ -189,7 +199,13 @@ export const SharedQuery = ({
               </div>
             )}
 
-            {!logData && !tableData && (
+            {histogramData && (
+              <div className="p-4">
+                <Histogram query={undefined} providedData={histogramData} />
+              </div>
+            )}
+
+            {!logData && !tableData && !histogramData && (
               <div className="p-6 text-center text-gray-500">
                 No result data to display.
               </div>
