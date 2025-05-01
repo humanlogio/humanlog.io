@@ -1,5 +1,4 @@
 import { Duration, Timestamp } from "@bufbuild/protobuf";
-import { timeStamp } from "console";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import duration from "dayjs/plugin/duration";
@@ -10,9 +9,9 @@ dayjs.extend(duration);
 dayjs.extend(relativeTime);
 
 export const TIME_FORMAT = {
+  "YYYY-MM-DDTHH:mm:ssZ": "2006-01-02T15:04:05-0700",
   "MMM D HH:mm:ss.SSS": "Jan _2 15:04:05.000",
   "MMM D HH:mm:ss": "Jan 2 15:04:05",
-  "YYYY-MM-DDTHH:mm:ssZ": "2006-01-02T15:04:05-0700",
   "YYYY-MM-DD HH:mm:ss": "2006-01-02 15:04:05",
   "ddd MMM D HH:mm:ss YYYY": "Mon Jan 2 15:04:05 2006",
   "ddd MMM D HH:mm:ss z YYYY": "Mon Jan 2 15:04:05 MST 2006",
@@ -34,7 +33,7 @@ export const findTimeFormatKey = (formatValue: string) => {
 
 export const formatTimestamp = (
   timestamp: Timestamp | Duration,
-  formatValue: string,
+  formatValue?: string,
   isUtc?: boolean,
 ) => {
   let dayjsObj;
