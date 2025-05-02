@@ -1,12 +1,33 @@
-"use client";
-
 import { SharedQuery } from "@/components/share";
-import { useParams } from "next/navigation";
+import { Metadata } from "next";
+import { getSelfURL } from "@/lib/envs";
+import {
+  generateSharedQueryMetadata,
+  getPrefixSharedResultData,
+} from "@/lib/utils/shareMetadata";
 
-export default function ShareWithPrefix() {
-  const params = useParams();
-  const sharedId = params.id?.toString() ?? "";
-  const prefix = params.prefix?.toString();
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string; prefix: string }>;
+}): Promise<Metadata> {
+  const { id, prefix } = await params;
+  const selfBaseURL = getSelfURL();
+  const url = `${selfBaseURL}/share/${prefix}/${id}`;
 
-  return <SharedQuery sharedId={sharedId} prefix={prefix} />;
+  return generateSharedQueryMetadata({
+    id,
+    prefix,
+    url,
+  });
+}
+
+export default async function ShareWithPrefix({
+  params,
+}: {
+  params: Promise<{ id: string; prefix: string }>;
+}) {
+  const { id, prefix } = await params;
+  const sharedData = await getPrefixSharedResultData(id, prefix);
+  return <SharedQuery sharedId={id} prefix={prefix} />;
 }
