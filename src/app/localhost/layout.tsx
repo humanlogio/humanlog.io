@@ -9,8 +9,7 @@ import {
   Bell,
   BarChart3,
   HardDrive,
-  Info,
-  X,
+  Network,
 } from "lucide-react";
 import config from "@/features/config";
 import {
@@ -36,6 +35,12 @@ const LocalhostLayout = ({ children }: LocalhostLayoutProps) => {
       path: "/localhost/query",
       icon: <Database size={16} />,
       disabled: false,
+    },
+    {
+      name: "Traces",
+      path: "/localhost/traces",
+      icon: <Network size={16} />,
+      disabled: isProd ? true : false,
     },
     {
       name: "Stream",
@@ -96,7 +101,7 @@ const LocalhostLayout = ({ children }: LocalhostLayoutProps) => {
                       <Link
                         href={item.path}
                         className={`flex items-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
-                          pathname === item.path
+                          pathname.includes(item.path)
                             ? "bg-primary text-primary-foreground"
                             : "hover:bg-muted"
                         }`}
