@@ -32,7 +32,7 @@ export const findTimeFormatKey = (formatValue: string) => {
 };
 
 export const formatTimestamp = (
-  timestamp: Timestamp | Duration,
+  timestamp: Timestamp,
   formatValue?: string,
   isUtc?: boolean,
 ) => {
@@ -53,6 +53,22 @@ export const formatTimestamp = (
   return isUtc
     ? dayjs.utc(dayjsObj).format(Object.keys(TIME_FORMAT)[0])
     : dayjs(dayjsObj).format(Object.keys(TIME_FORMAT)[0]);
+};
+
+export const formatDuration = (duration?: Duration) => {
+  if (!duration) return "N/A";
+
+  const seconds = Number(duration.seconds);
+  const nanos = duration.nanos / 1e9;
+  const totalSeconds = seconds + nanos;
+
+  if (totalSeconds < 0.001) {
+    return `${(totalSeconds * 1000000).toFixed(0)}μs`;
+  } else if (totalSeconds < 1) {
+    return `${(totalSeconds * 1000).toFixed(0)}ms`;
+  } else {
+    return `${totalSeconds.toFixed(2)}s`;
+  }
 };
 
 export const getUnixTimestamp = (timestamp: Timestamp) => {
