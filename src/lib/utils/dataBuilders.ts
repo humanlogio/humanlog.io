@@ -1,4 +1,5 @@
-import { Data, LogEvents, Tabular } from "api/js/types/v1/data_pb";
+import { Data, LogEvents, Spans, Tabular } from "api/js/types/v1/data_pb";
+import { Span } from "api/js/types/v1/tracing_pb";
 
 import {
   Arr,
@@ -20,6 +21,15 @@ export const newLogEventsTablular = (v: LogEvents) => {
   return new Tabular({
     shape: {
       case: "logEvents",
+      value: v,
+    },
+  });
+};
+
+export const newSpansTabluar = (v: Spans) => {
+  return new Tabular({
+    shape: {
+      case: "spans",
       value: v,
     },
   });
