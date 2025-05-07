@@ -1,13 +1,23 @@
+import { newSpansTabluar, newTabularData } from "@/lib/utils/dataBuilders";
 import { arrayBufferToBase64 } from "@/lib/utils/decode";
 import { formatDuration, formatTimestamp } from "@/lib/utils/formatTimeStamp";
 import { useInfiniteQuery } from "@/lib/utils/useInfiniteQuery";
 import { Timestamp } from "@bufbuild/protobuf";
-import { Spans } from "api/js/types/v1/data_pb";
+import { Data, Spans } from "api/js/types/v1/data_pb";
 import { QueryHistoryEntry } from "api/js/types/v1/query_history_entry_pb";
 import { Query } from "api/js/types/v1/query_pb";
 import { Span } from "api/js/types/v1/tracing_pb";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Button } from "@/components/ui/button";
+import { Share } from "lucide-react";
+import { ShareQuery } from "@/components/log-interface/share-query";
 
 interface FreeFormContainerProps {
   query: Query | undefined;
@@ -22,6 +32,12 @@ export const SpansContainer = ({
 }: FreeFormContainerProps) => {
   const { targetRef, fetchNext, fetchData, next } = useInfiniteQuery(query);
   const [spans, setSpans] = useState<Span[]>();
+  const [sharedData, setSharedData] = useState<Data | null>(null);
+
+  const onClickShare = () => {
+    const data = newTabularData(newSpansTabluar(new Spans({ spans })));
+    setSharedData(data);
+  };
 
   useEffect(() => {
     if (providedData) {
@@ -49,11 +65,33 @@ export const SpansContainer = ({
 
   return (
     <div>
+      {queryHistoryEntry && (
+        <div className="mb-5 flex w-full justify-end">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button onClick={onClickShare} size="xs" variant="outline">
+                  <Share size={12} />
+                </Button>
+              </TooltipTrigger>
+              {sharedData && (
+                <ShareQuery
+                  sharedData={sharedData}
+                  setSharedData={setSharedData}
+                  queryHistoryEntry={queryHistoryEntry}
+                />
+              )}
+
+              <TooltipContent>Share Query</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
+      )}
       {spans?.map((span, i) => {
         return (
           <Link
             key={`${i}-${arrayBufferToBase64(span.traceId)}-${arrayBufferToBase64(span.spanId)}`}
-            href={`/localhost/traces/${encodeURIComponent(encodeURIComponent(arrayBufferToBase64(span.spanId)))}`}
+            href={`/localhost/traces/${encodeURIComponent(arrayBufferToBase64(span.traceId))}`}
             className={`flex flex-col gap-1 border-b p-3 hover:bg-gray-50 dark:hover:bg-gray-800/40 ${i === 0 && "border-t"}`}
           >
             <div className="flex items-center justify-between">
@@ -82,6 +120,9 @@ export const SpansContainer = ({
 
             <div className="mt-1 text-xs text-gray-400 dark:text-gray-500">
               Trace: {arrayBufferToBase64(span.traceId)}
+            </div>
+            <div className="mt-1 text-xs text-gray-400 dark:text-gray-500">
+              span: {arrayBufferToBase64(span.spanId)}
             </div>
           </Link>
         );
