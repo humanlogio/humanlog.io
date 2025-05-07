@@ -171,7 +171,7 @@ export default function Histogram({
     const colorScale = d3
       .scaleSequential()
       .domain([0, processedData.maxCount])
-      .interpolator(d3.interpolateBlues);
+      .interpolator(d3.interpolateSpectral);
 
     g.selectAll(".cell")
       .data(processedData.heatmapData)
@@ -281,7 +281,7 @@ export default function Histogram({
     const legendScale = d3
       .scaleSequential()
       .domain([0, processedData.maxCount])
-      .interpolator(d3.interpolateBlues);
+      .interpolator(d3.interpolateSpectral);
 
     const defs = svg.append("defs");
     const linearGradient = defs
