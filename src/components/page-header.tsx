@@ -119,7 +119,6 @@ const PageHeader: React.FC = () => {
     if (!apiClients || user === "loading" || user === "not-logged-in") return;
     await getAllowedUsage(apiClients.feature, {
       onSuccess: (res: AllowedUsageResponse) => {
-        console.log("res", res);
         setAllowedUsage(res.localhostUsage);
       },
     });
