@@ -23,9 +23,11 @@ import { EnvironmentService } from "api/js/svc/environment/v1/service_connect";
 import { OrganizationService } from "api/js/svc/organization/v1/service_connect";
 import { UserService } from "api/js/svc/user/v1/service_connect";
 import { LocalhostService } from "api/js/svc/localhost/v1/service_connect";
-import { QueryService } from "api/js/svc/query/v1/service_connect";
 import { ProductService } from "api/js/svc/product/v1/service_connect";
 import { FeatureService } from "api/js/svc/feature/v1/service_connect";
+import { QueryService } from "api/js/svc/query/v1/service_connect";
+import { TraceService } from "api/js/svc/query/v1/trace_service_connect";
+
 import {
   PublicShareService,
   UserShareService,
@@ -57,6 +59,7 @@ type ApiClients = {
   publicShare: Client<typeof PublicShareService>;
   userShare: Client<typeof UserShareService>;
   query: Client<typeof QueryService>;
+  trace: Client<typeof TraceService>;
 
   apiTransport: Transport;
   localhostTransport: Transport;
@@ -168,6 +171,7 @@ export function ApiClientsProvider({
       publicShare: createClient(PublicShareService, apiTpt),
       userShare: createClient(UserShareService, apiTpt),
       query: createClient(QueryService, activeTransport),
+      trace: createClient(TraceService, activeTransport),
 
       apiTransport: apiTpt,
       localhostTransport: localhostTransport,

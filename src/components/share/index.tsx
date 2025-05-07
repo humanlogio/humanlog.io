@@ -7,7 +7,7 @@ import { getPublicSharedResult } from "@/services/shareService";
 import { IngestedLogEvent } from "api/js/types/v1/logevent_pb";
 import { QueryHistoryEntry } from "api/js/types/v1/query_history_entry_pb";
 import { Table } from "api/js/types/v1/types_pb";
-import { User } from "api/js/types/v1/user_pb";
+import { PublicUser, User } from "api/js/types/v1/user_pb";
 import {
   Clock,
   Code,
@@ -21,6 +21,8 @@ import { useEffect, useState } from "react";
 import QueryInput from "@/components/log-interface/query-input";
 import { useRouter } from "next/navigation";
 import { FreeFormContainer } from "@/components/log-interface/query-output/freeform";
+import { Spans } from "api/js/types/v1/data_pb";
+import { SpansContainer } from "@/components/log-interface/query-output/traces/spans-container";
 
 interface SharedQueryProps {
   sharedId: string;
@@ -34,11 +36,12 @@ export const SharedQuery = ({ sharedId, prefix }: SharedQueryProps) => {
 
   const [isLoading, setIsLoading] = useState(true);
 
-  const [sharedBy, setSharedBy] = useState<User | null>(null);
+  const [sharedBy, setSharedBy] = useState<PublicUser | null>(null);
   const [query, setQuery] = useState<QueryHistoryEntry | null>(null);
 
   const [logData, setLogData] = useState<IngestedLogEvent[] | null>(null);
   const [freeFormData, setFreeFormData] = useState<Table | null>();
+  const [spanData, setSpanData] = useState<Spans | null>();
   const [sharedTimestamp, setSharedTimestamp] = useState<any>(null);
   const [editorContent, setEditorContent] = useState("");
 
@@ -72,6 +75,10 @@ export const SharedQuery = ({ sharedId, prefix }: SharedQueryProps) => {
               }
               if (shapeCase === "freeForm") {
                 setFreeFormData(shapeValue);
+              }
+
+              if (shapeCase === "spans") {
+                setSpanData(shapeValue);
               }
             }
           }
@@ -181,7 +188,13 @@ export const SharedQuery = ({ sharedId, prefix }: SharedQueryProps) => {
               </div>
             )}
 
-            {!logData && !freeFormData && (
+            {spanData && (
+              <div className="p-4">
+                <SpansContainer query={undefined} providedData={spanData} />
+              </div>
+            )}
+
+            {!logData && !freeFormData && !spanData && (
               <div className="p-6 text-center text-gray-500">
                 No result data to display.
               </div>

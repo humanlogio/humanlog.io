@@ -16,6 +16,7 @@ import {
 import SessionPanel from "@/components/log-interface/query-output/session/session-panel";
 import { QueryHistoryEntry } from "api/js/types/v1/query_history_entry_pb";
 import { FreeFormContainer } from "@/components/log-interface/query-output/freeform";
+import { SpansContainer } from "@/components/log-interface/query-output/traces/spans-container";
 
 interface QueryOutputProps {
   logData: LogData;
@@ -45,6 +46,7 @@ const QueryOutput = ({
 
     if (dataCase === "tabular" && value instanceof Tabular) {
       const { case: shapeCase, value: shapeValue } = value.shape;
+
       switch (shapeCase) {
         case "logEvents":
           setOutput(
@@ -73,6 +75,14 @@ const QueryOutput = ({
             />,
           );
           break;
+
+        case "spans":
+          setOutput(
+            <SpansContainer
+              query={parsedQuery}
+              queryHistoryEntry={queryHistoryEntry}
+            />,
+          );
       }
       return;
     }
