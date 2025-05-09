@@ -11,6 +11,7 @@ const nextConfig = {
   transpilePackages: ["api"],
   pageExtensions: ["js", "jsx", "mdx", "ts", "tsx"],
   reactStrictMode: false,
+
   webpack: (config, { isServer }) => {
     //plugin setting for monaco editor webpack
     if (!isServer) {
