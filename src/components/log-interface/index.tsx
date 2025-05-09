@@ -9,10 +9,7 @@ import {
 } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
-
-import { Button } from "@/components/ui/button";
 import { NoLocalhostView } from "@/components/log-interface/views/no-localhost-view";
-
 import { useApiClients } from "@/context/api-provider";
 import { useAllEnvironments } from "@/context/list-environments";
 import { useInfiniteQuery } from "@/lib/utils/useInfiniteQuery";
@@ -23,8 +20,6 @@ import {
   QueryResponse,
 } from "api/js/svc/query/v1/service_pb";
 import {
-  BinaryOp_Operator,
-  Expr,
   Query,
   RenderStatement,
   SplitOperator,
@@ -42,7 +37,6 @@ import QueryOutput from "@/components/log-interface/query-output";
 import { QueryLibrary } from "@/components/log-interface/query-library";
 import { QueryHistoryEntry } from "api/js/types/v1/query_history_entry_pb";
 import {
-  Data,
   Data_SubQueries,
   ScalarTimeseries,
   Tabular,
@@ -51,6 +45,8 @@ import {
 import { twMerge } from "tailwind-merge";
 import config from "@/features/config";
 import Graph from "@/components/ui/graph/graph";
+import { trace, SpanStatusCode } from "@opentelemetry/api";
+import { ConnectError } from "@connectrpc/connect";
 
 export type DataCase =
   | "subqueries"
@@ -163,7 +159,6 @@ const LogInterface = () => {
       },
     });
   };
-
   const handleQueryData = (
     queryClient: QueryClientType,
     queryReq: QueryRequest,
@@ -219,14 +214,35 @@ const LogInterface = () => {
 
   const executeQuery = useCallback(
     async (query: string) => {
-      setNext(null);
-      const params = new URLSearchParams(searchParams);
-      params.set("query", encodeURIComponent(query));
-      router.push(`?${params}`);
+      const tracer = trace.getTracer("query-tracer");
+      const span = tracer.startSpan("query-span");
 
-      return await getLogData(query, splitByDefault);
+      try {
+        setNext(null);
+        span.setAttribute("query.string", query);
+
+        const params = new URLSearchParams(searchParams);
+        params.set("query", encodeURIComponent(query));
+        router.push(`?${params}`);
+
+        const result = await getLogData(query, splitByDefault);
+        span.setStatus({ code: SpanStatusCode.OK });
+
+        return result;
+      } catch (error) {
+        if (error instanceof ConnectError) {
+          span.setStatus({
+            code: SpanStatusCode.ERROR,
+            message: error.message,
+          });
+          span.recordException(error);
+        }
+        throw error;
+      } finally {
+        span.end();
+      }
     },
-    [getLogData, setNext, splitByDefault],
+    [getLogData, setNext, splitByDefault, searchParams, router],
   );
 
   useEffect(() => {
