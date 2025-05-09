@@ -11,10 +11,6 @@ const nextConfig = {
   transpilePackages: ["api"],
   pageExtensions: ["js", "jsx", "mdx", "ts", "tsx"],
   reactStrictMode: false,
-  experimental: {
-    instrumentationHook: true,
-    serverComponentsExternalPackages: ["@vercel/otel"],
-  },
 
   webpack: (config, { isServer }) => {
     //plugin setting for monaco editor webpack
