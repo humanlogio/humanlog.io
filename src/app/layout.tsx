@@ -12,6 +12,7 @@ import { ListEnvironmentsProvider } from "@/context/list-environments";
 import PageFooter from "@/components/page-footer";
 import config from "@/features/config";
 import { AuthProvider } from "@/context/auth-context";
+import { OTELProvider } from "@/context/otel-provider";
 
 export const metadata: Metadata = {
   title: "humanlog.io",
@@ -34,22 +35,24 @@ export default function RootLayout({
         <meta name="robots" content="noindex, nofollow" />
       )}
       <body className={cn("font-mono antialiased", font.variable)}>
-        <ApiClientsProvider>
-          <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-            <FullWidthProvider>
-              <ListEnvironmentsProvider>
-                <AuthProvider>
-                  <div className="flex min-h-screen flex-col">
-                    <PageHeader />
-                    <div className="flex flex-1 flex-col">{children}</div>
-                    <PageFooter />
-                  </div>
-                  <Toaster expand={true} />
-                </AuthProvider>
-              </ListEnvironmentsProvider>
-            </FullWidthProvider>
-          </ThemeProvider>
-        </ApiClientsProvider>
+        <OTELProvider>
+          <ApiClientsProvider>
+            <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+              <FullWidthProvider>
+                <ListEnvironmentsProvider>
+                  <AuthProvider>
+                    <div className="flex min-h-screen flex-col">
+                      <PageHeader />
+                      <div className="flex flex-1 flex-col">{children}</div>
+                      <PageFooter />
+                    </div>
+                    <Toaster expand={true} />
+                  </AuthProvider>
+                </ListEnvironmentsProvider>
+              </FullWidthProvider>
+            </ThemeProvider>
+          </ApiClientsProvider>
+        </OTELProvider>
       </body>
     </html>
   );
