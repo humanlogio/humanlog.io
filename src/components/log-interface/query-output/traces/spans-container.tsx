@@ -90,8 +90,8 @@ export const SpansContainer = ({
       {spans?.map((span, i) => {
         return (
           <Link
-            key={`${i}-${arrayBufferToBase64(span.traceId)}-${arrayBufferToBase64(span.spanId)}`}
-            href={`/localhost/traces/${encodeURIComponent(arrayBufferToBase64(span.traceId))}`}
+            key={`${i}-${span.traceId}-${span.spanId}`}
+            href={`/localhost/traces/${encodeURIComponent(span.traceId)}`}
             className={`flex flex-col gap-1 border-b p-3 hover:bg-gray-50 dark:hover:bg-gray-800/40 ${i === 0 && "border-t"}`}
           >
             <div className="flex items-center justify-between">
@@ -116,13 +116,22 @@ export const SpansContainer = ({
                   {span.events.length} Events
                 </div>
               )}
+
+              {span.links?.length > 0 && (
+                <div className="rounded bg-green-50/90 px-2 py-0.5 dark:bg-green-900/30">
+                  {span.links.length} Links
+                </div>
+              )}
             </div>
 
             <div className="mt-1 text-xs text-gray-400 dark:text-gray-500">
-              Trace: {arrayBufferToBase64(span.traceId)}
+              Trace: {span.traceId}
             </div>
             <div className="mt-1 text-xs text-gray-400 dark:text-gray-500">
-              span: {arrayBufferToBase64(span.spanId)}
+              span: {span.spanId}
+            </div>
+            <div className="mt-1 text-xs text-gray-400 dark:text-gray-500">
+              parent: {span.parentSpanId}
             </div>
           </Link>
         );
