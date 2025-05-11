@@ -1,5 +1,4 @@
 import { newSpansTabluar, newTabularData } from "@/lib/utils/dataBuilders";
-import { arrayBufferToBase64 } from "@/lib/utils/decode";
 import { formatDuration, formatTimestamp } from "@/lib/utils/formatTimeStamp";
 import { useInfiniteQuery } from "@/lib/utils/useInfiniteQuery";
 import { Timestamp } from "@bufbuild/protobuf";

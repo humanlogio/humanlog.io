@@ -1,7 +1,6 @@
 "use client";
 
 import { useApiClients } from "@/context/api-provider";
-import { arrayBufferToBase64 } from "@/lib/utils/decode";
 import { formatDuration } from "@/lib/utils/formatTimeStamp";
 import { getTrace } from "@/services/traceService";
 import { Span } from "api/js/types/v1/tracing_pb";
@@ -26,7 +25,7 @@ export const Traces = ({ traceId }: TracesProps) => {
     const rootNodes: SpanTreeNode[] = [];
 
     spans.forEach((span) => {
-      const spanIdString = arrayBufferToBase64(span.spanId);
+      const spanIdString = span.spanId;
       const node: SpanTreeNode = {
         span,
         children: [],
@@ -35,8 +34,8 @@ export const Traces = ({ traceId }: TracesProps) => {
     });
 
     spans.forEach((span) => {
-      const parentSpanIdString = arrayBufferToBase64(span.parentSpanId);
-      const currentNode = nodeMap.get(arrayBufferToBase64(span.spanId));
+      const parentSpanIdString = span.parentSpanId;
+      const currentNode = nodeMap.get(span.spanId);
 
       if (!currentNode) return;
 
@@ -80,7 +79,7 @@ export const Traces = ({ traceId }: TracesProps) => {
 
     return (
       <div
-        key={`${arrayBufferToBase64(node.span.traceId)}-${arrayBufferToBase64(node.span.spanId)}`}
+        key={`${node.span.traceId}-${node.span.spanId}`}
         className={`${isRoot ? "mb-2 ml-4" : ""}`}
       >
         <>
