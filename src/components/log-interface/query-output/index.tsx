@@ -3,8 +3,6 @@
 import { Data_SubQueries, Tabular } from "api/js/types/v1/data_pb";
 import { ReactNode, useEffect, useState } from "react";
 import { Query } from "api/js/types/v1/query_pb";
-import { useSearchParams } from "next/navigation";
-import { LogData } from "@/components/log-interface";
 import { NoLogsView } from "@/components/log-interface/views/no-logs-view";
 import { SubQueriesContainer } from "@/components/log-interface/query-output/session/subqueries-container";
 import { extractQueryIds } from "@/lib/utils/extractQueryIds";
@@ -17,16 +15,17 @@ import { QueryHistoryEntry } from "api/js/types/v1/query_history_entry_pb";
 import { FreeFormContainer } from "@/components/log-interface/query-output/freeform";
 import { SpansContainer } from "@/components/log-interface/query-output/traces/spans-container";
 import { Loader } from "lucide-react";
+import { QueryResponse } from "api/js/svc/query/v1/service_pb";
 
 interface QueryOutputProps {
-  logData: LogData;
+  queryRes: QueryResponse | null;
   isLoading: boolean;
   parsedQuery: Query | undefined;
   queryHistoryEntry?: QueryHistoryEntry;
 }
 
 const QueryOutput = ({
-  logData,
+  queryRes,
   isLoading,
   parsedQuery,
   queryHistoryEntry,
@@ -43,15 +42,15 @@ const QueryOutput = ({
         );
       }
 
-      const { case: dataCase, value } = logData;
-
-      if (!dataCase || !value) {
+      if (!queryRes || !queryRes.data?.shape) {
         return (
           <div className="flex flex-1 items-center justify-center">
             <NoLogsView />
           </div>
         );
       }
+
+      const { case: dataCase, value } = queryRes.data.shape;
 
       if (dataCase === "tabular" && value instanceof Tabular) {
         const { case: shapeCase, value: shapeValue } = value.shape;
@@ -66,6 +65,8 @@ const QueryOutput = ({
                 </div>
                 <div className="flex-1">
                   <SessionPanel
+                    data={shapeValue}
+                    initialNext={queryRes.next}
                     query={parsedQuery}
                     queryHistoryEntry={queryHistoryEntry}
                     ids={extractQueryIds(parsedQuery as Query)}
@@ -76,6 +77,8 @@ const QueryOutput = ({
           case "freeForm":
             return (
               <FreeFormContainer
+                data={shapeValue}
+                initialNext={queryRes.next}
                 query={parsedQuery}
                 queryHistoryEntry={queryHistoryEntry}
               />
@@ -83,6 +86,8 @@ const QueryOutput = ({
           case "spans":
             return (
               <SpansContainer
+                data={shapeValue}
+                initialNext={queryRes.next}
                 query={parsedQuery}
                 queryHistoryEntry={queryHistoryEntry}
               />
@@ -108,7 +113,7 @@ const QueryOutput = ({
     };
 
     setOutput(renderOutput());
-  }, [logData, isLoading, parsedQuery, queryHistoryEntry]);
+  }, [queryRes, isLoading, parsedQuery, queryHistoryEntry]);
 
   return output;
 };

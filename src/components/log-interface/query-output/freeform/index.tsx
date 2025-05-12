@@ -10,7 +10,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
-import { Share } from "lucide-react";
+import { Loader, Share } from "lucide-react";
 import { ShareQuery } from "@/components/log-interface/share-query";
 import { Data } from "api/js/types/v1/data_pb";
 import {
@@ -20,19 +20,25 @@ import {
 } from "@/lib/utils/dataBuilders";
 import TableContainer from "@/components/log-interface/query-output/freeform/table-container";
 import Histogram from "@/components/log-interface/query-output/freeform/histogram-container";
+import { Cursor } from "api/js/types/v1/cursor_pb";
 
 interface FreeFormContainerProps {
   query: Query | undefined;
+  data?: Table;
+  initialNext?: Cursor | null;
   providedData?: Table;
   queryHistoryEntry?: QueryHistoryEntry;
 }
 
 export const FreeFormContainer = ({
   query,
+  data: _data,
+  initialNext,
   providedData,
   queryHistoryEntry,
 }: FreeFormContainerProps) => {
-  const { targetRef, fetchNext, fetchData, next } = useInfiniteQuery(query);
+  const { targetRef, fetchNext, fetchData, next, setNext } =
+    useInfiniteQuery(query);
   const [data, setData] = useState<Table>();
   const [tableColumns, setTableColumns] = useState<TableType_Column[]>();
   const [tableRows, setTableRows] = useState<Arr[]>();
@@ -51,20 +57,13 @@ export const FreeFormContainer = ({
       setTableColumns(providedData.type?.columns);
       setTableRows(providedData.rows);
       return;
-    } else {
-      if (!query) return;
-      fetchData(({ value: shapeValue }) => {
-        setData(shapeValue);
-        if (shapeValue?.type?.columns) {
-          setTableColumns(shapeValue.type.columns);
-        }
-
-        if (shapeValue?.rows) {
-          setTableRows(shapeValue.rows);
-        }
-      });
+    } else if (_data) {
+      setNext(initialNext);
+      setData(_data);
+      setTableColumns(_data.type?.columns);
+      setTableRows(_data.rows);
     }
-  }, [query]);
+  }, []);
 
   useEffect(() => {
     next &&

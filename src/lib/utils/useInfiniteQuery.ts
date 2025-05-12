@@ -7,6 +7,7 @@ import { Query } from "api/js/types/v1/query_pb";
 import { Tabular } from "api/js/types/v1/data_pb";
 import { useState } from "react";
 import { useInView } from "react-intersection-observer";
+import { getQuery } from "@/services/queryService";
 
 export const useInfiniteQuery = (query?: Query | undefined) => {
   const limit = 100;
@@ -18,6 +19,7 @@ export const useInfiniteQuery = (query?: Query | undefined) => {
   const { ref: targetRef, inView: fetchNext } = useInView();
 
   const fetchData = async (callback?: (res: any) => void) => {
+    if (!apiClients) return;
     try {
       setIsFetching(true);
       const queryReq = new QueryRequest({
@@ -27,7 +29,7 @@ export const useInfiniteQuery = (query?: Query | undefined) => {
         limit,
       });
 
-      const queryRes = await apiClients?.query.query(queryReq);
+      const queryRes = await getQuery(apiClients.query, queryReq);
 
       if (queryRes?.data) {
         const { case: shapeCase, value } = queryRes.data.shape;
