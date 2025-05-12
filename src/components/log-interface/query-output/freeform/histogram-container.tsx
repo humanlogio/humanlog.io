@@ -360,14 +360,6 @@ export default function Histogram({
     tooltip.style.visibility = "visible";
   }, [tooltipData]);
 
-  if (loading) {
-    return (
-      <div className="mt-28 flex justify-center">
-        <Loader className="animate-spin" />
-      </div>
-    );
-  }
-
   if (processedData.heatmapData.length === 0) {
     return (
       <div className="p-4 text-center">

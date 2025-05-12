@@ -64,17 +64,13 @@ export type DataValue =
   | VectorTimeseries
   | undefined;
 
-export interface LogData {
-  case: DataCase;
-  value?: DataValue;
-}
-
 const LogInterface = () => {
   const isProd = config.NEXT_PUBLIC_IS_PROD;
   const limit = 100;
 
   const router = useRouter();
   const { apiClients, activeEnvironment } = useApiClients();
+
   const { localhostInfo } = useAllEnvironments();
   const { setNext } = useInfiniteQuery();
 
@@ -84,13 +80,9 @@ const LogInterface = () => {
 
   const [queryParseErrMsg, setQueryParseErrMsg] = useState("");
   const [parsedQuery, setParsedQuery] = useState<Query>();
-  const [logData, setLogData] = useState<LogData>({
-    case: undefined,
-    value: undefined,
-  });
+  const [queryRes, setQueryRes] = useState<QueryResponse | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isLibraryOpen, setIsLibraryOpen] = useState(false);
-
   const [symbol, setSymbol] = useState("");
   const [editorContent, setEditorContent] = useState<string>("");
   const [queryHistoryEntry, setQueryHistoryEntry] =
@@ -160,6 +152,7 @@ const LogInterface = () => {
       },
     });
   };
+
   const handleQueryData = (
     queryClient: QueryClientType,
     queryReq: QueryRequest,
@@ -167,19 +160,22 @@ const LogInterface = () => {
     setIsLoading(true);
     getQuery(queryClient, queryReq, {
       onSuccess: (res: QueryResponse) => {
-        if (res.data) {
-          setLogData(res.data.shape);
+        if (res) {
+          setQueryRes(res);
         }
         setIsLoading(false);
       },
-      onError: () => setIsLoading(false),
+      onError: () => {
+        setQueryRes(null);
+        setIsLoading(false);
+      },
     });
   };
 
-  const getLogData = useCallback(
+  const getQueryRes = useCallback(
     async (editorContent: string, splitByDefault: boolean) => {
       const tracer = trace.getTracer("query-tracer");
-      const span = tracer.startSpan("getLogData");
+      const span = tracer.startSpan("getQueryRes");
 
       const queryClient = apiClients?.query;
       if (!queryClient) {
@@ -215,7 +211,7 @@ const LogInterface = () => {
             message: error.message,
           });
           setQueryParseErrMsg(error.message);
-          setLogData({ case: undefined, value: undefined });
+          setQueryRes(null);
           return null;
         },
       });
@@ -236,7 +232,7 @@ const LogInterface = () => {
         const params = new URLSearchParams(searchParams);
         params.set("query", encodeURIComponent(query));
         router.push(`?${params}`);
-        await getLogData(query, splitByDefault);
+        await getQueryRes(query, splitByDefault);
         span.setStatus({ code: SpanStatusCode.OK });
       } catch (error) {
         if (error instanceof ConnectError) {
@@ -296,7 +292,7 @@ const LogInterface = () => {
             </div>
             {!isQueryHistoryLoading && (
               <QueryOutput
-                logData={logData}
+                queryRes={queryRes}
                 isLoading={isLoading}
                 parsedQuery={parsedQuery}
                 queryHistoryEntry={queryHistoryEntry}
