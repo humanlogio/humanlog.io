@@ -88,6 +88,7 @@ const LogInterface = () => {
     case: undefined,
     value: undefined,
   });
+  const [isLoading, setIsLoading] = useState(false);
   const [isLibraryOpen, setIsLibraryOpen] = useState(false);
 
   const [symbol, setSymbol] = useState("");
@@ -163,17 +164,23 @@ const LogInterface = () => {
     queryClient: QueryClientType,
     queryReq: QueryRequest,
   ) => {
+    setIsLoading(true);
     getQuery(queryClient, queryReq, {
       onSuccess: (res: QueryResponse) => {
         if (res.data) {
           setLogData(res.data.shape);
         }
+        setIsLoading(false);
       },
+      onError: () => setIsLoading(false),
     });
   };
 
   const getLogData = useCallback(
     async (editorContent: string, splitByDefault: boolean) => {
+      const tracer = trace.getTracer("query-tracer");
+      const span = tracer.startSpan("getLogData");
+
       const queryClient = apiClients?.query;
       if (!queryClient) {
         console.log("Invalid content or missing API client:", {
@@ -203,11 +210,16 @@ const LogInterface = () => {
           handleQueryData(queryClient, queryReq);
         },
         onError: (error) => {
+          span.setStatus({
+            code: SpanStatusCode.ERROR,
+            message: error.message,
+          });
           setQueryParseErrMsg(error.message);
           setLogData({ case: undefined, value: undefined });
           return null;
         },
       });
+      span.end();
     },
     [apiClients, activeEnvironment, limit],
   );
@@ -224,11 +236,8 @@ const LogInterface = () => {
         const params = new URLSearchParams(searchParams);
         params.set("query", encodeURIComponent(query));
         router.push(`?${params}`);
-
-        const result = await getLogData(query, splitByDefault);
+        await getLogData(query, splitByDefault);
         span.setStatus({ code: SpanStatusCode.OK });
-
-        return result;
       } catch (error) {
         if (error instanceof ConnectError) {
           span.setStatus({
@@ -242,14 +251,14 @@ const LogInterface = () => {
         span.end();
       }
     },
-    [getLogData, setNext, splitByDefault, searchParams, router],
+    [setNext, splitByDefault, searchParams, router],
   );
 
   useEffect(() => {
     if (queryString != null) {
       executeQuery(decodeURIComponent(queryString));
     }
-  }, [splitByDefault, queryString, executeQuery]);
+  }, [splitByDefault, queryString]);
 
   if (!localhostInfo) {
     return (
@@ -288,6 +297,7 @@ const LogInterface = () => {
             {!isQueryHistoryLoading && (
               <QueryOutput
                 logData={logData}
+                isLoading={isLoading}
                 parsedQuery={parsedQuery}
                 queryHistoryEntry={queryHistoryEntry}
               />
