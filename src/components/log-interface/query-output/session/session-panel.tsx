@@ -54,10 +54,13 @@ import { ShareQuery } from "@/components/log-interface/share-query";
 import { QueryHistoryEntry } from "api/js/types/v1/query_history_entry_pb";
 import { defaultConfig, getConfig } from "@/services/localhostService";
 import { useAllEnvironments } from "@/context/list-environments";
+import { Cursor } from "api/js/types/v1/cursor_pb";
 
 interface SessionPanelProps {
   ids?: { machineId?: string; sessionId?: string };
   query: Query | undefined;
+  data?: LogEvents;
+  initialNext?: Cursor | null;
   providedData?: IngestedLogEvent[];
   mode?: "dark" | "light";
   themes?: FormatConfig_Themes;
@@ -67,6 +70,8 @@ interface SessionPanelProps {
 const SessionPanel = ({
   ids,
   query,
+  data,
+  initialNext,
   providedData,
   mode,
   themes,
@@ -88,9 +93,9 @@ const SessionPanel = ({
   const pretty = searchParams.get("pretty") !== "false";
 
   const { apiClients } = useApiClients();
-  const { localhostInfo, user } = useAllEnvironments();
+  const { user } = useAllEnvironments();
 
-  const { targetRef, isFetching, fetchNext, fetchData, next } =
+  const { targetRef, isFetching, fetchNext, fetchData, next, setNext } =
     useInfiniteQuery(query);
 
   /** Can be extended with additional options as needed */
@@ -185,16 +190,19 @@ const SessionPanel = ({
 
   useEffect(() => {
     handleConfig();
-  }, [localhostInfo, user]);
+  }, [user]);
 
   useEffect(() => {
     if (providedData) {
       setLogs(providedData);
-      return;
+    } else if (data) {
+      setNext(initialNext);
+      setLogs(data.events);
+    } else {
+      fetchData(({ value: shapeValue }) => {
+        setLogs(shapeValue.events);
+      });
     }
-    fetchData(({ value: shapeValue }) => {
-      setLogs(shapeValue.events);
-    });
   }, [query]);
 
   useEffect(() => {
