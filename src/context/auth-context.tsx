@@ -47,6 +47,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authMessage, setAuthMessage] = useState("You need to login.");
   const [previousPath, setPreviousPath] = useState<string>();
+  const [isLoading, setIsLoading] = useState(false);
 
   const isLoginRequired = useCallback(
     (path: string) => {
@@ -80,18 +81,43 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [pathname, router, isLoginRequired, previousPath, authenticated]);
 
+  const handleLogin = () => {
+    setIsLoading(true);
+    try {
+      doLogin(`${getSelfURL()}${pathname}`);
+    } catch (error) {
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
     setPreviousPath(pathname);
   }, [pathname]);
 
   useEffect(() => {
-    if (!authenticated && isLoginRequired(pathname)) {
-      setAuthMessage(`You need to login to access this page.`);
-      setIsAuthModalOpen(true);
-    } else if (user !== "loading") {
-      setIsAuthModalOpen(false);
+    if (user === "loading" || isLoading) {
+      return;
     }
-  }, [pathname, user, isLoginRequired, authenticated]);
+
+    if (!authenticated && isLoginRequired(pathname)) {
+      if (!isAuthModalOpen) {
+        setAuthMessage(`You need to login to access this page.`);
+        setIsAuthModalOpen(true);
+      }
+    } else {
+      if (isAuthModalOpen) {
+        setIsAuthModalOpen(false);
+      }
+    }
+  }, [
+    pathname,
+    user,
+    isLoginRequired,
+    authenticated,
+    isAuthModalOpen,
+    isLoading,
+  ]);
 
   if (isLoginRequired(pathname) && user === "loading") {
     return (
@@ -118,16 +144,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             <AlertDialogTitle>{authMessage}</AlertDialogTitle>
           </AlertDialogHeader>
           <AlertDialogFooter className="mt-4 flex-row">
-            <AlertDialogCancel onClick={closeAuthModal}>
-              Cancel
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => {
-                doLogin(`${getSelfURL()}${pathname}`);
-              }}
-            >
-              Login
-            </AlertDialogAction>
+            {isLoading ? (
+              <Loader className="animate-spin" />
+            ) : (
+              <>
+                <AlertDialogCancel onClick={closeAuthModal}>
+                  Cancel
+                </AlertDialogCancel>
+                <AlertDialogAction onClick={handleLogin}>
+                  Login
+                </AlertDialogAction>
+              </>
+            )}
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
