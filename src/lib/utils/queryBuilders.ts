@@ -1,5 +1,10 @@
 import { Timestamp } from "@bufbuild/protobuf";
-import { BinaryOp_Operator, Expr, Identifier } from "api/js/types/v1/query_pb";
+import {
+  BinaryOp_Operator,
+  Expr,
+  Identifier,
+  Indexor,
+} from "api/js/types/v1/query_pb";
 import { Null, ScalarType, Val, VarType } from "api/js/types/v1/types_pb";
 
 export const newBinaryExpr = (
@@ -101,6 +106,15 @@ export const newIdentifierExpr = (id: string): Expr => {
     expr: {
       case: "identifier",
       value: new Identifier({ name: id }),
+    },
+  });
+};
+
+export const newIndexorExpr = (x: Expr, index: Expr): Expr => {
+  return new Expr({
+    expr: {
+      case: "indexor",
+      value: new Indexor({ x: x, index: index }),
     },
   });
 };

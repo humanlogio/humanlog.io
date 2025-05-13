@@ -47,7 +47,7 @@ import {
   KeyValueRow,
   MetaDataTooltip,
 } from "@/components/log-interface/query-output/session/session-control";
-import { newLiteralExpr } from "@/lib/utils/queryBuilders";
+import { newIdentifierExpr, newLiteralExpr } from "@/lib/utils/queryBuilders";
 import { Data, LogEvents, Tabular } from "api/js/types/v1/data_pb";
 import { newLogEventsTablular, newTabularData } from "@/lib/utils/dataBuilders";
 import { ShareQuery } from "@/components/log-interface/share-query";
@@ -295,7 +295,7 @@ const SessionPanel = ({
           </div>
 
           {/* TODO: later.. */}
-          {/* 
+          {/*
         <div className="flex w-1/3 justify-end">
           <Button size="icon" className="mb-1 h-8">
             <Search size={14} />
@@ -457,7 +457,7 @@ const SessionPanel = ({
                                   />
                                   <div className="mt-2 border-t border-gray-200 pt-2" />
                                   <FilterByKeyValue
-                                    symbolName={kv.key}
+                                    symbolName={newIdentifierExpr(kv.key)}
                                     symbolValue={newLiteralExpr(kv.value!)}
                                     symbolCase={kv.value?.kind.case}
                                   />
