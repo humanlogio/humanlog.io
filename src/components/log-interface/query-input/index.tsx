@@ -106,7 +106,7 @@ const QueryInput = ({
   const addFilterSymbolByStatement = (
     parseRes: ParseResponse,
     filter: {
-      symbolName: string;
+      symbolName: Expr;
       symbolValue: Expr;
       op?: BinaryOp_Operator;
     },
@@ -117,7 +117,7 @@ const QueryInput = ({
     const statements: Statement[] = parseRes.query?.query?.statements ?? [];
 
     const nextFilter = newBinaryExpr(
-      newIdentifierExpr(symbolName),
+      symbolName,
       op ?? BinaryOp_Operator.CMP_EQ,
       symbolValue,
     );

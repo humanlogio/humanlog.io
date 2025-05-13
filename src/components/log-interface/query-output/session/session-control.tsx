@@ -5,6 +5,7 @@ import { Timestamp } from "@bufbuild/protobuf";
 import { BinaryOp_Operator, Expr } from "api/js/types/v1/query_pb";
 import {
   newI64Expr,
+  newIdentifierExpr,
   newStrExpr,
   newTimestampExpr,
 } from "@/lib/utils/queryBuilders";
@@ -85,7 +86,7 @@ export const MetaDataTooltip = ({ log }: MetaDataTooltipProps) => {
           <div className="flex justify-between gap-2">
             <KeyValueRow label="Machine Id" value={log.machineId.toString()} />
             <FilterByKeyValue
-              symbolName="machine"
+              symbolName={newIdentifierExpr("machine")}
               symbolValue={newI64Expr(log.machineId)}
             />
           </div>
@@ -94,14 +95,14 @@ export const MetaDataTooltip = ({ log }: MetaDataTooltipProps) => {
         <div className="flex justify-between gap-2">
           <KeyValueRow label="Session Id" value={log.sessionId.toString()} />
           <FilterByKeyValue
-            symbolName="session"
+            symbolName={newIdentifierExpr("session")}
             symbolValue={newI64Expr(log.sessionId)}
           />
         </div>
         <div className="flex justify-between gap-2">
           <KeyValueRow label="Event Id" value={log.eventId.toString()} />
           <FilterByKeyValue
-            symbolName="event"
+            symbolName={newIdentifierExpr("event")}
             symbolValue={newI64Expr(log.eventId)}
           />
         </div>
@@ -111,7 +112,7 @@ export const MetaDataTooltip = ({ log }: MetaDataTooltipProps) => {
             value={log.structured?.lvl.toString() ?? "EMPTY"}
           />
           <FilterByKeyValue
-            symbolName="lvl"
+            symbolName={newIdentifierExpr("lvl")}
             symbolValue={newStrExpr(log.structured?.lvl)}
           />
         </div>
@@ -121,7 +122,7 @@ export const MetaDataTooltip = ({ log }: MetaDataTooltipProps) => {
             value={log.structured?.msg.toString() ?? "no message"}
           />
           <FilterByKeyValue
-            symbolName="msg"
+            symbolName={newIdentifierExpr("msg")}
             symbolValue={newStrExpr(log.structured?.msg)}
             symbolCase="str"
           />
@@ -134,7 +135,7 @@ export const MetaDataTooltip = ({ log }: MetaDataTooltipProps) => {
             ).toString()}
           />
           <FilterByKeyValue
-            symbolName="ts"
+            symbolName={newIdentifierExpr("ts")}
             symbolValue={newTimestampExpr(log.structured?.timestamp)}
             symbolCase="ts"
           />
@@ -166,7 +167,7 @@ export const FilterByKeyValue = ({
   symbolValue,
   symbolCase,
 }: {
-  symbolName: string;
+  symbolName: Expr;
   symbolValue: Expr;
   symbolCase?: string;
 }) => {
