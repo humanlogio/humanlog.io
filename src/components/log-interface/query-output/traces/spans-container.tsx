@@ -18,7 +18,7 @@ import { Button } from "@/components/ui/button";
 import { Share } from "lucide-react";
 import { ShareQuery } from "@/components/log-interface/share-query";
 import { Cursor } from "api/js/types/v1/cursor_pb";
-import { FilterByKeyValue, KeyValueRow } from "../session/session-control";
+import { FilterByKeyValue, KeyValueRow } from "@/components/log-interface/query-output/session/session-control";
 import {
   newIdentifierExpr,
   newIndexorExpr,
