@@ -16,9 +16,9 @@ ARG git_hash
 ARG api_url
 ARG self_url
 ARG default_release_channel
-ARG is_prod
 ARG posthog_key
 ARG posthog_host
+ARG is_prod
 ENV GIT_HASH=$git_hash
 ENV NEXT_PUBLIC_API_BASE_URL=$api_url
 ENV NEXT_PUBLIC_SELF_BASE_URL=$self_url

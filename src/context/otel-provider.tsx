@@ -6,6 +6,7 @@ import {
   BatchSpanProcessor,
   WebTracerProvider,
 } from "@opentelemetry/sdk-trace-web";
+import config from "@/features/config";
 import { ZoneContextManager } from "@opentelemetry/context-zone";
 import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-http";
 import { createContext, ReactNode } from "react";
@@ -22,6 +23,16 @@ type OTELProviderType = {
 const OTELClientContext = createContext<OTELProviderType | null>(null);
 
 export function OTELProvider({ children }: { children: ReactNode }) {
+  const isProd = config.NEXT_PUBLIC_IS_PROD;
+  if (isProd) {
+    // don't trace in prod
+    return (
+      <OTELClientContext.Provider value={null}>
+        {children}
+      </OTELClientContext.Provider>
+    );
+  }
+
   const collectorOptions = {
     url: "http://localhost:4318/v1/traces", // url is optional and can be omitted - default is http://localhost:4318/v1/traces
     headers: {}, // an optional object containing custom headers to be sent with each request
