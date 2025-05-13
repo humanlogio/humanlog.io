@@ -20,7 +20,7 @@ import { BinaryOp_Operator, Expr } from "api/js/types/v1/query_pb";
 export type UserState = User | "loading" | "not-logged-in";
 
 export type FilterBySymbol = {
-  symbolName: string;
+  symbolName: Expr;
   symbolValue: Expr;
   op?: BinaryOp_Operator;
 };
@@ -35,7 +35,7 @@ type AllEnvironments = {
   getUserInfo: () => void;
   filterBySymbol: FilterBySymbol | null;
   onClickFilterBy: (
-    symbolName: string,
+    symbolName: Expr,
     symbolValue: Expr,
     op?: BinaryOp_Operator,
   ) => void;
@@ -219,7 +219,7 @@ export function ListEnvironmentsProvider({
   };
 
   const onClickFilterBy = (
-    symbolName: string,
+    symbolName: Expr,
     symbolValue: Expr,
     op?: BinaryOp_Operator,
   ) => {
