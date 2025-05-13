@@ -17,11 +17,15 @@ ARG api_url
 ARG self_url
 ARG default_release_channel
 ARG is_prod
+ARG posthog_key
+ARG posthog_host
 ENV GIT_HASH=$git_hash
 ENV NEXT_PUBLIC_API_BASE_URL=$api_url
 ENV NEXT_PUBLIC_SELF_BASE_URL=$self_url
 ENV NEXT_PUBLIC_DEFAULT_RELEASE_CHANNEL=$default_release_channel
 ENV NEXT_PUBLIC_IS_PROD=$is_prod
+ENV NEXT_PUBLIC_POSTHOG_KEY=$posthog_key
+ENV NEXT_PUBLIC_POSTHOG_HOST=$posthog_host
 RUN npm run build
 
 # server
