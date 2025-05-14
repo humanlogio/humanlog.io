@@ -12,10 +12,16 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import SessionPanel from "@/components/log-interface/query-output/session/session-panel";
-import { sampleProvidedLogData, sampleSpansQueryRes } from "./sample-protobuf-data";
+import {
+  sampleProvidedLogData,
+  sampleSpansQueryRes,
+} from "./sample-protobuf-data";
 import { defaultConfig } from "@/services/localhostService";
 import { useTheme } from "next-themes";
-import { FormatConfig_Themes, FormatConfig_Theme } from "api/js/types/v1/localhost_config_pb";
+import {
+  FormatConfig_Themes,
+  FormatConfig_Theme,
+} from "api/js/types/v1/localhost_config_pb";
 import {
   Star,
   Users,
@@ -38,7 +44,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogDescription
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { getSelfURL } from "@/lib/envs";
 import { Copy } from "lucide-react";
@@ -46,29 +52,32 @@ import { Copy } from "lucide-react";
 const AboveFoldHero: React.FC = () => {
   const { theme: colorMode } = useTheme();
   // Add state for logs/traces toggle
-  const [selectedTab, setSelectedTab] = useState<'logs' | 'traces'>('logs');
+  const [selectedTab, setSelectedTab] = useState<"logs" | "traces">("logs");
 
   // Fallback to system if colorMode is undefined
   let mode: "light" | "dark" = "light";
   if (colorMode === "dark") mode = "dark";
   if (colorMode === "system" && typeof window !== "undefined") {
-    mode = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    mode = window.matchMedia("(prefers-color-scheme: dark)").matches
+      ? "dark"
+      : "light";
   }
 
   // Compose the themes object for SessionPanel (FormatConfig_Themes)
   const getThemeJson = (theme: FormatConfig_Theme) => {
-  if (theme && typeof theme.toJson === "function") return theme.toJson();
-  // fallback: ensure plain object for proto messages
-  return JSON.parse(JSON.stringify(theme));
-};
-const themes: FormatConfig_Themes | undefined = (defaultConfig.formatter?.themes &&
-  defaultConfig.formatter.themes.light &&
-  defaultConfig.formatter.themes.dark)
-  ? FormatConfig_Themes.fromJson({
-      light: getThemeJson(defaultConfig.formatter.themes.light),
-      dark: getThemeJson(defaultConfig.formatter.themes.dark),
-    })
-  : undefined;
+    if (theme && typeof theme.toJson === "function") return theme.toJson();
+    // fallback: ensure plain object for proto messages
+    return JSON.parse(JSON.stringify(theme));
+  };
+  const themes: FormatConfig_Themes | undefined =
+    defaultConfig.formatter?.themes &&
+    defaultConfig.formatter.themes.light &&
+    defaultConfig.formatter.themes.dark
+      ? FormatConfig_Themes.fromJson({
+          light: getThemeJson(defaultConfig.formatter.themes.light),
+          dark: getThemeJson(defaultConfig.formatter.themes.dark),
+        })
+      : undefined;
 
   const [email, setEmail] = useState("");
   const [githubStars, setGithubStars] = useState("∞");
@@ -93,8 +102,9 @@ const themes: FormatConfig_Themes | undefined = (defaultConfig.formatter?.themes
   // Sample commands for the terminal mockup
   const origin = getSelfURL();
   const installCommand = `curl -sSL "${origin}/install.sh" | bash`;
-  const playfulQuery = "logs | where level in [INFO, WARN, ERROR] and msg contains 'unicorn'";
-const queryCommand = `humanlog query '${playfulQuery}'`;
+  const playfulQuery =
+    "logs | where level in [INFO, WARN, ERROR] and msg contains 'unicorn'";
+  const queryCommand = `humanlog query '${playfulQuery}'`;
 
   return (
     <div className="px-4 pt-[80px] sm:px-8">
@@ -105,8 +115,8 @@ const queryCommand = `humanlog query '${playfulQuery}'`;
         </h1>
 
         <p className="text-muted-foreground mt-2 text-lg">
-          Run local logs & traces, query in CLI or UI, then share results with
-          teammates—entirely on your machine.
+          Run local logs & traces, query in CLI or UI, entirely on your machine.
+          Then share results with teammates.
         </p>
       </div>
 
@@ -126,7 +136,9 @@ const queryCommand = `humanlog query '${playfulQuery}'`;
             <div className="text-zinc-300">
               <div className="mb-5">
                 <span className="text-emerald-400">$ </span>
-                <span className="whitespace-nowrap overflow-x-auto">{installCommand}</span>
+                <span className="overflow-x-auto whitespace-nowrap">
+                  {installCommand}
+                </span>
               </div>
               <div className="mb-6 text-zinc-500">
                 Installing Humanlog CLI...
@@ -154,23 +166,23 @@ const queryCommand = `humanlog query '${playfulQuery}'`;
             <div className="flex items-center justify-between border-b border-zinc-200 bg-zinc-50 px-3 py-1.5 dark:border-zinc-800 dark:bg-zinc-900">
               <div className="flex gap-2">
                 <button
-                  className={`px-3 py-1 rounded font-medium text-sm ${selectedTab === 'logs' ? 'bg-zinc-200 dark:bg-zinc-800 text-foreground' : 'text-muted-foreground'}`}
-                  onClick={() => setSelectedTab('logs')}
-                  aria-pressed={selectedTab === 'logs'}
+                  className={`rounded px-3 py-1 text-sm font-medium ${selectedTab === "logs" ? "text-foreground bg-zinc-200 dark:bg-zinc-800" : "text-muted-foreground"}`}
+                  onClick={() => setSelectedTab("logs")}
+                  aria-pressed={selectedTab === "logs"}
                 >
                   Logs
                 </button>
                 <button
-                  className={`px-3 py-1 rounded font-medium text-sm ${selectedTab === 'traces' ? 'bg-zinc-200 dark:bg-zinc-800 text-foreground' : 'text-muted-foreground'}`}
-                  onClick={() => setSelectedTab('traces')}
-                  aria-pressed={selectedTab === 'traces'}
+                  className={`rounded px-3 py-1 text-sm font-medium ${selectedTab === "traces" ? "text-foreground bg-zinc-200 dark:bg-zinc-800" : "text-muted-foreground"}`}
+                  onClick={() => setSelectedTab("traces")}
+                  aria-pressed={selectedTab === "traces"}
                 >
                   Traces
                 </button>
               </div>
               {/* Share/Copy button */}
               <button
-                className="flex items-center gap-1 px-2 py-1 rounded hover:bg-zinc-100 dark:hover:bg-zinc-800 text-muted-foreground text-xs"
+                className="text-muted-foreground flex items-center gap-1 rounded px-2 py-1 text-xs hover:bg-zinc-100 dark:hover:bg-zinc-800"
                 onClick={() => {
                   navigator.clipboard.writeText(window.location.href);
                 }}
@@ -181,25 +193,39 @@ const queryCommand = `humanlog query '${playfulQuery}'`;
               </button>
             </div>
             {/* Query string above results pane */}
-            <div className="bg-zinc-100 dark:bg-zinc-900 px-3 py-2 border-b border-zinc-200 dark:border-zinc-800 flex items-center gap-2 text-xs font-mono text-zinc-500 whitespace-nowrap overflow-x-auto">
-              <span role="img" aria-label="sparkles">✨</span>
+            <div className="flex items-center gap-2 overflow-x-auto border-b border-zinc-200 bg-zinc-100 px-3 py-2 font-mono text-xs whitespace-nowrap text-zinc-500 dark:border-zinc-800 dark:bg-zinc-900">
+              <span role="img" aria-label="sparkles">
+                ✨
+              </span>
               <span className="truncate">{playfulQuery}</span>
             </div>
             <div className="p-3">
-              {selectedTab === 'logs' ? (
-  <SessionPanel
-    providedData={sampleProvidedLogData()}
-    query={undefined}
-    mode={mode}
-    themes={themes}
-  />
-) : (
-  <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
-    <span role="img" aria-label="traces" className="text-3xl mb-2">🕵️‍♂️</span>
-    <div className="font-mono text-sm">Traces preview: Spans from the <b>Unicorn Decoder</b> service are being processed! 🦄</div>
-    <div className="mt-2 text-xs">(Real span output coming soon. For now, enjoy this trace of magical debugging...)</div>
-  </div>
-)}
+              {selectedTab === "logs" ? (
+                <SessionPanel
+                  providedData={sampleProvidedLogData()}
+                  query={undefined}
+                  mode={mode}
+                  themes={themes}
+                />
+              ) : (
+                <div className="text-muted-foreground flex flex-col items-center justify-center py-8">
+                  <span
+                    role="img"
+                    aria-label="traces"
+                    className="mb-2 text-3xl"
+                  >
+                    🕵️‍♂️
+                  </span>
+                  <div className="font-mono text-sm">
+                    Traces preview: Spans from the <b>Unicorn Decoder</b>{" "}
+                    service are being processed! 🦄
+                  </div>
+                  <div className="mt-2 text-xs">
+                    (Real span output coming soon. For now, enjoy this trace of
+                    magical debugging...)
+                  </div>
+                </div>
+              )}
             </div>
           </Card>
         </div>
@@ -243,7 +269,9 @@ const queryCommand = `humanlog query '${playfulQuery}'`;
       <div className="mb-4 flex flex-col gap-3 space-y-3 sm:flex-row sm:space-y-0">
         <Dialog>
           <DialogTrigger asChild>
-            <Button size="lg" className="h-11"
+            <Button
+              size="lg"
+              className="h-11"
               onClick={async () => {
                 await navigator.clipboard.writeText(installCommand);
               }}
@@ -255,17 +283,24 @@ const queryCommand = `humanlog query '${playfulQuery}'`;
             <DialogHeader>
               <DialogTitle>Install Humanlog CLI</DialogTitle>
               <DialogDescription>
-                Run this command in your terminal. It has been copied to your clipboard!
+                Run this command in your terminal. It has been copied to your
+                clipboard!
               </DialogDescription>
             </DialogHeader>
             <div className="my-4 flex items-center gap-2 rounded bg-zinc-100 px-3 py-2 font-mono text-sm dark:bg-zinc-900">
-              <span className="whitespace-nowrap overflow-x-auto">{installCommand}</span>
-              <Button size="icon" variant="ghost" onClick={() => navigator.clipboard.writeText(installCommand)}>
+              <span className="overflow-x-auto whitespace-nowrap">
+                {installCommand}
+              </span>
+              <Button
+                size="icon"
+                variant="ghost"
+                onClick={() => navigator.clipboard.writeText(installCommand)}
+              >
                 <Copy size={16} />
               </Button>
             </div>
             {/* OS-specific instructions */}
-            <div className="text-xs text-muted-foreground space-y-2">
+            <div className="text-muted-foreground space-y-2 text-xs">
               {(() => {
                 if (typeof window !== "undefined") {
                   const ua = window.navigator.userAgent;
@@ -275,13 +310,27 @@ const queryCommand = `humanlog query '${playfulQuery}'`;
                   } else if (/Linux/.test(ua)) {
                     return (
                       <div>
-                        <b>Linux:</b> The query engine works, but isn't as polished and needs to be run manually. See <a href="/docs/get-started/installation" target="_blank" rel="noopener noreferrer" className="underline">installation instructions</a>.
+                        <b>Linux:</b> The query engine works, but isn't as
+                        polished and needs to be run manually. See{" "}
+                        <a
+                          href="/docs/get-started/installation"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="underline"
+                        >
+                          installation instructions
+                        </a>
+                        .
                       </div>
                     );
                   } else if (/Windows/.test(ua)) {
                     return (
                       <div>
-                        <b>Windows:</b> Not supported yet. Please <a href="/support" className="underline">contact us</a> to express your interest!
+                        <b>Windows:</b> Not supported yet. Please{" "}
+                        <a href="/support" className="underline">
+                          contact us
+                        </a>{" "}
+                        to express your interest!
                       </div>
                     );
                   }
@@ -293,10 +342,24 @@ const queryCommand = `humanlog query '${playfulQuery}'`;
                       <b>macOS:</b> Paste into your terminal. No sudo required.
                     </div>
                     <div>
-                      <b>Linux:</b> The query engine works, but isn't as polished and needs to be run manually. See <a href="/docs/get-started/installation" target="_blank" rel="noopener noreferrer" className="underline">installation instructions</a>.
+                      <b>Linux:</b> The query engine works, but isn't as
+                      polished and needs to be run manually. See{" "}
+                      <a
+                        href="/docs/get-started/installation"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="underline"
+                      >
+                        installation instructions
+                      </a>
+                      .
                     </div>
                     <div>
-                      <b>Windows:</b> Not supported yet. Please <a href="/support" className="underline">contact us</a> to express your interest!
+                      <b>Windows:</b> Not supported yet. Please{" "}
+                      <a href="/support" className="underline">
+                        contact us
+                      </a>{" "}
+                      to express your interest!
                     </div>
                   </>
                 );
@@ -325,7 +388,7 @@ const queryCommand = `humanlog query '${playfulQuery}'`;
         </div>
         <div className="flex items-center">
           <Building className="mr-2 h-4 w-4" />
-          <span>Built by engineers who've shipped observability at scale</span>
+          <span>Built by engineers</span>
         </div>
       </div>
 
@@ -337,19 +400,21 @@ const queryCommand = `humanlog query '${playfulQuery}'`;
         </h3>
 
         <div className="mt-4 flex w-full flex-col gap-3 sm:flex-row md:mt-0 md:w-auto">
-  <Input
-    type="email"
-    placeholder="Your email address"
-    aria-label="Email address"
-    className="w-full sm:w-[24rem]"
-    value={email}
-    onChange={(e) => setEmail(e.target.value)}
-  />
-  <div className="flex flex-col w-full sm:w-auto">
-    <Button className="whitespace-nowrap">Keep Me Posted</Button>
-    <p className="text-sm text-gray-500 mt-2 text-center md:text-right">No spam—ever.</p>
-  </div>
-</div>
+          <Input
+            type="email"
+            placeholder="Your email address"
+            aria-label="Email address"
+            className="w-full sm:w-[24rem]"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+          <div className="flex w-full flex-col sm:w-auto">
+            <Button className="whitespace-nowrap">Keep Me Posted</Button>
+            <p className="mt-2 text-center text-sm text-gray-500 md:text-right">
+              Handwritten 📨 from me, no spam!
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   );
