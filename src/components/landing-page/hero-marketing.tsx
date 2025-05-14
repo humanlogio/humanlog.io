@@ -12,7 +12,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import SessionPanel from "@/components/log-interface/query-output/session/session-panel";
-import { sampleProvidedLogData } from "./sample-protobuf-data";
+import { sampleProvidedLogData, sampleSpansQueryRes } from "./sample-protobuf-data";
 import { defaultConfig } from "@/services/localhostService";
 import { useTheme } from "next-themes";
 import { FormatConfig_Themes, FormatConfig_Theme } from "api/js/types/v1/localhost_config_pb";
@@ -93,7 +93,8 @@ const themes: FormatConfig_Themes | undefined = (defaultConfig.formatter?.themes
   // Sample commands for the terminal mockup
   const origin = getSelfURL();
   const installCommand = `curl -sSL "${origin}/install.sh" | bash`;
-  const queryCommand = "humanlog query 'logs | where level==\"error\"'";
+  const playfulQuery = "logs | where level in [INFO, WARN, ERROR] and msg contains 'unicorn'";
+const queryCommand = `humanlog query '${playfulQuery}'`;
 
   return (
     <div className="px-4 pt-[80px] sm:px-8">
@@ -125,7 +126,7 @@ const themes: FormatConfig_Themes | undefined = (defaultConfig.formatter?.themes
             <div className="text-zinc-300">
               <div className="mb-5">
                 <span className="text-emerald-400">$ </span>
-                <span>{installCommand}</span>
+                <span className="whitespace-nowrap overflow-x-auto">{installCommand}</span>
               </div>
               <div className="mb-6 text-zinc-500">
                 Installing Humanlog CLI...
@@ -147,10 +148,10 @@ const themes: FormatConfig_Themes | undefined = (defaultConfig.formatter?.themes
         </div>
 
         {/* UI Screenshot - use real SessionPanel component with Logs/Traces toggle and share button */}
-        <div className="order-2 mt-4 w-full lg:order-2 lg:mt-0 lg:w-1/2">
+        <div className="order-2 mt-2 w-full lg:order-2 lg:mt-0 lg:w-1/2">
           <Card className="overflow-hidden rounded-lg border border-zinc-200 shadow-md dark:border-zinc-800">
             {/* Logs | Traces toggle */}
-            <div className="flex items-center justify-between border-b border-zinc-200 bg-zinc-50 px-4 py-2 dark:border-zinc-800 dark:bg-zinc-900">
+            <div className="flex items-center justify-between border-b border-zinc-200 bg-zinc-50 px-3 py-1.5 dark:border-zinc-800 dark:bg-zinc-900">
               <div className="flex gap-2">
                 <button
                   className={`px-3 py-1 rounded font-medium text-sm ${selectedTab === 'logs' ? 'bg-zinc-200 dark:bg-zinc-800 text-foreground' : 'text-muted-foreground'}`}
@@ -179,20 +180,26 @@ const themes: FormatConfig_Themes | undefined = (defaultConfig.formatter?.themes
                 <Share className="h-4 w-4" /> Copy link
               </button>
             </div>
-            <div className="p-4">
+            {/* Query string above results pane */}
+            <div className="bg-zinc-100 dark:bg-zinc-900 px-3 py-2 border-b border-zinc-200 dark:border-zinc-800 flex items-center gap-2 text-xs font-mono text-zinc-500 whitespace-nowrap overflow-x-auto">
+              <span role="img" aria-label="sparkles">✨</span>
+              <span className="truncate">{playfulQuery}</span>
+            </div>
+            <div className="p-3">
               {selectedTab === 'logs' ? (
-                <SessionPanel
-                  providedData={sampleProvidedLogData()}
-                  query={undefined}
-                  mode={mode}
-                  themes={themes}
-                />
-              ) : (
-                <div className="text-center text-muted-foreground py-8">
-                  {/* Replace with <SessionPanel ... /> for traces if you have sampleSpansQueryRes and SessionPanel supports it */}
-                  Traces preview coming soon.
-                </div>
-              )}
+  <SessionPanel
+    providedData={sampleProvidedLogData()}
+    query={undefined}
+    mode={mode}
+    themes={themes}
+  />
+) : (
+  <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
+    <span role="img" aria-label="traces" className="text-3xl mb-2">🕵️‍♂️</span>
+    <div className="font-mono text-sm">Traces preview: Spans from the <b>Unicorn Decoder</b> service are being processed! 🦄</div>
+    <div className="mt-2 text-xs">(Real span output coming soon. For now, enjoy this trace of magical debugging...)</div>
+  </div>
+)}
             </div>
           </Card>
         </div>
@@ -252,7 +259,7 @@ const themes: FormatConfig_Themes | undefined = (defaultConfig.formatter?.themes
               </DialogDescription>
             </DialogHeader>
             <div className="my-4 flex items-center gap-2 rounded bg-zinc-100 px-3 py-2 font-mono text-sm dark:bg-zinc-900">
-              <span>{installCommand}</span>
+              <span className="whitespace-nowrap overflow-x-auto">{installCommand}</span>
               <Button size="icon" variant="ghost" onClick={() => navigator.clipboard.writeText(installCommand)}>
                 <Copy size={16} />
               </Button>
@@ -330,19 +337,19 @@ const themes: FormatConfig_Themes | undefined = (defaultConfig.formatter?.themes
         </h3>
 
         <div className="mt-4 flex w-full flex-col gap-3 sm:flex-row md:mt-0 md:w-auto">
-          <Input
-            type="email"
-            placeholder="Your email address"
-            aria-label="Email address"
-            className="w-full sm:w-[24rem]"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-          <Button className="whitespace-nowrap">Keep Me Posted</Button>
-        </div>
-        <div className="mt-1 text-[14px] text-gray-500 text-center w-full">
-          Your inbox is safe with us—we only mail actual humans, no bots!
-        </div>
+  <Input
+    type="email"
+    placeholder="Your email address"
+    aria-label="Email address"
+    className="w-full sm:w-[24rem]"
+    value={email}
+    onChange={(e) => setEmail(e.target.value)}
+  />
+  <div className="flex flex-col w-full sm:w-auto">
+    <Button className="whitespace-nowrap">Keep Me Posted</Button>
+    <p className="text-sm text-gray-500 mt-2 text-center md:text-right">No spam—ever.</p>
+  </div>
+</div>
       </div>
     </div>
   );
