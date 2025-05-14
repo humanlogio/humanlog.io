@@ -340,6 +340,9 @@ const themes: FormatConfig_Themes | undefined = (defaultConfig.formatter?.themes
           />
           <Button className="whitespace-nowrap">Keep Me Posted</Button>
         </div>
+        <div className="mt-1 text-[14px] text-gray-500 text-center w-full">
+          Your inbox is safe with us—we only mail actual humans, no bots!
+        </div>
       </div>
     </div>
   );
