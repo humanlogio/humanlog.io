@@ -32,6 +32,16 @@ import {
   Ellipsis,
   UnfoldVertical,
 } from "lucide-react";
+import {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription
+} from "@/components/ui/dialog";
+import { getSelfURL } from "@/lib/envs";
+import { Copy } from "lucide-react";
 
 const AboveFoldHero: React.FC = () => {
   const { theme: colorMode } = useTheme();
@@ -81,7 +91,8 @@ const themes: FormatConfig_Themes | undefined = (defaultConfig.formatter?.themes
   }, []);
 
   // Sample commands for the terminal mockup
-  const installCommand = 'curl -sSL "https://humanlog.dev/install.sh" | bash';
+  const origin = getSelfURL();
+  const installCommand = `curl -sSL "${origin}/install.sh" | bash`;
   const queryCommand = "humanlog query 'logs | where level==\"error\"'";
 
   return (
@@ -223,11 +234,71 @@ const themes: FormatConfig_Themes | undefined = (defaultConfig.formatter?.themes
 
       {/* CTA Buttons */}
       <div className="mb-4 flex flex-col gap-3 space-y-3 sm:flex-row sm:space-y-0">
-        <Button size="lg" className="h-11">
-          Install & Sign Up (macOS)
-        </Button>
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button size="lg" className="h-11"
+              onClick={async () => {
+                await navigator.clipboard.writeText(installCommand);
+              }}
+            >
+              Install & Sign Up
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Install Humanlog CLI</DialogTitle>
+              <DialogDescription>
+                Run this command in your terminal. It has been copied to your clipboard!
+              </DialogDescription>
+            </DialogHeader>
+            <div className="my-4 flex items-center gap-2 rounded bg-zinc-100 px-3 py-2 font-mono text-sm dark:bg-zinc-900">
+              <span>{installCommand}</span>
+              <Button size="icon" variant="ghost" onClick={() => navigator.clipboard.writeText(installCommand)}>
+                <Copy size={16} />
+              </Button>
+            </div>
+            {/* OS-specific instructions */}
+            <div className="text-xs text-muted-foreground space-y-2">
+              {(() => {
+                if (typeof window !== "undefined") {
+                  const ua = window.navigator.userAgent;
+                  if (/Macintosh|Mac OS X/.test(ua)) {
+                    // macOS: show nothing
+                    return null;
+                  } else if (/Linux/.test(ua)) {
+                    return (
+                      <div>
+                        <b>Linux:</b> The query engine works, but isn't as polished and needs to be run manually. See <a href="/docs/get-started/installation" target="_blank" rel="noopener noreferrer" className="underline">installation instructions</a>.
+                      </div>
+                    );
+                  } else if (/Windows/.test(ua)) {
+                    return (
+                      <div>
+                        <b>Windows:</b> Not supported yet. Please <a href="/support" className="underline">contact us</a> to express your interest!
+                      </div>
+                    );
+                  }
+                }
+                // Fallback: show all
+                return (
+                  <>
+                    <div>
+                      <b>macOS:</b> Paste into your terminal. No sudo required.
+                    </div>
+                    <div>
+                      <b>Linux:</b> The query engine works, but isn't as polished and needs to be run manually. See <a href="/docs/get-started/installation" target="_blank" rel="noopener noreferrer" className="underline">installation instructions</a>.
+                    </div>
+                    <div>
+                      <b>Windows:</b> Not supported yet. Please <a href="/support" className="underline">contact us</a> to express your interest!
+                    </div>
+                  </>
+                );
+              })()}
+            </div>
+          </DialogContent>
+        </Dialog>
         <a
-          href="https://github.com/humanlogio/humanlog"
+          href="/link/github"
           target="_blank"
           rel="noopener noreferrer"
           className="inline-flex"
