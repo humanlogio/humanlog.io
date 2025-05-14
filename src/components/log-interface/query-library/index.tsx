@@ -122,7 +122,6 @@ export const QueryLibrary = ({
       const filtered = prev.filter(
         (query) => query.favorite?.id != savedQueryId,
       );
-      console.log("filtered", filtered);
       console.log("savedQueryId", savedQueryId);
       return [res as ListFavoriteQueryResponse_ListItem, ...filtered];
     });
