@@ -74,7 +74,12 @@ export const formatDuration = (duration?: Duration) => {
 export const getUnixTimestamp = (timestamp: Timestamp) => {
   const seconds = Number(timestamp.seconds);
   const milliseconds = Math.floor(timestamp.nanos / 1_000_000);
+  return seconds * 1000 + milliseconds;
+};
 
+export const getDurationInMilliseconds = (duration: Duration) => {
+  const seconds = Number(duration.seconds);
+  const milliseconds = Math.floor(duration.nanos / 1_000_000);
   return seconds * 1000 + milliseconds;
 };
 
