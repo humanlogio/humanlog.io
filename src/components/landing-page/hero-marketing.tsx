@@ -35,6 +35,8 @@ import {
 
 const AboveFoldHero: React.FC = () => {
   const { theme: colorMode } = useTheme();
+  // Add state for logs/traces toggle
+  const [selectedTab, setSelectedTab] = useState<'logs' | 'traces'>('logs');
 
   // Fallback to system if colorMode is undefined
   let mode: "light" | "dark" = "light";
@@ -143,15 +145,54 @@ const themes: FormatConfig_Themes | undefined = (defaultConfig.formatter?.themes
           </Card>
         </div>
 
-        {/* UI Screenshot - use real SessionPanel component */}
+        {/* UI Screenshot - use real SessionPanel component with Logs/Traces toggle and share button */}
         <div className="order-2 mt-4 w-full lg:order-2 lg:mt-0 lg:w-1/2">
           <Card className="overflow-hidden rounded-lg border border-zinc-200 shadow-md dark:border-zinc-800">
-            <SessionPanel
-              providedData={sampleProvidedLogData()}
-              query={undefined}
-              mode={mode}
-              themes={themes}
-            />
+            {/* Logs | Traces toggle */}
+            <div className="flex items-center justify-between border-b border-zinc-200 bg-zinc-50 px-4 py-2 dark:border-zinc-800 dark:bg-zinc-900">
+              <div className="flex gap-2">
+                <button
+                  className={`px-3 py-1 rounded font-medium text-sm ${selectedTab === 'logs' ? 'bg-zinc-200 dark:bg-zinc-800 text-foreground' : 'text-muted-foreground'}`}
+                  onClick={() => setSelectedTab('logs')}
+                  aria-pressed={selectedTab === 'logs'}
+                >
+                  Logs
+                </button>
+                <button
+                  className={`px-3 py-1 rounded font-medium text-sm ${selectedTab === 'traces' ? 'bg-zinc-200 dark:bg-zinc-800 text-foreground' : 'text-muted-foreground'}`}
+                  onClick={() => setSelectedTab('traces')}
+                  aria-pressed={selectedTab === 'traces'}
+                >
+                  Traces
+                </button>
+              </div>
+              {/* Share/Copy button */}
+              <button
+                className="flex items-center gap-1 px-2 py-1 rounded hover:bg-zinc-100 dark:hover:bg-zinc-800 text-muted-foreground text-xs"
+                onClick={() => {
+                  navigator.clipboard.writeText(window.location.href);
+                }}
+                title="Copy link to results"
+                aria-label="Copy link to results"
+              >
+                <Share className="h-4 w-4" /> Copy link
+              </button>
+            </div>
+            <div className="p-4">
+              {selectedTab === 'logs' ? (
+                <SessionPanel
+                  providedData={sampleProvidedLogData()}
+                  query={undefined}
+                  mode={mode}
+                  themes={themes}
+                />
+              ) : (
+                <div className="text-center text-muted-foreground py-8">
+                  {/* Replace with <SessionPanel ... /> for traces if you have sampleSpansQueryRes and SessionPanel supports it */}
+                  Traces preview coming soon.
+                </div>
+              )}
+            </div>
           </Card>
         </div>
       </div>
@@ -195,10 +236,17 @@ const themes: FormatConfig_Themes | undefined = (defaultConfig.formatter?.themes
         <Button size="lg" className="h-11">
           Install & Sign Up (macOS)
         </Button>
-        <Button variant="outline" size="lg" className="h-11 px-6">
-          <Github className="mr-2 h-4 w-4" />
-          View on GitHub
-        </Button>
+        <a
+          href="https://github.com/humanlogio/humanlog"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex"
+        >
+          <Button variant="outline" size="lg" className="h-11 px-6">
+            <Github className="mr-2 h-4 w-4" />
+            View on GitHub
+          </Button>
+        </a>
       </div>
 
       {/* Trust signals */}
@@ -206,10 +254,6 @@ const themes: FormatConfig_Themes | undefined = (defaultConfig.formatter?.themes
         <div className="flex items-center">
           <Star className="mr-2 h-4 w-4" />
           <span>{githubStars} stars on GitHub</span>
-        </div>
-        <div className="flex items-center">
-          <Users className="mr-2 h-4 w-4" />
-          <span>{earlyAccessEngineers} early-access engineers</span>
         </div>
         <div className="flex items-center">
           <Building className="mr-2 h-4 w-4" />
