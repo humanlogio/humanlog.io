@@ -61,32 +61,22 @@ const themes: FormatConfig_Themes | undefined = (defaultConfig.formatter?.themes
   : undefined;
 
   const [email, setEmail] = useState("");
-  const [githubStars, setGithubStars] = useState("0");
+  const [githubStars, setGithubStars] = useState("∞");
   const earlyAccessEngineers = "35"; // Replace with actual count
 
-  // Fetch GitHub stars count dynamically
+  // Fetch GitHub stars count from local API route (cached)
   useEffect(() => {
     const fetchGitHubStars = async () => {
       try {
-        const response = await fetch(
-          "https://api.github.com/repos/humanlogio/humanlog",
-        );
+        const response = await fetch("/api/github-stars");
         const data = await response.json();
-
-        if (data.stargazers_count) {
-          // Format the number (e.g., 1000 -> 1k)
-          const formattedCount =
-            data.stargazers_count >= 1000
-              ? `${(data.stargazers_count / 1000).toFixed(1)}k`
-              : data.stargazers_count.toString();
-
-          setGithubStars(formattedCount);
+        if (data.stars && data.stars !== "0") {
+          setGithubStars(data.stars);
         }
       } catch (error) {
         console.error("Failed to fetch GitHub stars:", error);
       }
     };
-
     fetchGitHubStars();
   }, []);
 
