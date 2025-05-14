@@ -12,7 +12,8 @@ import { Span, Span_Timing } from "api/js/types/v1/tracing_pb";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button } from "../ui/button";
 import { Duration, Timestamp } from "@bufbuild/protobuf";
-import { ChevronDown, ChevronRight, ChevronUp } from "lucide-react";
+import { ChevronDown, ChevronRight, Copy } from "lucide-react";
+import { copyToClipboard } from "@/lib/utils/clipboard";
 
 interface TracesProps {
   traceId: string;
@@ -154,7 +155,7 @@ export const Traces = ({ traceId }: TracesProps) => {
   useEffect(() => {
     if (!apiClients) return;
 
-    getTrace(apiClients?.trace, decodeURIComponent(traceId), {
+    getTrace(apiClients?.trace, traceId, {
       onSuccess: (res) => {
         if (res.trace?.spans) {
           setSpans(res.trace.spans);
@@ -277,12 +278,13 @@ export const Traces = ({ traceId }: TracesProps) => {
     <div className="px-6 py-8">
       <div className="mb-4 flex items-center gap-2">
         <span className="text-2xl font-extrabold">Trace</span>
-        <span
-          className="max-w-md truncate text-sm text-gray-500"
-          title={decodeURIComponent(traceId)}
+        <button
+          className="flex max-w-md items-center truncate text-sm text-gray-500"
+          onClick={() => copyToClipboard(traceId)}
         >
-          {decodeURIComponent(traceId)}
-        </span>
+          {traceId}
+          <Copy size={12} className="flex-none" />
+        </button>
       </div>
 
       {/* Timeline header */}
