@@ -1,4 +1,4 @@
-import { Timestamp } from "@bufbuild/protobuf";
+import { Duration, Timestamp } from "@bufbuild/protobuf";
 import {
   BinaryOp_Operator,
   Expr,
@@ -67,6 +67,19 @@ export const newF64Val = (v: number | undefined): Val => {
     type: new VarType({}),
     kind: {
       case: "f64",
+      value: v,
+    },
+  });
+};
+
+export const newDurationVal = (v: Duration | undefined): Val => {
+  if (!v) {
+    return newNullVal();
+  }
+  return new Val({
+    type: new VarType({}),
+    kind: {
+      case: "dur",
       value: v,
     },
   });
