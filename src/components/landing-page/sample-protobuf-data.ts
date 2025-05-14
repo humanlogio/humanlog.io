@@ -10,20 +10,6 @@ const SAMPLE_LOGS = [
     parsedAt: "2025-02-11T08:26:37.660211Z",
     structured: {
       timestamp: "2025-02-11T05:00:21.086964Z",
-      lvl: "DEBUG",
-      msg: "System configuration loading",
-      kvs: [
-        { key: "config_path", value: "/etc/app/config" },
-        { key: "env", value: "production" },
-      ],
-    },
-  },
-  {
-    sessionId: "1739262397660164002",
-    eventId: "2",
-    parsedAt: "2025-02-11T08:26:37.660755Z",
-    structured: {
-      timestamp: "2025-02-11T05:01:20.183326Z",
       lvl: "ERROR",
       msg: "Failed to connect to database",
       kvs: [
@@ -33,16 +19,58 @@ const SAMPLE_LOGS = [
     },
   },
   {
+    sessionId: "1739262397660164002",
+    eventId: "2",
+    parsedAt: "2025-02-11T08:27:10.660755Z",
+    structured: {
+      timestamp: "2025-02-11T05:01:22.183326Z",
+      lvl: "ERROR",
+      msg: "Timeout while querying users table",
+      kvs: [
+        { key: "service", value: "api-server" },
+        { key: "user", value: "bob" },
+      ],
+    },
+  },
+  {
     sessionId: "1739262397660164003",
     eventId: "3",
-    parsedAt: "2025-02-11T08:26:37.660812Z",
+    parsedAt: "2025-02-11T08:27:45.660812Z",
     structured: {
-      timestamp: "2025-02-11T05:01:20.483267Z",
-      lvl: "INFO",
-      msg: "Query succeeded",
+      timestamp: "2025-02-11T05:01:24.483267Z",
+      lvl: "ERROR",
+      msg: "Permission denied: cannot write log file",
       kvs: [
-        { key: "rows", value: "42" },
-        { key: "duration", value: "1.2s" },
+        { key: "file", value: "/var/log/app.log" },
+        { key: "user", value: "carol" },
+      ],
+    },
+  },
+  {
+    sessionId: "1739262397660164004",
+    eventId: "4",
+    parsedAt: "2025-02-11T08:28:10.660900Z",
+    structured: {
+      timestamp: "2025-02-11T05:01:26.183326Z",
+      lvl: "ERROR",
+      msg: "Failed to parse configuration file",
+      kvs: [
+        { key: "file", value: "/etc/app/config.yaml" },
+        { key: "line", value: "42" },
+      ],
+    },
+  },
+  {
+    sessionId: "1739262397660164005",
+    eventId: "5",
+    parsedAt: "2025-02-11T08:28:35.661000Z",
+    structured: {
+      timestamp: "2025-02-11T05:01:28.483267Z",
+      lvl: "ERROR",
+      msg: "Connection reset by peer",
+      kvs: [
+        { key: "service", value: "payment-gateway" },
+        { key: "host", value: "10.0.0.12" },
       ],
     },
   },
