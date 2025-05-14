@@ -12,10 +12,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import SessionPanel from "@/components/log-interface/query-output/session/session-panel";
-import {
-  sampleProvidedLogData,
-  sampleSpansQueryRes,
-} from "./sample-protobuf-data";
+import { sampleProvidedLogData } from "./sample-protobuf-data";
 import { defaultConfig } from "@/services/localhostService";
 import { useTheme } from "next-themes";
 import {
