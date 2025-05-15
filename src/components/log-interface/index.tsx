@@ -5,6 +5,7 @@ import {
   SetStateAction,
   useCallback,
   useEffect,
+  useRef,
   useState,
 } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -18,6 +19,8 @@ import {
   ParseResponse,
   QueryRequest,
   QueryResponse,
+  StreamRequest,
+  StreamResponse,
 } from "api/js/svc/query/v1/service_pb";
 import {
   Query,
@@ -26,10 +29,15 @@ import {
   SplitOperator_ByOperator,
   Statements,
 } from "api/js/types/v1/query_pb";
-import { KV, Val } from "api/js/types/v1/types_pb";
+import { Val } from "api/js/types/v1/types_pb";
 import { newIdentifierExpr } from "@/lib/utils/queryBuilders";
 import { X } from "lucide-react";
-import { getQuery, parseQuery, QueryClientType } from "@/services/queryService";
+import {
+  getQuery,
+  getStream,
+  parseQuery,
+  QueryClientType,
+} from "@/services/queryService";
 import { recordQueryHistory } from "@/services/userService";
 import { RecordQueryHistoryResponse } from "api/js/svc/user/v1/service_pb";
 import QueryInput from "@/components/log-interface/query-input";
@@ -47,6 +55,7 @@ import config from "@/features/config";
 import Graph from "@/components/ui/graph/graph";
 import { trace, SpanStatusCode } from "@opentelemetry/api";
 import { ConnectError } from "@connectrpc/connect";
+import { Duration } from "@bufbuild/protobuf";
 
 export type DataCase =
   | "subqueries"
@@ -64,12 +73,17 @@ export type DataValue =
   | VectorTimeseries
   | undefined;
 
-const LogInterface = () => {
+interface LogInterfaceProps {
+  nav?: "query" | "stream";
+}
+
+const LogInterface = ({ nav }: LogInterfaceProps) => {
   const isProd = config.NEXT_PUBLIC_IS_PROD;
   const limit = 100;
 
   const router = useRouter();
   const { apiClients, activeEnvironment } = useApiClients();
+  const abortControllerRef = useRef<AbortController>();
 
   const { localhostInfo } = useAllEnvironments();
   const { setNext } = useInfiniteQuery();
@@ -81,6 +95,8 @@ const LogInterface = () => {
   const [queryParseErrMsg, setQueryParseErrMsg] = useState("");
   const [parsedQuery, setParsedQuery] = useState<Query>();
   const [queryRes, setQueryRes] = useState<QueryResponse | null>(null);
+  const [streamRes, setStreamRes] = useState<StreamResponse[]>([]);
+  const [isStreamPaused, setIsStreamPaused] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isLibraryOpen, setIsLibraryOpen] = useState(false);
   const [symbol, setSymbol] = useState("");
@@ -89,6 +105,8 @@ const LogInterface = () => {
     useState<QueryHistoryEntry>();
   const [savedQueryId, setSavedQueryId] = useState<bigint>();
   const [isQueryHistoryLoading, setIsQueryHistoryLoading] = useState(false);
+  const [batchSize, setBatchSize] = useState<number>(100);
+  const [batchInterval, setBatchInterval] = useState<number>(500);
 
   const createSplitRenderStatement = () => {
     return new RenderStatement({
@@ -153,6 +171,51 @@ const LogInterface = () => {
     });
   };
 
+  const handleStreamData = (
+    queryClient: QueryClientType,
+    streamReq: StreamRequest,
+  ) => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+    const { signal } = controller;
+
+    // inititalize
+    setStreamRes([]);
+    setIsLoading(true);
+
+    getStream(queryClient, streamReq, {
+      onSuccess: (res: StreamResponse) => {
+        if (signal.aborted) return;
+
+        setStreamRes((prev) => {
+          const newResponses = [res, ...prev];
+          return newResponses.length > 100
+            ? newResponses.slice(0, 100)
+            : newResponses;
+        });
+
+        setIsLoading(false);
+      },
+      onError: () => {
+        if (!signal.aborted) {
+          setIsLoading(false);
+        }
+      },
+    });
+  };
+
+  const stopStream = () => {
+    if (abortControllerRef.current) {
+      setIsStreamPaused(true);
+      abortControllerRef.current.abort();
+      setIsLoading(false);
+    }
+  };
+
   const handleQueryData = (
     queryClient: QueryClientType,
     queryReq: QueryRequest,
@@ -196,6 +259,19 @@ const LogInterface = () => {
           handleRecordQueryHistory(editorContent, res.query);
           res.query = processQueryModifiers(res, splitByDefault);
           setParsedQuery(res.query);
+
+          if (nav === "stream") {
+            const streamReq = new StreamRequest({
+              environmentId: activeEnvironment?.id,
+              query: res.query,
+              maxBatchSize: BigInt(batchSize),
+              maxBatchingFor: new Duration({
+                nanos: batchInterval * 1_000_000,
+              }),
+            });
+            handleStreamData(queryClient, streamReq);
+            return;
+          }
 
           const queryReq = new QueryRequest({
             environmentId: activeEnvironment?.id,
@@ -274,7 +350,7 @@ const LogInterface = () => {
             <div
               className={twMerge(
                 "items-center gap-8",
-                !isProd && "grid grid-cols-2",
+                !isProd && nav === "query" && "grid grid-cols-2",
               )}
             >
               <QueryInput
@@ -288,14 +364,17 @@ const LogInterface = () => {
                 setIsLibraryOpen={setIsLibraryOpen}
               />
               {/* CHART */}
-              {!isProd && <Graph />}
+              {!isProd && nav === "query" && <Graph />}
             </div>
             {!isQueryHistoryLoading && (
               <QueryOutput
                 queryRes={queryRes}
+                streamRes={streamRes}
                 isLoading={isLoading}
                 parsedQuery={parsedQuery}
                 queryHistoryEntry={queryHistoryEntry}
+                onStopStream={stopStream}
+                isStreamPaused={isStreamPaused}
               />
             )}
           </div>
