@@ -147,12 +147,12 @@ const AboveFoldHero: React.FC = () => {
                         </span>
                       </div>
                       <div className="mb-6 text-zinc-500">
-                        <span className="text-green-600">
+                        <span className="text-emerald-600">
                           humanlog.io/install.sh
                         </span>
                         : looking up latest release
                         <br />
-                        <span className="text-green-600">
+                        <span className="text-emerald-600">
                           humanlog.io/install.sh
                         </span>
                         : installing latest release
@@ -160,15 +160,29 @@ const AboveFoldHero: React.FC = () => {
                         ########################################################################
                         100.0%
                         <br />
-                        <span className="text-green-600">
+                        <span className="text-emerald-600">
                           humanlog.io/install.sh
                         </span>
                         : humanlog was successfully installed
                         <br />
-                        <span className="text-green-600">
+                        <span className="text-emerald-600">
                           humanlog.io/install.sh
                         </span>
                         : Run 'humanlog --help' to get started
+                        <br />
+                        <span className="text-emerald-600">
+                          humanlog.io/install.sh
+                        </span>
+                        : send your OTEL data here:
+                        <br />
+                        <br />
+                        <span className="text-teal-600">
+                          <code>
+                            {
+                              "\texport OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4317"
+                            }
+                          </code>
+                        </span>
                       </div>
                     </div>
                   </TooltipTrigger>
@@ -319,13 +333,13 @@ const AboveFoldHero: React.FC = () => {
                 </Badge>
               </TooltipTrigger>
               <TooltipContent>
-                <b>
-                  <code>OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4317</code>
-                </b>
                 <p>
                   Finally see what your app is doing. Right away. Not after days
                   of setup.
                 </p>
+                <b>
+                  <code>OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4317</code>
+                </b>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
@@ -341,9 +355,8 @@ const AboveFoldHero: React.FC = () => {
                 </Badge>
               </TooltipTrigger>
               <TooltipContent>
-                <b>Privacy and speed</b>
                 <p>
-                  Keep your data locally. Leverage local processing for snappy
+                  Keep your data private. Leverage local processing for snappy
                   results.
                 </p>
               </TooltipContent>
@@ -488,7 +501,7 @@ const AboveFoldHero: React.FC = () => {
         <div className="flex items-center">
           <Star className="mr-2 h-4 w-4" />
           <a
-            href="https://github.com/humanlogio/humanlog/stargazers"
+            href="/link/github/stargazers"
             target="_blank"
             rel="noopener noreferrer"
             className="hover:underline"
@@ -523,8 +536,17 @@ const AboveFoldHero: React.FC = () => {
           />
           <div className="flex w-full flex-col sm:w-auto">
             <Button className="whitespace-nowrap">Keep Me Posted</Button>
-            <p className="mt-2 text-center text-sm text-gray-500 md:text-right">
-              Handwritten 📨 from me, no spam!
+            <p className="mt-2 text-center text-xs text-gray-500 md:text-right">
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span>Handwritten 💌 from us!</span>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>no spam!</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </p>
           </div>
         </div>
