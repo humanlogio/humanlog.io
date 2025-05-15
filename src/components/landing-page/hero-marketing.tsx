@@ -294,7 +294,7 @@ const AboveFoldHero: React.FC = () => {
               Install & Sign Up
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="w-auto min-w-[500px] max-w-[80vw]">
             <DialogHeader>
               <DialogTitle>Install Humanlog CLI</DialogTitle>
               <DialogDescription>
@@ -302,8 +302,8 @@ const AboveFoldHero: React.FC = () => {
                 clipboard!
               </DialogDescription>
             </DialogHeader>
-            <div className="my-4 flex items-center gap-2 rounded bg-zinc-100 px-3 py-2 font-mono text-sm dark:bg-zinc-900">
-              <span className="overflow-x-auto whitespace-nowrap">
+            <div className="my-4 flex items-center justify-between gap-2 rounded bg-zinc-100 px-3 py-2 font-mono text-sm dark:bg-zinc-900">
+              <span className="whitespace-nowrap">
                 {installCommand}
               </span>
               <Button
