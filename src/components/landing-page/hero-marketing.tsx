@@ -13,7 +13,10 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import SessionPanel from "@/components/log-interface/query-output/session/session-panel";
-import { sampleLogs, sampleSpans } from "./sample-protobuf-data";
+import {
+  sampleLogs,
+  sampleSpans,
+} from "@/components/landing-page/sample-protobuf-data";
 import { defaultConfig } from "@/services/localhostService";
 import { useTheme } from "next-themes";
 import {
@@ -22,20 +25,13 @@ import {
 } from "api/js/types/v1/localhost_config_pb";
 import {
   Star,
-  Users,
   Terminal,
   Activity,
-  Search,
   Laptop,
-  Github,
   Circle,
   Building,
   Share,
-  AlertCircle,
-  Clock,
-  Ellipsis,
-  UnfoldVertical,
-  GithubIcon,
+  Github,
 } from "lucide-react";
 import {
   Dialog,
@@ -47,8 +43,7 @@ import {
 } from "@/components/ui/dialog";
 import { getSelfURL } from "@/lib/envs";
 import { Copy } from "lucide-react";
-import { SpansContainer } from "../log-interface/query-output/traces/spans-container";
-import { GithubMark } from "../icons/github-mark";
+import { SpansContainer } from "@/components/log-interface/query-output/traces/spans-container";
 
 const AboveFoldHero: React.FC = () => {
   const { theme: colorMode } = useTheme();
@@ -151,25 +146,14 @@ const AboveFoldHero: React.FC = () => {
                         <span className="text-emerald-600">
                           humanlog.io/install.sh
                         </span>
-                        : looking up latest release
-                        <br />
-                        <span className="text-emerald-600">
-                          humanlog.io/install.sh
-                        </span>
                         : installing latest release
                         <br />
-                        ########################################################################
-                        100.0%
+                        ############################################## 100.0%
                         <br />
                         <span className="text-emerald-600">
                           humanlog.io/install.sh
                         </span>
                         : humanlog was successfully installed
-                        <br />
-                        <span className="text-emerald-600">
-                          humanlog.io/install.sh
-                        </span>
-                        : Run 'humanlog --help' to get started
                         <br />
                         <span className="text-emerald-600">
                           humanlog.io/install.sh
@@ -443,8 +427,9 @@ const AboveFoldHero: React.FC = () => {
                   } else if (/Linux/.test(ua)) {
                     return (
                       <div>
-                        <b>Linux:</b> The query engine works, but isn't as
-                        polished and needs to be run manually. See{" "}
+                        <b>Linux:</b> The query engine works, but is not as
+                        polished and needs to be run manually with{" "}
+                        <code>humanlog service run</code>. See{" "}
                         <a
                           href="/docs/get-started/installation"
                           target="_blank"
@@ -472,11 +457,12 @@ const AboveFoldHero: React.FC = () => {
                 return (
                   <>
                     <div>
-                      <b>macOS:</b> Paste into your terminal. No sudo required.
+                      <b>macOS:</b> Paste into your terminal.
                     </div>
                     <div>
-                      <b>Linux:</b> The query engine works, but isn't as
-                      polished and needs to be run manually. See{" "}
+                      <b>Linux:</b> The query engine works, but is not as
+                      polished and needs to be run manually with{" "}
+                      <code>humanlog service run</code>. See{" "}
                       <a
                         href="/docs/get-started/installation"
                         target="_blank"
