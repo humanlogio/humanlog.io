@@ -8,7 +8,6 @@ export default function Home() {
   return (
     <main>
       <section>
-        {/* Above the fold hero marketing section */}
         <AboveFoldHero />
         <div className="flex w-full flex-col gap-48 py-44 lg:gap-72 lg:py-60">
           <SetupGuide />
