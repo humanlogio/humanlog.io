@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { Helmet, HelmetProvider } from "react-helmet-async";
 import { copyToClipboard } from "@/lib/utils/clipboard";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -75,9 +76,7 @@ const AboveFoldHero: React.FC = () => {
         })
       : undefined;
 
-  const [email, setEmail] = useState("");
   const [githubStars, setGithubStars] = useState("∞");
-  const earlyAccessEngineers = "35"; // Replace with actual count
 
   // Fetch GitHub stars count from local API route (cached)
   useEffect(() => {
@@ -528,31 +527,47 @@ const AboveFoldHero: React.FC = () => {
           learn locally, skills transfer 1:1, spots limited to 50 engineers.
         </h3>
 
-        <div className="mt-4 flex w-full flex-col gap-3 sm:flex-row md:mt-0 md:w-auto">
-          <Input
-            type="email"
-            placeholder="Your email address"
-            aria-label="Email address"
-            className="w-full sm:w-[24rem]"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-          <div className="flex w-full flex-col sm:w-auto">
-            <Button className="whitespace-nowrap">Keep Me Posted</Button>
-            <p className="mt-2 text-center text-xs text-gray-500 md:text-right">
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <span>Handwritten 💌 from us!</span>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>no spam!</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            </p>
+        <form
+          className="launchlist-form"
+          action="https://getlaunchlist.com/s/MJv5ZO"
+          method="POST"
+        >
+          <div className="mt-4 flex w-full flex-col gap-3 sm:flex-row md:mt-0 md:w-auto">
+            <Input
+              type="email"
+              name="email"
+              placeholder="Your email address"
+              aria-label="Email address"
+              className="w-full sm:w-[24rem]"
+              required
+            />
+            <div className="flex w-full flex-col sm:w-auto">
+              <Button className="whitespace-nowrap" type="submit">
+                Keep Me Posted
+              </Button>
+              <p className="mt-2 text-center text-xs text-gray-500 md:text-right">
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span>Handwritten 💌 from us!</span>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>no spam!</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </p>
+            </div>
           </div>
-        </div>
+        </form>
+        <HelmetProvider>
+          <Helmet>
+            <script
+              src="https://getlaunchlist.com/js/widget-diy.js"
+              defer
+            ></script>
+          </Helmet>
+        </HelmetProvider>
       </div>
     </div>
   );
