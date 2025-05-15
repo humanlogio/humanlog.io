@@ -147,20 +147,28 @@ const AboveFoldHero: React.FC = () => {
                         </span>
                       </div>
                       <div className="mb-6 text-zinc-500">
-                        <span className="text-green-600">humanlog.io/install.sh</span>:
-                        looking up latest release
+                        <span className="text-green-600">
+                          humanlog.io/install.sh
+                        </span>
+                        : looking up latest release
                         <br />
-                        <span className="text-green-600">humanlog.io/install.sh</span>:
-                        installing latest release
+                        <span className="text-green-600">
+                          humanlog.io/install.sh
+                        </span>
+                        : installing latest release
                         <br />
                         ########################################################################
                         100.0%
                         <br />
-                        <span className="text-green-600">humanlog.io/install.sh</span>:
-                        humanlog was successfully installed
+                        <span className="text-green-600">
+                          humanlog.io/install.sh
+                        </span>
+                        : humanlog was successfully installed
                         <br />
-                        <span className="text-green-600">humanlog.io/install.sh</span>:
-                        Run 'humanlog --help' to get started
+                        <span className="text-green-600">
+                          humanlog.io/install.sh
+                        </span>
+                        : Run 'humanlog --help' to get started
                       </div>
                     </div>
                   </TooltipTrigger>
@@ -479,7 +487,14 @@ const AboveFoldHero: React.FC = () => {
       <div className="mb-6 flex flex-wrap gap-6 text-sm text-gray-500">
         <div className="flex items-center">
           <Star className="mr-2 h-4 w-4" />
-          <span>{githubStars} stars on GitHub</span>
+          <a
+            href="https://github.com/humanlogio/humanlog/stargazers"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:underline"
+          >
+            <span>{githubStars} stars on GitHub</span>
+          </a>
         </div>
         <div className="flex items-center">
           <Building className="mr-2 h-4 w-4" />
