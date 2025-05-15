@@ -136,37 +136,70 @@ const AboveFoldHero: React.FC = () => {
 
             {/* Terminal content */}
             <div className="text-zinc-300">
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div>
+                      <div className="mb-5">
+                        <span className="text-emerald-400">$ </span>
+                        <span className="overflow-x-auto whitespace-nowrap">
+                          {installCommand}
+                        </span>
+                      </div>
+                      <div className="mb-6 text-zinc-500">
+                        <span className="text-green-600">humanlog.io/install.sh</span>:
+                        looking up latest release
+                        <br />
+                        <span className="text-green-600">humanlog.io/install.sh</span>:
+                        installing latest release
+                        <br />
+                        ########################################################################
+                        100.0%
+                        <br />
+                        <span className="text-green-600">humanlog.io/install.sh</span>:
+                        humanlog was successfully installed
+                        <br />
+                        <span className="text-green-600">humanlog.io/install.sh</span>:
+                        Run 'humanlog --help' to get started
+                      </div>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Install, sign up and get started in one command</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+
               <div className="mb-5">
-                <span className="text-emerald-400">$ </span>
-                <span className="overflow-x-auto whitespace-nowrap">
-                  {installCommand}
-                </span>
-              </div>
-              <div className="mb-6 text-zinc-500">
-                <span className="text-green-600">humanlog.io/install.sh</span>:
-                looking up latest release
-                <br />
-                <span className="text-green-600">humanlog.io/install.sh</span>:
-                installing latest release
-                <br />
-                ########################################################################
-                100.0%
-                <br />
-                <span className="text-green-600">humanlog.io/install.sh</span>:
-                humanlog was successfully installed
-                <br />
-                <span className="text-green-600">humanlog.io/install.sh</span>:
-                Run 'humanlog --help' to get started
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div>
+                        <span className="text-emerald-400">$ </span>
+                        <span>{queryCommand}</span>
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Run queries against historical data</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </div>
 
               <div className="mb-5">
-                <span className="text-emerald-400">$ </span>
-                <span>{queryCommand}</span>
-              </div>
-
-              <div className="mb-5">
-                <span className="text-emerald-400">$ </span>
-                <span>{streamCommand}</span>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div>
+                        <span className="text-emerald-400">$ </span>
+                        <span>{streamCommand}</span>
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Stream and query real-time data</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </div>
             </div>
           </Card>
@@ -250,34 +283,82 @@ const AboveFoldHero: React.FC = () => {
       {/* Feature badges - horizontally scrollable on mobile, left-aligned on desktop */}
       <div className="-mx-2 mb-4 overflow-x-auto px-2 pb-2">
         <div className="flex min-w-max gap-3">
-          <Badge
-            variant="outline"
-            className="rounded-full bg-zinc-100 px-3 py-1 whitespace-nowrap dark:bg-zinc-800"
-          >
-            <Activity className="mr-2 h-4 w-4 flex-shrink-0" />
-            Real-Time Streaming
-          </Badge>
-          <Badge
-            variant="outline"
-            className="rounded-full bg-zinc-100 px-3 py-1 whitespace-nowrap dark:bg-zinc-800"
-          >
-            <Terminal className="mr-2 h-4 w-4 flex-shrink-0" />
-            OTLP Collector
-          </Badge>
-          <Badge
-            variant="outline"
-            className="rounded-full bg-zinc-100 px-3 py-1 whitespace-nowrap dark:bg-zinc-800"
-          >
-            <Laptop className="mr-2 h-4 w-4 flex-shrink-0" />
-            Logs & Traces Local-First
-          </Badge>
-          <Badge
-            variant="outline"
-            className="rounded-full bg-zinc-100 px-3 py-1 whitespace-nowrap dark:bg-zinc-800"
-          >
-            <Share className="mr-2 h-4 w-4 flex-shrink-0" />
-            Shareable Results
-          </Badge>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Badge
+                  variant="outline"
+                  className="rounded-full bg-zinc-100 px-3 py-1 whitespace-nowrap dark:bg-zinc-800"
+                >
+                  <Activity className="mr-2 h-4 w-4 flex-shrink-0" />
+                  Real-Time Streaming
+                </Badge>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Monitor your logs and traces as they happen in real-time</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Badge
+                  variant="outline"
+                  className="rounded-full bg-zinc-100 px-3 py-1 whitespace-nowrap dark:bg-zinc-800"
+                >
+                  <Terminal className="mr-2 h-4 w-4 flex-shrink-0" />
+                  OTLP Collector
+                </Badge>
+              </TooltipTrigger>
+              <TooltipContent>
+                <b>
+                  <code>OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4317</code>
+                </b>
+                <p>
+                  Finally see what your app is doing. Right away. Not after days
+                  of setup.
+                </p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Badge
+                  variant="outline"
+                  className="rounded-full bg-zinc-100 px-3 py-1 whitespace-nowrap dark:bg-zinc-800"
+                >
+                  <Laptop className="mr-2 h-4 w-4 flex-shrink-0" />
+                  Logs & Traces Local-First
+                </Badge>
+              </TooltipTrigger>
+              <TooltipContent>
+                <b>Privacy and speed</b>
+                <p>
+                  Keep your data locally. Leverage local processing for snappy
+                  results.
+                </p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Badge
+                  variant="outline"
+                  className="rounded-full bg-zinc-100 px-3 py-1 whitespace-nowrap dark:bg-zinc-800"
+                >
+                  <Share className="mr-2 h-4 w-4 flex-shrink-0" />
+                  Shareable Results
+                </Badge>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>
+                  Export and share your findings with your team and friends.
+                </p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </div>
       </div>
 
