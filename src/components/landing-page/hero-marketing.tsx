@@ -103,6 +103,7 @@ const AboveFoldHero: React.FC = () => {
   // Sample commands for the terminal mockup
   const origin = getSelfURL();
   const installCommand = `curl -sSL "${origin}/install.sh" | bash`;
+  const ingestCommand = `your_app | humanlog`;
   const exampleQuery = `summarize histogram(duration, 10) by bin(time, 1m)`;
   const queryCommand = `humanlog query '${exampleQuery}'`;
   const exampleStream = `traces | filter name == "db_query"`;
@@ -191,6 +192,22 @@ const AboveFoldHero: React.FC = () => {
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
+
+              <div className="mb-5">
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div>
+                        <span className="text-emerald-400">$ </span>
+                        <span>{ingestCommand}</span>
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Ingest logs from stdin</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
 
               <div className="mb-5">
                 <TooltipProvider>
