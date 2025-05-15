@@ -1,21 +1,27 @@
 import { CallbacksType, handleError } from "@/lib/utils/errorHandler";
 import { Client } from "@connectrpc/connect";
 import { QueryService } from "api/js/svc/query/v1/service_connect";
-import { FormatRequest, QueryRequest } from "api/js/svc/query/v1/service_pb";
+import {
+  FormatRequest,
+  QueryRequest,
+  StreamRequest,
+  StreamResponse,
+  ParseResponse,
+} from "api/js/svc/query/v1/service_pb";
 
 export type QueryClientType = Client<typeof QueryService>;
 
-export const parseQuery = async <T>(
+export const parseQuery = async (
   queryClient: QueryClientType,
   parseReq: { query: string },
-  callbacks?: CallbacksType<T>,
+  callbacks?: CallbacksType<ParseResponse>,
 ) => {
   try {
     const parseRes = await queryClient.parse(parseReq);
-    callbacks?.onSuccess?.(parseRes as T);
+    callbacks?.onSuccess?.(parseRes as ParseResponse);
     return parseRes;
   } catch (error) {
-    handleError<T>(error, callbacks);
+    handleError<ParseResponse>(error, callbacks);
   }
 };
 
@@ -44,5 +50,31 @@ export const getQuery = async <T>(
     return queryRes;
   } catch (error) {
     handleError<T>(error, callbacks);
+  }
+};
+
+export const getStream = (
+  queryClient: QueryClientType,
+  streamReq: StreamRequest,
+  callbacks?: CallbacksType<StreamResponse>,
+) => {
+  try {
+    const stream = queryClient.stream(streamReq);
+
+    const processStream = async () => {
+      try {
+        for await (const res of stream) {
+          callbacks?.onSuccess?.(res);
+        }
+      } catch (error) {
+        handleError<StreamResponse>(error, callbacks);
+      }
+    };
+
+    processStream();
+
+    return stream;
+  } catch (error) {
+    handleError<StreamResponse>(error, callbacks);
   }
 };
