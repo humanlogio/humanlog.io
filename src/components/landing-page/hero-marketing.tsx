@@ -196,8 +196,9 @@ const AboveFoldHero: React.FC = () => {
               <button
                 className="text-muted-foreground flex items-center gap-1 rounded px-2 py-1 text-xs hover:bg-zinc-100 dark:hover:bg-zinc-800"
                 onClick={() => {
-                  navigator.clipboard.writeText(
+                  window.open(
                     "https://humanlog.io/share/public/01JV983APJE4ADXARFW57FRCZY",
+                    "_blank",
                   );
                 }}
                 title="Share results publicly or privately"
