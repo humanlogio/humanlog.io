@@ -1,3 +1,7 @@
+"use client";
+
+import LogInterface from "@/components/log-interface";
+
 export default function Stream() {
-  return <div>Stream page</div>;
+  return <LogInterface nav="stream" />;
 }

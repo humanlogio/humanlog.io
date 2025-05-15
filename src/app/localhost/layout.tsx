@@ -37,12 +37,6 @@ const LocalhostLayout = ({ children }: LocalhostLayoutProps) => {
       disabled: false,
     },
     {
-      name: "Traces",
-      path: "/localhost/traces",
-      icon: <Network size={16} />,
-      disabled: isProd ? true : false,
-    },
-    {
       name: "Stream",
       path: "/localhost/stream",
       icon: <Activity size={16} />,
