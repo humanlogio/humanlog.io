@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { copyToClipboard } from "@/lib/utils/clipboard";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
@@ -287,33 +288,31 @@ const AboveFoldHero: React.FC = () => {
             <Button
               size="lg"
               className="h-11"
-              onClick={async () => {
-                await navigator.clipboard.writeText(installCommand);
-              }}
+              onClick={() =>
+                copyToClipboard(installCommand, "Installation command")
+              }
             >
               Install & Sign Up
             </Button>
           </DialogTrigger>
-          <DialogContent className="w-auto min-w-[500px] max-w-[80vw]">
+          <DialogContent className="w-auto max-w-[80vw] min-w-[500px]">
             <DialogHeader>
-              <DialogTitle>Install Humanlog CLI</DialogTitle>
+              <DialogTitle>Install Humanlog 💻</DialogTitle>
               <DialogDescription>
-                Run this command in your terminal. It has been copied to your
+                Open a terminal and paste. The command has been copied to your
                 clipboard!
               </DialogDescription>
             </DialogHeader>
-            <div className="my-4 flex items-center justify-between gap-2 rounded bg-zinc-100 px-3 py-2 font-mono text-sm dark:bg-zinc-900">
-              <span className="whitespace-nowrap">
-                {installCommand}
-              </span>
-              <Button
-                size="icon"
-                variant="ghost"
-                onClick={() => navigator.clipboard.writeText(installCommand)}
-              >
-                <Copy size={16} />
-              </Button>
+
+            <div
+              onClick={() => copyToClipboard(installCommand)}
+              tabIndex={1}
+              className="bg-muted flex w-full max-w-2xl cursor-pointer flex-row items-center justify-between gap-4 rounded-md px-4 py-3 hover:bg-gray-200 focus:ring-4 focus:ring-slate-100 dark:hover:bg-gray-800"
+            >
+              <code className="truncate">{installCommand}</code>
+              <Copy size={14} className="flex-none" />
             </div>
+
             {/* OS-specific instructions */}
             <div className="text-muted-foreground space-y-2 text-xs">
               {(() => {
