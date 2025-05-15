@@ -12,7 +12,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import SessionPanel from "@/components/log-interface/query-output/session/session-panel";
-import { sampleProvidedLogData } from "./sample-protobuf-data";
+import { sampleLogs, sampleSpans } from "./sample-protobuf-data";
 import { defaultConfig } from "@/services/localhostService";
 import { useTheme } from "next-themes";
 import {
@@ -34,6 +34,7 @@ import {
   Clock,
   Ellipsis,
   UnfoldVertical,
+  GithubIcon,
 } from "lucide-react";
 import {
   Dialog,
@@ -45,6 +46,8 @@ import {
 } from "@/components/ui/dialog";
 import { getSelfURL } from "@/lib/envs";
 import { Copy } from "lucide-react";
+import { SpansContainer } from "../log-interface/query-output/traces/spans-container";
+import { GithubMark } from "../icons/github-mark";
 
 const AboveFoldHero: React.FC = () => {
   const { theme: colorMode } = useTheme();
@@ -99,9 +102,10 @@ const AboveFoldHero: React.FC = () => {
   // Sample commands for the terminal mockup
   const origin = getSelfURL();
   const installCommand = `curl -sSL "${origin}/install.sh" | bash`;
-  const playfulQuery =
-    "logs | where level in [INFO, WARN, ERROR] and msg contains 'unicorn'";
-  const queryCommand = `humanlog query '${playfulQuery}'`;
+  const exampleQuery = `summarize histogram(duration, 10) by bin(time, 1m)`;
+  const queryCommand = `humanlog query '${exampleQuery}'`;
+  const exampleStream = `traces | filter name == "db_query"`;
+  const streamCommand = `humanlog stream '${exampleStream}'`;
 
   return (
     <div className="px-4 pt-[80px] sm:px-8">
@@ -112,8 +116,8 @@ const AboveFoldHero: React.FC = () => {
         </h1>
 
         <p className="text-muted-foreground mt-2 text-lg">
-          Run local logs & traces, query in CLI or UI, entirely on your machine.
-          Then share results with teammates.
+          Run local logs & traces, query them in CLI or UI, entirely on your
+          machine. Then share results with teammates.
         </p>
       </div>
 
@@ -138,19 +142,30 @@ const AboveFoldHero: React.FC = () => {
                 </span>
               </div>
               <div className="mb-6 text-zinc-500">
-                Installing Humanlog CLI...
+                <span className="text-green-600">humanlog.io/install.sh</span>:
+                looking up latest release
                 <br />
-                Humanlog installed successfully! 🎉
+                <span className="text-green-600">humanlog.io/install.sh</span>:
+                installing latest release
+                <br />
+                ########################################################################
+                100.0%
+                <br />
+                <span className="text-green-600">humanlog.io/install.sh</span>:
+                humanlog was successfully installed
+                <br />
+                <span className="text-green-600">humanlog.io/install.sh</span>:
+                Run 'humanlog --help' to get started
               </div>
 
               <div className="mb-5">
                 <span className="text-emerald-400">$ </span>
                 <span>{queryCommand}</span>
               </div>
-              <div className="text-zinc-500">
-                Found 12 log entries matching your query
-                <br />
-                Displaying results with level:error...
+
+              <div className="mb-5">
+                <span className="text-emerald-400">$ </span>
+                <span>{streamCommand}</span>
               </div>
             </div>
           </Card>
@@ -181,49 +196,51 @@ const AboveFoldHero: React.FC = () => {
               <button
                 className="text-muted-foreground flex items-center gap-1 rounded px-2 py-1 text-xs hover:bg-zinc-100 dark:hover:bg-zinc-800"
                 onClick={() => {
-                  navigator.clipboard.writeText(window.location.href);
+                  navigator.clipboard.writeText(
+                    "https://humanlog.io/share/public/01JV983APJE4ADXARFW57FRCZY",
+                  );
                 }}
-                title="Copy link to results"
-                aria-label="Copy link to results"
+                title="Share results publicly or privately"
+                aria-label="Share results publicly or privately"
               >
-                <Share className="h-4 w-4" /> Copy link
+                <Share className="h-4 w-4" /> Share results
               </button>
             </div>
             {/* Query string above results pane */}
-            <div className="flex items-center gap-2 overflow-x-auto border-b border-zinc-200 bg-zinc-100 px-3 py-2 font-mono text-xs whitespace-nowrap text-zinc-500 dark:border-zinc-800 dark:bg-zinc-900">
-              <span role="img" aria-label="sparkles">
-                ✨
-              </span>
-              <span className="truncate">{playfulQuery}</span>
-            </div>
-            <div className="p-3">
-              {selectedTab === "logs" ? (
-                <SessionPanel
-                  providedData={sampleProvidedLogData()}
-                  query={undefined}
-                  mode={mode}
-                  themes={themes}
-                />
-              ) : (
-                <div className="text-muted-foreground flex flex-col items-center justify-center py-8">
-                  <span
-                    role="img"
-                    aria-label="traces"
-                    className="mb-2 text-3xl"
-                  >
-                    🕵️‍♂️
+
+            {selectedTab === "logs" ? (
+              <>
+                <div className="flex items-center gap-2 overflow-x-auto border-b border-zinc-200 bg-zinc-100 px-3 py-2 font-mono text-xs whitespace-nowrap text-zinc-500 dark:border-zinc-800 dark:bg-zinc-900">
+                  <span role="img" aria-label="sparkles">
+                    ✨
                   </span>
-                  <div className="font-mono text-sm">
-                    Traces preview: Spans from the <b>Unicorn Decoder</b>{" "}
-                    service are being processed! 🦄
-                  </div>
-                  <div className="mt-2 text-xs">
-                    (Real span output coming soon. For now, enjoy this trace of
-                    magical debugging...)
-                  </div>
+                  <span className="truncate">{sampleLogs().query}</span>
                 </div>
-              )}
-            </div>
+                <div className="p-3">
+                  <SessionPanel
+                    providedData={sampleLogs().data}
+                    query={undefined}
+                    mode={mode}
+                    themes={themes}
+                  />
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="flex items-center gap-2 overflow-x-auto border-b border-zinc-200 bg-zinc-100 px-3 py-2 font-mono text-xs whitespace-nowrap text-zinc-500 dark:border-zinc-800 dark:bg-zinc-900">
+                  <span role="img" aria-label="sparkles">
+                    ✨
+                  </span>
+                  <span className="truncate">{sampleSpans().query}</span>
+                </div>
+                <div className="p-3">
+                  <SpansContainer
+                    providedData={sampleSpans().data}
+                    query={undefined}
+                  />
+                </div>
+              </>
+            )}
           </Card>
         </div>
       </div>
@@ -385,15 +402,18 @@ const AboveFoldHero: React.FC = () => {
         </div>
         <div className="flex items-center">
           <Building className="mr-2 h-4 w-4" />
-          <span>Built by engineers</span>
+          <span>
+            Built and used by engineers at GitHub, CloudFlare, PlanetScale,
+            DigitalOcean, and more
+          </span>
         </div>
       </div>
 
       {/* Beta signup banner */}
       <div className="flex flex-col items-center justify-between gap-4 rounded-lg bg-gray-50 p-6 md:flex-row dark:bg-zinc-800/50">
         <h3 className="text-base font-medium text-gray-800 dark:text-gray-200">
-          Join our private beta of Humanlog Cloud—reuse everything you learn
-          locally, skills transfer 1:1, spots limited to 50 engineers.
+          Signup for our private beta of Humanlog Cloud. Reuse everything you
+          learn locally, skills transfer 1:1, spots limited to 50 engineers.
         </h3>
 
         <div className="mt-4 flex w-full flex-col gap-3 sm:flex-row md:mt-0 md:w-auto">
