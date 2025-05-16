@@ -28,21 +28,24 @@ const DemoSection: React.FC = () => {
           </p>
           
           <Terminal 
-            commands={[{ text: demoCommand, tooltip: "Run the demo wizard" }]}
+            commands={[{ 
+              text: demoCommand, 
+              tooltip: "Run the demo wizard",
+              output: (
+                <>
+                  <div className="mb-2">
+                    <span className="text-emerald-600">humanlog:</span> Starting demo mode...
+                  </div>
+                  <div className="mb-2">
+                    <span className="text-emerald-600">humanlog:</span> Loading sample data...
+                  </div>
+                  <div>
+                    <span className="text-emerald-600">humanlog:</span> Opening browser to <span className="text-blue-400 underline">http://localhost:4000</span>
+                  </div>
+                </>
+              )
+            }]}
             className="shadow-md rounded-lg overflow-hidden"
-            output={
-              <>
-                <div className="mb-2">
-                  <span className="text-emerald-600">humanlog:</span> Starting demo mode...
-                </div>
-                <div className="mb-2">
-                  <span className="text-emerald-600">humanlog:</span> Loading sample data...
-                </div>
-                <div>
-                  <span className="text-emerald-600">humanlog:</span> Opening browser to <span className="text-blue-400 underline">http://localhost:4000</span>
-                </div>
-              </>
-            }
           />
         </div>
         
@@ -80,7 +83,17 @@ const DemoSection: React.FC = () => {
             
             <h4 className="text-md font-medium mb-2">1. Direct from stdin</h4>
             <Terminal
-              commands={[{ text: stdinCommand, tooltip: "Pipe logs directly to Humanlog" }]}
+              commands={[{ 
+                text: stdinCommand, 
+                tooltip: "Pipe logs directly to Humanlog",
+                output: (
+                  <>
+                    <span className="text-emerald-600">humanlog:</span> Processing input from stdin...
+                    <br />
+                    <span className="text-emerald-600">humanlog:</span> Found 42 log entries
+                  </>
+                )
+              }]}
               className="shadow-md rounded-lg overflow-hidden mb-4"
             />
             
@@ -90,11 +103,17 @@ const DemoSection: React.FC = () => {
             </p>
             <Terminal
               commands={[
-                { text: otelCommand, tooltip: "Configure your OTEL endpoint" },
-                { text: "humanlog service start", tooltip: "Start the Humanlog OTLP collector service" }
+                { 
+                  text: otelCommand, 
+                  tooltip: "Configure your OTEL endpoint"
+                },
+                { 
+                  text: "humanlog service start", 
+                  tooltip: "Start the Humanlog OTLP collector service",
+                  output: <span className="text-emerald-600">Humanlog OTLP collector is now running on port 4317</span>
+                }
               ]}
               className="shadow-md rounded-lg overflow-hidden mb-4"
-              output={<span>Humanlog OTLP collector is now running on port 4317</span>}
             />
           </div>
         </div>
