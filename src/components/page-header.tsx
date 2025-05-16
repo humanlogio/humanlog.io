@@ -41,15 +41,7 @@ import { getEnvUrl, getUserSettingsUrl } from "@/lib/utils/navigation";
 import { useAllEnvironments, UserState } from "@/context/list-environments";
 import { Button } from "@/components/ui/button";
 import config from "@/features/config";
-import dynamic from "next/dynamic";
 import { getFirstDoc } from "@/lib/docs";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { Badge } from "@/components/ui/badge";
 import { getAllowedUsage } from "@/services/featureService";
 import {
   AllowedUsageResponse,
@@ -133,7 +125,7 @@ const PageHeader: React.FC = () => {
     const path = localhostInfo
       ? {
           name: `localhost ${localhostVersion(localhostInfo)}`,
-          path: "/localhost/query",
+          path: "/localhost",
           value: "localhost",
         }
       : {
@@ -175,7 +167,7 @@ const PageHeader: React.FC = () => {
       setSelected(undefined);
       return;
     }
-    const _selected = sources?.find((source) => source.path === pathname);
+    const _selected = sources?.find((source) => pathname.includes(source.path));
     setSelected(_selected);
   }, [pathname, sources]);
 
