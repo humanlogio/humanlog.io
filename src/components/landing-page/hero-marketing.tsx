@@ -44,6 +44,8 @@ import {
 } from "@/components/ui/dialog";
 import { getSelfURL } from "@/lib/envs";
 import { Copy } from "lucide-react";
+import InstallCTA from "@/components/landing-page/shared/install-cta";
+import CloudBetaSignup from "@/components/landing-page/shared/cloud-beta-signup";
 import { SpansContainer } from "@/components/log-interface/query-output/traces/spans-container";
 
 const AboveFoldHero: React.FC = () => {
@@ -385,106 +387,7 @@ const AboveFoldHero: React.FC = () => {
 
       {/* CTA Buttons */}
       <div className="mb-4 flex flex-col gap-3 space-y-3 sm:flex-row sm:space-y-0">
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button
-              size="lg"
-              className="h-11"
-              onClick={() =>
-                copyToClipboard(installCommand, "Installation command")
-              }
-            >
-              Install & Sign Up
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="w-auto max-w-[80vw] min-w-[500px]">
-            <DialogHeader>
-              <DialogTitle>Install Humanlog 💻</DialogTitle>
-              <DialogDescription>
-                Open a terminal and paste. The command has been copied to your
-                clipboard!
-              </DialogDescription>
-            </DialogHeader>
-
-            <div
-              onClick={() => copyToClipboard(installCommand)}
-              tabIndex={1}
-              className="bg-muted flex w-full max-w-2xl cursor-pointer flex-row items-center justify-between gap-4 rounded-md px-4 py-3 hover:bg-gray-200 focus:ring-4 focus:ring-slate-100 dark:hover:bg-gray-800"
-            >
-              <code className="truncate">{installCommand}</code>
-              <Copy size={14} className="flex-none" />
-            </div>
-
-            {/* OS-specific instructions */}
-            <div className="text-muted-foreground space-y-2 text-xs">
-              {(() => {
-                if (typeof window !== "undefined") {
-                  const ua = window.navigator.userAgent;
-                  if (/Macintosh|Mac OS X/.test(ua)) {
-                    // macOS: show nothing
-                    return null;
-                  } else if (/Linux/.test(ua)) {
-                    return (
-                      <div>
-                        <b>Linux:</b> The query engine works, but is not as
-                        polished and needs to be run manually with{" "}
-                        <code>humanlog service run</code>. See{" "}
-                        <a
-                          href="/docs/get-started/installation"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="underline"
-                        >
-                          installation instructions
-                        </a>
-                        .
-                      </div>
-                    );
-                  } else if (/Windows/.test(ua)) {
-                    return (
-                      <div>
-                        <b>Windows:</b> Not supported yet. Please{" "}
-                        <a href="/support" className="underline">
-                          contact us
-                        </a>{" "}
-                        to express your interest!
-                      </div>
-                    );
-                  }
-                }
-                // Fallback: show all
-                return (
-                  <>
-                    <div>
-                      <b>macOS:</b> Paste into your terminal.
-                    </div>
-                    <div>
-                      <b>Linux:</b> The query engine works, but is not as
-                      polished and needs to be run manually with{" "}
-                      <code>humanlog service run</code>. See{" "}
-                      <a
-                        href="/docs/get-started/installation"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="underline"
-                      >
-                        installation instructions
-                      </a>
-                      .
-                    </div>
-                    <div>
-                      <b>Windows:</b> Not supported yet. Please{" "}
-                      <a href="/support" className="underline">
-                        contact us
-                      </a>{" "}
-                      to express your interest!
-                    </div>
-                  </>
-                );
-              })()}
-            </div>
-          </DialogContent>
-        </Dialog>
+        <InstallCTA buttonText="Install & Sign Up" />
         <a
           href="/link/github"
           target="_blank"
@@ -520,55 +423,7 @@ const AboveFoldHero: React.FC = () => {
         </div>
       </div>
 
-      {/* Beta signup banner */}
-      <div className="flex flex-col items-center justify-between gap-4 rounded-lg bg-gray-50 p-6 md:flex-row dark:bg-zinc-800/50">
-        <h3 className="text-base font-medium text-gray-800 dark:text-gray-200">
-          Signup for our private beta of Humanlog Cloud. Reuse everything you
-          learn locally, skills transfer 1:1, spots limited to 50 engineers.
-        </h3>
-
-        <form
-          className="launchlist-form"
-          action="https://getlaunchlist.com/s/MJv5ZO"
-          method="POST"
-        >
-          <div className="mt-4 flex w-full flex-col gap-3 sm:flex-row md:mt-0 md:w-auto">
-            <Input
-              type="email"
-              name="email"
-              placeholder="Your email address"
-              aria-label="Email address"
-              className="w-full sm:w-[24rem]"
-              required
-            />
-            <div className="flex w-full flex-col sm:w-auto">
-              <Button className="whitespace-nowrap" type="submit">
-                Keep Me Posted
-              </Button>
-              <p className="mt-2 text-center text-xs text-gray-500 md:text-right">
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <span>Handwritten 💌 from us!</span>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>no spam!</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </p>
-            </div>
-          </div>
-        </form>
-        <HelmetProvider>
-          <Helmet>
-            <script
-              src="https://getlaunchlist.com/js/widget-diy.js"
-              defer
-            ></script>
-          </Helmet>
-        </HelmetProvider>
-      </div>
+      {/* Beta signup banner removed to focus on main CTA */}
     </div>
   );
 };
