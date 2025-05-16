@@ -9,9 +9,15 @@ import { Button } from "@/components/ui/button";
 
 const DemoSection: React.FC = () => {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [origin, setOrigin] = useState("");
   const demoCommand = "humanlog demo";
   const stdinCommand = "cat app.log | humanlog";
   const otelCommand = "export OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4317";
+  
+  // Set the origin after component mount to avoid SSR issues
+  React.useEffect(() => {
+    setOrigin(window.location.origin);
+  }, []);
 
   return (
     <section className="mx-auto max-w-5xl py-8 px-4">
@@ -40,7 +46,7 @@ const DemoSection: React.FC = () => {
                     <span className="text-emerald-600">humanlog:</span> Loading sample data...
                   </div>
                   <div>
-                    <span className="text-emerald-600">humanlog:</span> Opening browser to <span className="text-blue-400 underline">http://localhost:4000</span>
+                    <span className="text-emerald-600">humanlog:</span> Opening browser to <span className="text-blue-400 underline">{origin}/localhost/query?q=?</span>
                   </div>
                 </>
               )
