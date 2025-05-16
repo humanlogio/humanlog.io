@@ -15,17 +15,16 @@ import {
 type Command = {
   text: string;
   tooltip?: string;
+  output?: React.ReactNode; // Each command can have its own output
 };
 
 export interface TerminalProps {
   commands: Command | Command[];
-  output?: React.ReactNode;
   className?: string;
 }
 
 const Terminal: React.FC<TerminalProps> = ({
   commands,
-  output,
   className,
 }) => {
   // Track which commands have been copied
@@ -104,19 +103,21 @@ const Terminal: React.FC<TerminalProps> = ({
 
       {/* Terminal content */}
       <div className="text-zinc-300 p-4">
-        {/* Commands */}
-        <div className="mb-2">
-          {commandsArray.map((command, index) => (
-            <CommandLine key={`cmd-${index}`} command={command} index={index} />
-          ))}
-        </div>
-
-        {/* Output (if any) */}
-        {output && (
-          <div className="text-zinc-500 mt-2">
-            {output}
+        {/* Commands with individual outputs */}
+        {commandsArray.map((command, index) => (
+          <div key={`cmd-group-${index}`} className={index < commandsArray.length - 1 ? "mb-6" : "mb-2"}>
+            <CommandLine command={command} index={index} />
+            
+            {/* Individual command output if available */}
+            {command.output && (
+              <div className="text-zinc-500 mt-2 ml-4">
+                {command.output}
+              </div>
+            )}
           </div>
-        )}
+        ))}
+
+        {/* Each command has its own output now */}
       </div>
     </Card>
   );
