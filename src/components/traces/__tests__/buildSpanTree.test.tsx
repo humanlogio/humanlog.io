@@ -1,0 +1,315 @@
+import { describe, it, expect } from "vitest";
+import { Span } from "api/js/types/v1/tracing_pb";
+import { Duration, Timestamp } from "@bufbuild/protobuf";
+import { buildSpanTree, SpanTreeNode } from "@/components/traces/utils";
+
+/**
+ * @vitest-environment jsdom
+ */
+
+describe("buildSpanTree", () => {
+  // Table-driven test cases
+  interface ExpectedNode {
+    spanId: string;
+    parentSpanId: string | undefined;
+    depth: number;
+    childCount: number;
+    children?: ExpectedNode[];
+  }
+
+  type TestCase = {
+    name: string;
+    input: Span[];
+    expected: {
+      nodeCount: number;
+      roots: ExpectedNode[];
+    };
+  };
+
+  const createTimestamp = (seconds: number): Timestamp => {
+    return new Timestamp({ seconds: BigInt(seconds), nanos: 0 });
+  };
+
+  const createDuration = (seconds: number): Duration => {
+    return new Duration({ seconds: BigInt(seconds), nanos: 0 });
+  };
+
+  const createSpan = ({
+    id,
+    parentId = "",
+    name = "test-span",
+    service = "test-service",
+    startTime = 1000,
+    duration = 5,
+  }: {
+    id: string;
+    parentId?: string;
+    name?: string;
+    service?: string;
+    startTime?: number;
+    duration?: number;
+  }): Span => {
+    return new Span({
+      spanId: id,
+      parentSpanId: parentId,
+      name,
+      serviceName: service,
+      timing: {
+        start: createTimestamp(startTime),
+        duration: createDuration(duration),
+      },
+    });
+  };
+
+  // Define test cases using the table-driven approach
+  const testCases: TestCase[] = [
+    {
+      name: "empty spans array",
+      input: [],
+      expected: {
+        nodeCount: 0,
+        roots: [],
+      },
+    },
+    {
+      name: "single root node",
+      input: [createSpan({ id: "span1" })],
+      expected: {
+        nodeCount: 1,
+        roots: [
+          {
+            spanId: "span1",
+            parentSpanId: undefined,
+            depth: 0,
+            childCount: 0,
+          },
+        ],
+      },
+    },
+    {
+      name: "parent-child relationship",
+      input: [
+        createSpan({ id: "parent1", startTime: 1000, duration: 10 }),
+        createSpan({
+          id: "child1",
+          parentId: "parent1",
+          startTime: 1002,
+          duration: 5,
+        }),
+      ],
+      expected: {
+        nodeCount: 2,
+        roots: [
+          {
+            spanId: "parent1",
+            parentSpanId: undefined,
+            depth: 0,
+            childCount: 1,
+            children: [
+              {
+                spanId: "child1",
+                parentSpanId: "parent1",
+                depth: 1,
+                childCount: 0,
+              },
+            ],
+          },
+        ],
+      },
+    },
+    {
+      name: "multiple root spans",
+      input: [
+        createSpan({
+          id: "root1",
+          startTime: 1000,
+          duration: 5,
+          service: "service-1",
+        }),
+        createSpan({
+          id: "root2",
+          startTime: 990,
+          duration: 8,
+          service: "service-2",
+        }),
+      ],
+      expected: {
+        nodeCount: 2,
+        roots: [
+          {
+            spanId: "root2", // Starts earlier, should be first
+            parentSpanId: undefined,
+            depth: 0,
+            childCount: 0,
+          },
+          {
+            spanId: "root1",
+            parentSpanId: undefined,
+            depth: 0,
+            childCount: 0,
+          },
+        ],
+      },
+    },
+    {
+      name: "complex nested structure",
+      input: [
+        createSpan({
+          id: "root",
+          startTime: 1000,
+          duration: 15,
+          service: "service-root",
+        }),
+        createSpan({
+          id: "child1",
+          parentId: "root",
+          startTime: 1002,
+          duration: 5,
+          service: "service-1",
+        }),
+        createSpan({
+          id: "child2",
+          parentId: "root",
+          startTime: 1001,
+          duration: 8,
+          service: "service-2",
+        }),
+        createSpan({
+          id: "grandchild1",
+          parentId: "child1",
+          startTime: 1003,
+          duration: 2,
+          service: "service-3",
+        }),
+      ],
+      expected: {
+        nodeCount: 4,
+        roots: [
+          {
+            spanId: "root",
+            parentSpanId: undefined,
+            depth: 0,
+            childCount: 2,
+            children: [
+              {
+                spanId: "child2", // Starts earlier, should be first
+                parentSpanId: "root",
+                depth: 1,
+                childCount: 0,
+              },
+              {
+                spanId: "child1",
+                parentSpanId: "root",
+                depth: 1,
+                childCount: 1,
+                children: [
+                  {
+                    spanId: "grandchild1",
+                    parentSpanId: "child1",
+                    depth: 2,
+                    childCount: 0,
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    },
+    {
+      name: "orphaned spans",
+      input: [
+        createSpan({
+          id: "root1",
+          startTime: 1000,
+          duration: 10,
+          service: "service-1",
+        }),
+        createSpan({
+          id: "orphan1",
+          parentId: "missing-parent",
+          startTime: 1002,
+          duration: 5,
+          service: "service-2",
+        }),
+      ],
+      expected: {
+        nodeCount: 2,
+        roots: [
+          {
+            spanId: "root1",
+            parentSpanId: undefined,
+            depth: 0,
+            childCount: 0,
+          },
+          {
+            spanId: "orphan1",
+            parentSpanId: "missing-parent",
+            depth: 0,
+            childCount: 0,
+          },
+        ],
+      },
+    },
+  ];
+
+  // Run all test cases
+  testCases.forEach((tc) => {
+    it(tc.name, () => {
+      const result = buildSpanTree(tc.input);
+
+      // Verify node count
+      const countNodes = (nodes: SpanTreeNode[]): number => {
+        return nodes.reduce((count, node) => {
+          return count + 1 + countNodes(node.children);
+        }, 0);
+      };
+
+      const totalNodes = countNodes(result);
+      expect(totalNodes).toBe(tc.expected.nodeCount);
+
+      // Verify root nodes
+      expect(result.length).toBe(tc.expected.roots.length);
+
+      // Verify each root node and its descendants
+      tc.expected.roots.forEach((expectedRoot, index) => {
+        const actualRoot = result[index];
+
+        expect(actualRoot.span.spanId).toBe(expectedRoot.spanId);
+        if (!actualRoot.span.parentSpanId) {
+          expect(expectedRoot.parentSpanId).toBeUndefined();
+        } else {
+          expect(actualRoot.span.parentSpanId).toBe(expectedRoot.parentSpanId);
+        }
+        expect(actualRoot.depth).toBe(expectedRoot.depth);
+        expect(actualRoot.children.length).toBe(expectedRoot.childCount);
+
+        // Verify children if they exist
+        if (expectedRoot.children) {
+          expectedRoot.children.forEach((expectedChild, childIndex) => {
+            const actualChild = actualRoot.children[childIndex];
+
+            expect(actualChild.span.spanId).toBe(expectedChild.spanId);
+            expect(actualChild.depth).toBe(expectedChild.depth);
+            expect(actualChild.children.length).toBe(expectedChild.childCount);
+
+            // Verify grandchildren if they exist
+            if (expectedChild.children) {
+              expectedChild.children.forEach(
+                (expectedGrandchild, grandchildIndex) => {
+                  const actualGrandchild =
+                    actualChild.children[grandchildIndex];
+
+                  expect(actualGrandchild.span.spanId).toBe(
+                    expectedGrandchild.spanId,
+                  );
+                  expect(actualGrandchild.depth).toBe(expectedGrandchild.depth);
+                },
+              );
+            }
+          });
+        }
+      });
+    });
+  });
+});

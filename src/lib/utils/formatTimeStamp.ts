@@ -65,7 +65,7 @@ export const formatDuration = (duration?: Duration) => {
   if (totalSeconds < 0.001) {
     return `${(totalSeconds * 1000000).toFixed(0)}μs`;
   } else if (totalSeconds < 1) {
-    return `${(totalSeconds * 1000).toFixed(0)}ms`;
+    return `${(totalSeconds * 1000).toFixed(2)}ms`;
   } else {
     return `${totalSeconds.toFixed(2)}s`;
   }
@@ -74,7 +74,12 @@ export const formatDuration = (duration?: Duration) => {
 export const getUnixTimestamp = (timestamp: Timestamp) => {
   const seconds = Number(timestamp.seconds);
   const milliseconds = Math.floor(timestamp.nanos / 1_000_000);
+  return seconds * 1000 + milliseconds;
+};
 
+export const getDurationInMilliseconds = (duration: Duration) => {
+  const seconds = Number(duration.seconds);
+  const milliseconds = Math.floor(duration.nanos / 1_000_000);
   return seconds * 1000 + milliseconds;
 };
 

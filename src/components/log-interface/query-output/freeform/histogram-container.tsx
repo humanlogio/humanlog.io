@@ -140,7 +140,7 @@ export default function Histogram({
     svg.selectAll("*").remove();
 
     const margin = { top: 0, right: 50, bottom: 0, left: 30 };
-    const width = Math.max(600, processedData.timePoints.length * 20);
+    const width = Math.max(700, processedData.timePoints.length * 20);
     const height = 400;
 
     svg
