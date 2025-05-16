@@ -1,10 +1,9 @@
 "use client";
 
 import React, { useState } from "react";
-import { Card } from "@/components/ui/card";
-import { copyToClipboard } from "@/lib/utils/clipboard";
-import { Copy, ChevronDown, ChevronUp } from "lucide-react";
+import { ChevronDown, ChevronUp } from "lucide-react";
 import TerminalBlock from "@/components/landing-page/shared/ui/terminal-block";
+import Terminal from "@/components/landing-page/shared/ui/terminal";
 import { InlineCode } from "@/components/landing-page/shared/ui/code-block";
 import { Button } from "@/components/ui/button";
 
@@ -28,15 +27,23 @@ const DemoSection: React.FC = () => {
             Experience Humanlog with sample data and guided example queries.
           </p>
           
-          <div className="relative cursor-pointer" onClick={() => copyToClipboard(demoCommand, "Demo command")}>
-            <Card className="overflow-auto bg-zinc-100 p-4 font-mono text-sm whitespace-nowrap dark:bg-zinc-800">
-              <span className="text-emerald-600">$ </span>
-              <span>{demoCommand}</span>
-            </Card>
-            <div className="absolute top-0 right-3 h-full flex items-center text-muted-foreground hover:text-foreground">
-              <Copy size={16} />
-            </div>
-          </div>
+          <Terminal 
+            commands={[{ text: demoCommand, tooltip: "Run the demo wizard" }]}
+            className="shadow-md rounded-lg overflow-hidden"
+            output={
+              <>
+                <div className="mb-2">
+                  <span className="text-emerald-600">humanlog:</span> Starting demo mode...
+                </div>
+                <div className="mb-2">
+                  <span className="text-emerald-600">humanlog:</span> Loading sample data...
+                </div>
+                <div>
+                  <span className="text-emerald-600">humanlog:</span> Opening browser to <span className="text-blue-400 underline">http://localhost:4000</span>
+                </div>
+              </>
+            }
+          />
         </div>
         
         {/* Toggle button */}
@@ -72,24 +79,22 @@ const DemoSection: React.FC = () => {
             </p>
             
             <h4 className="text-md font-medium mb-2">1. Direct from stdin</h4>
-            <TerminalBlock
-              commands={{
-                bash: stdinCommand,
-                fish: stdinCommand
-              }}
-              className="mb-4"
+            <Terminal
+              commands={[{ text: stdinCommand, tooltip: "Pipe logs directly to Humanlog" }]}
+              className="shadow-md rounded-lg overflow-hidden mb-4"
             />
             
             <h4 className="text-md font-medium mb-2">2. From OpenTelemetry</h4>
             <p className="mb-2 text-muted-foreground">
               Point any OTEL-compatible app to Humanlog's collector endpoint:
             </p>
-            <TerminalBlock
-              commands={{
-                bash: otelCommand,
-                fish: "set -x OTEL_EXPORTER_OTLP_ENDPOINT http://localhost:4317"
-              }}
-              className="mb-4"
+            <Terminal
+              commands={[
+                { text: otelCommand, tooltip: "Configure your OTEL endpoint" },
+                { text: "humanlog service start", tooltip: "Start the Humanlog OTLP collector service" }
+              ]}
+              className="shadow-md rounded-lg overflow-hidden mb-4"
+              output={<span>Humanlog OTLP collector is now running on port 4317</span>}
             />
           </div>
         </div>
