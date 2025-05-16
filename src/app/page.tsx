@@ -2,13 +2,14 @@
 
 import { Demo } from "@/components/env/previewCode";
 import AboveFoldHero from "@/components/landing-page/hero-marketing";
+import BelowFold from "@/components/landing-page/below-fold";
 
 export default function Home() {
   return (
     <main>
       <section>
         <AboveFoldHero />
-        <div className="flex w-full flex-col gap-48 py-44 lg:gap-72 lg:py-60"></div>
+        <BelowFold />
       </section>
     </main>
   );
