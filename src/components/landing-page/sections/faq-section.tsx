@@ -49,19 +49,28 @@ const faqItems = [
 
 const FAQSection: React.FC = () => {
   return (
-    <section className="mx-auto max-w-3xl py-16 px-4">
-      <h2 className="mb-8 text-center text-3xl font-bold">Frequently Asked Questions</h2>
-      <Accordion type="single" collapsible className="w-full">
-        {faqItems.map((item) => (
-          <AccordionItem key={item.id} value={item.id}>
-            <AccordionTrigger>{item.question}</AccordionTrigger>
-            <AccordionContent>
-              {item.answer}{" "}
-              <a href={item.linkHref} className="text-primary underline">{item.linkText}</a>.
-            </AccordionContent>
-          </AccordionItem>
-        ))}
-      </Accordion>
+    <section className="w-full py-16">
+      <div className="container mx-auto max-w-5xl px-4">
+        <h2 className="mb-8 text-center text-3xl font-bold">Frequently Asked Questions</h2>
+        
+        <Accordion 
+          type="single" 
+          collapsible 
+          className="w-full border border-zinc-200 rounded-lg overflow-hidden divide-y dark:border-zinc-800"
+        >
+          {faqItems.map((item) => (
+            <AccordionItem key={item.id} value={item.id} className="border-none px-0">
+              <AccordionTrigger className="px-5 py-4 hover:no-underline hover:bg-zinc-50 dark:hover:bg-zinc-900">
+                {item.question}
+              </AccordionTrigger>
+              <AccordionContent className="px-5 py-2 bg-zinc-50/50 dark:bg-zinc-900/50">
+                {item.answer}{" "}
+                <a href={item.linkHref} className="text-primary underline">{item.linkText}</a>.
+              </AccordionContent>
+            </AccordionItem>
+          ))}
+        </Accordion>
+      </div>
     </section>
   );
 };
