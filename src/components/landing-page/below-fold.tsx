@@ -11,18 +11,18 @@ import CTABannerSection from "@/components/landing-page/sections/cta-banner-sect
 
 const BelowFold: React.FC = () => {
   return (
-    <div className="flex w-full flex-col gap-48 py-44 lg:gap-72 lg:py-60">
-      {/* 1. Frequently Asked Questions */}
-      <FAQSection />
-      
-      {/* 2. Demo Mode Data Ingestion */}
+    <div className="flex w-full flex-col gap-16 py-12 lg:gap-20 lg:py-16">
+      {/* 1. Demo Mode Data Ingestion */}
       <DemoSection />
       
-      {/* 3. Core Feature Grid */}
+      {/* 2. Core Feature Grid */}
       <FeatureGridSection />
       
-      {/* 4. Community & Support Callout */}
+      {/* 3. Community & Support Callout */}
       <CommunitySection />
+      
+      {/* 4. Frequently Asked Questions */}
+      <FAQSection />
       
       {/* 5. Final Conversion Banner */}
       <CTABannerSection />
