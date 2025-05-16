@@ -55,15 +55,14 @@ const Terminal: React.FC<TerminalProps> = ({
     // If there's a tooltip, wrap the entire command line with it
     const commandLine = (
       <div 
-        className="group flex items-center justify-between transition-colors rounded hover:bg-yellow-100/10 px-0 py-1 mb-1 relative cursor-pointer"
-        onClick={() => handleCopy(command.text, index)}
+        className="flex items-center justify-between px-0 py-1 mb-1 relative cursor-pointer"
       >
         <div className="flex-grow overflow-x-auto whitespace-nowrap">
           <span className="text-emerald-400">$ </span>
           <span>{command.text}</span>
         </div>
         <div className="ml-4 flex items-center">
-          <div className="text-muted-foreground hover:text-foreground transition-colors">
+          <div className="text-muted-foreground hover:text-foreground transition-colors opacity-0 group-hover:opacity-100">
             {isCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
           </div>
         </div>
@@ -105,12 +104,17 @@ const Terminal: React.FC<TerminalProps> = ({
       <div className="text-zinc-300 p-4">
         {/* Commands with individual outputs */}
         {commandsArray.map((command, index) => (
-          <div key={`cmd-group-${index}`} className={index < commandsArray.length - 1 ? "mb-6" : "mb-2"}>
+          <div 
+            key={`cmd-group-${index}`} 
+            className={`group relative rounded hover:bg-yellow-100/10 transition-colors px-2 -mx-2 ${index < commandsArray.length - 1 ? "mb-6" : "mb-2"}`}
+            onClick={() => handleCopy(command.text, index)}
+          >
+            {/* Command line */}
             <CommandLine command={command} index={index} />
             
-            {/* Individual command output if available */}
+            {/* Individual command output if available - aligned with the $ sign */}
             {command.output && (
-              <div className="text-zinc-500 mt-2 pl-[20px]">
+              <div className="text-zinc-500 mt-2">
                 {command.output}
               </div>
             )}
