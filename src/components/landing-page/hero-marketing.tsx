@@ -26,7 +26,7 @@ import {
 } from "api/js/types/v1/localhost_config_pb";
 import {
   Star,
-  Terminal,
+  Terminal as TerminalIcon,
   Activity,
   Laptop,
   Circle,
@@ -47,6 +47,7 @@ import { Copy } from "lucide-react";
 import InstallCTA from "@/components/landing-page/shared/install-cta";
 import CloudBetaSignup from "@/components/landing-page/shared/cloud-beta-signup";
 import { SpansContainer } from "@/components/log-interface/query-output/traces/spans-container";
+import Terminal from "@/components/landing-page/shared/ui/terminal";
 
 const AboveFoldHero: React.FC = () => {
   const { theme: colorMode } = useTheme();
@@ -332,7 +333,7 @@ const AboveFoldHero: React.FC = () => {
                   variant="outline"
                   className="rounded-full bg-zinc-100 px-3 py-1 whitespace-nowrap dark:bg-zinc-800"
                 >
-                  <Terminal className="mr-2 h-4 w-4 flex-shrink-0" />
+                  <TerminalIcon className="mr-2 h-4 w-4 flex-shrink-0" />
                   OTLP Collector
                 </Badge>
               </TooltipTrigger>
@@ -426,6 +427,54 @@ const AboveFoldHero: React.FC = () => {
       </div>
 
       {/* Beta signup banner removed to focus on main CTA */}
+      </div>
+      
+      {/* New Terminal Implementation (for comparison) */}
+      <div className="mt-16 border-t pt-8 pb-8">
+        <h3 className="text-xl font-bold mb-4">Terminal Component Implementation</h3>
+        <p className="mb-4 text-muted-foreground">Same terminal functionality using the updated Terminal component:</p>
+        
+        <div className="flex w-full lg:w-1/2 xl:w-3/5">
+          <Terminal
+            commands={[
+              {
+                text: installCommand,
+                tooltip: "Install, sign up and get started in one command",
+                output: (
+                  <div className="text-zinc-500">
+                    <span className="text-emerald-600">humanlog.io/install.sh</span>: installing latest release
+                    <br />
+                    ############################################## 100.0%
+                    <br />
+                    <span className="text-emerald-600">humanlog.io/install.sh</span>: humanlog was successfully installed
+                    <br />
+                    <span className="text-emerald-600">humanlog.io/install.sh</span>: send your OTEL data here:
+                    <br />
+                    <br />
+                    <span className="text-teal-600">
+                      <code>{"\texport OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4317"}</code>
+                    </span>
+                  </div>
+                )
+              },
+              {
+                text: ingestCommand,
+                tooltip: "Ingest logs from stdin"
+                // No output for this command in the original mockup
+              },
+              {
+                text: queryCommand,
+                tooltip: "Run queries against historical data"
+                // No output for this command in the original mockup
+              },
+              {
+                text: streamCommand,
+                tooltip: "Stream and query real-time data"
+                // No output for this command in the original mockup
+              }
+            ]}
+          />
+        </div>
       </div>
     </div>
   );
