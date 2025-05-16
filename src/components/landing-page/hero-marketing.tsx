@@ -109,259 +109,283 @@ const AboveFoldHero: React.FC = () => {
   return (
     <div className="w-full pt-[80px]">
       <div className="container mx-auto max-w-7xl px-4">
-      {/* Header content - minimal margin */}
-      <div className="mb-4 w-full text-center">
-        <h1 className="text-4xl leading-tight font-extrabold md:text-[3.5rem]">
-          Observability on Your Laptop and in Your Browser
-        </h1>
+        {/* Header content - minimal margin */}
+        <div className="mb-4 w-full text-center">
+          <h1 className="text-4xl leading-tight font-extrabold md:text-[3.5rem]">
+            Observability on Your Laptop and in Your Browser
+          </h1>
 
-        <p className="text-muted-foreground mt-2 text-lg mx-auto max-w-3xl text-center">
-          Run local logs & traces, query them in CLI or UI, entirely on your
-          machine.<br />
-          Then share results with teammates.
-        </p>
-      </div>
-
-      {/* Main hero section - vertical on mobile, horizontal on desktop */}
-      <div className="mb-6 flex flex-col gap-6 lg:flex-row lg:gap-8 lg:items-stretch xl:px-0">
-        {/* Terminal mockup - priority on mobile, left on desktop */}
-        <div className="order-1 w-full lg:order-1 lg:w-1/2 xl:w-3/5 flex">
-          <Terminal
-            commands={[
-              {
-                text: installCommand,
-                tooltip: "Install, sign up and get started in one command",
-                output: (
-                  <div className="text-zinc-500">
-                    <span className="text-emerald-600">humanlog.io/install.sh</span>: installing latest release
-                    <br />
-                    ############################################## 100.0%
-                    <br />
-                    <span className="text-emerald-600">humanlog.io/install.sh</span>: humanlog was successfully installed
-                    <br />
-                    <span className="text-emerald-600">humanlog.io/install.sh</span>: send your OTEL data here:
-                    <br />
-                    <br />
-                    <span className="text-teal-600">
-                      <code>{"\texport OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4317"}</code>
-                    </span>
-                  </div>
-                )
-              },
-              {
-                text: ingestCommand,
-                tooltip: "Ingest logs from stdin"
-                // No output for this command in the original mockup
-              },
-              {
-                text: queryCommand,
-                tooltip: "Run queries against historical data"
-                // No output for this command in the original mockup
-              },
-              {
-                text: streamCommand,
-                tooltip: "Stream and query real-time data"
-                // No output for this command in the original mockup
-              }
-            ]}
-          />
+          <p className="text-muted-foreground mx-auto mt-2 max-w-3xl text-center text-lg">
+            Run local logs & traces, query them in CLI or UI, entirely on your
+            machine.
+            <br />
+            Then share results with teammates.
+          </p>
         </div>
 
-        {/* UI Screenshot - use real SessionPanel component with Logs/Traces toggle and share button */}
-        <div className="order-2 mt-2 w-full lg:order-2 lg:mt-0 lg:w-1/2 xl:w-2/5 flex">
-          <Card className="overflow-hidden rounded-lg border border-zinc-200 shadow-md dark:border-zinc-800 flex-1 flex flex-col">
-            {/* Logs | Traces toggle */}
-            <div className="flex items-center justify-between border-b border-zinc-200 bg-zinc-50 px-3 py-1.5 dark:border-zinc-800 dark:bg-zinc-900">
-              <div className="flex gap-2">
+        {/* Main hero section - vertical on mobile, horizontal on desktop */}
+        <div className="mb-6 flex flex-col gap-6 lg:flex-row lg:items-stretch lg:gap-8 xl:px-0">
+          {/* Terminal mockup - priority on mobile, left on desktop */}
+          <div className="order-1 flex w-full lg:order-1 lg:w-1/2 xl:w-3/5">
+            <Terminal
+              commands={[
+                {
+                  text: installCommand,
+                  tooltip: "Install, sign up and get started in one command",
+                  output: (
+                    <div className="text-zinc-500">
+                      <span className="text-emerald-600">
+                        humanlog.io/install.sh
+                      </span>
+                      : installing latest release
+                      <br />
+                      ############################################## 100.0%
+                      <br />
+                      <span className="text-emerald-600">
+                        humanlog.io/install.sh
+                      </span>
+                      : humanlog was successfully installed
+                      <br />
+                      <span className="text-emerald-600">
+                        humanlog.io/install.sh
+                      </span>
+                      : send your OTEL data here:
+                      <br />
+                      <br />
+                      <span className="text-teal-600">
+                        <code>
+                          {
+                            "\texport OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4317"
+                          }
+                        </code>
+                      </span>
+                    </div>
+                  ),
+                },
+                {
+                  text: ingestCommand,
+                  tooltip: "Ingest logs from stdin",
+                  // No output for this command in the original mockup
+                },
+                {
+                  text: queryCommand,
+                  tooltip: "Run queries against historical data",
+                  // No output for this command in the original mockup
+                },
+                {
+                  text: streamCommand,
+                  tooltip: "Stream and query real-time data",
+                  // No output for this command in the original mockup
+                },
+              ]}
+            />
+          </div>
+
+          {/* UI Screenshot - use real SessionPanel component with Logs/Traces toggle and share button */}
+          <div className="order-2 mt-2 flex w-full lg:order-2 lg:mt-0 lg:w-1/2 xl:w-2/5">
+            <Card className="flex flex-1 flex-col overflow-hidden rounded-lg border border-zinc-200 shadow-md dark:border-zinc-800">
+              {/* Logs | Traces toggle */}
+              <div className="flex items-center justify-between border-b border-zinc-200 bg-zinc-50 px-3 py-1.5 dark:border-zinc-800 dark:bg-zinc-900">
+                <div className="flex gap-2">
+                  <button
+                    className={`rounded px-3 py-1 text-sm font-medium ${selectedTab === "logs" ? "text-foreground bg-zinc-200 dark:bg-zinc-800" : "text-muted-foreground"}`}
+                    onClick={() => setSelectedTab("logs")}
+                    aria-pressed={selectedTab === "logs"}
+                  >
+                    Logs
+                  </button>
+                  <button
+                    className={`rounded px-3 py-1 text-sm font-medium ${selectedTab === "traces" ? "text-foreground bg-zinc-200 dark:bg-zinc-800" : "text-muted-foreground"}`}
+                    onClick={() => setSelectedTab("traces")}
+                    aria-pressed={selectedTab === "traces"}
+                  >
+                    Traces
+                  </button>
+                </div>
+                {/* Share/Copy button */}
                 <button
-                  className={`rounded px-3 py-1 text-sm font-medium ${selectedTab === "logs" ? "text-foreground bg-zinc-200 dark:bg-zinc-800" : "text-muted-foreground"}`}
-                  onClick={() => setSelectedTab("logs")}
-                  aria-pressed={selectedTab === "logs"}
+                  className="text-muted-foreground flex items-center gap-1 rounded px-2 py-1 text-xs hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                  onClick={() => {
+                    window.open(
+                      "https://humanlog.io/share/public/01JV983APJE4ADXARFW57FRCZY",
+                      "_blank",
+                    );
+                  }}
+                  title="Share results publicly or privately"
+                  aria-label="Share results publicly or privately"
                 >
-                  Logs
-                </button>
-                <button
-                  className={`rounded px-3 py-1 text-sm font-medium ${selectedTab === "traces" ? "text-foreground bg-zinc-200 dark:bg-zinc-800" : "text-muted-foreground"}`}
-                  onClick={() => setSelectedTab("traces")}
-                  aria-pressed={selectedTab === "traces"}
-                >
-                  Traces
+                  <Share className="h-4 w-4" /> Share results
                 </button>
               </div>
-              {/* Share/Copy button */}
-              <button
-                className="text-muted-foreground flex items-center gap-1 rounded px-2 py-1 text-xs hover:bg-zinc-100 dark:hover:bg-zinc-800"
-                onClick={() => {
-                  window.open(
-                    "https://humanlog.io/share/public/01JV983APJE4ADXARFW57FRCZY",
-                    "_blank",
-                  );
-                }}
-                title="Share results publicly or privately"
-                aria-label="Share results publicly or privately"
-              >
-                <Share className="h-4 w-4" /> Share results
-              </button>
-            </div>
-            {/* Query string above results pane */}
+              {/* Query string above results pane */}
 
-            {selectedTab === "logs" ? (
-              <>
-                <div className="flex items-center gap-2 overflow-x-auto border-b border-zinc-200 bg-zinc-100 px-3 py-2 font-mono text-xs whitespace-nowrap text-zinc-500 dark:border-zinc-800 dark:bg-zinc-900">
-                  <span role="img" aria-label="sparkles">
-                    ✨
-                  </span>
-                  <span className="truncate">{sampleLogs().query}</span>
-                </div>
-                <div className="p-3 flex-1 overflow-auto" style={{ maxHeight: "500px" }}>
-                  <SessionPanel
-                    providedData={sampleLogs().data}
-                    query={undefined}
-                    mode={mode}
-                    themes={themes}
-                  />
-                </div>
-              </>
-            ) : (
-              <>
-                <div className="flex items-center gap-2 overflow-x-auto border-b border-zinc-200 bg-zinc-100 px-3 py-2 font-mono text-xs whitespace-nowrap text-zinc-500 dark:border-zinc-800 dark:bg-zinc-900">
-                  <span role="img" aria-label="sparkles">
-                    ✨
-                  </span>
-                  <span className="truncate">{sampleSpans().query}</span>
-                </div>
-                <div className="p-3 flex-1 overflow-auto" style={{ maxHeight: "500px" }}>
-                  <SpansContainer
-                    providedData={sampleSpans().data}
-                    query={undefined}
-                  />
-                </div>
-              </>
-            )}
-          </Card>
+              {selectedTab === "logs" ? (
+                <>
+                  <div className="flex items-center gap-2 overflow-x-auto border-b border-zinc-200 bg-zinc-100 px-3 py-2 font-mono text-xs whitespace-nowrap text-zinc-500 dark:border-zinc-800 dark:bg-zinc-900">
+                    <span role="img" aria-label="sparkles">
+                      ✨
+                    </span>
+                    <span className="truncate">{sampleLogs().query}</span>
+                  </div>
+                  <div
+                    className="flex-1 overflow-auto p-3"
+                    style={{ maxHeight: "500px" }}
+                  >
+                    <SessionPanel
+                      providedData={sampleLogs().data}
+                      query={undefined}
+                      mode={mode}
+                      themes={themes}
+                    />
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="flex items-center gap-2 overflow-x-auto border-b border-zinc-200 bg-zinc-100 px-3 py-2 font-mono text-xs whitespace-nowrap text-zinc-500 dark:border-zinc-800 dark:bg-zinc-900">
+                    <span role="img" aria-label="sparkles">
+                      ✨
+                    </span>
+                    <span className="truncate">{sampleSpans().query}</span>
+                  </div>
+                  <div
+                    className="flex-1 overflow-auto p-3"
+                    style={{ maxHeight: "500px" }}
+                  >
+                    <SpansContainer
+                      providedData={sampleSpans().data}
+                      query={undefined}
+                    />
+                  </div>
+                </>
+              )}
+            </Card>
+          </div>
         </div>
-      </div>
 
-      {/* Feature badges - horizontally scrollable on mobile, centered on desktop */}
-      <div className="-mx-2 mb-4 overflow-x-auto px-2 pb-2 flex justify-center">
-        <div className="flex gap-3">
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Badge
-                  variant="outline"
-                  className="rounded-full bg-zinc-100 px-3 py-1 whitespace-nowrap dark:bg-zinc-800"
-                >
-                  <Activity className="mr-2 h-4 w-4 flex-shrink-0" />
-                  Real-Time Streaming
-                </Badge>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Monitor your logs and traces as they happen in real-time</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Badge
-                  variant="outline"
-                  className="rounded-full bg-zinc-100 px-3 py-1 whitespace-nowrap dark:bg-zinc-800"
-                >
-                  <TerminalIcon className="mr-2 h-4 w-4 flex-shrink-0" />
-                  OTLP Collector
-                </Badge>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>
-                  Finally see what your app is doing. Right away. Not after days
-                  of setup.
-                </p>
-                <b>
-                  <code>OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4317</code>
-                </b>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Badge
-                  variant="outline"
-                  className="rounded-full bg-zinc-100 px-3 py-1 whitespace-nowrap dark:bg-zinc-800"
-                >
-                  <Laptop className="mr-2 h-4 w-4 flex-shrink-0" />
-                  Logs & Traces Local-First
-                </Badge>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>
-                  Keep your data private. Leverage local processing for snappy
-                  results.
-                </p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Badge
-                  variant="outline"
-                  className="rounded-full bg-zinc-100 px-3 py-1 whitespace-nowrap dark:bg-zinc-800"
-                >
-                  <Share className="mr-2 h-4 w-4 flex-shrink-0" />
-                  Shareable Results
-                </Badge>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>
-                  Export and share your findings with your team and friends.
-                </p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+        {/* Feature badges - horizontally scrollable on mobile, centered on desktop */}
+        <div className="-mx-2 mb-4 flex justify-center overflow-x-auto px-2 pb-2">
+          <div className="flex gap-3">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Badge
+                    variant="outline"
+                    className="rounded-full bg-zinc-100 px-3 py-1 whitespace-nowrap dark:bg-zinc-800"
+                  >
+                    <Activity className="mr-2 h-4 w-4 flex-shrink-0" />
+                    Real-Time Streaming
+                  </Badge>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>
+                    Monitor your logs and traces as they happen in real-time
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Badge
+                    variant="outline"
+                    className="rounded-full bg-zinc-100 px-3 py-1 whitespace-nowrap dark:bg-zinc-800"
+                  >
+                    <TerminalIcon className="mr-2 h-4 w-4 flex-shrink-0" />
+                    OTLP Collector
+                  </Badge>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>
+                    Finally see what your app is doing. Right away. Not after
+                    days of setup.
+                  </p>
+                  <b>
+                    <code>
+                      OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4317
+                    </code>
+                  </b>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Badge
+                    variant="outline"
+                    className="rounded-full bg-zinc-100 px-3 py-1 whitespace-nowrap dark:bg-zinc-800"
+                  >
+                    <Laptop className="mr-2 h-4 w-4 flex-shrink-0" />
+                    Logs & Traces Local-First
+                  </Badge>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>
+                    Keep your data private. Leverage local processing for snappy
+                    results.
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Badge
+                    variant="outline"
+                    className="rounded-full bg-zinc-100 px-3 py-1 whitespace-nowrap dark:bg-zinc-800"
+                  >
+                    <Share className="mr-2 h-4 w-4 flex-shrink-0" />
+                    Shareable Results
+                  </Badge>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>
+                    Export and share your findings with your team and friends.
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
         </div>
-      </div>
 
-      {/* CTA Buttons */}
-      <div className="mb-4 flex flex-col gap-3 space-y-3 sm:flex-row sm:space-y-0 sm:justify-center">
-        <InstallCTA buttonText="Install & Sign Up" />
-        <a
-          href="/link/github"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex"
-        >
-          <Button variant="outline" size="lg" className="h-11 px-6">
-            <Github className="mr-2 h-4 w-4" />
-            View on GitHub
-          </Button>
-        </a>
-      </div>
-
-      {/* Trust signals */}
-      <div className="mb-6 flex flex-wrap justify-center gap-6 text-sm text-gray-500">
-        <div className="flex items-center">
-          <Star className="mr-2 h-4 w-4" />
+        {/* CTA Buttons */}
+        <div className="mb-4 flex flex-col gap-3 space-y-3 sm:flex-row sm:justify-center sm:space-y-0">
+          <InstallCTA buttonText="Install & Sign Up" />
           <a
-            href="/link/github/stargazers"
+            href="/link/github"
             target="_blank"
             rel="noopener noreferrer"
-            className="hover:underline"
+            className="inline-flex"
           >
-            <span>{githubStars} stars on GitHub</span>
+            <Button variant="outline" size="lg" className="h-11 px-6">
+              <Github className="mr-2 h-4 w-4" />
+              View on GitHub
+            </Button>
           </a>
         </div>
-        <div className="flex items-center">
-          <Building className="mr-2 h-4 w-4" />
-          <span>
-            Built and used by engineers at GitHub, CloudFlare, PlanetScale,
-            DigitalOcean, and more
-          </span>
-        </div>
-      </div>
 
-      {/* Beta signup banner removed to focus on main CTA */}
+        {/* Trust signals */}
+        <div className="mb-6 flex flex-wrap justify-center gap-6 text-sm text-gray-500">
+          <div className="flex items-center">
+            <Star className="mr-2 h-4 w-4" />
+            <a
+              href="/link/github/stargazers"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:underline"
+            >
+              <span>{githubStars} stars on GitHub</span>
+            </a>
+          </div>
+          <div className="flex items-center">
+            <Building className="mr-2 h-4 w-4" />
+            <span>
+              Built and used by engineers at GitHub, CloudFlare, PlanetScale,
+              DigitalOcean, and more
+            </span>
+          </div>
+        </div>
+
+        {/* Beta signup banner removed to focus on main CTA */}
       </div>
     </div>
   );

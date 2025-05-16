@@ -27,11 +27,11 @@ const CodeBlock: React.FC<CodeBlockProps> = ({ children, className }) => {
   };
 
   return (
-    <div className={cn("relative my-2 rounded-md overflow-hidden", className)}>
-      <div className="absolute right-2 top-2">
+    <div className={cn("relative my-2 overflow-hidden rounded-md", className)}>
+      <div className="absolute top-2 right-2">
         <button
           onClick={handleCopy}
-          className="rounded bg-muted/80 p-1.5 text-muted-foreground hover:bg-muted transition-colors"
+          className="bg-muted/80 text-muted-foreground hover:bg-muted rounded p-1.5 transition-colors"
           aria-label={copied ? "Copied" : "Copy code"}
         >
           {copied ? (
@@ -41,7 +41,7 @@ const CodeBlock: React.FC<CodeBlockProps> = ({ children, className }) => {
           )}
         </button>
       </div>
-      <pre className="bg-muted/20 p-4 rounded-md font-mono text-sm overflow-x-auto">
+      <pre className="bg-muted/20 overflow-x-auto rounded-md p-4 font-mono text-sm">
         <code>{children}</code>
       </pre>
     </div>
