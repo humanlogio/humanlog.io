@@ -65,7 +65,7 @@ export const formatDuration = (duration?: Duration) => {
   if (totalSeconds < 0.001) {
     return `${(totalSeconds * 1000000).toFixed(0)}μs`;
   } else if (totalSeconds < 1) {
-    return `${(totalSeconds * 1000).toFixed(0)}ms`;
+    return `${(totalSeconds * 1000).toFixed(2)}ms`;
   } else {
     return `${totalSeconds.toFixed(2)}s`;
   }
