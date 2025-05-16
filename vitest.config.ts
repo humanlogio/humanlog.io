@@ -6,7 +6,11 @@ import tsconfigPaths from "vite-tsconfig-paths";
 export default defineConfig({
   plugins: [react(), tsconfigPaths()],
   test: {
-    dir: "tests/unit",
+    dir: ".",
+    include: [
+      "tests/unit/**/*.{test,spec}.{ts,tsx}",
+      "src/**/*.{test,spec}.{ts,tsx}",
+    ],
     environment: "jsdom",
     setupFiles: "tests/setup/setup-unit.ts",
     globals: true,
@@ -15,6 +19,20 @@ export default defineConfig({
         resources: "usable",
       },
     },
+    pool: "threads",
+    poolOptions: {
+      threads: {
+        singleThread: true,
+      },
+    },
+    coverage: {
+      provider: "istanbul",
+      reporter: ["text", "html"],
+    },
+    testTimeout: 20000,
+    hookTimeout: 20000,
+    isolate: true,
+    passWithNoTests: true,
   },
   resolve: {
     alias: {

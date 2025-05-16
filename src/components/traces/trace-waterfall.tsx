@@ -1,164 +1,282 @@
 "use client";
 
-import React, { useEffect, useRef } from "react";
-import * as d3 from "d3";
+import {
+  formatDuration,
+  getDurationInMilliseconds,
+  getUnixTimestamp,
+} from "@/lib/utils/formatTimeStamp";
 import { Span } from "api/js/types/v1/tracing_pb";
-import { formatDuration, getUnixTimestamp } from "@/lib/utils/formatTimeStamp";
+import { Dispatch, ReactNode, SetStateAction, useMemo, useState } from "react";
+import { Duration } from "@bufbuild/protobuf";
+import { SpanTreeNode, walkSpanTreeNodeFlat } from "@/components/traces/utils";
+import { twMerge } from "tailwind-merge";
 
 interface TraceWaterfallProps {
+  traceId: string;
+  serviceColors: { [key: string]: string };
   spans: Span[];
+  spanTree: SpanTreeNode[];
+  selectedSpan: SpanTreeNode;
+  setSelectedSpan: Dispatch<SetStateAction<SpanTreeNode>>;
 }
 
-const TraceWaterfall: React.FC<TraceWaterfallProps> = ({ spans }) => {
-  const svgRef = useRef<SVGSVGElement | null>(null);
-  const containerRef = useRef<HTMLDivElement | null>(null);
+export const TraceWaterfall = ({
+  traceId,
+  serviceColors,
+  spans,
+  spanTree,
+  selectedSpan,
+  setSelectedSpan,
+}: TraceWaterfallProps) => {
+  const [foldedNodes, setFoldedNodes] = useState<Set<string>>(new Set());
+  const [hiddenNodes, setHiddenNodes] = useState<Set<string>>(new Set());
 
-  // Color palette for services
-  const serviceColors = [
-    "#69b3a2", // teal
-    "#e41a1c", // red
-    "#377eb8", // blue
-    "#4daf4a", // green
-    "#984ea3", // purple
-    "#ff7f00", // orange
-    "#ffff33", // yellow
-    "#a65628", // brown
-    "#f781bf", // pink
-    "#999999", // gray
-  ];
+  const [minStart, maxEnd, totalDuration] = useMemo(() => {
+    if (!spans.length) return [0, 0, 0];
 
-  const getServiceColor = (serviceName: string) => {
-    return "#69b3a2";
-  };
+    const starts: number[] = [];
+    const ends: number[] = [];
 
-  useEffect(() => {
-    if (
-      !spans ||
-      spans.length === 0 ||
-      !svgRef.current ||
-      !containerRef.current
-    )
-      return;
-
-    const resizeObserver = new ResizeObserver((entries) => {
-      for (const entry of entries) {
-        const width = Math.max(800, entry.contentRect.width);
-        updateChart(width);
+    spans.forEach((span) => {
+      if (span.timing?.start && span.timing?.duration) {
+        const start = getUnixTimestamp(span.timing.start);
+        const duration = getDurationInMilliseconds(span.timing.duration);
+        starts.push(start);
+        ends.push(start + duration);
       }
     });
 
-    resizeObserver.observe(containerRef.current);
+    const min = Math.min(...starts);
+    const max = Math.max(...ends);
+    return [min, max, max - min];
+  }, [spans, traceId]);
 
-    const updateChart = (width: number) => {
-      const svg = d3.select(svgRef.current);
-      svg.selectAll("*").remove();
+  const renderSpanAsRow = (node: SpanTreeNode): ReactNode | undefined => {
+    const onToggleVisibility = () => {
+      setFoldedNodes((prev) => {
+        const newFolded = new Set(prev);
+        if (newFolded.has(node.span.spanId)) {
+          newFolded.delete(node.span.spanId);
+        } else {
+          newFolded.add(node.span.spanId);
+        }
+        return newFolded;
+      });
 
-      const rowHeight = 48;
-      const margin = { top: 0, left: 0, right: 40, bottom: 40 };
+      setHiddenNodes((prev) => {
+        const newHidden = new Set(prev);
+        const childIds = getAllChildIds(node);
 
-      const minStart = d3.min(spans, (d) =>
-        d.timing ? getUnixTimestamp(d.timing.start!) : Infinity,
-      )!;
-      const maxEnd = d3.max(spans, (d) =>
-        d.timing
-          ? getUnixTimestamp(d.timing.start!) +
-            Number(d.timing.duration?.seconds) * 1000 +
-            d.timing.duration!.nanos / 1_000_000
-          : 0,
-      )!;
+        if (foldedNodes.has(node.span.spanId)) {
+          childIds.forEach((id) => newHidden.delete(id));
+        } else {
+          childIds.forEach((id) => newHidden.add(id));
+        }
 
-      const xScale = d3
-        .scaleLinear()
-        .domain([minStart, maxEnd])
-        .range([0, width - margin.left - margin.right]);
-
-      const spanMap = new Map(spans.map((s) => [s.spanId, s]));
-      const yPositions = spans.map((_, i) => i * rowHeight);
-
-      svg
-        .attr("width", width)
-        .attr(
-          "height",
-          yPositions.length * rowHeight + margin.top + margin.bottom,
-        );
-
-      const g = svg
-        .append("g")
-        .attr("transform", `translate(${margin.left}, ${margin.top})`);
-
-      // Add time axis
-      const xAxis = d3
-        .axisTop(xScale)
-        .ticks(10)
-        .tickFormat((d) => {
-          const durationMs = Number(d) - minStart;
-          if (durationMs < 1000) {
-            return `${durationMs.toFixed(0)}ms`;
-          } else if (durationMs < 60000) {
-            return `${(durationMs / 1000).toFixed(1)}s`;
-          } else {
-            const minutes = Math.floor(durationMs / 60000);
-            const seconds = ((durationMs % 60000) / 1000).toFixed(1);
-            return `${minutes}m ${seconds}s`;
-          }
-        });
-
-      g.append("g")
-        .attr("class", "x-axis")
-        .call(xAxis)
-        .selectAll("text")
-        .attr("font-size", "12px");
-
-      // Draw each span box
-      spans.forEach((span, i) => {
-        if (!span.timing) return;
-
-        const startX = xScale(getUnixTimestamp(span.timing.start!));
-        const durationMs =
-          Number(span.timing.duration?.seconds) * 1000 +
-          span.timing.duration!.nanos / 1_000_000;
-        const barWidth = Math.max(
-          1,
-          xScale(minStart + durationMs) - xScale(minStart),
-        );
-        const y = i * rowHeight;
-
-        const group = g
-          .append("g")
-          .attr("transform", `translate(${startX}, ${y})`);
-
-        // Bar
-        group
-          .append("rect")
-          .attr("height", 20)
-          .attr("width", barWidth)
-          .attr("fill", "#69b3a2")
-          .attr("rx", 4);
-
-        // Span name
-        group
-          .append("text")
-          .text(barWidth > 27 ? formatDuration(span.timing.duration) : "")
-          .attr("x", 4)
-          .attr("y", 15)
-          .attr("font-size", 10)
-          .attr("fill", "white");
+        return newHidden;
       });
     };
 
-    // Initial render
-    updateChart(containerRef.current.clientWidth);
-
-    return () => {
-      resizeObserver.disconnect();
+    const areAllParentsVisible = (node: SpanTreeNode): boolean => {
+      if (!node.parent) {
+        return true;
+      }
+      if (hiddenNodes.has(node.parent.span.spanId)) {
+        return false;
+      }
+      return areAllParentsVisible(node.parent);
     };
-  }, [spans]);
+
+    const getAllChildIds = (node: SpanTreeNode): string[] => {
+      const ids: string[] = [];
+      node.children.forEach((child) => {
+        ids.push(child.span.spanId);
+        ids.push(...getAllChildIds(child));
+      });
+      return ids;
+    };
+
+    if (hiddenNodes.has(node.span.spanId) || !areAllParentsVisible(node)) {
+      return;
+    }
+
+    const canToggle = node.children && node.children.length > 0;
+    const isFolded = foldedNodes.has(node.span.spanId);
+
+    return (
+      <>
+        <div
+          key={node.span.spanId}
+          style={{
+            backgroundColor:
+              selectedSpan?.span.spanId === node.span.spanId
+                ? "rgba(147,197,253, 0.3)"
+                : "transparent",
+          }}
+          onClick={() => setSelectedSpan(node)}
+        >
+          <div className="flex items-start">
+            {Array(node.depth)
+              .fill(0)
+              .map((_, i) => (
+                <div key={i} className="w-3 flex-shrink-0" />
+              ))}
+
+            <div className={twMerge("flex items-center")}>
+              <div className="flex w-6 flex-shrink-0 items-center justify-center">
+                {canToggle ? (
+                  <button
+                    onClick={onToggleVisibility}
+                    className="mr-1 flex h-5 w-5 items-center justify-center rounded border text-xs"
+                    style={{
+                      borderColor: serviceColors[node.span.serviceName],
+                      backgroundColor: isFolded
+                        ? serviceColors[node.span.serviceName]
+                        : "transparent",
+                      color: isFolded ? "white" : "",
+                      fontWeight: isFolded ? "bold" : "normal",
+                    }}
+                  >
+                    {node.children.length}
+                  </button>
+                ) : (
+                  <div
+                    className="h-1 w-1 rounded-full"
+                    style={{
+                      backgroundColor: serviceColors[node.span.serviceName],
+                    }}
+                  />
+                )}
+              </div>
+
+              <div className="w-64 flex-shrink-0 pr-2">
+                <div
+                  className="truncate text-sm font-medium"
+                  title={node.span.name}
+                >
+                  {node.span.name}
+                </div>
+                <div
+                  className="truncate text-xs text-gray-500 dark:text-gray-400"
+                  title={node.span.serviceName}
+                >
+                  {node.span.serviceName}
+                </div>
+              </div>
+            </div>
+
+            {/* Timeline bar */}
+            <div className="h-8 flex-grow">{renderTimeline(node.span)}</div>
+          </div>
+        </div>
+      </>
+    );
+  };
+
+  const renderTimeline = (span: Span) => {
+    const { timing, serviceName, name } = span;
+    if (
+      !timing ||
+      !timing.start ||
+      !timing.duration ||
+      totalDuration === 0 ||
+      !serviceColors
+    ) {
+      return <></>;
+    }
+
+    const start = getUnixTimestamp(timing.start);
+    const duration = getDurationInMilliseconds(timing.duration);
+
+    const left = ((start - minStart) / totalDuration) * 100;
+    const width = (duration / totalDuration) * 100;
+    const right = left > 50 ? left - 3 : left + width + 1;
+
+    return (
+      <div className="relative flex h-full w-full items-center text-xs">
+        <div
+          className="absolute flex h-6 items-center overflow-hidden rounded-sm px-1 text-white"
+          style={{
+            left: `${left}%`,
+            width: `${width}%`,
+            backgroundColor: serviceColors[serviceName],
+          }}
+          title={`${formatDuration(timing?.duration)} - ${name}`}
+        >
+          {width >= 5 && formatDuration(timing?.duration)}
+        </div>
+        {width < 5 && (
+          <div className="absolute" style={{ left: `${right}%` }}>
+            {formatDuration(timing?.duration)}
+          </div>
+        )}
+      </div>
+    );
+  };
 
   return (
-    <div ref={containerRef} className="w-full">
-      <svg ref={svgRef} className="w-full overflow-visible" />
-    </div>
+    <>
+      {/* Timeline header */}
+      <div className="mt-6 mb-2 flex items-center">
+        <div className="w-6 flex-shrink-0" />
+        <div className="w-64 flex-shrink-0" />
+        <div className="flex-grow px-2">
+          <div className="relative h-6">
+            {totalDuration > 0 && (
+              <>
+                <div className="absolute left-0 text-xs">
+                  {formatDuration(
+                    new Duration({ seconds: BigInt(0), nanos: 0 }),
+                  )}
+                </div>
+                <div className="absolute left-1/4 text-xs">
+                  {formatDuration(
+                    new Duration({
+                      seconds: BigInt(
+                        Math.floor((totalDuration * 0.25) / 1000),
+                      ),
+                      nanos: ((totalDuration * 0.25) % 1000) * 1000000,
+                    }),
+                  )}
+                </div>
+                <div className="absolute left-1/2 -translate-x-1/2 transform text-xs">
+                  {formatDuration(
+                    new Duration({
+                      seconds: BigInt(Math.floor((totalDuration * 0.5) / 1000)),
+                      nanos: ((totalDuration * 0.5) % 1000) * 1000000,
+                    }),
+                  )}
+                </div>
+                <div className="absolute left-3/4 text-xs">
+                  {formatDuration(
+                    new Duration({
+                      seconds: BigInt(
+                        Math.floor((totalDuration * 0.75) / 1000),
+                      ),
+                      nanos: ((totalDuration * 0.75) % 1000) * 1000000,
+                    }),
+                  )}
+                </div>
+                <div className="absolute right-0 text-xs">
+                  {formatDuration(
+                    new Duration({
+                      seconds: BigInt(Math.floor(totalDuration / 1000)),
+                      nanos: (totalDuration % 1000) * 1000000,
+                    }),
+                  )}
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Timeline visualization */}
+      <div className="divide-y p-2">
+        {spanTree.map((head) => {
+          return walkSpanTreeNodeFlat(head, renderSpanAsRow);
+        })}
+      </div>
+    </>
   );
 };
-
-export default TraceWaterfall;
