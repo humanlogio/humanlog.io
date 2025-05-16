@@ -14,16 +14,16 @@ const BelowFold: React.FC = () => {
     <div className="flex w-full flex-col gap-16 py-12 lg:gap-20 lg:py-16">
       {/* 1. Demo Mode Data Ingestion */}
       <DemoSection />
-      
+
       {/* 2. Core Feature Grid */}
       <FeatureGridSection />
-      
+
       {/* 3. Community & Support Callout */}
       <CommunitySection />
-      
+
       {/* 4. Frequently Asked Questions */}
       <FAQSection />
-      
+
       {/* 5. Final Conversion Banner */}
       <CTABannerSection />
     </div>
