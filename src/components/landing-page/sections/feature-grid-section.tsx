@@ -26,7 +26,8 @@ const FeatureGridSection: React.FC = () => {
     {
       icon: <Laptop className="h-4 w-4" />,
       title: "Local-First",
-      description: "Your data stays on your device until you choose to share it.",
+      description:
+        "Your data stays on your device until you choose to share it.",
     },
     {
       icon: <Share className="h-4 w-4" />,
@@ -36,7 +37,8 @@ const FeatureGridSection: React.FC = () => {
     {
       icon: <Search className="h-4 w-4" />,
       title: "Powerful Queries",
-      description: "Filter, aggregate, and analyze with our pipeline-based query language.",
+      description:
+        "Filter, aggregate, and analyze with our pipeline-based query language.",
     },
     {
       icon: <BarChart className="h-4 w-4" />,
@@ -46,15 +48,17 @@ const FeatureGridSection: React.FC = () => {
   ];
 
   return (
-    <section className="mx-auto max-w-5xl py-8 px-4">
+    <section className="mx-auto max-w-5xl px-4 py-8">
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {features.map((feature, index) => (
-          <Card key={index} className="p-6 flex flex-col">
-            <div className="mb-4 flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary">
+          <Card key={index} className="flex flex-col p-6">
+            <div className="bg-primary/10 text-primary mb-4 flex h-8 w-8 items-center justify-center rounded-full">
               {feature.icon}
             </div>
             <h3 className="mb-2 font-medium">{feature.title}</h3>
-            <p className="text-muted-foreground text-sm">{feature.description}</p>
+            <p className="text-muted-foreground text-sm">
+              {feature.description}
+            </p>
           </Card>
         ))}
       </div>

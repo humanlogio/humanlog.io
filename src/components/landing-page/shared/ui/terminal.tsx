@@ -23,76 +23,83 @@ export interface TerminalProps {
   className?: string;
 }
 
-const Terminal: React.FC<TerminalProps> = ({
-  commands,
-  className,
-}) => {
+const Terminal: React.FC<TerminalProps> = ({ commands, className }) => {
   // Track which commands have been copied
-  const [copiedIndices, setCopiedIndices] = React.useState<Record<number, boolean>>({});
-  
+  const [copiedIndices, setCopiedIndices] = React.useState<
+    Record<number, boolean>
+  >({});
+
   // Normalize to array of commands
   const commandsArray = Array.isArray(commands) ? commands : [commands];
 
   const handleCopy = (commandText: string, index: number) => {
     copyToClipboard(commandText, "Terminal command");
-    setCopiedIndices(prev => ({
+    setCopiedIndices((prev) => ({
       ...prev,
-      [index]: true
+      [index]: true,
     }));
-    
+
     // Reset the copied state after 2 seconds
     setTimeout(() => {
-      setCopiedIndices(prev => ({
+      setCopiedIndices((prev) => ({
         ...prev,
-        [index]: false
+        [index]: false,
       }));
     }, 2000);
   };
 
-  const CommandLine = ({ command, index }: { command: Command, index: number }) => {
+  const CommandLine = ({
+    command,
+    index,
+  }: {
+    command: Command;
+    index: number;
+  }) => {
     const isCopied = copiedIndices[index];
-    
+
     // If there's a tooltip, wrap the entire command line with it
     const commandLine = (
-      <div 
-        className="flex items-center justify-between px-0 py-1 mb-1 relative cursor-pointer"
-      >
+      <div className="relative mb-0 flex cursor-pointer items-center justify-between px-0 py-0.5">
         <div className="flex-grow overflow-x-auto whitespace-nowrap">
           <span className="text-emerald-400">$ </span>
           <span>{command.text}</span>
         </div>
         <div className="ml-4 flex items-center">
-          <div className="text-muted-foreground hover:text-foreground transition-colors opacity-0 group-hover:opacity-100">
-            {isCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+          <div className="text-muted-foreground hover:text-foreground opacity-0 transition-colors group-hover:opacity-100">
+            {isCopied ? (
+              <Check className="h-4 w-4" />
+            ) : (
+              <Copy className="h-4 w-4" />
+            )}
           </div>
         </div>
       </div>
     );
-    
+
     // Return with or without tooltip wrapper
     return command.tooltip ? (
       <TooltipProvider>
         <Tooltip>
-          <TooltipTrigger asChild>
-            {commandLine}
-          </TooltipTrigger>
+          <TooltipTrigger asChild>{commandLine}</TooltipTrigger>
           <TooltipContent>
             <p>{command.tooltip}</p>
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
-    ) : commandLine;
+    ) : (
+      commandLine
+    );
   };
 
   return (
     <Card
       className={cn(
-        "h-auto overflow-auto bg-zinc-900 font-mono leading-relaxed shadow-md flex-1",
-        className
+        "h-auto flex-1 overflow-auto bg-zinc-900 font-mono leading-relaxed shadow-md",
+        className,
       )}
     >
       {/* Terminal window controls */}
-      <div className="flex items-center px-4 py-2 border-b border-zinc-800">
+      <div className="flex items-center border-b border-zinc-800 px-4 py-2">
         <div className="flex gap-2">
           <Circle className="h-3 w-3 fill-red-500 text-red-500" />
           <Circle className="h-3 w-3 fill-yellow-500 text-yellow-500" />
@@ -101,22 +108,20 @@ const Terminal: React.FC<TerminalProps> = ({
       </div>
 
       {/* Terminal content */}
-      <div className="text-zinc-300 p-4">
+      <div className="px-4 py-3 text-zinc-300">
         {/* Commands with individual outputs */}
         {commandsArray.map((command, index) => (
-          <div 
-            key={`cmd-group-${index}`} 
-            className={`group relative rounded hover:bg-yellow-100/10 transition-colors px-2 -mx-2 ${index < commandsArray.length - 1 ? "mb-6" : "mb-2"}`}
+          <div
+            key={`cmd-group-${index}`}
+            className={`group relative -mx-2 rounded px-2 transition-colors hover:bg-yellow-100/10 ${index < commandsArray.length - 1 ? "mb-3" : "mb-1"}`}
             onClick={() => handleCopy(command.text, index)}
           >
             {/* Command line */}
             <CommandLine command={command} index={index} />
-            
+
             {/* Individual command output if available - aligned with the $ sign */}
             {command.output && (
-              <div className="text-zinc-500 mt-2">
-                {command.output}
-              </div>
+              <div className="mt-1 text-zinc-500">{command.output}</div>
             )}
           </div>
         ))}

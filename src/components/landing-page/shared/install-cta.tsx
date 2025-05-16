@@ -23,7 +23,13 @@ import { Copy } from "lucide-react";
 interface InstallCTAProps {
   buttonText?: string;
   buttonSize?: "default" | "sm" | "lg" | "icon";
-  buttonVariant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
+  buttonVariant?:
+    | "default"
+    | "destructive"
+    | "outline"
+    | "secondary"
+    | "ghost"
+    | "link";
   className?: string;
 }
 
@@ -88,8 +94,8 @@ const InstallCTA: React.FC<InstallCTAProps> = ({
               } else if (/Linux/.test(ua)) {
                 return (
                   <div>
-                    <b>Linux:</b> The query engine works, but is not as
-                    polished and needs to be run manually with{" "}
+                    <b>Linux:</b> The query engine works, but is not as polished
+                    and needs to be run manually with{" "}
                     <code>humanlog service run</code>. See{" "}
                     <a
                       href="/docs/get-started/installation"
@@ -121,8 +127,8 @@ const InstallCTA: React.FC<InstallCTAProps> = ({
                   <b>macOS:</b> Paste into your terminal.
                 </div>
                 <div>
-                  <b>Linux:</b> The query engine works, but is not as
-                  polished and needs to be run manually with{" "}
+                  <b>Linux:</b> The query engine works, but is not as polished
+                  and needs to be run manually with{" "}
                   <code>humanlog service run</code>. See{" "}
                   <a
                     href="/docs/get-started/installation"
