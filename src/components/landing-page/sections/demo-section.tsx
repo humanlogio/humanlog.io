@@ -9,9 +9,9 @@ const DemoSection: React.FC = () => {
   const demoCommand = "humanlog demo --source=example.json";
 
   return (
-    <section className="mx-auto max-w-5xl py-16 px-4">
+    <section className="mx-auto max-w-5xl py-8 px-4">
       <h2 className="mb-4 text-center text-2xl font-bold">
-        Try Humanlog on Your Data—No Setup Required
+        Try Humanlog on Your Data
       </h2>
       
       <div 

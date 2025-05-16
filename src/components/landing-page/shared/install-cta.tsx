@@ -12,6 +12,12 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { Copy } from "lucide-react";
 
 interface InstallCTAProps {
@@ -33,16 +39,25 @@ const InstallCTA: React.FC<InstallCTAProps> = ({
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button
-          size={buttonSize}
-          variant={buttonVariant}
-          className={className}
-          onClick={() =>
-            copyToClipboard(installCommand, "Installation command")
-          }
-        >
-          {buttonText}
-        </Button>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                size={buttonSize}
+                variant={buttonVariant}
+                className={className}
+                onClick={() =>
+                  copyToClipboard(installCommand, "Installation command")
+                }
+              >
+                {buttonText}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Free for personal use!</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       </DialogTrigger>
       <DialogContent className="w-auto max-w-[80vw] min-w-[500px]">
         <DialogHeader>

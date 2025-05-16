@@ -7,9 +7,23 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import CodeBlock, { InlineCode } from "@/components/landing-page/shared/ui/code-block";
+import TerminalBlock from "@/components/landing-page/shared/ui/terminal-block";
+import CloudBetaSignup from "@/components/landing-page/shared/cloud-beta-signup";
+import FeatureFlag from "@/components/posthog/feature-flag";
+
+// FAQ item interface
+interface FAQItem {
+  id: string;
+  question: string;
+  answer: string;
+  linkText?: string | null;
+  linkHref?: string | null;
+  customContent?: boolean;
+}
 
 // FAQ data structure for easy maintenance
-const faqItems = [
+const faqItems: FAQItem[] = [
   {
     id: "data-privacy",
     question: "Does my data ever leave my laptop?",
@@ -18,11 +32,18 @@ const faqItems = [
     linkHref: "/docs/privacy"
   },
   {
-    id: "cloud-queries",
-    question: "How do I lift queries into Cloud?",
-    answer: "You can easily share your queries or results with our sharable link feature. The same queries work locally and in Cloud with zero changes.",
-    linkText: "See Cloud documentation",
-    linkHref: "/docs/cloud"
+    id: "safety",
+    question: "Is it safe to use?",
+    answer: "It's as safe to use on your laptop as jq or other CLI tools that work with data. If you would use awk, grep, or jq to slice and dice your data, you can use humanlog. As long as you don't purposefully click 'Share results' your data will never leave your machine.",
+    linkText: "View our privacy policy",
+    linkHref: "/privacy"
+  },
+  {
+    id: "sharing",
+    question: "How can I share what I find with my friends and colleagues?",
+    answer: "You can easily share your queries or results with our sharable link feature. Send links to key findings so teammates can reproduce them.",
+    linkText: "Learn about sharing",
+    linkHref: "/docs/sharing"
   },
   {
     id: "logs-vs-traces",
@@ -39,17 +60,53 @@ const faqItems = [
     linkHref: "/docs/integrations"
   },
   {
+    id: "docker-usage",
+    question: "How do I use Humanlog with Orbstack, Docker, or other container runtimes?",
+    answer: "To use Humanlog with containerized applications, set OTEL_EXPORTER_OTLP_ENDPOINT to http://host.docker.internal:4317 in your container environment variables.",
+    linkText: "View container integration details",
+    linkHref: "/docs/integrations/containers"
+  },
+  {
+    id: "query-language",
+    question: "How can I learn more about the query language?",
+    answer: "Humanlog's query language is a pipeline-based language, inspired by KustoQL™. It's powerful for filtering, aggregating, and analyzing observability data.",
+    linkText: "Read the query language reference with examples",
+    linkHref: "/docs/reference/reference"
+  },
+  {
+    id: "linux-support",
+    question: "Does Humanlog support Linux?",
+    answer: "Yes, Humanlog works on Linux but doesn't have a polished background service and menu-bar integration yet. Users can manually run the service with 'humanlog service run' or create a systemd service.",
+    linkText: "View Linux installation details",
+    linkHref: "/docs/get-started/installation"
+  },
+  {
+    id: "windows-support",
+    question: "Does Humanlog support Windows?",
+    answer: "We don't publish binaries for Windows at this time because of the complexities of cross-compiling. Contributions are welcomed in the repository.",
+    linkText: "View our GitHub repository",
+    linkHref: "/link/github"
+  },
+  {
     id: "pricing",
     question: "How much does Humanlog cost?",
-    answer: "Humanlog Local is completely free and open source. Cloud features have a generous free tier and pay-as-you-go options.",
+    answer: "Humanlog Local is free for personal use and open core. You can use it for business purpose if you obtain a license.",
     linkText: "See pricing details",
     linkHref: "/pricing"
+  },
+  {
+    id: "hosted-version",
+    question: "Is there a hosted version of Humanlog?",
+    answer: "Yes! We're working on a hosted solution for teams that need managed infrastructure.",
+    linkText: null,
+    linkHref: null,
+    customContent: true
   }
 ];
 
 const FAQSection: React.FC = () => {
   return (
-    <section className="w-full py-16">
+    <section className="w-full py-8">
       <div className="container mx-auto max-w-5xl px-4">
         <h2 className="mb-8 text-center text-3xl font-bold">Frequently Asked Questions</h2>
         
@@ -64,8 +121,59 @@ const FAQSection: React.FC = () => {
                 {item.question}
               </AccordionTrigger>
               <AccordionContent className="px-5 py-2 bg-zinc-50/50 dark:bg-zinc-900/50">
-                {item.answer}{" "}
-                <a href={item.linkHref} className="text-primary underline">{item.linkText}</a>.
+                {item.id === "hosted-version" ? (
+                  <>
+                    <p>Yes! We're working on a hosted solution for teams that need managed infrastructure.</p>
+                    <div className="mt-4">
+                      <CloudBetaSignup 
+                        heading="Join the Humanlog Cloud waitlist for our managed service."
+                        className="mt-2"
+                      />
+                    </div>
+                  </>
+                ) : item.id === "docker-usage" ? (
+                  <>
+                    <p>
+                      To use Humanlog with containerized applications, set <InlineCode>OTEL_EXPORTER_OTLP_ENDPOINT</InlineCode> to <InlineCode>http://host.docker.internal:4317</InlineCode> in your container environment variables.
+                    </p>
+                    <TerminalBlock
+                      commands={{
+                        bash: "export OTEL_EXPORTER_OTLP_ENDPOINT=http://host.docker.internal:4317",
+                        fish: "set -x OTEL_EXPORTER_OTLP_ENDPOINT http://host.docker.internal:4317"
+                      }}
+                    />
+                    {item.linkText && item.linkHref && (
+                      <><a href={item.linkHref} className="text-primary underline">{item.linkText}</a>.</>
+                    )}
+                  </>
+                ) : item.id === "linux-support" ? (
+                  <>
+                    <p>
+                      Yes, Humanlog works on Linux but doesn't have a polished background service and menu-bar integration yet. Users can manually run the service with <InlineCode>humanlog service run</InlineCode> or create a systemd service.
+                    </p>
+                    <TerminalBlock
+                      commands={{
+                        bash: "humanlog service run",
+                        fish: "humanlog service run"
+                      }}
+                    />
+                    {item.linkText && item.linkHref && (
+                      <><a href={item.linkHref} className="text-primary underline">{item.linkText}</a>.</>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    {item.answer}{" "}
+                    {item.linkText && item.linkHref && (
+                      <><a href={item.linkHref} className="text-primary underline">{item.linkText}</a>.</>
+                    )}
+                    {item.id === "query-language" && (
+                      <div className="mt-2 text-xs text-muted-foreground/50">
+                        KustoQL is a trademark of Microsoft.
+                      </div>
+                    )}
+                  </>
+                )}
               </AccordionContent>
             </AccordionItem>
           ))}
