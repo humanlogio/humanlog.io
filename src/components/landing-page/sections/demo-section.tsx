@@ -25,7 +25,7 @@ const DemoSection: React.FC = () => {
         <div className="mb-4">
           <h3 className="text-lg font-medium mb-2">Run the Demo Wizard</h3>
           <p className="mb-4 text-muted-foreground">
-            Experience Humanlog with sample data and guided example queries without any setup.
+            Experience Humanlog with sample data and guided example queries.
           </p>
           
           <div className="relative cursor-pointer" onClick={() => copyToClipboard(demoCommand, "Demo command")}>
@@ -33,7 +33,7 @@ const DemoSection: React.FC = () => {
               <span className="text-emerald-600">$ </span>
               <span>{demoCommand}</span>
             </Card>
-            <div className="absolute top-3 right-3 text-muted-foreground hover:text-foreground">
+            <div className="absolute top-0 right-3 h-full flex items-center text-muted-foreground hover:text-foreground">
               <Copy size={16} />
             </div>
           </div>
