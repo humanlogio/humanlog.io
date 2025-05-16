@@ -36,7 +36,7 @@ const FeatureGridSection: React.FC = () => {
     {
       icon: <Search className="h-4 w-4" />,
       title: "Powerful Queries",
-      description: "Filter, aggregate, and analyze with a SQL-like language.",
+      description: "Filter, aggregate, and analyze with our pipeline-based query language.",
     },
     {
       icon: <BarChart className="h-4 w-4" />,
@@ -46,7 +46,7 @@ const FeatureGridSection: React.FC = () => {
   ];
 
   return (
-    <section className="mx-auto max-w-5xl py-16 px-4">
+    <section className="mx-auto max-w-5xl py-8 px-4">
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {features.map((feature, index) => (
           <Card key={index} className="p-6 flex flex-col">

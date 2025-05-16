@@ -107,23 +107,24 @@ const AboveFoldHero: React.FC = () => {
 
   return (
     <div className="w-full pt-[80px]">
-      <div className="container mx-auto max-w-5xl px-4">
+      <div className="container mx-auto max-w-7xl px-4">
       {/* Header content - minimal margin */}
-      <div className="mb-4 w-full">
+      <div className="mb-4 w-full text-center">
         <h1 className="text-4xl leading-tight font-extrabold md:text-[3.5rem]">
           Observability on Your Laptop and in Your Browser
         </h1>
 
-        <p className="text-muted-foreground mt-2 text-lg">
+        <p className="text-muted-foreground mt-2 text-lg mx-auto max-w-3xl text-center">
           Run local logs & traces, query them in CLI or UI, entirely on your
-          machine. Then share results with teammates.
+          machine.<br />
+          Then share results with teammates.
         </p>
       </div>
 
       {/* Main hero section - vertical on mobile, horizontal on desktop */}
-      <div className="mb-6 flex flex-col gap-6 lg:flex-row lg:gap-8 lg:items-stretch">
+      <div className="mb-6 flex flex-col gap-6 lg:flex-row lg:gap-8 lg:items-stretch xl:px-0">
         {/* Terminal mockup - priority on mobile, left on desktop */}
-        <div className="order-1 w-full lg:order-1 lg:w-1/2 flex">
+        <div className="order-1 w-full lg:order-1 lg:w-1/2 xl:w-3/5 flex">
           <Card className="h-auto overflow-auto bg-zinc-900 p-6 font-mono text-base leading-relaxed shadow-md flex-1">
             {/* Terminal window controls */}
             <div className="mb-4 flex gap-2">
@@ -231,7 +232,7 @@ const AboveFoldHero: React.FC = () => {
         </div>
 
         {/* UI Screenshot - use real SessionPanel component with Logs/Traces toggle and share button */}
-        <div className="order-2 mt-2 w-full lg:order-2 lg:mt-0 lg:w-1/2 flex">
+        <div className="order-2 mt-2 w-full lg:order-2 lg:mt-0 lg:w-1/2 xl:w-2/5 flex">
           <Card className="overflow-hidden rounded-lg border border-zinc-200 shadow-md dark:border-zinc-800 flex-1 flex flex-col">
             {/* Logs | Traces toggle */}
             <div className="flex items-center justify-between border-b border-zinc-200 bg-zinc-50 px-3 py-1.5 dark:border-zinc-800 dark:bg-zinc-900">
@@ -276,7 +277,7 @@ const AboveFoldHero: React.FC = () => {
                   </span>
                   <span className="truncate">{sampleLogs().query}</span>
                 </div>
-                <div className="p-3 flex-1">
+                <div className="p-3 flex-1 overflow-auto" style={{ maxHeight: "500px" }}>
                   <SessionPanel
                     providedData={sampleLogs().data}
                     query={undefined}
@@ -293,7 +294,7 @@ const AboveFoldHero: React.FC = () => {
                   </span>
                   <span className="truncate">{sampleSpans().query}</span>
                 </div>
-                <div className="p-3 flex-1">
+                <div className="p-3 flex-1 overflow-auto" style={{ maxHeight: "500px" }}>
                   <SpansContainer
                     providedData={sampleSpans().data}
                     query={undefined}
