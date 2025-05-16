@@ -126,110 +126,45 @@ const AboveFoldHero: React.FC = () => {
       <div className="mb-6 flex flex-col gap-6 lg:flex-row lg:gap-8 lg:items-stretch xl:px-0">
         {/* Terminal mockup - priority on mobile, left on desktop */}
         <div className="order-1 w-full lg:order-1 lg:w-1/2 xl:w-3/5 flex">
-          <Card className="h-auto overflow-auto bg-zinc-900 p-6 font-mono text-base leading-relaxed shadow-md flex-1">
-            {/* Terminal window controls */}
-            <div className="mb-4 flex gap-2">
-              <Circle className="h-3 w-3 fill-red-500 text-red-500" />
-              <Circle className="h-3 w-3 fill-yellow-500 text-yellow-500" />
-              <Circle className="h-3 w-3 fill-green-500 text-green-500" />
-            </div>
-
-            {/* Terminal content */}
-            <div className="text-zinc-300">
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div>
-                      <div className="mb-5">
-                        <span className="text-emerald-400">$ </span>
-                        <span className="overflow-x-auto whitespace-nowrap">
-                          {installCommand}
-                        </span>
-                      </div>
-                      <div className="mb-6 text-zinc-500">
-                        <span className="text-emerald-600">
-                          humanlog.io/install.sh
-                        </span>
-                        : installing latest release
-                        <br />
-                        ############################################## 100.0%
-                        <br />
-                        <span className="text-emerald-600">
-                          humanlog.io/install.sh
-                        </span>
-                        : humanlog was successfully installed
-                        <br />
-                        <span className="text-emerald-600">
-                          humanlog.io/install.sh
-                        </span>
-                        : send your OTEL data here:
-                        <br />
-                        <br />
-                        <span className="text-teal-600">
-                          <code>
-                            {
-                              "\texport OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4317"
-                            }
-                          </code>
-                        </span>
-                      </div>
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Install, sign up and get started in one command</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-
-              <div className="mb-5">
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <div>
-                        <span className="text-emerald-400">$ </span>
-                        <span>{ingestCommand}</span>
-                      </div>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Ingest logs from stdin</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-
-              <div className="mb-5">
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <div>
-                        <span className="text-emerald-400">$ </span>
-                        <span>{queryCommand}</span>
-                      </div>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Run queries against historical data</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-
-              <div className="mb-5">
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <div>
-                        <span className="text-emerald-400">$ </span>
-                        <span>{streamCommand}</span>
-                      </div>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Stream and query real-time data</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-            </div>
-          </Card>
+          <Terminal
+            commands={[
+              {
+                text: installCommand,
+                tooltip: "Install, sign up and get started in one command",
+                output: (
+                  <div className="text-zinc-500">
+                    <span className="text-emerald-600">humanlog.io/install.sh</span>: installing latest release
+                    <br />
+                    ############################################## 100.0%
+                    <br />
+                    <span className="text-emerald-600">humanlog.io/install.sh</span>: humanlog was successfully installed
+                    <br />
+                    <span className="text-emerald-600">humanlog.io/install.sh</span>: send your OTEL data here:
+                    <br />
+                    <br />
+                    <span className="text-teal-600">
+                      <code>{"\texport OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4317"}</code>
+                    </span>
+                  </div>
+                )
+              },
+              {
+                text: ingestCommand,
+                tooltip: "Ingest logs from stdin"
+                // No output for this command in the original mockup
+              },
+              {
+                text: queryCommand,
+                tooltip: "Run queries against historical data"
+                // No output for this command in the original mockup
+              },
+              {
+                text: streamCommand,
+                tooltip: "Stream and query real-time data"
+                // No output for this command in the original mockup
+              }
+            ]}
+          />
         </div>
 
         {/* UI Screenshot - use real SessionPanel component with Logs/Traces toggle and share button */}
@@ -427,54 +362,6 @@ const AboveFoldHero: React.FC = () => {
       </div>
 
       {/* Beta signup banner removed to focus on main CTA */}
-      </div>
-      
-      {/* New Terminal Implementation (for comparison) */}
-      <div className="mt-16 border-t pt-8 pb-8">
-        <h3 className="text-xl font-bold mb-4">Terminal Component Implementation</h3>
-        <p className="mb-4 text-muted-foreground">Same terminal functionality using the updated Terminal component:</p>
-        
-        <div className="flex w-full lg:w-1/2 xl:w-3/5">
-          <Terminal
-            commands={[
-              {
-                text: installCommand,
-                tooltip: "Install, sign up and get started in one command",
-                output: (
-                  <div className="text-zinc-500">
-                    <span className="text-emerald-600">humanlog.io/install.sh</span>: installing latest release
-                    <br />
-                    ############################################## 100.0%
-                    <br />
-                    <span className="text-emerald-600">humanlog.io/install.sh</span>: humanlog was successfully installed
-                    <br />
-                    <span className="text-emerald-600">humanlog.io/install.sh</span>: send your OTEL data here:
-                    <br />
-                    <br />
-                    <span className="text-teal-600">
-                      <code>{"\texport OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4317"}</code>
-                    </span>
-                  </div>
-                )
-              },
-              {
-                text: ingestCommand,
-                tooltip: "Ingest logs from stdin"
-                // No output for this command in the original mockup
-              },
-              {
-                text: queryCommand,
-                tooltip: "Run queries against historical data"
-                // No output for this command in the original mockup
-              },
-              {
-                text: streamCommand,
-                tooltip: "Stream and query real-time data"
-                // No output for this command in the original mockup
-              }
-            ]}
-          />
-        </div>
       </div>
     </div>
   );
