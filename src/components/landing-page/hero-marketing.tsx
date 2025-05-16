@@ -106,7 +106,8 @@ const AboveFoldHero: React.FC = () => {
   const streamCommand = `humanlog stream '${exampleStream}'`;
 
   return (
-    <div className="px-4 pt-[80px] sm:px-8">
+    <div className="w-full pt-[80px]">
+      <div className="container mx-auto max-w-5xl px-4">
       {/* Header content - minimal margin */}
       <div className="mb-4 w-full">
         <h1 className="text-4xl leading-tight font-extrabold md:text-[3.5rem]">
@@ -424,6 +425,7 @@ const AboveFoldHero: React.FC = () => {
       </div>
 
       {/* Beta signup banner removed to focus on main CTA */}
+      </div>
     </div>
   );
 };
