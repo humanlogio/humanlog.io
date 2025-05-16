@@ -121,10 +121,10 @@ const AboveFoldHero: React.FC = () => {
       </div>
 
       {/* Main hero section - vertical on mobile, horizontal on desktop */}
-      <div className="mb-6 flex flex-col gap-6 lg:flex-row lg:gap-8">
+      <div className="mb-6 flex flex-col gap-6 lg:flex-row lg:gap-8 lg:items-stretch">
         {/* Terminal mockup - priority on mobile, left on desktop */}
-        <div className="order-1 w-full lg:order-1 lg:w-1/2">
-          <Card className="h-auto overflow-auto bg-zinc-900 p-6 font-mono text-base leading-relaxed shadow-md">
+        <div className="order-1 w-full lg:order-1 lg:w-1/2 flex">
+          <Card className="h-auto overflow-auto bg-zinc-900 p-6 font-mono text-base leading-relaxed shadow-md flex-1">
             {/* Terminal window controls */}
             <div className="mb-4 flex gap-2">
               <Circle className="h-3 w-3 fill-red-500 text-red-500" />
@@ -231,8 +231,8 @@ const AboveFoldHero: React.FC = () => {
         </div>
 
         {/* UI Screenshot - use real SessionPanel component with Logs/Traces toggle and share button */}
-        <div className="order-2 mt-2 w-full lg:order-2 lg:mt-0 lg:w-1/2">
-          <Card className="overflow-hidden rounded-lg border border-zinc-200 shadow-md dark:border-zinc-800">
+        <div className="order-2 mt-2 w-full lg:order-2 lg:mt-0 lg:w-1/2 flex">
+          <Card className="overflow-hidden rounded-lg border border-zinc-200 shadow-md dark:border-zinc-800 flex-1 flex flex-col">
             {/* Logs | Traces toggle */}
             <div className="flex items-center justify-between border-b border-zinc-200 bg-zinc-50 px-3 py-1.5 dark:border-zinc-800 dark:bg-zinc-900">
               <div className="flex gap-2">
@@ -276,7 +276,7 @@ const AboveFoldHero: React.FC = () => {
                   </span>
                   <span className="truncate">{sampleLogs().query}</span>
                 </div>
-                <div className="p-3">
+                <div className="p-3 flex-1">
                   <SessionPanel
                     providedData={sampleLogs().data}
                     query={undefined}
@@ -293,7 +293,7 @@ const AboveFoldHero: React.FC = () => {
                   </span>
                   <span className="truncate">{sampleSpans().query}</span>
                 </div>
-                <div className="p-3">
+                <div className="p-3 flex-1">
                   <SpansContainer
                     providedData={sampleSpans().data}
                     query={undefined}
@@ -305,9 +305,9 @@ const AboveFoldHero: React.FC = () => {
         </div>
       </div>
 
-      {/* Feature badges - horizontally scrollable on mobile, left-aligned on desktop */}
-      <div className="-mx-2 mb-4 overflow-x-auto px-2 pb-2">
-        <div className="flex min-w-max gap-3">
+      {/* Feature badges - horizontally scrollable on mobile, centered on desktop */}
+      <div className="-mx-2 mb-4 overflow-x-auto px-2 pb-2 flex justify-center">
+        <div className="flex gap-3">
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -387,7 +387,7 @@ const AboveFoldHero: React.FC = () => {
       </div>
 
       {/* CTA Buttons */}
-      <div className="mb-4 flex flex-col gap-3 space-y-3 sm:flex-row sm:space-y-0">
+      <div className="mb-4 flex flex-col gap-3 space-y-3 sm:flex-row sm:space-y-0 sm:justify-center">
         <InstallCTA buttonText="Install & Sign Up" />
         <a
           href="/link/github"
@@ -403,7 +403,7 @@ const AboveFoldHero: React.FC = () => {
       </div>
 
       {/* Trust signals */}
-      <div className="mb-6 flex flex-wrap gap-6 text-sm text-gray-500">
+      <div className="mb-6 flex flex-wrap justify-center gap-6 text-sm text-gray-500">
         <div className="flex items-center">
           <Star className="mr-2 h-4 w-4" />
           <a
