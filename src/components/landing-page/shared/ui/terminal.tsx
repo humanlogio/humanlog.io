@@ -52,9 +52,10 @@ const Terminal: React.FC<TerminalProps> = ({
   const CommandLine = ({ command, index }: { command: Command, index: number }) => {
     const isCopied = copiedIndices[index];
     
-    return (
+    // If there's a tooltip, wrap the entire command line with it
+    const commandLine = (
       <div 
-        className="group flex items-center justify-between transition-colors rounded hover:bg-yellow-100/10 px-2 py-1 -ml-2 mb-1 relative cursor-pointer"
+        className="group flex items-center justify-between transition-colors rounded hover:bg-yellow-100/10 px-0 py-1 mb-1 relative cursor-pointer"
         onClick={() => handleCopy(command.text, index)}
       >
         <div className="flex-grow overflow-x-auto whitespace-nowrap">
@@ -62,27 +63,26 @@ const Terminal: React.FC<TerminalProps> = ({
           <span>{command.text}</span>
         </div>
         <div className="ml-4 flex items-center">
-          {command.tooltip ? (
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div className="text-muted-foreground hover:text-foreground transition-colors">
-                    {isCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>{command.tooltip}</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          ) : (
-            <div className="text-muted-foreground hover:text-foreground transition-colors">
-              {isCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-            </div>
-          )}
+          <div className="text-muted-foreground hover:text-foreground transition-colors">
+            {isCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+          </div>
         </div>
       </div>
     );
+    
+    // Return with or without tooltip wrapper
+    return command.tooltip ? (
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            {commandLine}
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>{command.tooltip}</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    ) : commandLine;
   };
 
   return (
@@ -110,7 +110,7 @@ const Terminal: React.FC<TerminalProps> = ({
             
             {/* Individual command output if available */}
             {command.output && (
-              <div className="text-zinc-500 mt-2 ml-4">
+              <div className="text-zinc-500 mt-2 pl-[20px]">
                 {command.output}
               </div>
             )}
