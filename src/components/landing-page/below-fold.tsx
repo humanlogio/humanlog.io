@@ -12,20 +12,22 @@ import CTABannerSection from "@/components/landing-page/sections/cta-banner-sect
 const BelowFold: React.FC = () => {
   return (
     <div className="flex w-full flex-col gap-16 py-12 lg:gap-20 lg:py-16">
-      {/* 1. Demo Mode Data Ingestion */}
-      <DemoSection />
+      <div className="mx-auto w-full max-w-full sm:max-w-3xl lg:max-w-screen-lg xl:max-w-screen-xl">
+        {/* 1. Demo Mode Data Ingestion */}
+        <DemoSection />
 
-      {/* 2. Core Feature Grid */}
-      <FeatureGridSection />
+        {/* 2. Core Feature Grid */}
+        <FeatureGridSection />
 
-      {/* 3. Community & Support Callout */}
-      <CommunitySection />
+        {/* 3. Community & Support Callout */}
+        <CommunitySection />
 
-      {/* 4. Frequently Asked Questions */}
-      <FAQSection />
+        {/* 4. Frequently Asked Questions */}
+        <FAQSection />
 
-      {/* 5. Final Conversion Banner */}
-      <CTABannerSection />
+        {/* 5. Final Conversion Banner */}
+        <CTABannerSection />
+      </div>
     </div>
   );
 };
