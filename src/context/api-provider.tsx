@@ -94,15 +94,6 @@ export function ApiClientsProvider({
   >();
   const [authenticated, setAuthenticated] = useState(false);
 
-  // Synchronize cookies to localStorage on mount
-  useEffect(() => {
-    // If localStorage doesn't have the token but cookies do, initialize from cookies
-    if (!getAuthToken() && cookies.hlog_session) {
-      console.log("Initializing auth token from cookie");
-      setAuthToken(cookies.hlog_session);
-    }
-  }, []); // Only run once on component mount
-
   const doLogout = async () => {
     removeAuthToken();
 
