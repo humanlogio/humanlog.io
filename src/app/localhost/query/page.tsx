@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import LogInterface from "@/components/log-interface";
 import { DemoData } from "./components/demo-data";
