@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { copyToClipboard } from "@/lib/utils/clipboard";
 import { getSelfURL } from "@/lib/envs";
+import { cn } from "@/lib/utils";
 import {
   Dialog,
   DialogContent,
@@ -72,7 +73,17 @@ const InstallCTA: React.FC<InstallCTAProps> = ({
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
-      <DialogContent className="w-auto max-w-[80vw] min-w-[500px]">
+      <DialogContent 
+        className={cn(
+          "w-auto max-w-[80vw] min-w-[500px]",
+          // Override the default animations
+          "!duration-0 !data-[state=open]:animate-none !data-[state=closed]:animate-none",
+          "!data-[state=open]:fade-in-0 !data-[state=closed]:fade-out-0",
+          "!data-[state=open]:zoom-in-0 !data-[state=closed]:zoom-out-0",
+          "!data-[state=open]:slide-in-from-left-0 !data-[state=open]:slide-in-from-top-0",
+          "!data-[state=closed]:slide-out-to-left-0 !data-[state=closed]:slide-out-to-top-0"
+        )}
+      >
         <DialogHeader>
           <DialogTitle>Install Humanlog 💻</DialogTitle>
           <DialogDescription>
