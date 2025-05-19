@@ -6,7 +6,9 @@ export default function OnboardingPage() {
       <head>
         <title>Welcome to Humanlog</title>
         <meta httpEquiv="refresh" content="3;url=/localhost/query" />
-        <style dangerouslySetInnerHTML={{ __html: `
+        <style
+          dangerouslySetInnerHTML={{
+            __html: `
           body {
             font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             display: flex;
@@ -52,7 +54,9 @@ export default function OnboardingPage() {
           @keyframes spin {
             to { transform: rotate(360deg); }
           }
-        `}} />
+        `,
+          }}
+        />
       </head>
       <body>
         <div className="card">
