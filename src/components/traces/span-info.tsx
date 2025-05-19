@@ -8,7 +8,7 @@ interface SpanInfo {
 
 export const SpanInfo = ({ node, serviceColors }: SpanInfo) => {
   return (
-    <div className="max-h-screen overflow-y-auto rounded-r-lg border-l border-gray-200 p-4">
+    <div className="bg-background fixed top-32 bottom-0 w-full overflow-y-auto rounded-r-lg border-l p-4">
       {/* Header */}
       <div className="mb-4 border-b border-gray-200 pb-3">
         <div
