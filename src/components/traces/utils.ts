@@ -117,3 +117,19 @@ export const walkSpanTreeNodeFlat = (
 //   });
 //   return onTreeNode(node, childrenNestedComponents);
 // };
+
+export const findSpanNodeById = (
+  nodes: SpanTreeNode[],
+  targetSpanId: string,
+): SpanTreeNode | undefined => {
+  for (const node of nodes) {
+    if (node.span.spanId === targetSpanId) {
+      return node;
+    }
+    const foundInChildren = findSpanNodeById(node.children, targetSpanId);
+    if (foundInChildren) {
+      return foundInChildren;
+    }
+  }
+  return undefined;
+};
