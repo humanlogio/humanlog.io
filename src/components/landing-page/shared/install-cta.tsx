@@ -42,14 +42,14 @@ const InstallCTA: React.FC<InstallCTAProps> = ({
   const origin = getSelfURL();
   const installCommand = `curl -sSL "${origin}/install.sh" | bash`;
   const [isOpen, setIsOpen] = useState(false);
-  
+
   // Copy to clipboard when dialog opens
   useEffect(() => {
     if (isOpen) {
       copyToClipboard(installCommand, "Installation command");
     }
   }, [isOpen, installCommand]);
-  
+
   const handleOpenDialog = () => {
     setIsOpen(true);
   };
@@ -73,15 +73,15 @@ const InstallCTA: React.FC<InstallCTAProps> = ({
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
-      <DialogContent 
+      <DialogContent
         className={cn(
           "w-auto max-w-[80vw] min-w-[500px]",
           // Override the default animations
-          "!duration-0 !data-[state=open]:animate-none !data-[state=closed]:animate-none",
+          "!data-[state=open]:animate-none !data-[state=closed]:animate-none !duration-0",
           "!data-[state=open]:fade-in-0 !data-[state=closed]:fade-out-0",
           "!data-[state=open]:zoom-in-0 !data-[state=closed]:zoom-out-0",
           "!data-[state=open]:slide-in-from-left-0 !data-[state=open]:slide-in-from-top-0",
-          "!data-[state=closed]:slide-out-to-left-0 !data-[state=closed]:slide-out-to-top-0"
+          "!data-[state=closed]:slide-out-to-left-0 !data-[state=closed]:slide-out-to-top-0",
         )}
       >
         <DialogHeader>

@@ -108,10 +108,10 @@ const AboveFoldHero: React.FC = () => {
 
   return (
     <div className="w-full pt-[80px]">
-      <div className="container mx-auto max-w-7xl px-4">
+      <div className="mx-auto w-full max-w-full px-4 sm:max-w-3xl lg:max-w-screen-lg xl:max-w-screen-xl">
         {/* Header content - minimal margin */}
         <div className="mb-4 w-full text-center">
-          <h1 className="text-4xl leading-tight font-extrabold md:text-[3.5rem]">
+          <h1 className="text-center text-4xl leading-tight font-extrabold md:text-[3.5rem]">
             Observability on Your Laptop and in Your Browser
           </h1>
 
@@ -262,15 +262,15 @@ const AboveFoldHero: React.FC = () => {
           </div>
         </div>
 
-        {/* Feature badges - horizontally scrollable on mobile, centered on desktop */}
-        <div className="-mx-2 mb-4 flex justify-center overflow-x-auto px-2 pb-2">
-          <div className="flex gap-3">
+        {/* Feature badges - flex wrap layout */}
+        <div className="mb-4 px-2 py-2">
+          <div className="flex flex-wrap justify-center gap-2">
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Badge
                     variant="outline"
-                    className="rounded-full bg-zinc-100 px-3 py-1 whitespace-nowrap dark:bg-zinc-800"
+                    className="inline-flex flex-shrink-0 rounded-full bg-zinc-100 px-3 py-1 text-xs whitespace-nowrap md:text-sm dark:bg-zinc-800"
                   >
                     <Activity className="mr-2 h-4 w-4 flex-shrink-0" />
                     Real-Time Streaming
@@ -288,7 +288,7 @@ const AboveFoldHero: React.FC = () => {
                 <TooltipTrigger asChild>
                   <Badge
                     variant="outline"
-                    className="rounded-full bg-zinc-100 px-3 py-1 whitespace-nowrap dark:bg-zinc-800"
+                    className="inline-flex flex-shrink-0 rounded-full bg-zinc-100 px-3 py-1 text-xs whitespace-nowrap md:text-sm dark:bg-zinc-800"
                   >
                     <TerminalIcon className="mr-2 h-4 w-4 flex-shrink-0" />
                     OTLP Collector
@@ -312,7 +312,7 @@ const AboveFoldHero: React.FC = () => {
                 <TooltipTrigger asChild>
                   <Badge
                     variant="outline"
-                    className="rounded-full bg-zinc-100 px-3 py-1 whitespace-nowrap dark:bg-zinc-800"
+                    className="inline-flex flex-shrink-0 rounded-full bg-zinc-100 px-3 py-1 text-xs whitespace-nowrap md:text-sm dark:bg-zinc-800"
                   >
                     <Laptop className="mr-2 h-4 w-4 flex-shrink-0" />
                     Logs & Traces Local-First
@@ -331,7 +331,7 @@ const AboveFoldHero: React.FC = () => {
                 <TooltipTrigger asChild>
                   <Badge
                     variant="outline"
-                    className="rounded-full bg-zinc-100 px-3 py-1 whitespace-nowrap dark:bg-zinc-800"
+                    className="inline-flex flex-shrink-0 rounded-full bg-zinc-100 px-3 py-1 text-xs whitespace-nowrap md:text-sm dark:bg-zinc-800"
                   >
                     <Share className="mr-2 h-4 w-4 flex-shrink-0" />
                     Shareable Results
@@ -348,15 +348,15 @@ const AboveFoldHero: React.FC = () => {
         </div>
 
         {/* CTA Buttons */}
-        <div className="mb-4 flex flex-col gap-3 space-y-3 sm:flex-row sm:justify-center sm:space-y-0">
-          <InstallCTA buttonText="Install & Sign Up" />
+        <div className="mx-auto mb-4 grid max-w-lg grid-cols-1 gap-3 sm:grid-cols-2">
+          <InstallCTA buttonText="Install & Sign Up" className="w-full" />
           <a
             href="/link/github"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex"
+            className="w-full"
           >
-            <Button variant="outline" size="lg" className="h-11 px-6">
+            <Button variant="outline" size="lg" className="h-11 w-full px-6">
               <Github className="mr-2 h-4 w-4" />
               View on GitHub
             </Button>
@@ -364,24 +364,27 @@ const AboveFoldHero: React.FC = () => {
         </div>
 
         {/* Trust signals */}
-        <div className="mb-6 flex flex-wrap justify-center gap-6 text-sm text-gray-500">
-          <div className="flex items-center">
-            <Star className="mr-2 h-4 w-4" />
-            <a
-              href="/link/github/stargazers"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:underline"
-            >
-              <span>{githubStars} stars on GitHub</span>
-            </a>
-          </div>
-          <div className="flex items-center">
-            <Building className="mr-2 h-4 w-4" />
-            <span>
-              Built and used by engineers at GitHub, CloudFlare, PlanetScale,
-              DigitalOcean, and more
-            </span>
+        <div className="mt-2 mb-6 text-center text-sm text-gray-500">
+          <div className="flex flex-col items-center justify-center gap-2 sm:flex-row sm:gap-4">
+            <div className="flex items-center">
+              <Star className="mr-2 h-4 w-4" />
+              <a
+                href="/link/github/stargazers"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:underline"
+              >
+                <span>{githubStars} stars on GitHub</span>
+              </a>
+            </div>
+            <div className="hidden sm:block">·</div>
+            <div className="flex items-center">
+              <Building className="mr-2 h-4 w-4" />
+              <span>
+                Built and used by engineers at GitHub, CloudFlare, PlanetScale,
+                DigitalOcean, and more
+              </span>
+            </div>
           </div>
         </div>
 

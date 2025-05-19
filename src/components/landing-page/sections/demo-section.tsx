@@ -21,44 +21,48 @@ const DemoSection: React.FC = () => {
   }, []);
 
   return (
-    <section className="mx-auto max-w-5xl px-4 py-8">
-      <h2 className="mb-4 text-center text-2xl font-bold">
+    <section className="mx-auto w-full px-4 py-8">
+      <h2 className="mb-4 text-center text-2xl font-bold sm:text-3xl">
         Try Humanlog Instantly
       </h2>
 
-      <div className="mx-auto max-w-3xl">
+      <div className="mx-auto w-full sm:w-11/12 md:w-3/4 lg:w-2/3">
         {/* Always visible content */}
         <div className="mb-4">
-          <h3 className="mb-2 text-lg font-medium">Run the Demo Wizard</h3>
-          <p className="text-muted-foreground mb-4">
+          <h3 className="mb-2 text-center text-lg font-medium">
+            Run the Demo Wizard
+          </h3>
+          <p className="text-muted-foreground mb-4 text-center">
             Experience Humanlog with sample data and guided example queries.
           </p>
 
-          <Terminal
-            commands={[
-              {
-                text: demoCommand,
-                tooltip: "Run the demo wizard",
-                output: (
-                  <>
-                    <div className="mb-0.5">
-                      <span className="text-emerald-600">humanlog:</span>{" "}
-                      Starting demo mode...
-                    </div>
-                    <div className="mb-0.5">
-                      <span className="text-emerald-600">humanlog:</span>{" "}
-                      Loading sample data...
-                    </div>
-                    <div>
-                      <span className="text-emerald-600">humanlog:</span>{" "}
-                      Opening browser to {origin}/localhost/query?q=?
-                    </div>
-                  </>
-                ),
-              },
-            ]}
-            className="overflow-hidden rounded-lg shadow-md"
-          />
+          <div className="mx-auto w-full">
+            <Terminal
+              commands={[
+                {
+                  text: demoCommand,
+                  tooltip: "Run the demo wizard",
+                  output: (
+                    <>
+                      <div className="mb-0.5">
+                        <span className="text-emerald-600">humanlog:</span>{" "}
+                        Starting demo mode...
+                      </div>
+                      <div className="mb-0.5">
+                        <span className="text-emerald-600">humanlog:</span>{" "}
+                        Loading sample data...
+                      </div>
+                      <div>
+                        <span className="text-emerald-600">humanlog:</span>{" "}
+                        Opening browser to {origin}/localhost/query?q=?
+                      </div>
+                    </>
+                  ),
+                },
+              ]}
+              className="mx-auto block overflow-hidden rounded-lg shadow-md"
+            />
+          </div>
         </div>
 
         {/* Toggle button */}
@@ -88,8 +92,10 @@ const DemoSection: React.FC = () => {
           className={`overflow-hidden transition-all duration-300 ease-in-out ${isExpanded ? "max-h-[1000px] opacity-100" : "max-h-0 opacity-0"}`}
         >
           <div className="mb-8">
-            <h3 className="mb-2 text-lg font-medium">Use Your Own Data</h3>
-            <p className="text-muted-foreground mb-4">
+            <h3 className="mb-2 text-center text-lg font-medium">
+              Use Your Own Data
+            </h3>
+            <p className="text-muted-foreground mb-4 text-center">
               Humanlog makes it easy to load your own data in multiple ways:
             </p>
 
