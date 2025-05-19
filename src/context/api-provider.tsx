@@ -33,10 +33,11 @@ import {
   UserShareService,
 } from "api/js/svc/share/v1/service_connect";
 import { getAPIURL, getSelfURL } from "@/lib/envs";
-import { useCookies } from "react-cookie";
 import { Environment } from "api/js/types/v1/environment_pb";
 import config from "@/features/config";
 import { v4 as uuidv4 } from "uuid";
+
+const AUTH_TOKEN_KEY = "hlog_session";
 
 type ApiProviderType = {
   apiClients: ApiClients | null;
@@ -78,21 +79,18 @@ export function ApiClientsProvider({
   const isProd = config.NEXT_PUBLIC_IS_PROD;
   const returnToURL = getSelfURL();
 
-  const [cookies, setCookie] = useCookies();
   const [apiTransport, setApiTransport] = useState<Transport>();
   const [activeEnvironment, setActiveEnvironment] = useState<
     Environment | undefined
   >();
   const [authenticated, setAuthenticated] = useState(false);
 
-  let humanlogSessionCookie = cookies["hlog_session"];
-
-  const deleteCookie = () => {
-    document.cookie = `hlog_session=; path=/; domain=.humanlog${config.TLD}; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
-  };
+  const getAuthToken = () => localStorage.getItem(AUTH_TOKEN_KEY) || "";
+  const setAuthToken = (token: string) => localStorage.setItem(AUTH_TOKEN_KEY, token);
+  const removeAuthToken = () => localStorage.removeItem(AUTH_TOKEN_KEY);
 
   const doLogout = async () => {
-    deleteCookie();
+    removeAuthToken();
 
     try {
       await apiClients.localhost.doLogout({
@@ -105,12 +103,11 @@ export function ApiClientsProvider({
   };
 
   const apiClients = useMemo((): ApiClients => {
-    const auther = (token: string): Interceptor => {
+    const auther = (): Interceptor => {
       return (next) => async (req) => {
-        if (!token) {
-          token = cookies["hlog_session"];
-        }
-        if (token && token != "") {
+        const token = getAuthToken();
+        
+        if (token && token !== "") {
           req.header.set("Browser-Authorization", token);
         }
         req.header.set("Request-Id", uuidv4());
@@ -125,13 +122,9 @@ export function ApiClientsProvider({
 
           if (newToken) {
             console.log("Received new authorization token");
-            token = newToken;
-            setCookie("hlog_session", newToken, {
-              path: "/",
-              domain: `.humanlog${config.TLD}`,
-              secure: true,
-              sameSite: "none",
-            });
+            setAuthToken(newToken);
+            
+            document.cookie = `hlog_session=${newToken}; path=/; domain=.humanlog${config.TLD}; secure=true; samesite=none; max-age=3600`;
           }
           setAuthenticated(true);
           return res;
@@ -151,7 +144,7 @@ export function ApiClientsProvider({
     });
     const apiTpt = createConnectTransport({
       baseUrl: getAPIURL(),
-      interceptors: [auther(humanlogSessionCookie)],
+      interceptors: [auther()],
     });
     setApiTransport(apiTpt);
 
@@ -177,7 +170,7 @@ export function ApiClientsProvider({
       localhostTransport: localhostTransport,
       activeTransport: activeTransport,
     };
-  }, [humanlogSessionCookie, activeEnvironment]);
+  }, [activeEnvironment]);
 
   return (
     <TransportProvider transport={apiTransport!}>
