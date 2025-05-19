@@ -94,11 +94,6 @@ export function ApiClientsProvider({
   >();
   const [authenticated, setAuthenticated] = useState(false);
 
-  const getAuthToken = () => localStorage.getItem(AUTH_TOKEN_KEY) || "";
-  const setAuthToken = (token: string) =>
-    localStorage.setItem(AUTH_TOKEN_KEY, token);
-  const removeAuthToken = () => localStorage.removeItem(AUTH_TOKEN_KEY);
-
   const doLogout = async () => {
     removeAuthToken();
 
