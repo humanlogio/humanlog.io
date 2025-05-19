@@ -87,7 +87,7 @@ export default function OnboardingPage() {
         description: "Your Humanlog account is ready to use.",
       });
 
-      router.push("/localhost/query?demo=true");
+      router.push("/localhost/query");
     } catch (error) {
       console.error("Error saving preferences:", error);
       toast({
