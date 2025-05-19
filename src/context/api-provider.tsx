@@ -41,7 +41,8 @@ import { v4 as uuidv4 } from "uuid";
 const AUTH_TOKEN_KEY = "hlog_session";
 
 const getAuthToken = () => localStorage.getItem(AUTH_TOKEN_KEY) || "";
-const setAuthToken = (token: string) => localStorage.setItem(AUTH_TOKEN_KEY, token);
+const setAuthToken = (token: string) =>
+  localStorage.setItem(AUTH_TOKEN_KEY, token);
 const removeAuthToken = () => localStorage.removeItem(AUTH_TOKEN_KEY);
 
 export { removeAuthToken };
@@ -138,7 +139,7 @@ export function ApiClientsProvider({
               domain: `.humanlog${config.TLD}`,
               secure: true,
               sameSite: "none",
-              maxAge: 3600
+              maxAge: 3600,
             });
           }
           setAuthenticated(true);
