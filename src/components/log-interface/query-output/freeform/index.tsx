@@ -88,8 +88,14 @@ export const FreeFormContainer = ({
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button onClick={onClickShare} size="xs" variant="outline">
-                  <Share size={12} />
+                <Button
+                  onClick={onClickShare}
+                  size="sm"
+                  variant="outline"
+                  className="gap-1"
+                >
+                  <Share size={14} />
+                  Share
                 </Button>
               </TooltipTrigger>
               {sharedData && (
