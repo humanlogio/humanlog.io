@@ -1,12 +1,11 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { copyToClipboard } from "@/lib/utils/clipboard";
 import { getSelfURL } from "@/lib/envs";
 import {
   Dialog,
-  DialogTrigger,
   DialogContent,
   DialogHeader,
   DialogTitle,
@@ -41,30 +40,38 @@ const InstallCTA: React.FC<InstallCTAProps> = ({
 }) => {
   const origin = getSelfURL();
   const installCommand = `curl -sSL "${origin}/install.sh" | bash`;
+  const [isOpen, setIsOpen] = useState(false);
+  
+  // Copy to clipboard when dialog opens
+  useEffect(() => {
+    if (isOpen) {
+      copyToClipboard(installCommand, "Installation command");
+    }
+  }, [isOpen, installCommand]);
+  
+  const handleOpenDialog = () => {
+    setIsOpen(true);
+  };
 
   return (
-    <Dialog>
-      <DialogTrigger asChild>
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                size={buttonSize}
-                variant={buttonVariant}
-                className={className}
-                onClick={() =>
-                  copyToClipboard(installCommand, "Installation command")
-                }
-              >
-                {buttonText}
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Free for personal use!</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      </DialogTrigger>
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              size={buttonSize}
+              variant={buttonVariant}
+              className={className}
+              onClick={handleOpenDialog}
+            >
+              {buttonText}
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Free for personal use!</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
       <DialogContent className="w-auto max-w-[80vw] min-w-[500px]">
         <DialogHeader>
           <DialogTitle>Install Humanlog 💻</DialogTitle>
