@@ -86,7 +86,8 @@ export function ApiClientsProvider({
   const [authenticated, setAuthenticated] = useState(false);
 
   const getAuthToken = () => localStorage.getItem(AUTH_TOKEN_KEY) || "";
-  const setAuthToken = (token: string) => localStorage.setItem(AUTH_TOKEN_KEY, token);
+  const setAuthToken = (token: string) =>
+    localStorage.setItem(AUTH_TOKEN_KEY, token);
   const removeAuthToken = () => localStorage.removeItem(AUTH_TOKEN_KEY);
 
   const doLogout = async () => {
@@ -106,7 +107,7 @@ export function ApiClientsProvider({
     const auther = (): Interceptor => {
       return (next) => async (req) => {
         const token = getAuthToken();
-        
+
         if (token && token !== "") {
           req.header.set("Browser-Authorization", token);
         }
@@ -123,7 +124,7 @@ export function ApiClientsProvider({
           if (newToken) {
             console.log("Received new authorization token");
             setAuthToken(newToken);
-            
+
             document.cookie = `hlog_session=${newToken}; path=/; domain=.humanlog${config.TLD}; secure=true; samesite=none; max-age=3600`;
           }
           setAuthenticated(true);
