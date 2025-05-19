@@ -33,11 +33,18 @@ import {
   UserShareService,
 } from "api/js/svc/share/v1/service_connect";
 import { getAPIURL, getSelfURL } from "@/lib/envs";
+import { useCookies } from "react-cookie";
 import { Environment } from "api/js/types/v1/environment_pb";
 import config from "@/features/config";
 import { v4 as uuidv4 } from "uuid";
 
 const AUTH_TOKEN_KEY = "hlog_session";
+
+const getAuthToken = () => localStorage.getItem(AUTH_TOKEN_KEY) || "";
+const setAuthToken = (token: string) => localStorage.setItem(AUTH_TOKEN_KEY, token);
+const removeAuthToken = () => localStorage.removeItem(AUTH_TOKEN_KEY);
+
+export { AUTH_TOKEN_KEY, getAuthToken, setAuthToken, removeAuthToken };
 
 type ApiProviderType = {
   apiClients: ApiClients | null;
@@ -79,6 +86,7 @@ export function ApiClientsProvider({
   const isProd = config.NEXT_PUBLIC_IS_PROD;
   const returnToURL = getSelfURL();
 
+  const [cookies, setCookie] = useCookies();
   const [apiTransport, setApiTransport] = useState<Transport>();
   const [activeEnvironment, setActiveEnvironment] = useState<
     Environment | undefined
@@ -125,7 +133,13 @@ export function ApiClientsProvider({
             console.log("Received new authorization token");
             setAuthToken(newToken);
 
-            document.cookie = `hlog_session=${newToken}; path=/; domain=.humanlog${config.TLD}; secure=true; samesite=none; max-age=3600`;
+            setCookie("hlog_session", newToken, {
+              path: "/",
+              domain: `.humanlog${config.TLD}`,
+              secure: true,
+              sameSite: "none",
+              maxAge: 3600
+            });
           }
           setAuthenticated(true);
           return res;
