@@ -196,7 +196,7 @@ const FAQSection: React.FC = () => {
               <AccordionTrigger className="px-5 py-4 hover:bg-zinc-50 hover:no-underline dark:hover:bg-zinc-900">
                 {item.question}
               </AccordionTrigger>
-              <AccordionContent className="bg-zinc-50/50 px-5 py-2 dark:bg-zinc-900/50">
+              <AccordionContent className="bg-zinc-100 px-5 py-4 shadow-inner border-t border-zinc-200 dark:bg-zinc-800/80 dark:border-zinc-700">
                 {typeof item.answer === "string" ? (
                   <>
                     {item.answer}{" "}
