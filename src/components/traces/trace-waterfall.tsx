@@ -6,7 +6,15 @@ import {
   getUnixTimestamp,
 } from "@/lib/utils/formatTimeStamp";
 import { Span } from "api/js/types/v1/tracing_pb";
-import { Dispatch, ReactNode, SetStateAction, useMemo, useState } from "react";
+import {
+  Dispatch,
+  ReactNode,
+  SetStateAction,
+  useEffect,
+  useMemo,
+  useState,
+  useRef,
+} from "react";
 import { Duration } from "@bufbuild/protobuf";
 import { SpanTreeNode, walkSpanTreeNodeFlat } from "@/components/traces/utils";
 import { twMerge } from "tailwind-merge";
@@ -30,6 +38,16 @@ export const TraceWaterfall = ({
 }: TraceWaterfallProps) => {
   const [foldedNodes, setFoldedNodes] = useState<Set<string>>(new Set());
   const [hiddenNodes, setHiddenNodes] = useState<Set<string>>(new Set());
+  const selectedSpanRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (selectedSpanRef.current) {
+      selectedSpanRef.current.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+    }
+  }, [selectedSpan]);
 
   const [minStart, maxEnd, totalDuration] = useMemo(() => {
     if (!spans.length) return [0, 0, 0];
@@ -106,6 +124,11 @@ export const TraceWaterfall = ({
     return (
       <>
         <div
+          ref={
+            selectedSpan?.span.spanId === node.span.spanId
+              ? selectedSpanRef
+              : null
+          }
           key={node.span.spanId}
           style={{
             backgroundColor:
