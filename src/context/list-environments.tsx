@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { Code, ConnectError } from "@connectrpc/connect";
-import { useApiClients, removeAuthToken } from "@/context/api-provider";
+import { useApiClients } from "@/context/api-provider";
 import { PingResponse } from "api/js/svc/localhost/v1/service_pb";
 import { ListEnvironmentResponse_ListItem } from "api/js/svc/organization/v1/service_pb";
 import { User } from "api/js/types/v1/user_pb";
@@ -117,7 +117,7 @@ export function ListEnvironmentsProvider({
         return res;
       }
     } catch (err) {
-      removeAuthToken();
+      localStorage.removeItem("hlog_session");
       document.cookie = `hlog_session=; path=/; domain=.humanlog${config.TLD}; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
       setBrowserValid(false);
       setUser("not-logged-in");
