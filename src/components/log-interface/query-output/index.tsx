@@ -18,6 +18,7 @@ import { AlertCircle, Loader, ReceiptText, StopCircle } from "lucide-react";
 import { QueryResponse, StreamResponse } from "api/js/svc/query/v1/service_pb";
 import { Data } from "api/js/types/v1/data_pb";
 import { Cursor } from "api/js/types/v1/cursor_pb";
+import { getShapeFromResponse } from "@/lib/utils/dataHelpers";
 
 import { Button } from "@/components/ui/button";
 
@@ -138,16 +139,7 @@ const DataRenderer = ({
     );
   }
 
-  let dataCase;
-  let value;
-
-  if (streamRes && streamRes[0]) {
-    dataCase = streamRes[0]?.data?.shape?.case;
-    value = streamRes[0]?.data?.shape?.value;
-  } else {
-    dataCase = data?.shape?.case;
-    value = data?.shape?.value;
-  }
+  const { dataCase, value } = getShapeFromResponse(streamRes, data);
 
   if (dataCase === "tabular" && value instanceof Tabular) {
     const { case: shapeCase, value: shapeValue } = value.shape;

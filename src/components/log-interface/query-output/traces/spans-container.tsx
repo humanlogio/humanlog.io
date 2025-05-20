@@ -48,6 +48,8 @@ import {
 } from "@/components/ui/accordion";
 import { copyToClipboard } from "@/lib/utils/clipboard";
 import { StreamResponse } from "api/js/svc/query/v1/service_pb";
+import { extractFromStreamResponses } from "@/lib/utils/dataHelpers";
+
 interface FreeFormContainerProps {
   query: Query | undefined;
   data?: Spans;
@@ -120,20 +122,13 @@ export const SpansContainer = ({
   }, [spans, searchTerm]);
 
   useEffect(() => {
-    if (!streamRes) { return }
-      const _spans: Span[] = [];
-      streamRes.forEach((res) => {
-        if (res.data?.shape.case === "tabular") {
-          const { value } = res.data.shape;
-          if (value.shape.value && value.shape.case === "spans") {
-            const { spans } = value.shape.value;
-            _spans.push(...spans);
-          }
-        }
-      });
-
-      setSpans(_spans);
-    }
+    if (!streamRes) return;
+    const _spans = extractFromStreamResponses<Span, Spans>(
+      streamRes,
+      "spans",
+      (value) => value.spans,
+    );
+    setSpans(_spans);
   }, [streamRes]);
 
   if (!spans) {
