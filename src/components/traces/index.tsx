@@ -116,7 +116,7 @@ export const Traces = ({ traceId, spanId }: TracesProps) => {
               defaultSize={25}
               maxSize={50}
               minSize={15}
-              className="border-l"
+              className="relative"
             >
               <SpanInfo node={selectedSpan} serviceColors={serviceColors} />
             </Panel>
