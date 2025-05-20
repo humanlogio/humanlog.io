@@ -63,11 +63,11 @@ tty_lightred="$(tty_mkbold 31)"
 tty_reset="$(tty_escape 0)"
 
 function loginfo() {
-	echo "\${tty_lightgreen}${logPrefix}\${tty_reset}: \$@"
+	echo "\${tty_lightgreen}${logPrefix}\${tty_reset}: \$@" >&2
 }
 
 function logerror() {
-	echo "\${tty_lightred}${logPrefix}\${tty_reset}: \$@"
+	echo "\${tty_lightred}${logPrefix}\${tty_reset}: \$@" >&2
 }
 
 # shellcheck disable=SC2016
@@ -87,6 +87,38 @@ then
 else
   loginfo 'Running in non-interactive mode because "NONINTERACTIVE" is set.'
 fi
+
+function lookup_project_release_url() {
+	local project="$1"
+	local os="$2"
+	local arch="$3"
+	local channel="$4"
+	local url_file="/tmp/\${project}_release_url.$$"
+	local error_file="/tmp/\${project}_curl_error.$$"
+
+	loginfo "looking up latest release from \${channel} channel for \${os} on \${arch}"
+
+	curl --silent --show-error \
+		--data "{\\\"os\\\":\\\"\${os}\\\",\\\"arch\\\":\\\"\${arch}\\\",\\\"channel\\\":\\\"\${channel}\\\"}" \
+		"https://api.humanlog.dev/api/releases/\${project}" \
+		> "\${url_file}" \
+		2> "\${error_file}" || {
+			logerror "$(cat \${url_file}) ($(cat \${error_file}))"
+			rm -f "\${url_file}" "\${error_file}"
+			exit 1
+		}
+
+	local project_uri
+	project_uri=$(cat "\${url_file}")
+	rm -f "\${url_file}" "\${error_file}"
+
+	if [ -z "\${project_uri}" ]; then
+		logerror "unable to find a \${project} release for \${os}/\${arch} - see github.com/humanlogio/\${project}/releases for all versions"
+		exit 1
+	fi
+
+	printf "%s" "\${project_uri}"
+}
 
 function check_file_has_content() {
 	local filename=\${1}
@@ -108,7 +140,6 @@ function add_path_bash() {
 	if ! check_file_has_content "\${profile}" "\${line}"; then
 		append_content_to_file "\${profile}" "\${line}"
 		loginfo "\${path} was added to your \\\$PATH (via '\${profile}')"
-		source \${profile}
 		echo -e "\nRun \\\`source \${profile}\\\` to update your \\\$PATH right away."
 	fi
 }
@@ -182,7 +213,6 @@ function detect_user_install_dir() {
 		return 0
 	fi
 
-
 	# 1. Use XDG_BIN_HOME if valid
 	if [ -n "\${XDG_BIN_HOME}" ] && is_usable_path_dir "\${XDG_BIN_HOME}"; then
 		printf "%s\n" "\${XDG_BIN_HOME}"
@@ -209,21 +239,40 @@ function detect_user_install_dir() {
 	printf "%s\n" "\${local_bin}"
 }
 
+function install_project_binary_atomically() {
+	local install_dir="$1"
+	local binary_name="$2"
+	local tarball_url="$3"
+
+	local tmp_root="\${TMPDIR:-/tmp}"
+	local tmpdir="\${tmp_root}/humanlog-install.$$"
+	local tarball="\${tmpdir}/\${binary_name}.tar.gz"
+	local staged_binary="\${tmpdir}/\${binary_name}"
+	local final_binary="\${install_dir}/\${binary_name}"
+
+	mkdir -p "\${tmpdir}" || abort "Failed to create staging directory: \${tmpdir}"
+
+	# Always clean up on exit or failure
+	trap 'rm -rf "\${tmpdir}"' EXIT INT TERM
+
+	curl -q --fail --show-error --location --progress-bar --output "\${tarball}" "\${tarball_url}" || abort "Download failed"
+	tar -xzf "\${tarball}" -C "\${tmpdir}" || abort "Extraction failed"
+	chmod +x "\${staged_binary}" || abort "Failed to make binary executable"
+
+	# Ensure install dir exists
+	if [ ! -d "\${install_dir}" ]; then
+		mkdir -p "\${install_dir}" || abort "Failed to create install directory: \${install_dir}"
+	fi
+
+	mv "\${staged_binary}" "\${final_binary}" || abort "Failed to move binary into place"
+}
+
 os=$(uname -s)
 arch=$(uname -m)
 channel="\${HUMANLOG_CHANNEL:-${channel}}"
 project="${project}"
 
-url_file=/tmp/project_uri
-
-loginfo "looking up latest release from \${channel} channel for \${os} on \${arch}"
-curl --silent --show-error --data "{\\"os\\":\\"\${os}\\",\\"arch\\":\\"\${arch}\\",\\"channel\\":\\"\${channel}\\"}" ${releaseApiURL} > \${url_file} 2> /tmp/curl_error || { logerror "$(cat \${url_file}) \($(cat /tmp/curl_error)\)" ; exit 1; }
-
-project_uri=$(cat \${url_file})
-if [ ! "\${project_uri}" ]; then
-	logerror "unable to find an \${project} release for \${os}/\${arch} - see github.com/humanlogio/\${project}/releases for all versions" 1>&2
-	exit 1
-fi
+project_uri=$(lookup_project_release_url "\${project}" "\${os}" "\${arch}" "\${channel}")
 loginfo "installing latest release from \${project_uri}"
 
 set -e
@@ -236,11 +285,8 @@ if [ ! -d "\${project_install}" ]; then
  	mkdir -p "\${project_install}"
 fi
 
-curl -q --fail --show-error --location --progress-bar --output "\${exe}.tar.gz" "\${project_uri}"
-cd "\${project_install}"
-tar xzf "\${exe}.tar.gz"
-chmod +x "\${exe}"
-rm "\${exe}.tar.gz"
+install_project_binary_atomically "\${project_install}" "\${project}" "\${project_uri}"
+
 ${onboardingBlock}
 
 loginfo "\${project} was successfully installed to \${exe}"
