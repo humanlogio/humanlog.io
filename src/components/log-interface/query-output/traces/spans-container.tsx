@@ -47,13 +47,14 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { copyToClipboard } from "@/lib/utils/clipboard";
-
+import { StreamResponse } from "api/js/svc/query/v1/service_pb";
 interface FreeFormContainerProps {
   query: Query | undefined;
   data?: Spans;
   initialNext?: Cursor | null;
   providedData?: Spans;
   queryHistoryEntry?: QueryHistoryEntry;
+  streamRes?: StreamResponse[];
 }
 
 export const SpansContainer = ({
@@ -62,6 +63,7 @@ export const SpansContainer = ({
   initialNext,
   providedData,
   queryHistoryEntry,
+  streamRes,
 }: FreeFormContainerProps) => {
   const { targetRef, fetchNext, fetchData, next, setNext } =
     useInfiniteQuery(query);
@@ -116,6 +118,23 @@ export const SpansContainer = ({
 
     setFilteredSpans(filtered);
   }, [spans, searchTerm]);
+
+  useEffect(() => {
+    if (streamRes) {
+      const _spans: Span[] = [];
+      streamRes.forEach((res) => {
+        if (res.data?.shape.case === "tabular") {
+          const { value } = res.data.shape;
+          if (value.shape.value && value.shape.case === "spans") {
+            const { spans } = value.shape.value;
+            _spans.push(...spans);
+          }
+        }
+      });
+
+      setSpans(_spans);
+    }
+  }, [streamRes]);
 
   if (!spans) {
     return (
