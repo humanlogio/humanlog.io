@@ -21,6 +21,7 @@ import {
 import TableContainer from "@/components/log-interface/query-output/freeform/table-container";
 import Histogram from "@/components/log-interface/query-output/freeform/histogram-container";
 import { Cursor } from "api/js/types/v1/cursor_pb";
+import { StreamResponse } from "api/js/svc/query/v1/service_pb";
 
 interface FreeFormContainerProps {
   query: Query | undefined;
@@ -28,6 +29,7 @@ interface FreeFormContainerProps {
   initialNext?: Cursor | null;
   providedData?: Table;
   queryHistoryEntry?: QueryHistoryEntry;
+  streamRes?: StreamResponse[];
 }
 
 export const FreeFormContainer = ({
@@ -36,6 +38,7 @@ export const FreeFormContainer = ({
   initialNext,
   providedData,
   queryHistoryEntry,
+  streamRes,
 }: FreeFormContainerProps) => {
   const { targetRef, fetchNext, fetchData, next, setNext } =
     useInfiniteQuery(query);
@@ -76,6 +79,24 @@ export const FreeFormContainer = ({
         });
       });
   }, [fetchNext]);
+
+  useEffect(() => {
+    if (streamRes) {
+      const _tableRows: Arr[] = [];
+
+      streamRes.forEach((res) => {
+        if (res.data?.shape.case === "tabular") {
+          const { value } = res.data.shape;
+          if (value.shape.value && value.shape.case === "freeForm") {
+            const { rows, type } = value.shape.value;
+            setTableColumns(type?.columns);
+            _tableRows.push(...rows);
+          }
+        }
+      });
+      setTableRows(_tableRows);
+    }
+  }, [streamRes]);
 
   const isHistogram = tableColumns?.find(
     (col) => col.type?.type.case === "map",
