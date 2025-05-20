@@ -55,6 +55,8 @@ import { QueryHistoryEntry } from "api/js/types/v1/query_history_entry_pb";
 import { defaultConfig, getConfig } from "@/services/localhostService";
 import { useAllEnvironments } from "@/context/list-environments";
 import { Cursor } from "api/js/types/v1/cursor_pb";
+import { StreamResponse } from "api/js/svc/query/v1/service_pb";
+import { extractFromStreamResponses } from "@/lib/utils/dataHelpers";
 
 interface SessionPanelProps {
   ids?: { machineId?: string; sessionId?: string };
@@ -65,6 +67,7 @@ interface SessionPanelProps {
   mode?: "dark" | "light";
   themes?: FormatConfig_Themes;
   queryHistoryEntry?: QueryHistoryEntry;
+  streamRes?: StreamResponse[];
 }
 
 const SessionPanel = ({
@@ -76,6 +79,7 @@ const SessionPanel = ({
   mode,
   themes,
   queryHistoryEntry,
+  streamRes,
 }: SessionPanelProps) => {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -216,6 +220,15 @@ const SessionPanel = ({
         });
       });
   }, [fetchNext]);
+
+  useEffect(() => {
+    if (!streamRes) return;
+    const _logs = extractFromStreamResponses<IngestedLogEvent, LogEvents>(
+      streamRes,
+      (value) => value.events,
+    );
+    setLogs(_logs);
+  }, [streamRes]);
 
   const onClickShare = () => {
     const data = newTabularData(
