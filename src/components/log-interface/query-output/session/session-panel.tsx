@@ -56,6 +56,7 @@ import { defaultConfig, getConfig } from "@/services/localhostService";
 import { useAllEnvironments } from "@/context/list-environments";
 import { Cursor } from "api/js/types/v1/cursor_pb";
 import { StreamResponse } from "api/js/svc/query/v1/service_pb";
+import { extractFromStreamResponses } from "@/lib/utils/dataHelpers";
 
 interface SessionPanelProps {
   ids?: { machineId?: string; sessionId?: string };
@@ -221,20 +222,13 @@ const SessionPanel = ({
   }, [fetchNext]);
 
   useEffect(() => {
-    if (!streamRes) { return }
-      const _logs: IngestedLogEvent[] = [];
-      streamRes.forEach((res) => {
-        if (res.data?.shape.case === "tabular") {
-          const { value } = res.data.shape;
-          if (value.shape.value && value.shape.case === "logEvents") {
-            const { events } = value.shape.value;
-            _logs.push(...events);
-          }
-        }
-      });
-
-      setLogs(_logs);
-    }
+    if (!streamRes) return;
+    const _logs = extractFromStreamResponses<IngestedLogEvent, LogEvents>(
+      streamRes,
+      "logEvents",
+      (value) => value.events,
+    );
+    setLogs(_logs);
   }, [streamRes]);
 
   const onClickShare = () => {
