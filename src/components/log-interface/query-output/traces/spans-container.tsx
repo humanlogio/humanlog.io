@@ -47,6 +47,8 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { copyToClipboard } from "@/lib/utils/clipboard";
+import { StreamResponse } from "api/js/svc/query/v1/service_pb";
+import { extractFromStreamResponses } from "@/lib/utils/dataHelpers";
 
 interface FreeFormContainerProps {
   query: Query | undefined;
@@ -54,6 +56,7 @@ interface FreeFormContainerProps {
   initialNext?: Cursor | null;
   providedData?: Spans;
   queryHistoryEntry?: QueryHistoryEntry;
+  streamRes?: StreamResponse[];
 }
 
 export const SpansContainer = ({
@@ -62,6 +65,7 @@ export const SpansContainer = ({
   initialNext,
   providedData,
   queryHistoryEntry,
+  streamRes,
 }: FreeFormContainerProps) => {
   const { targetRef, fetchNext, fetchData, next, setNext } =
     useInfiniteQuery(query);
@@ -116,6 +120,15 @@ export const SpansContainer = ({
 
     setFilteredSpans(filtered);
   }, [spans, searchTerm]);
+
+  useEffect(() => {
+    if (!streamRes) return;
+    const _spans = extractFromStreamResponses<Span, Spans>(
+      streamRes,
+      (value) => value.spans,
+    );
+    setSpans(_spans);
+  }, [streamRes]);
 
   if (!spans) {
     return (
