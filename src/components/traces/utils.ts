@@ -6,6 +6,8 @@ export interface SpanTreeNode {
   span: Span;
   parent: SpanTreeNode | undefined;
   children: SpanTreeNode[];
+  index: number;
+  isLast: boolean;
   depth: number;
   visible: boolean;
   folded: boolean;
@@ -28,6 +30,8 @@ export const buildSpanTree = (spans: Span[]): SpanTreeNode[] => {
       span,
       parent: undefined,
       children: [],
+      index: 0,
+      isLast: false,
       depth: 0,
       visible: true,
       folded: false,
@@ -55,6 +59,15 @@ export const buildSpanTree = (spans: Span[]): SpanTreeNode[] => {
       rootNodes.push(currentNode);
     }
   });
+
+  // Properly set the index and isLast of each node within its siblings group
+  const setIndicesAndLastFlag = (nodes: SpanTreeNode[]) => {
+    nodes.forEach((node, idx, arr) => {
+      node.index = idx;
+      node.isLast = idx === arr.length - 1;
+      setIndicesAndLastFlag(node.children);
+    });
+  };
 
   // Sort nodes by time
   const sortNodesByTime = (nodes: SpanTreeNode[]): SpanTreeNode[] => {
@@ -84,7 +97,12 @@ export const buildSpanTree = (spans: Span[]): SpanTreeNode[] => {
   };
 
   rootNodes.forEach(sortAllChildren);
-  return sortNodesByTime(rootNodes);
+  const sortedRootNodes = sortNodesByTime(rootNodes);
+
+  // Set indices and isLast flag after sorting to ensure they reflect the final order
+  setIndicesAndLastFlag(sortedRootNodes);
+
+  return sortedRootNodes;
 };
 
 export const walkSpanTreeNodeFlat = (
