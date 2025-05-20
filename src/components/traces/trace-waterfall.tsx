@@ -142,10 +142,49 @@ export const TraceWaterfall = ({
             {Array(node.depth)
               .fill(0)
               .map((_, i) => (
-                <div key={i} className="w-3 flex-shrink-0" />
+                <div key={i} className="w-5 flex-shrink-0" />
               ))}
 
-            <div className={twMerge("flex items-center")}>
+            <div className={twMerge("relative flex items-center")}>
+              {node.parent && (
+                <div className="absolute flex items-center">
+                  {node.isLast ? (
+                    <div
+                      className="absolute top-[-17px] left-[-8px] h-5 w-[2px]"
+                      style={{
+                        backgroundColor: serviceColors[node.span.serviceName],
+                      }}
+                    />
+                  ) : (
+                    <div
+                      className={twMerge("absolute left-[-8px] w-[2px]")}
+                      style={{
+                        height: `${(node.children.length + 1) * 50}px`,
+                        top:
+                          node.children.length > 0
+                            ? `-${node.children.length * 10}px`
+                            : "",
+                        backgroundColor: serviceColors[node.span.serviceName],
+                      }}
+                    />
+                  )}
+                  {node.children.length > 0 ? (
+                    <div
+                      className="absolute left-[-8px] h-[2px] w-2"
+                      style={{
+                        backgroundColor: serviceColors[node.span.serviceName],
+                      }}
+                    />
+                  ) : (
+                    <div
+                      className="absolute left-[-8px] h-[2px] w-5"
+                      style={{
+                        backgroundColor: serviceColors[node.span.serviceName],
+                      }}
+                    />
+                  )}
+                </div>
+              )}
               <div className="flex w-6 flex-shrink-0 items-center justify-center">
                 {canToggle ? (
                   <button
@@ -164,13 +203,22 @@ export const TraceWaterfall = ({
                   </button>
                 ) : (
                   <div
-                    className="h-1 w-1 rounded-full"
+                    className="h-2 w-2 rounded-full"
                     style={{
                       backgroundColor: serviceColors[node.span.serviceName],
                     }}
                   />
                 )}
               </div>
+
+              {node.children.length > 0 && (
+                <div
+                  className="absolute bottom-[-4px] left-[9.5px] h-3 w-[2px]"
+                  style={{
+                    backgroundColor: serviceColors[node.span.serviceName],
+                  }}
+                />
+              )}
 
               <div className="w-64 flex-shrink-0 pr-2">
                 <div
