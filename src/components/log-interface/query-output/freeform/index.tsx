@@ -81,7 +81,7 @@ export const FreeFormContainer = ({
   }, [fetchNext]);
 
   useEffect(() => {
-    if (streamRes) {
+    if (!streamRes) { return }
       const _tableRows: Arr[] = [];
 
       streamRes.forEach((res) => {
