@@ -1,6 +1,15 @@
 import { StreamResponse } from "api/js/svc/query/v1/service_pb";
-import { Data } from "api/js/types/v1/data_pb";
-import { Dispatch, SetStateAction } from "react";
+import { Data, LogEvents, Spans, Tabular } from "api/js/types/v1/data_pb";
+import { Table } from "api/js/types/v1/types_pb";
+
+export const onTabularData = (
+  data: Data | undefined,
+  handler: (tabular: LogEvents | Table | Spans | undefined) => void,
+) => {
+  if (!data) return;
+  if (data.shape.case !== "tabular") return;
+  handler(data.shape.value.shape.value);
+};
 
 /**
  * Extract data from stream responses based on the shape case.
@@ -12,7 +21,6 @@ import { Dispatch, SetStateAction } from "react";
  */
 export function extractFromStreamResponses<T, R>(
   streamRes: StreamResponse[] | undefined,
-  shapeCase: string,
   extractFn: (value: any) => T[],
 ): T[] {
   if (!streamRes) return [];
@@ -20,13 +28,10 @@ export function extractFromStreamResponses<T, R>(
   const results: T[] = [];
 
   streamRes.forEach((res) => {
-    if (res.data?.shape.case === "tabular") {
-      const { value } = res.data.shape;
-      if (value.shape.value && value.shape.case === shapeCase) {
-        const extracted = extractFn(value.shape.value);
-        results.push(...extracted);
-      }
-    }
+    onTabularData(res.data, (tabular) => {
+      const extracted = extractFn(tabular);
+      results.push(...extracted);
+    });
   });
 
   return results;

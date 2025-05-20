@@ -85,7 +85,6 @@ export const FreeFormContainer = ({
     if (!streamRes) return;
     const _tableRows = extractFromStreamResponses<Arr, Table>(
       streamRes,
-      "freeForm",
       (value) => {
         setTableColumns(value.type?.columns);
         return value.rows;
