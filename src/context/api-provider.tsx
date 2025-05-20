@@ -85,8 +85,6 @@ export function ApiClientsProvider({
   >();
   const [authenticated, setAuthenticated] = useState(false);
 
-  let humanlogSessionCookie = cookies["hlog_session"];
-
   const deleteCookie = () => {
     document.cookie = `hlog_session=; path=/; domain=.humanlog${config.TLD}; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
   };
@@ -105,11 +103,9 @@ export function ApiClientsProvider({
   };
 
   const apiClients = useMemo((): ApiClients => {
-    const auther = (token: string): Interceptor => {
+    const auther = (): Interceptor => {
       return (next) => async (req) => {
-        if (!token) {
-          token = cookies["hlog_session"];
-        }
+        const token = cookies["hlog_session"];
         if (token && token != "") {
           req.header.set("Browser-Authorization", token);
         }
@@ -121,11 +117,8 @@ export function ApiClientsProvider({
             res.header.get("UseAuthorization") ||
             res.header.get("useauthorization");
 
-          !isProd && console.log("res.header", res.header);
-
           if (newToken) {
             console.log("Received new authorization token");
-            token = newToken;
             setCookie("hlog_session", newToken, {
               path: "/",
               domain: `.humanlog${config.TLD}`,
@@ -151,7 +144,7 @@ export function ApiClientsProvider({
     });
     const apiTpt = createConnectTransport({
       baseUrl: getAPIURL(),
-      interceptors: [auther(humanlogSessionCookie)],
+      interceptors: [auther()],
     });
     setApiTransport(apiTpt);
 
@@ -177,7 +170,7 @@ export function ApiClientsProvider({
       localhostTransport: localhostTransport,
       activeTransport: activeTransport,
     };
-  }, [humanlogSessionCookie, activeEnvironment]);
+  }, [activeEnvironment]);
 
   return (
     <TransportProvider transport={apiTransport!}>
