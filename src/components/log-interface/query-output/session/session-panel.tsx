@@ -221,7 +221,7 @@ const SessionPanel = ({
   }, [fetchNext]);
 
   useEffect(() => {
-    if (streamRes) {
+    if (!streamRes) { return }
       const _logs: IngestedLogEvent[] = [];
       streamRes.forEach((res) => {
         if (res.data?.shape.case === "tabular") {
