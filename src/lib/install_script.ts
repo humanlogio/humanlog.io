@@ -100,6 +100,115 @@ function append_content_to_file() {
 	echo \${content} >> \${filename}
 }
 
+function add_path_bash() {
+	local path="$1"
+	local profile="\${HOME}/.bash_profile"
+	local line="export PATH=\"\${path}:\$PATH\""
+
+	if ! check_file_has_content "\${profile}" "\${line}"; then
+		append_content_to_file "\${profile}" "\${line}"
+		loginfo "\${path} was added to your \\\$PATH (via '\${profile}')"
+		source \${profile}
+		echo -e "\nRun \\\`source \${profile}\\\` to update your \\\$PATH right away."
+	fi
+}
+
+function add_path_zsh() {
+	local path="$1"
+	local profile="\${HOME}/.zshrc"
+	local line="export PATH=\"\${path}:\$PATH\""
+
+	if ! check_file_has_content "\${profile}" "\${line}"; then
+		append_content_to_file "\${profile}" "\${line}"
+		loginfo "\${path} was added to your \\\$PATH (via '\${profile}')"
+		echo -e "\nRun \\\`source \${profile}\\\` to update your \\\$PATH right away."
+	fi
+}
+
+function add_path_fish() {
+	local path="$1"
+	local profile="\${HOME}/.config/fish/config.fish"
+	local line="fish_add_path \"\${path}\""
+
+	if ! check_file_has_content "\${profile}" "\${line}"; then
+		append_content_to_file "\${profile}" "\${line}"
+		loginfo "\${path} was added to your \\\$PATH (via '\${profile}')"
+		echo -e "\nRun \\\`source \${profile}\\\` to update your \\\$PATH right away."
+	fi
+}
+
+function add_path_to_shell() {
+	local path="$1"
+	local shell_name
+	shell_name=$(basename "\${SHELL}")
+
+	case "\${shell_name}" in
+		bash)
+			add_path_bash "\${path}"
+			;;
+		zsh)
+			add_path_zsh "\${path}"
+			;;
+		fish)
+			add_path_fish "\${path}"
+			;;
+		*)
+			loginfo "Unrecognized shell: \${shell_name}. Please add \${path} to your PATH manually."
+			;;
+	esac
+}
+
+function is_usable_path_dir() {
+	local dir="$1"
+
+	if [ -d "\${dir}" ] && [ -w "\${dir}" ]; then
+		case ":$PATH:" in
+			*":\${dir}:"*)
+				return 0
+				;;
+		esac
+	fi
+
+	return 1
+}
+
+function detect_user_install_dir() {
+	local existing_path
+	existing_path=$(command -v humanlog 2>/dev/null || true)
+
+	# 0. Overwrite existing binary if it's writable
+	if [ -n "\${existing_path}" ] && [ -f "\${existing_path}" ] && [ -w "\${existing_path}" ]; then
+		dirname "\${existing_path}"
+		return 0
+	fi
+
+
+	# 1. Use XDG_BIN_HOME if valid
+	if [ -n "\${XDG_BIN_HOME}" ] && is_usable_path_dir "\${XDG_BIN_HOME}"; then
+		printf "%s\n" "\${XDG_BIN_HOME}"
+		return 0
+	fi
+
+	# 2. Use ~/.local/bin if valid
+	local local_bin="\${HOME}/.local/bin"
+	if is_usable_path_dir "\${local_bin}"; then
+		printf "%s\n" "\${local_bin}"
+		return 0
+	fi
+
+	# 3. Scan $PATH for first usable dir
+	IFS=:
+	for dir in $PATH; do
+		if [ -d "\${dir}" ] && [ -w "\${dir}" ]; then
+			printf "%s\n" "\${dir}"
+			return 0
+		fi
+	done
+
+	# 4. Fallback to ~/.local/bin even if not in $PATH or not yet created
+	printf "%s\n" "\${local_bin}"
+}
+
 os=$(uname -s)
 arch=$(uname -m)
 channel="\${HUMANLOG_CHANNEL:-${channel}}"
@@ -119,71 +228,27 @@ loginfo "installing latest release from \${project_uri}"
 
 set -e
 
-project_install="\${HUMANLOG_INSTALL:-$HOME/.humanlog}"
+project_install="\${HUMANLOG_INSTALL:-$(detect_user_install_dir)}"
 
-bin_dir="\${project_install}/bin"
-exe="\${bin_dir}/\${project}"
+exe="\${project_install}/\${project}"
 
-if [ ! -d "\${bin_dir}" ]; then
- 	mkdir -p "\${bin_dir}"
+if [ ! -d "\${project_install}" ]; then
+ 	mkdir -p "\${project_install}"
 fi
 
 curl -q --fail --show-error --location --progress-bar --output "\${exe}.tar.gz" "\${project_uri}"
-cd "\${bin_dir}"
+cd "\${project_install}"
 tar xzf "\${exe}.tar.gz"
 chmod +x "\${exe}"
 rm "\${exe}.tar.gz"
 ${onboardingBlock}
 
 loginfo "\${project} was successfully installed to \${exe}"
-if command -v \${project} >/dev/null; then
+
+if command -v "\${project}" >/dev/null; then
 	loginfo "Run '\${project} --help' to get started"
 else
-	shell=$(basename \${SHELL})
-	if [ "\$\{shell}" == "fish" ]; then
-		shell_profile=".config/fish/config.fish"
-		if ! check_file_has_content "\${HOME}/\${shell_profile}" "fish_add_path \"\${project_install}/bin\""; then
-			append_content_to_file "\${HOME}/\${shell_profile}" "fish_add_path \"\${project_install}/bin\""
-			loginfo "\${project_install}/bin was added to your \\\$PATH (via '"\${shell_profile}\"')"
-			cat <<EOF
-
-	Run \\\`source \${shell_profile}\\\` to update your \\\$PATH right away.
-EOF
-		fi
-		cat <<EOF
-
-	Run \\\`\${project} --help\\\` to get started
-
-EOF
-	fi
-
-	if [ "\$\{shell}" == "zsh" ]; then
-		shell_profile=".zshrc"
-		cat <<EOF
-
-	Manually add the directory to your \$HOME/\${shell_profile} (or similar)
-
-		export HUMANLOG_INSTALL=\"\${project_install}\"
-		export PATH=\"\\\$HUMANLOG_INSTALL/bin:\\\$PATH\"
-
-	Run '\${exe} --help' to get started
-
-EOF
-	fi
-
-	if [ "\$\{shell}" == "bash" ]; then
-		shell_profile=".bash_profile"
-		cat <<EOF
-
-	Manually add the directory to your \$HOME/\${shell_profile} (or similar)
-
-		export HUMANLOG_INSTALL=\"\${project_install}\"
-		export PATH=\"\\\$HUMANLOG_INSTALL/bin:\\\$PATH\"
-
-	Run '\${exe} --help' to get started
-
-EOF
-	fi
+	add_path_to_shell "\${project_install}"
 fi
 `;
 };
