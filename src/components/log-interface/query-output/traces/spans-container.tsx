@@ -120,7 +120,7 @@ export const SpansContainer = ({
   }, [spans, searchTerm]);
 
   useEffect(() => {
-    if (streamRes) {
+    if (!streamRes) { return }
       const _spans: Span[] = [];
       streamRes.forEach((res) => {
         if (res.data?.shape.case === "tabular") {
