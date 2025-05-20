@@ -54,31 +54,6 @@ const AboveFoldHero: React.FC = () => {
   // Add state for logs/traces toggle
   const [selectedTab, setSelectedTab] = useState<"logs" | "traces">("logs");
 
-  // Fallback to system if colorMode is undefined
-  let mode: "light" | "dark" = "light";
-  if (colorMode === "dark") mode = "dark";
-  if (colorMode === "system" && typeof window !== "undefined") {
-    mode = window.matchMedia("(prefers-color-scheme: dark)").matches
-      ? "dark"
-      : "light";
-  }
-
-  // Compose the themes object for SessionPanel (FormatConfig_Themes)
-  const getThemeJson = (theme: FormatConfig_Theme) => {
-    if (theme && typeof theme.toJson === "function") return theme.toJson();
-    // fallback: ensure plain object for proto messages
-    return JSON.parse(JSON.stringify(theme));
-  };
-  const themes: FormatConfig_Themes | undefined =
-    defaultConfig.formatter?.themes &&
-    defaultConfig.formatter.themes.light &&
-    defaultConfig.formatter.themes.dark
-      ? FormatConfig_Themes.fromJson({
-          light: getThemeJson(defaultConfig.formatter.themes.light),
-          dark: getThemeJson(defaultConfig.formatter.themes.dark),
-        })
-      : undefined;
-
   const [githubStars, setGithubStars] = useState("∞");
 
   // Fetch GitHub stars count from local API route (cached)
@@ -234,8 +209,6 @@ const AboveFoldHero: React.FC = () => {
                     <SessionPanel
                       providedData={sampleLogs().data}
                       query={undefined}
-                      mode={mode}
-                      themes={themes}
                     />
                   </div>
                 </>

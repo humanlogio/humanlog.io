@@ -88,12 +88,6 @@ const SessionPanel = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const { theme } = useTheme();
 
-  const isDark = mode
-    ? mode === "dark"
-    : theme === "dark" ||
-      (theme === "system" &&
-        window.matchMedia("(prefers-color-scheme: dark)").matches);
-
   const pretty = searchParams.get("pretty") !== "false";
 
   const { apiClients } = useApiClients();
@@ -115,8 +109,10 @@ const SessionPanel = ({
   const [logs, setLogs] = useState<IngestedLogEvent[]>();
   const [config, setConfig] = useState<LocalhostConfig>();
   const [sectionBreak, setSectionBreak] = useState(false);
+  const [isDark, setIsDark] = useState(false);
+
   const { getColor, getLevelColor } = useThemeColors(
-    isDark ?? false,
+    isDark,
     themes ?? config?.formatter?.themes,
   );
   const [selectedLines, setSelectedLines] = useState<string | null>();
@@ -191,6 +187,16 @@ const SessionPanel = ({
 
     selected.func(text);
   };
+
+  useEffect(() => {
+    const darkMode = mode
+      ? mode === "dark"
+      : theme === "dark" ||
+        (theme === "system" &&
+          window.matchMedia("(prefers-color-scheme: dark)").matches);
+
+    setIsDark(darkMode);
+  }, [mode, theme]);
 
   useEffect(() => {
     handleConfig();
@@ -318,10 +324,7 @@ const SessionPanel = ({
 
         <div
           ref={containerRef}
-          className={twJoin(
-            "flex flex-grow text-sm",
-            mode === "dark" && "bg-black",
-          )}
+          className={twJoin("flex flex-grow text-sm", isDark && "bg-black")}
         >
           <div className="flex-1 border-separate overflow-x-auto py-2">
             {logs && logs.length > 0 ? (
