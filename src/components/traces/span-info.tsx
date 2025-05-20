@@ -1,5 +1,5 @@
 import { SpanTreeNode } from "@/components/traces/utils";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, Hash } from "lucide-react";
 
 interface SpanInfo {
   node: SpanTreeNode;
@@ -19,6 +19,17 @@ export const SpanInfo = ({ node, serviceColors }: SpanInfo) => {
         </div>
         <div className="text-base font-medium text-gray-700 dark:text-gray-200">
           {node.span.name}
+        </div>
+      </div>
+
+      {/* Span ID */}
+      <div className="mb-4 border-b px-2 pb-4">
+        <div className="mb-1 flex items-center font-medium">
+          <Hash size={16} className="mr-1" />
+          <span>Span ID</span>
+        </div>
+        <div className="mt-1 rounded px-2 py-1 font-mono text-sm">
+          {node.span.spanId}
         </div>
       </div>
 
