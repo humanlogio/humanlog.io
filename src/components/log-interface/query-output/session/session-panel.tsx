@@ -225,7 +225,6 @@ const SessionPanel = ({
     if (!streamRes) return;
     const _logs = extractFromStreamResponses<IngestedLogEvent, LogEvents>(
       streamRes,
-      "logEvents",
       (value) => value.events,
     );
     setLogs(_logs);

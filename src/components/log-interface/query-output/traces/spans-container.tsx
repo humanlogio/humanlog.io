@@ -125,7 +125,6 @@ export const SpansContainer = ({
     if (!streamRes) return;
     const _spans = extractFromStreamResponses<Span, Spans>(
       streamRes,
-      "spans",
       (value) => value.spans,
     );
     setSpans(_spans);
