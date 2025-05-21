@@ -228,7 +228,7 @@ const SessionPanel = ({
   }, [fetchNext]);
 
   useEffect(() => {
-    if (!streamRes) return;
+    if (!streamRes || streamRes.length === 0) return;
     const _logs = extractFromStreamResponses<IngestedLogEvent, LogEvents>(
       streamRes,
       (value) => value.events,
