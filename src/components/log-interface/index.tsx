@@ -13,7 +13,7 @@ import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import { NoLocalhostView } from "@/components/log-interface/views/no-localhost-view";
 import { useApiClients } from "@/context/api-provider";
 import { useAllEnvironments } from "@/context/list-environments";
-import { useInfiniteQuery } from "@/lib/utils/useInfiniteQuery";
+import { useInfiniteQuery } from "@/lib/hooks/useInfiniteQuery";
 
 import {
   ParseResponse,
@@ -30,7 +30,6 @@ import {
   Statements,
 } from "api/js/types/v1/query_pb";
 import { Val } from "api/js/types/v1/types_pb";
-import { newIdentifierExpr } from "@/lib/utils/queryBuilders";
 import { X } from "lucide-react";
 import {
   getQuery,
@@ -56,6 +55,7 @@ import Graph from "@/components/ui/graph/graph";
 import { trace, SpanStatusCode } from "@opentelemetry/api";
 import { ConnectError } from "@connectrpc/connect";
 import { Duration } from "@bufbuild/protobuf";
+import { newIdentifierExpr } from "@/lib/utils/queryExpressions";
 
 export type DataCase =
   | "subqueries"

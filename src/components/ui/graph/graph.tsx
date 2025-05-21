@@ -19,7 +19,7 @@ import {
   convertToGraphDataPoints,
   convertToTimestamp,
 } from "@/components/env/graph-utils";
-import { useDebouncer } from "@/lib/utils/useDebouncer";
+import { useDebouncer } from "@/lib/hooks/useDebouncer";
 import DateRangePicker from "@/components/ui/graph/dateRangePicker";
 
 export type ZoomType = {
