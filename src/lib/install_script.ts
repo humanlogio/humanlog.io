@@ -4,6 +4,7 @@ const suggestDemo = false;
 export const renderInstallScript = (
   project: string,
   logPrefix: string,
+  selfBaseURL: URL,
   apiBaseURL: URL,
   channel: string,
   hasOnboarding: boolean,
@@ -21,8 +22,8 @@ fi`;
     onboardingBlock = `
 if [[ -z "\${NONINTERACTIVE-}" ]]; then
 	loginfo "🚀 hello humanlog dev, we will run your local checkout's onboarding command. enjoy!"
-	loginfo "🚀 > go run -tags pro ./cmd/humanlog onboarding"
-	go run -tags pro ./cmd/humanlog onboarding
+	loginfo "🚀 > go run -ldflags \\\"-X main.defaultBaseSiteAddr=${selfBaseURL}\\\" -tags pro ./cmd/humanlog onboarding"
+	go run -ldflags "-X main.defaultBaseSiteAddr=${selfBaseURL}" -tags pro ./cmd/humanlog onboarding
 fi`;
   }
 
