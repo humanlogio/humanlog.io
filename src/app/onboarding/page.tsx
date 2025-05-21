@@ -9,7 +9,7 @@ export default function OnboardingPage() {
   const searchParams = useSearchParams();
   const step = searchParams.get("step");
 
-  if (step === "username") {
+  if (step === "username" || !step) {
     return <OnboardingUsername />;
   }
 
