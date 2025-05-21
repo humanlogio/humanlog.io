@@ -152,19 +152,21 @@ export const TraceWaterfall = ({
                     <div
                       className="absolute top-[-17px] left-[-8px] h-5 w-[2px]"
                       style={{
-                        backgroundColor: serviceColors[node.span.serviceName],
+                        backgroundColor:
+                          serviceColors[node.parent.span.serviceName],
                       }}
                     />
                   ) : (
                     <div
                       className={twMerge("absolute left-[-8px] w-[2px]")}
                       style={{
-                        height: `${(node.children.length + 1) * 50}px`,
+                        height: `${(node.children.length + 1) * 60}px`,
                         top:
                           node.children.length > 0
-                            ? `-${node.children.length * 10}px`
+                            ? `-${node.children.length * 5}px`
                             : "",
-                        backgroundColor: serviceColors[node.span.serviceName],
+                        backgroundColor:
+                          serviceColors[node.parent.span.serviceName],
                       }}
                     />
                   )}
@@ -172,29 +174,31 @@ export const TraceWaterfall = ({
                     <div
                       className="absolute left-[-8px] h-[2px] w-2"
                       style={{
-                        backgroundColor: serviceColors[node.span.serviceName],
+                        backgroundColor:
+                          serviceColors[node.parent.span.serviceName],
                       }}
                     />
                   ) : (
                     <div
                       className="absolute left-[-8px] h-[2px] w-5"
                       style={{
-                        backgroundColor: serviceColors[node.span.serviceName],
+                        backgroundColor:
+                          serviceColors[node.parent.span.serviceName],
                       }}
                     />
                   )}
                 </div>
               )}
-              <div className="flex w-6 flex-shrink-0 items-center justify-center">
+              <div className="z-10 flex w-6 flex-shrink-0 items-center justify-center">
                 {canToggle ? (
                   <button
                     onClick={onToggleVisibility}
-                    className="mr-1 flex h-5 w-5 items-center justify-center rounded border text-xs"
+                    className="mr-1 flex h-5 w-5 items-center justify-center rounded border bg-white text-xs dark:bg-black"
                     style={{
                       borderColor: serviceColors[node.span.serviceName],
                       backgroundColor: isFolded
                         ? serviceColors[node.span.serviceName]
-                        : "transparent",
+                        : "",
                       color: isFolded ? "white" : "",
                       fontWeight: isFolded ? "bold" : "normal",
                     }}
