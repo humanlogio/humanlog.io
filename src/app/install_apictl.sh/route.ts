@@ -11,6 +11,7 @@ export async function GET(request: Request) {
   const installScript = renderInstallScript(
     project,
     logPrefix,
+    selfBaseURL,
     apiBaseURL,
     getReleaseChannel(),
     false,
