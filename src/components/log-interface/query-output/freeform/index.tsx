@@ -1,4 +1,4 @@
-import { useInfiniteQuery } from "@/lib/utils/useInfiniteQuery";
+import { useInfiniteQuery } from "@/lib/hooks/useInfiniteQuery";
 import { QueryHistoryEntry } from "api/js/types/v1/query_history_entry_pb";
 import { Query } from "api/js/types/v1/query_pb";
 import { Arr, Table, TableType_Column } from "api/js/types/v1/types_pb";
@@ -13,16 +13,16 @@ import { Button } from "@/components/ui/button";
 import { Loader, Share } from "lucide-react";
 import { ShareQuery } from "@/components/log-interface/share-query";
 import { Data } from "api/js/types/v1/data_pb";
-import {
-  newFreeFormTablular,
-  newTable,
-  newTabularData,
-} from "@/lib/utils/dataBuilders";
 import TableContainer from "@/components/log-interface/query-output/freeform/table-container";
 import Histogram from "@/components/log-interface/query-output/freeform/histogram-container";
 import { Cursor } from "api/js/types/v1/cursor_pb";
 import { StreamResponse } from "api/js/svc/query/v1/service_pb";
 import { extractFromStreamResponses } from "@/lib/utils/dataHelpers";
+import {
+  newFreeFormTablular,
+  newTable,
+  newTabularData,
+} from "@/lib/utils/dataShapeFactories";
 
 interface FreeFormContainerProps {
   query: Query | undefined;
