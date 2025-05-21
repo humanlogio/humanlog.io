@@ -1,6 +1,4 @@
-import { Data, LogEvents, Spans, Tabular } from "api/js/types/v1/data_pb";
-import { Span } from "api/js/types/v1/tracing_pb";
-
+import { Data, Tabular, LogEvents, Spans } from "api/js/types/v1/data_pb";
 import {
   Arr,
   Table,

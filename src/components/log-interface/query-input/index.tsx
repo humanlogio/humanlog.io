@@ -25,7 +25,6 @@ import {
   Statement,
 } from "api/js/types/v1/query_pb";
 import { FormatRequest, ParseResponse } from "api/js/svc/query/v1/service_pb";
-import { newBinaryExpr, newIdentifierExpr } from "@/lib/utils/queryBuilders";
 import { formatQuery, parseQuery } from "@/services/queryService";
 import {
   Tooltip,
@@ -37,6 +36,7 @@ import { SaveQueryModal } from "@/components/log-interface/query-library/save-qu
 import Graph from "@/components/ui/graph/graph";
 import { useAllEnvironments } from "@/context/list-environments";
 import dynamic from "next/dynamic";
+import { newBinaryExpr } from "@/lib/utils/queryExpressions";
 
 const MonacoEditor = dynamic(
   () => import("@/components/editor/monaco-editor"),

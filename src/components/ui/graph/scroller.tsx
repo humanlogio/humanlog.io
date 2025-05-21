@@ -1,6 +1,6 @@
 import { ReactElement, useCallback, useEffect, useRef, useState } from "react";
 import { ZoomType } from "@/components/ui/graph/graph";
-import { useDebouncer } from "@/lib/utils/useDebouncer";
+import { useDebouncer } from "@/lib/hooks/useDebouncer";
 
 export const GRAPH_RANGE_MIN_WIDTH = 10;
 const PAN_THRESHOLD = 10;
