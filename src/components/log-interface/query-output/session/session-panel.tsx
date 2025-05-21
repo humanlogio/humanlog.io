@@ -1,7 +1,7 @@
 import { copyToClipboard } from "@/lib/utils/clipboard";
 import { formatTimestamp } from "@/lib/utils/formatTimeStamp";
 
-import { useInfiniteQuery } from "@/lib/utils/useInfiniteQuery";
+import { useInfiniteQuery } from "@/lib/hooks/useInfiniteQuery";
 import { IngestedLogEvent } from "api/js/types/v1/logevent_pb";
 import { BinaryOp_Operator, Expr, Query } from "api/js/types/v1/query_pb";
 import {
@@ -20,7 +20,7 @@ import {
   LocalhostConfig,
 } from "api/js/types/v1/localhost_config_pb";
 import { useTheme } from "next-themes";
-import { useThemeColors } from "@/lib/utils/useThemeColors";
+import { useThemeColors } from "@/lib/hooks/useThemeColors";
 import { useApiClients } from "@/context/api-provider";
 import {
   Tooltip,
@@ -47,9 +47,7 @@ import {
   KeyValueRow,
   MetaDataTooltip,
 } from "@/components/log-interface/query-output/session/session-control";
-import { newIdentifierExpr, newLiteralExpr } from "@/lib/utils/queryBuilders";
 import { Data, LogEvents, Tabular } from "api/js/types/v1/data_pb";
-import { newLogEventsTablular, newTabularData } from "@/lib/utils/dataBuilders";
 import { ShareQuery } from "@/components/log-interface/share-query";
 import { QueryHistoryEntry } from "api/js/types/v1/query_history_entry_pb";
 import { defaultConfig, getConfig } from "@/services/localhostService";
@@ -57,6 +55,14 @@ import { useAllEnvironments } from "@/context/list-environments";
 import { Cursor } from "api/js/types/v1/cursor_pb";
 import { StreamResponse } from "api/js/svc/query/v1/service_pb";
 import { extractFromStreamResponses } from "@/lib/utils/dataHelpers";
+import {
+  newLogEventsTablular,
+  newTabularData,
+} from "@/lib/utils/dataShapeFactories";
+import {
+  newIdentifierExpr,
+  newLiteralExpr,
+} from "@/lib/utils/queryExpressions";
 
 interface SessionPanelProps {
   ids?: { machineId?: string; sessionId?: string };

@@ -3,14 +3,14 @@ import { IngestedLogEvent } from "api/js/types/v1/logevent_pb";
 import { formatTimestamp, getUnixTimestamp } from "@/lib/utils/formatTimeStamp";
 import { Timestamp } from "@bufbuild/protobuf";
 import { BinaryOp_Operator, Expr } from "api/js/types/v1/query_pb";
+import { LocalhostConfig } from "api/js/types/v1/localhost_config_pb";
+import { useAllEnvironments } from "@/context/list-environments";
 import {
   newI64Expr,
   newIdentifierExpr,
   newStrExpr,
   newTimestampExpr,
-} from "@/lib/utils/queryBuilders";
-import { LocalhostConfig } from "api/js/types/v1/localhost_config_pb";
-import { useAllEnvironments } from "@/context/list-environments";
+} from "@/lib/utils/queryExpressions";
 
 const OPERATORS = [
   {

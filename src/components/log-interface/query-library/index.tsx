@@ -8,7 +8,7 @@ import {
 import { twMerge } from "tailwind-merge";
 import { useApiClients } from "@/context/api-provider";
 import { Cursor } from "api/js/types/v1/cursor_pb";
-import { useInfiniteScroll } from "@/lib/utils/useInfiniteScroll";
+import { useInfiniteScroll } from "@/lib/hooks/useInfiniteScroll";
 import {
   ListFavoriteQueryResponse_ListItem,
   ListQueryHistoryResponse_ListItem,

@@ -7,6 +7,9 @@ import { useSearchParams } from "next/navigation";
 export default function TracesPage() {
   const searchParams = useSearchParams();
   const traceId = searchParams.get("traceId");
+
+  // fake data
+  // const traceId = "8f641c20-f416-45da-b25f-c35f9a116826";
   const spanId = searchParams.get("spanId");
 
   if (!traceId) {

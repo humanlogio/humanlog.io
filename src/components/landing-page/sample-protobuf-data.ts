@@ -1,108 +1,21 @@
 import { Timestamp, Duration } from "@bufbuild/protobuf";
-import {
-  IngestedLogEvent,
-  StructuredLogEvent,
-} from "api/js/types/v1/logevent_pb";
-import { Span, Span_Timing } from "api/js/types/v1/tracing_pb";
-import { KV } from "api/js/types/v1/types_pb";
-import {
-  newNullVal,
-  newStrVal,
-  newI64Val,
-  newF64Val,
-  newDurationVal,
-  newTimestampVal,
-} from "@/lib/utils/queryBuilders";
+import { IngestedLogEvent } from "api/js/types/v1/logevent_pb";
+
 import { Spans } from "api/js/types/v1/data_pb";
-
-// --- Helper for BigInt (avoids BigInt literals for ES2019 compatibility) ---
-function toBigInt(val: number | string): any {
-  // Use BigInt if available, otherwise fallback to string (for proto compatibility)
-  // Typescript will accept string for proto fields expecting bigint
-  try {
-    // @ts-ignore
-    return typeof BigInt !== "undefined" ? BigInt(val) : String(val);
-  } catch {
-    return String(val);
-  }
-}
-
-// --- Helper functions for log events ---
-// Accepts all supported value types and applies the correct helper
-function makeStrKV(key: string, value: string): KV {
-  return new KV({ key, value: newStrVal(value) });
-}
-function makeI64KV(key: string, value: number | bigint): KV {
-  return new KV({ key, value: newI64Val(value) });
-}
-function makeF64KV(key: string, value: number): KV {
-  return new KV({ key, value: newF64Val(value) });
-}
-function makeTimestampKV(key: string, value: Timestamp): KV {
-  return new KV({ key, value: newTimestampVal(value) });
-}
-function makeDurationKV(key: string, value: Duration): KV {
-  return new KV({ key, value: newDurationVal(value) });
-}
-function makeNullKV(key: string): KV {
-  return new KV({ key, value: newNullVal() });
-}
-
-function makeStructuredLogEvent(
-  timestamp: Timestamp,
-  lvl: string,
-  msg: string,
-  kvs: KV[],
-): StructuredLogEvent {
-  return new StructuredLogEvent({ timestamp, lvl, msg, kvs });
-}
-
-function makeIngestedLogEvent(
-  machineId: bigint,
-  sessionId: bigint,
-  eventId: bigint,
-  structured: StructuredLogEvent,
-): IngestedLogEvent {
-  return new IngestedLogEvent({
-    machineId,
-    sessionId,
-    eventId,
-    raw: new Uint8Array(0),
-    structured,
-  });
-}
-
-// --- Helper functions for spans ---
-/**
- * Create a protobuf Duration from milliseconds.
- */
-function makeDurationFromMs(ms: number): Duration {
-  const seconds = BigInt(Math.floor(ms / 1000));
-  const nanos = (ms % 1000) * 1_000_000;
-  return new Duration({ seconds, nanos });
-}
-
-function makeSpan(
-  spanId: string,
-  traceId: string,
-  parentSpanId: string,
-  operation: string,
-  startTime: Timestamp,
-  durationMs: number,
-  attributes: KV[],
-): Span {
-  return new Span({
-    spanId,
-    traceId,
-    parentSpanId,
-    name: operation,
-    timing: new Span_Timing({
-      start: startTime,
-      duration: makeDurationFromMs(durationMs),
-    }),
-    spanAttributes: attributes,
-  });
-}
+import { toBigInt } from "@/lib/utils/valueFactories";
+import { makeSpan } from "@/lib/utils/spanFactories";
+import {
+  makeDurationKV,
+  makeF64KV,
+  makeI64KV,
+  makeNullKV,
+  makeStrKV,
+  makeTimestampKV,
+} from "@/lib/utils/kvFactories";
+import {
+  makeIngestedLogEvent,
+  makeStructuredLogEvent,
+} from "@/lib/utils/logEventFactories";
 
 interface SampleLog {
   query: string;
@@ -238,6 +151,7 @@ export function sampleSpans(): SampleSpan {
           "8f641c20-f416-45da-b25f-c35f9a116826",
           "",
           "renderHomepage",
+          "web-frontend",
           tsAdd(ago10s, 1),
           80,
           [makeStrKV("service", "web-frontend"), makeStrKV("user", "alice")],
@@ -247,6 +161,7 @@ export function sampleSpans(): SampleSpan {
           "8f641c20-f416-45da-b25f-c35f9a116826",
           "75787b6c-0376-4239-88ab-bb46c9d4e015",
           "fetchUserProfile",
+          "backend-service",
           tsAdd(ago10s, 2),
           320,
           [makeStrKV("service", "web-frontend"), makeStrKV("user", "alice")],
@@ -256,6 +171,7 @@ export function sampleSpans(): SampleSpan {
           "8f641c20-f416-45da-b25f-c35f9a116826",
           "82da06d1-29dd-4534-893d-6d31f4ce0a27",
           "dbQuery",
+          "database-tier",
           tsAdd(ago10s, 3),
           120,
           [makeStrKV("service", "db-proxy"), makeStrKV("user", "alice")],

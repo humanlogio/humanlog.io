@@ -18,6 +18,11 @@ import {
 import { TraceWaterfall } from "@/components/traces/trace-waterfall";
 import { SpanInfo } from "@/components/traces/span-info";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
+import { makeSpan } from "@/lib/utils/spanFactories";
+import { Spans } from "api/js/types/v1/data_pb";
+import { Timestamp } from "@bufbuild/protobuf";
+import { toBigInt } from "@/lib/utils/valueFactories";
+import { makeStrKV } from "@/lib/utils/kvFactories";
 
 interface TracesProps {
   traceId: string | null;
@@ -36,6 +41,183 @@ const colorPalette = [
   "#f781bf", // pink
   "#999999", // gray
 ];
+
+const ago10s = new Timestamp({
+  seconds: toBigInt(Date.now() / 1000 - 10),
+  nanos: 0,
+});
+const tsAdd = (ts: Timestamp, seconds: number) => {
+  return new Timestamp({
+    seconds: ts.seconds + BigInt(seconds),
+    nanos: Number(ts.nanos),
+  });
+};
+
+const sampleSpans = {
+  data: new Spans({
+    spans: [
+      // Root span - Web Frontend
+      makeSpan(
+        "75787b6c-0376-4239-88ab-bb46c9d4e015",
+        "8f641c20-f416-45da-b25f-c35f9a116826",
+        "",
+        "handleUserRequest",
+        "web-frontend",
+        tsAdd(ago10s, 0),
+        800,
+        [
+          makeStrKV("service", "web-frontend"),
+          makeStrKV("user", "alice"),
+          makeStrKV("endpoint", "/dashboard"),
+        ],
+      ),
+
+      // Child of root - API Gateway
+      makeSpan(
+        "82da06d1-29dd-4534-893d-6d31f4ce0a27",
+        "8f641c20-f416-45da-b25f-c35f9a116826",
+        "75787b6c-0376-4239-88ab-bb46c9d4e015",
+        "routeRequest",
+        "api-gateway",
+        tsAdd(ago10s, 1),
+        700,
+        [
+          makeStrKV("service", "api-gateway"),
+          makeStrKV("method", "GET"),
+          makeStrKV("path", "/api/users"),
+        ],
+      ),
+
+      // Child of API Gateway - Auth Service
+      makeSpan(
+        "99a9896a-f5ce-47b6-bd6f-d5ae99bb6c74",
+        "8f641c20-f416-45da-b25f-c35f9a116826",
+        "82da06d1-29dd-4534-893d-6d31f4ce0a27",
+        "validateToken",
+        "auth-service",
+        tsAdd(ago10s, 2),
+        150,
+        [
+          makeStrKV("service", "auth-service"),
+          makeStrKV("token_type", "JWT"),
+          makeStrKV("user_id", "alice-123"),
+        ],
+      ),
+
+      // Child of API Gateway - User Service
+      makeSpan(
+        "a1b2c3d4-e5f6-4789-abcd-ef1234567890",
+        "8f641c20-f416-45da-b25f-c35f9a116826",
+        "82da06d1-29dd-4534-893d-6d31f4ce0a27",
+        "getUserProfile",
+        "user-service",
+        tsAdd(ago10s, 3),
+        400,
+        [
+          makeStrKV("service", "user-service"),
+          makeStrKV("user_id", "alice-123"),
+          makeStrKV("include_details", "true"),
+        ],
+      ),
+
+      // Child of User Service - Database
+      makeSpan(
+        "b2c3d4e5-f6a7-4890-bcde-f1234567890a",
+        "8f641c20-f416-45da-b25f-c35f9a116826",
+        "a1b2c3d4-e5f6-4789-abcd-ef1234567890",
+        "queryUserData",
+        "database",
+        tsAdd(ago10s, 4),
+        200,
+        [
+          makeStrKV("service", "database"),
+          makeStrKV("db_type", "postgres"),
+          makeStrKV("table", "users"),
+        ],
+      ),
+
+      // Child of User Service - Cache Service
+      makeSpan(
+        "c3d4e5f6-a7b8-4901-cdef-123456789ab0",
+        "8f641c20-f416-45da-b25f-c35f9a116826",
+        "a1b2c3d4-e5f6-4789-abcd-ef1234567890",
+        "getCachedPreferences",
+        "cache-service",
+        tsAdd(ago10s, 5),
+        100,
+        [
+          makeStrKV("service", "cache-service"),
+          makeStrKV("cache_type", "redis"),
+          makeStrKV("key", "user:alice-123:prefs"),
+        ],
+      ),
+
+      // Child of API Gateway - Notification Service
+      makeSpan(
+        "d4e5f6a7-b8c9-4012-def0-23456789abc1",
+        "8f641c20-f416-45da-b25f-c35f9a116826",
+        "82da06d1-29dd-4534-893d-6d31f4ce0a27",
+        "fetchNotifications",
+        "notification-service",
+        tsAdd(ago10s, 4),
+        300,
+        [
+          makeStrKV("service", "notification-service"),
+          makeStrKV("limit", "10"),
+          makeStrKV("type", "all"),
+        ],
+      ),
+
+      // Child of Notification Service - Message Queue
+      makeSpan(
+        "e5f6a7b8-c9d0-4123-ef01-3456789abcd2",
+        "8f641c20-f416-45da-b25f-c35f9a116826",
+        "d4e5f6a7-b8c9-4012-def0-23456789abc1",
+        "consumeMessages",
+        "message-queue",
+        tsAdd(ago10s, 5),
+        150,
+        [
+          makeStrKV("service", "message-queue"),
+          makeStrKV("queue", "notifications"),
+          makeStrKV("consumer", "notification-processor"),
+        ],
+      ),
+
+      // Another child of root - Analytics Service (parallel to API Gateway)
+      makeSpan(
+        "f6a7b8c9-d0e1-4234-f012-456789abcde3",
+        "8f641c20-f416-45da-b25f-c35f9a116826",
+        "75787b6c-0376-4239-88ab-bb46c9d4e015",
+        "trackUserActivity",
+        "analytics-service",
+        tsAdd(ago10s, 1),
+        450,
+        [
+          makeStrKV("service", "analytics-service"),
+          makeStrKV("event", "dashboard_view"),
+          makeStrKV("user_id", "alice-123"),
+        ],
+      ),
+
+      // Child of Analytics Service - Data Lake
+      makeSpan(
+        "a7b8c9d0-e1f2-4345-0123-56789abcdef4",
+        "8f641c20-f416-45da-b25f-c35f9a116826",
+        "f6a7b8c9-d0e1-4234-f012-456789abcde3",
+        "storeEvent",
+        "data-lake",
+        tsAdd(ago10s, 2),
+        350,
+        [
+          makeStrKV("service", "data-lake"),
+          makeStrKV("storage", "s3"),
+          makeStrKV("partition", "2023-06-15"),
+        ],
+      ),
+    ],
+  }),
+};
 
 export const Traces = ({ traceId, spanId }: TracesProps) => {
   const { apiClients } = useApiClients();
@@ -81,6 +263,11 @@ export const Traces = ({ traceId, spanId }: TracesProps) => {
         }
       },
     });
+
+    // fake data
+    // setSpans(sampleSpans.data.spans);
+    // const tree = buildSpanTree(sampleSpans.data.spans);
+    // setSpanTree(tree);
   }, [apiClients, traceId, spanId]);
 
   return (

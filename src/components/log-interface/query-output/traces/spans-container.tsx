@@ -1,6 +1,5 @@
-import { newSpansTabluar, newTabularData } from "@/lib/utils/dataBuilders";
 import { formatDuration, formatTimestamp } from "@/lib/utils/formatTimeStamp";
-import { useInfiniteQuery } from "@/lib/utils/useInfiniteQuery";
+import { useInfiniteQuery } from "@/lib/hooks/useInfiniteQuery";
 import { Timestamp } from "@bufbuild/protobuf";
 import { Data, Spans } from "api/js/types/v1/data_pb";
 import { QueryHistoryEntry } from "api/js/types/v1/query_history_entry_pb";
@@ -31,12 +30,7 @@ import {
   FilterByKeyValue,
   KeyValueRow,
 } from "@/components/log-interface/query-output/session/session-control";
-import {
-  newIdentifierExpr,
-  newIndexorExpr,
-  newLiteralExpr,
-  newStrVal,
-} from "@/lib/utils/queryBuilders";
+
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -49,6 +43,12 @@ import {
 import { copyToClipboard } from "@/lib/utils/clipboard";
 import { StreamResponse } from "api/js/svc/query/v1/service_pb";
 import { extractFromStreamResponses } from "@/lib/utils/dataHelpers";
+import { newSpansTabluar } from "@/lib/utils/dataShapeFactories";
+import { newTabularData } from "@/lib/utils/dataShapeFactories";
+import { newLiteralExpr } from "@/lib/utils/queryExpressions";
+import { newIdentifierExpr } from "@/lib/utils/queryExpressions";
+import { newIndexorExpr } from "@/lib/utils/queryExpressions";
+import { newStrVal } from "@/lib/utils/valueFactories";
 
 interface FreeFormContainerProps {
   query: Query | undefined;
