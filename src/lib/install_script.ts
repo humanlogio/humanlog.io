@@ -1,3 +1,6 @@
+const debugWithLocalproject = false;
+const suggestDemo = false;
+
 export const renderInstallScript = (
   project: string,
   logPrefix: string,
@@ -13,6 +16,20 @@ export const renderInstallScript = (
 if [[ -z "\${NONINTERACTIVE-}" ]]; then
 	\${exe} onboarding
 fi`;
+  }
+  if (debugWithLocalproject) {
+    onboardingBlock = `
+if [[ -z "\${NONINTERACTIVE-}" ]]; then
+	loginfo "🚀 hello humanlog dev, we will run your local checkout's onboarding command. enjoy!"
+	loginfo "🚀 > go run -tags pro ./cmd/humanlog onboarding"
+	go run -tags pro ./cmd/humanlog onboarding
+fi`;
+  }
+
+  let demoBlock = "";
+  if (suggestDemo) {
+    demoBlock = `loginfo "\${project} is ready to go! take a look around with:\n\n\thumanlog demo\n"
+`;
   }
 
   return `#!/bin/bash
@@ -58,9 +75,16 @@ else
   tty_escape() { :; }
 fi
 tty_mkbold() { tty_escape "1;$1"; }
+tty_lightcyan="$(tty_mkbold 36)"
 tty_lightgreen="$(tty_mkbold 32)"
 tty_lightred="$(tty_mkbold 31)"
 tty_reset="$(tty_escape 0)"
+
+function logdebug() {
+	if [ -n "\$HUMANLOG_DEBUG" ]; then
+		echo "\${tty_lightcyan}${logPrefix}\${tty_reset}: \$@" >&2
+	fi
+}
 
 function loginfo() {
 	echo "\${tty_lightgreen}${logPrefix}\${tty_reset}: \$@" >&2
@@ -96,7 +120,8 @@ function lookup_project_release_url() {
 	local url_file="/tmp/\${project}_release_url.$$"
 	local error_file="/tmp/\${project}_curl_error.$$"
 
-	loginfo "looking up latest release from \${channel} channel for \${os} on \${arch}"
+	loginfo "fetching latest version"
+	logdebug "looking up latest release from \${channel} channel for \${os} on \${arch}"
 
 	curl --silent --show-error \
 		--data "{\\\"os\\\":\\\"\${os}\\\",\\\"arch\\\":\\\"\${arch}\\\",\\\"channel\\\":\\\"\${channel}\\\"}" \
@@ -184,7 +209,7 @@ function add_path_to_shell() {
 			add_path_fish "\${path}"
 			;;
 		*)
-			loginfo "Unrecognized shell: \${shell_name}. Please add \${path} to your PATH manually."
+			logerror "Unrecognized shell: \${shell_name}. Please add \${path} to your PATH manually."
 			;;
 	esac
 }
@@ -273,7 +298,7 @@ channel="\${HUMANLOG_CHANNEL:-${channel}}"
 project="${project}"
 
 project_uri=$(lookup_project_release_url "\${project}" "\${os}" "\${arch}" "\${channel}")
-loginfo "installing latest release from \${project_uri}"
+logdebug "installing latest release from \${project_uri}"
 
 set -e
 
@@ -289,12 +314,16 @@ install_project_binary_atomically "\${project_install}" "\${project}" "\${projec
 
 ${onboardingBlock}
 
-loginfo "\${project} was successfully installed to \${exe}"
 
 if command -v "\${project}" >/dev/null; then
-	loginfo "Run '\${project} --help' to get started"
+	logdebug "\${project} was successfully installed to \${exe}"
 else
+	logdebug "\${project} was successfully installed to \${exe} but needs PATH integration"
 	add_path_to_shell "\${project_install}"
 fi
+
+${demoBlock}
+
+loginfo "🐿️🚀🌝"
 `;
 };
