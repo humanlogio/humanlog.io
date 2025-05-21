@@ -82,7 +82,7 @@ export const FreeFormContainer = ({
   }, [fetchNext]);
 
   useEffect(() => {
-    if (!streamRes) return;
+    if (!streamRes || streamRes.length === 0) return;
     const _tableRows = extractFromStreamResponses<Arr, Table>(
       streamRes,
       (value) => {
