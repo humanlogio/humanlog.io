@@ -77,6 +77,8 @@ else
 fi
 tty_mkbold() { tty_escape "1;$1"; }
 tty_lightcyan="$(tty_mkbold 36)"
+tty_lightblue="$(tty_mkbold 34)"
+tty_lightmagenta="$(tty_mkbold 35)"
 tty_lightgreen="$(tty_mkbold 32)"
 tty_lightred="$(tty_mkbold 31)"
 tty_reset="$(tty_escape 0)"
@@ -325,6 +327,8 @@ fi
 
 ${demoBlock}
 
-loginfo "🐿️🚀🌝"
+loginfo "send your OTEL data here:\n\n   export \${tty_lightcyan}OTEL_EXPORTER_OTLP_ENDPOINT\${tty_reset}=\${tty_lightcyan}http://localhost:4317\${tty_reset}\n"
+
+loginfo "✨"
 `;
 };
