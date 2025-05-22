@@ -84,7 +84,7 @@ tty_lightred="$(tty_mkbold 31)"
 tty_reset="$(tty_escape 0)"
 
 function logdebug() {
-	if [ -n "\$HUMANLOG_DEBUG" ]; then
+	if [ -n "\${CI-}" ] || [ -n "\$HUMANLOG_DEBUG" ]; then
 		echo "\${tty_lightcyan}${logPrefix}\${tty_reset}: \$@" >&2
 	fi
 }
@@ -128,7 +128,7 @@ function lookup_project_release_url() {
 
 	curl --silent --show-error \
 		--data "{\\\"os\\\":\\\"\${os}\\\",\\\"arch\\\":\\\"\${arch}\\\",\\\"channel\\\":\\\"\${channel}\\\"}" \
-		"https://api.humanlog.dev/api/releases/\${project}" \
+		${releaseApiURL} \
 		> "\${url_file}" \
 		2> "\${error_file}" || {
 			logerror "$(cat \${url_file}) ($(cat \${error_file}))"
