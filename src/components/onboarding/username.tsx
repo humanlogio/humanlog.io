@@ -8,6 +8,7 @@ import { useApiClients } from "@/context/api-provider";
 import { updateUser } from "@/services/userService";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
+import { Loader } from "lucide-react";
 
 export const OnboardingUsername = () => {
   const { apiClients } = useApiClients();
@@ -34,14 +35,23 @@ export const OnboardingUsername = () => {
     });
   };
 
-  useEffect(() => {
-    if (user === "loading") return;
-    if (user === "not-logged-in") {
-      doLogin();
-      return;
-    }
-    if (user?.username) router.push("/localhost");
-  }, [user]);
+  if (user === "not-logged-in") {
+    doLogin();
+    return;
+  }
+
+  if (user === "loading") {
+    return (
+      <div className="flex h-[calc(100vh-260px)] w-full items-center justify-center">
+        <Loader className="animate-spin" size={50} />
+      </div>
+    );
+  }
+
+  if (user.username) {
+    router.push("/localhost");
+    return;
+  }
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50 p-4 dark:bg-gray-950">
