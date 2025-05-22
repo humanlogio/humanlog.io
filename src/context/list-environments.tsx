@@ -60,8 +60,8 @@ export function ListEnvironmentsProvider({
 }) {
   const router = useRouter();
 
-  const returnToURL = getSelfURL();
   const pathname = usePathname();
+  const returnToURL = `${getSelfURL()}${pathname}`;
   const { apiClients, setActiveEnvironment } = useApiClients();
   const [browserValid, setBrowserValid] = useState(false);
   const [localhostValid, setLocalhostValid] = useState(false);
