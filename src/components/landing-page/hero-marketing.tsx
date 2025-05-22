@@ -1,12 +1,10 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Helmet, HelmetProvider } from "react-helmet-async";
-import { copyToClipboard } from "@/lib/utils/clipboard";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+
 import {
   Tooltip,
   TooltipContent,
@@ -18,34 +16,18 @@ import {
   sampleLogs,
   sampleSpans,
 } from "@/components/landing-page/sample-protobuf-data";
-import { defaultConfig } from "@/services/localhostService";
 import { useTheme } from "next-themes";
-import {
-  FormatConfig_Themes,
-  FormatConfig_Theme,
-} from "api/js/types/v1/localhost_config_pb";
 import {
   Star,
   Terminal as TerminalIcon,
   Activity,
   Laptop,
-  Circle,
   Building,
   Share,
   Github,
 } from "lucide-react";
-import {
-  Dialog,
-  DialogTrigger,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog";
 import { getSelfURL } from "@/lib/envs";
-import { Copy } from "lucide-react";
 import InstallCTA from "@/components/landing-page/shared/install-cta";
-import CloudBetaSignup from "@/components/landing-page/shared/cloud-beta-signup";
 import { SpansContainer } from "@/components/log-interface/query-output/traces/spans-container";
 import Terminal from "@/components/landing-page/shared/ui/terminal";
 
@@ -101,7 +83,7 @@ const AboveFoldHero: React.FC = () => {
         {/* Main hero section - vertical on mobile, horizontal on desktop */}
         <div className="mb-6 flex flex-col gap-6 lg:flex-row lg:items-stretch lg:gap-8 xl:px-0">
           {/* Terminal mockup - priority on mobile, left on desktop */}
-          <div className="order-1 flex w-full lg:order-1 lg:w-1/2 xl:w-3/5">
+          <div className="order-1 flex w-full lg:order-1 lg:w-1/2">
             <Terminal
               commands={[
                 {
@@ -157,7 +139,7 @@ const AboveFoldHero: React.FC = () => {
           </div>
 
           {/* UI Screenshot - use real SessionPanel component with Logs/Traces toggle and share button */}
-          <div className="order-2 mt-2 flex w-full lg:order-2 lg:mt-0 lg:w-1/2 xl:w-2/5">
+          <div className="order-2 mt-2 flex w-full lg:order-2 lg:mt-0 lg:max-h-[450px] lg:w-1/2">
             <Card className="flex flex-1 flex-col overflow-hidden rounded-lg border border-zinc-200 shadow-md dark:border-zinc-800">
               {/* Logs | Traces toggle */}
               <div className="flex items-center justify-between border-b border-zinc-200 bg-zinc-50 px-3 py-1.5 dark:border-zinc-800 dark:bg-zinc-900">
@@ -202,10 +184,7 @@ const AboveFoldHero: React.FC = () => {
                     </span>
                     <span className="truncate">{sampleLogs().query}</span>
                   </div>
-                  <div
-                    className="flex-1 overflow-auto p-3"
-                    style={{ maxHeight: "500px" }}
-                  >
+                  <div className="flex-1 overflow-auto p-3">
                     <SessionPanel
                       providedData={sampleLogs().data}
                       query={undefined}
@@ -220,10 +199,7 @@ const AboveFoldHero: React.FC = () => {
                     </span>
                     <span className="truncate">{sampleSpans().query}</span>
                   </div>
-                  <div
-                    className="flex-1 overflow-auto p-3"
-                    style={{ maxHeight: "500px" }}
-                  >
+                  <div className="flex-1 overflow-auto p-3">
                     <SpansContainer
                       providedData={sampleSpans().data}
                       query={undefined}
