@@ -71,10 +71,14 @@ export default function Pricing({
 
             <div
               className={cn(
-                "grid w-full grid-cols-1 gap-4 pt-16",
+                "mx-auto grid w-full justify-center gap-4 pt-16",
                 products?.length === 1
-                  ? "place-items-center" // Center a single item
-                  : "lg:grid-cols-2 xl:grid-cols-4",
+                  ? "max-w-xs place-items-center" // Center a single item
+                  : products?.length === 2
+                    ? "mx-auto max-w-3xl grid-cols-1 md:grid-cols-2" // 2 items centered
+                    : products?.length === 3
+                      ? "mx-auto max-w-5xl grid-cols-1 md:grid-cols-3" // 3 items in 3 columns
+                      : "mx-auto max-w-6xl grid-cols-1 md:grid-cols-2 lg:grid-cols-4", // 4 or more items
               )}
             >
               {products?.map((product) => {
@@ -153,7 +157,7 @@ export default function Pricing({
                       <p className="text-muted-foreground mt-2 mb-3">
                         {product?.product?.description}
                       </p>
-                      <div className="flex items-center gap-4">
+                      <div className="flex flex-wrap items-center justify-between">
                         {displayPrice && isBilledYearly ? (
                           <span className="text-muted-foreground text-2xl font-bold line-through">
                             ${Number(monthly?.unitAmount || 0) / 100}
