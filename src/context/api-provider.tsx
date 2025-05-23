@@ -91,7 +91,7 @@ export function ApiClientsProvider({
 
   const doLogout = async () => {
     deleteCookie();
-
+    localStorage.removeItem("hlog_session");
     try {
       await apiClients.localhost.doLogout({
         returnToURL,
@@ -105,8 +105,11 @@ export function ApiClientsProvider({
   const apiClients = useMemo((): ApiClients => {
     const auther = (): Interceptor => {
       return (next) => async (req) => {
-        const token = cookies["hlog_session"];
+        const token =
+          cookies["hlog_session"] || localStorage.getItem("hlog_session");
+
         if (token && token != "") {
+          localStorage.setItem("hlog_session", token);
           req.header.set("Browser-Authorization", token);
         }
         req.header.set("Request-Id", uuidv4());
@@ -119,12 +122,7 @@ export function ApiClientsProvider({
 
           if (newToken) {
             console.log("Received new authorization token");
-            setCookie("hlog_session", newToken, {
-              path: "/",
-              domain: `.humanlog${config.TLD}`,
-              secure: true,
-              sameSite: "none",
-            });
+            localStorage.setItem("hlog_session", newToken);
           }
           setAuthenticated(true);
           return res;
