@@ -1,5 +1,5 @@
 import { copyToClipboard } from "@/lib/utils/clipboard";
-import { formatTimestamp } from "@/lib/utils/formatTimeStamp";
+import { formatDuration, formatTimestamp } from "@/lib/utils/formatTimeStamp";
 
 import { useInfiniteQuery } from "@/lib/hooks/useInfiniteQuery";
 import { IngestedLogEvent } from "api/js/types/v1/logevent_pb";
@@ -41,7 +41,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { SelectTrigger } from "@radix-ui/react-select";
-import { KV } from "api/js/types/v1/types_pb";
+import { KV, Val } from "api/js/types/v1/types_pb";
 import {
   FilterByKeyValue,
   KeyValueRow,
@@ -157,6 +157,31 @@ const SessionPanel = ({
     return false;
   };
 
+  const formattedValue = (value?: Val): string => {
+    if (!value) return "";
+
+    const {
+      kind: { case: valueCase, value: valueValue },
+    } = value;
+
+    switch (valueCase) {
+      case "i64":
+        return valueValue?.toString();
+      case "ts":
+        return formatTimestamp(valueValue, "Jan _2 15:04:05.000");
+      case "dur":
+        return formatDuration(valueValue);
+      case "blob":
+        return decodeUint8Array(valueValue);
+      case "arr":
+        return valueValue.items.map((item) => formattedValue(item)).join(", ");
+      case "null":
+        return "null";
+      default:
+        return valueValue?.toString() || "";
+    }
+  };
+
   const formatKvText = (kvs?: KV[], sectionBreak?: boolean): string => {
     if (!kvs || kvs.length === 0) return "";
 
@@ -165,7 +190,7 @@ const SessionPanel = ({
       if (sectionBreak && index > 0) {
         result += "\n";
       }
-      result += `${kv.key}=${kv.value?.kind.value} `;
+      result += `${kv.key}=${formattedValue(kv.value)} `;
     });
 
     return result;
@@ -458,7 +483,7 @@ const SessionPanel = ({
                                       {kv.key}=
                                     </span>
                                     <span style={{ color: getColor("value") }}>
-                                      {kv.value?.kind.value?.toString()}
+                                      {formattedValue(kv.value)}
                                     </span>
                                   </span>
                                 </TooltipTrigger>
@@ -473,9 +498,7 @@ const SessionPanel = ({
                                   />
                                   <KeyValueRow
                                     label="Value"
-                                    value={
-                                      kv.value?.kind.value?.toString() ?? ""
-                                    }
+                                    value={formattedValue(kv.value)}
                                   />
                                   <div className="mt-2 border-t border-gray-200 pt-2" />
                                   <FilterByKeyValue
