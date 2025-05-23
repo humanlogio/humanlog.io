@@ -6,10 +6,16 @@ export type CallbacksType<T> = {
   onError?: (error: ConnectError) => void;
 };
 
-export const handleError = <T>(error: any, callbacks?: CallbacksType<T>) => {
+export const handleError = <T>(
+  error: any,
+  callbacks?: CallbacksType<T>,
+  showToast: boolean = true,
+) => {
   if (error instanceof ConnectError) {
     callbacks?.onError?.(error);
     console.error(error);
-    toast.error(error.message);
+    if (showToast) {
+      toast.error(error.message);
+    }
   }
 };
