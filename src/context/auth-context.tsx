@@ -101,14 +101,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     if (!authenticated && isLoginRequired(pathname)) {
-      if (!isAuthModalOpen) {
-        setAuthMessage(`You need to login to access this page.`);
-        setIsAuthModalOpen(true);
-      }
-    } else {
-      if (isAuthModalOpen) {
-        setIsAuthModalOpen(false);
-      }
+      handleLogin();
     }
   }, [
     pathname,
@@ -138,27 +131,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         authMessage,
       }}
     >
-      <AlertDialog open={isAuthModalOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>{authMessage}</AlertDialogTitle>
-          </AlertDialogHeader>
-          <AlertDialogFooter className="mt-4 flex-row">
-            {isLoading ? (
-              <Loader className="animate-spin" />
-            ) : (
-              <>
-                <AlertDialogCancel onClick={closeAuthModal}>
-                  Cancel
-                </AlertDialogCancel>
-                <AlertDialogAction onClick={handleLogin}>
-                  Login
-                </AlertDialogAction>
-              </>
-            )}
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
       {children}
     </AuthContext.Provider>
   );
