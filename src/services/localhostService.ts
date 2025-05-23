@@ -155,6 +155,6 @@ export const getConfig = async (
     const res = await localhostCleint.getConfig({});
     callbacks?.onSuccess?.(res);
   } catch (error) {
-    handleError<GetConfigResponse>(error, callbacks);
+    handleError<GetConfigResponse>(error, callbacks, false);
   }
 };
