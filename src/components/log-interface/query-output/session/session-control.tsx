@@ -65,7 +65,7 @@ export const KeyValueRow = ({
   value,
 }: {
   label: string;
-  value: string | bigint;
+  value: string | undefined;
 }) => {
   return value ? (
     <div className="flex">
