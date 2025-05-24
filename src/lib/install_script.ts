@@ -247,23 +247,8 @@ function detect_user_install_dir() {
 		return 0
 	fi
 
-	# 2. Use ~/.local/bin if valid
-	local local_bin="\${HOME}/.local/bin"
-	if is_usable_path_dir "\${local_bin}"; then
-		printf "%s\n" "\${local_bin}"
-		return 0
-	fi
-
-	# 3. Scan $PATH for first usable dir
-	IFS=:
-	for dir in $PATH; do
-		if [ -d "\${dir}" ] && [ -w "\${dir}" ]; then
-			printf "%s\n" "\${dir}"
-			return 0
-		fi
-	done
-
-	# 4. Fallback to ~/.local/bin even if not in $PATH or not yet created
+	# 2. Use ~/.humanlog/bin
+	local local_bin="\${HOME}/.humanlog/bin"
 	printf "%s\n" "\${local_bin}"
 }
 
