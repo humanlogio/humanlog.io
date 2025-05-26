@@ -37,6 +37,7 @@ import { useCookies } from "react-cookie";
 import { Environment } from "api/js/types/v1/environment_pb";
 import config from "@/features/config";
 import { v4 as uuidv4 } from "uuid";
+import { useSearchParams } from "next/navigation";
 
 type ApiProviderType = {
   apiClients: ApiClients | null;
@@ -84,6 +85,9 @@ export function ApiClientsProvider({
     Environment | undefined
   >();
   const [authenticated, setAuthenticated] = useState(false);
+  const searchParams = useSearchParams();
+  const localhostPort = searchParams.get("demo_port") ?? "32764";
+  const localhostBaseUrl = `http://localhost:${localhostPort}`;
 
   const deleteCookie = () => {
     document.cookie = `hlog_session=; path=/; domain=.humanlog${config.TLD}; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
@@ -138,7 +142,7 @@ export function ApiClientsProvider({
     };
 
     const localhostTransport = createConnectTransport({
-      baseUrl: "http://localhost:32764",
+      baseUrl: localhostBaseUrl,
     });
     const apiTpt = createConnectTransport({
       baseUrl: getAPIURL(),
