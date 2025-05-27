@@ -1,18 +1,23 @@
-import { allBlogs } from "contentlayer/generated";
-import config from "@/features/config";
+import fs from "fs";
+import path from "path";
 import Link from "next/link";
+import { scanDirectory } from "@/lib/contents";
+
+export interface NavItem {
+  title: string;
+  path: string;
+  children?: NavItem[];
+}
 
 export default function BlogListPage() {
-  const posts = allBlogs
-    .filter((post) => post.published)
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  const blogDir = path.join(process.cwd(), "src/app/blog");
 
   return (
     <div className="container py-5">
       <h1 className="text-2xl font-bold">the humanlog blog</h1>
       <div className="mt-10 flex flex-col gap-2">
-        {posts.map((post) => (
-          <Link href={post.slug} key={post.slug} className="hover:underline">
+        {scanDirectory(blogDir, "/blog").map((post) => (
+          <Link href={post.path} key={post.path} className="hover:underline">
             {post.title}
           </Link>
         ))}

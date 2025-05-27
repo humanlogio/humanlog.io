@@ -1,0 +1,13 @@
+/**
+ * @generated
+ * This file is auto-generated. Do not edit manually.
+ */
+
+import { Func } from "@/components/docs/funcs/Func";
+import { ScalarFunc as ScalarFuncType } from "scripts/generate-references";
+
+export default function Page() {
+  return <Func func={func} />;
+}
+  
+const func: ScalarFuncType = JSON.parse("{\"name\":\"abs\",\"implemented\":true,\"desc\":\"Computes the absolute value (magnitude without sign) of the input numeric expression. Accepts f64, i64, or duration inputs and returns a value of the same type. Converts negative values to positive while leaving positive values unchanged.\",\"usage\":\"Returns the absolute value of a number.\",\"category\":\"math\",\"signatures\":[{\"return_type\":\"scalar:f64\",\"arg_types\":[\"scalar:f64\"]},{\"return_type\":\"scalar:f64\",\"arg_types\":[\"scalar:i64\"]}],\"examples\":[{\"name\":\"abs(x), return absolute value of 'x' referenced from the log data\",\"input\":[{\"machineId\":1,\"sessionId\":1,\"eventId\":1,\"parsedAt\":\"2006-01-02T15:04:06.001Z\",\"log\":\"{\\\"ts\\\":\\\"2006-01-02T15:04:06.001\\\", \\\"lvl\\\": \\\"info\\\", \\\"x\\\": -1}\"},{\"machineId\":1,\"sessionId\":1,\"eventId\":2,\"parsedAt\":\"2006-01-02T15:04:06.001Z\",\"log\":\"{\\\"ts\\\":\\\"2006-01-02T15:04:06.001\\\", \\\"lvl\\\": \\\"info\\\", \\\"x\\\": 0}\"},{\"machineId\":1,\"sessionId\":1,\"eventId\":3,\"parsedAt\":\"2006-01-02T15:04:06.001Z\",\"log\":\"{\\\"ts\\\":\\\"2006-01-02T15:04:06.001\\\", \\\"lvl\\\": \\\"info\\\", \\\"x\\\": 1}\"}],\"query\":\"project abs=abs(['x'])\",\"output\":{\"Shape\":{\"Tabular\":{\"Shape\":{\"FreeForm\":{\"type\":{\"columns\":[{\"name\":\"abs\",\"type\":{\"Type\":{\"Scalar\":2}}}]},\"rows\":[{\"items\":[{\"type\":{\"Type\":{\"Scalar\":2}},\"Kind\":{\"F64\":1}}]},{\"items\":[{\"type\":{\"Type\":{\"Scalar\":2}},\"Kind\":{\"F64\":0}}]},{\"items\":[{\"type\":{\"Type\":{\"Scalar\":2}},\"Kind\":{\"F64\":1}}]}]}}}}}},{\"name\":\"abs(x), return absolute value of numeric literal 'x'\",\"input\":[{\"machineId\":1,\"sessionId\":1,\"eventId\":1,\"parsedAt\":\"2006-01-02T15:04:06.001Z\",\"log\":\"{\\\"ts\\\":\\\"2006-01-02T15:04:06.001\\\", \\\"lvl\\\": \\\"info\\\"}\"}],\"query\":\"project abs=abs(-1.0)\",\"output\":{\"Shape\":{\"Tabular\":{\"Shape\":{\"FreeForm\":{\"type\":{\"columns\":[{\"name\":\"abs\",\"type\":{\"Type\":{\"Scalar\":2}}}]},\"rows\":[{\"items\":[{\"type\":{\"Type\":{\"Scalar\":2}},\"Kind\":{\"F64\":1}}]}]}}}}}}]}") as ScalarFuncType;
