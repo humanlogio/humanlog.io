@@ -1,6 +1,6 @@
 "use client";
 
-import { Symbol } from "scripts/generate-references";
+import { Symbol } from "@/types/docs";
 
 export function Symbols({ symbols }: { symbols: Symbol[] }) {
   return (

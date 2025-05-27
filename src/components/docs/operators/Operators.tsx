@@ -1,6 +1,6 @@
 "use client";
 
-import { ScalarOperator, TabularOperator } from "scripts/generate-references";
+import { ScalarOperator, TabularOperator } from "@/types/docs";
 
 interface OperatorsProps {
   operators: ScalarOperator[] | TabularOperator[];

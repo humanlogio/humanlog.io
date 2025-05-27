@@ -1,212 +1,13 @@
+import {
+  AggregateFunc,
+  Reference,
+  ScalarFunc,
+  ScalarOperator,
+  Symbols,
+  TabularOperator,
+} from "@/types/docs";
 import fs from "fs";
 import path from "path";
-
-// Type definitions
-export interface TypeInfo {
-  type: string;
-}
-
-export interface Symbol extends TypeInfo {
-  name: string;
-  desc: string;
-}
-
-export interface Symbols {
-  logs: Symbol[];
-  spans: Symbol[];
-}
-
-export interface Signature {
-  arg_types: string[];
-  return_type: string;
-}
-
-// Add interfaces for different scalar type values
-interface ScalarValue {
-  Type: {
-    Scalar: number;
-  };
-}
-
-interface NullValue {
-  Type: {
-    Null: null;
-  };
-}
-
-interface MapValue {
-  Type: {
-    Map: Record<string, unknown>;
-  };
-}
-
-// Add interfaces for different kind values
-interface F64Kind {
-  Kind: {
-    F64: number;
-  };
-}
-
-interface I64Kind {
-  Kind: {
-    I64: number;
-  };
-}
-
-interface StrKind {
-  Kind: {
-    Str: string;
-  };
-}
-
-interface BoolKind {
-  Kind: {
-    Bool: boolean;
-  };
-}
-
-interface NullKind {
-  Kind: {
-    Null: null;
-  };
-}
-
-interface BlobKind {
-  Kind: {
-    Blob: string;
-  };
-}
-
-interface TsKind {
-  Kind: {
-    Ts: {
-      seconds: number;
-      nanos: number;
-    };
-  };
-}
-
-interface MapKind {
-  Kind: {
-    Map: Record<string, unknown>;
-  };
-}
-
-interface RowItem {
-  type: ScalarValue | NullValue | MapValue;
-  Kind:
-    | F64Kind["Kind"]
-    | I64Kind["Kind"]
-    | StrKind["Kind"]
-    | BoolKind["Kind"]
-    | NullKind["Kind"]
-    | BlobKind["Kind"]
-    | TsKind["Kind"]
-    | MapKind["Kind"];
-}
-
-interface Row {
-  items: RowItem[];
-}
-
-interface FreeForm {
-  type: {
-    columns: {
-      name: string;
-      type: ScalarValue | NullValue;
-    }[];
-  };
-  rows: Row[];
-}
-
-interface TabularShape {
-  Shape: {
-    FreeForm: FreeForm;
-  };
-}
-
-interface LogEvents {
-  events: any[];
-}
-
-interface LogEventsShape {
-  Shape: {
-    LogEvents: LogEvents;
-  };
-}
-
-interface ExampleOutput {
-  Shape: {
-    Tabular: TabularShape | LogEventsShape;
-  };
-}
-
-interface LogEntry {
-  machineId: number;
-  sessionId: number;
-  eventId: number;
-  parsedAt: string;
-  log: string;
-}
-
-export interface Example {
-  name: string;
-  input: LogEntry[];
-  query: string;
-  output: ExampleOutput;
-}
-
-export interface ScalarFunc {
-  name: string;
-  desc: string;
-  usage: string;
-  category: string;
-  implemented?: boolean;
-  signatures: Signature[];
-  examples: Example[];
-}
-
-export interface AggregateFunc {
-  name: string;
-  desc: string;
-  usage: string;
-  category: string;
-  implemented?: boolean;
-  signatures: Signature[];
-  examples: Example[];
-}
-
-export interface ScalarOperator {
-  name: string;
-  desc: string;
-  implemented?: boolean;
-  examples: Example[];
-}
-
-export interface TabularOperator {
-  name: string;
-  desc: string;
-  implemented?: boolean;
-  usage?: string;
-  syntax?: string[];
-  examples: Example[];
-}
-
-export interface Funcs {
-  scalar: ScalarFunc[];
-  aggregate: AggregateFunc[];
-}
-
-export interface Operators {
-  scalar: ScalarOperator[];
-  tabular: TabularOperator[];
-}
-
-export interface Reference {
-  symbols: Symbols;
-  funcs: Funcs;
-  operators: Operators;
-}
 
 const writeFileInDir = (filename: string, content: string) => {
   const dirname = path.dirname(filename);
@@ -263,7 +64,7 @@ export const generateLogsReference = (symbols: Symbols) => {
  */
 
 import { Symbols } from "@/components/docs/symbols/Symbols";
-import { Symbol } from "scripts/generate-references";
+import { Symbol } from "@/types/docs";
 
 export default function Page() {
   return <Symbols symbols={symbols} />;
@@ -286,7 +87,7 @@ export const generateSpansReference = (symbols: Symbols) => {
  */
 
 import { Symbols } from "@/components/docs/symbols/Symbols";
-import { Symbol } from "scripts/generate-references";
+import { Symbol } from "@/types/docs";
 
 export default function Page() {
   return <Symbols symbols={symbols} />;
@@ -312,7 +113,7 @@ export const generateScalarFunctionsIndex = (ref: Reference) => {
  */
 
 import { ScalarFuncIndex } from "@/components/docs/ScalarFuncIndex";
-import { ScalarFunc as ScalarFuncType } from "scripts/generate-references";
+import { ScalarFunc as ScalarFuncType } from "@/types/docs";
 
 export default function Page() {
   return <ScalarFuncIndex funcs={funcs} />;
@@ -335,7 +136,7 @@ export const generateAggregateFunctionIndex = (ref: Reference) => {
  */
 
 import { ScalarFuncIndex } from "@/components/docs/ScalarFuncIndex";
-import { ScalarFunc as ScalarFuncType } from "scripts/generate-references";
+import { ScalarFunc as ScalarFuncType } from "@/types/docs";
 
 export default function Page() {
   return <ScalarFuncIndex funcs={funcs} />;
@@ -358,7 +159,7 @@ export const generateScalarFunction = (func: ScalarFunc) => {
  */
 
 import { Func } from "@/components/docs/funcs/Func";
-import { ScalarFunc as ScalarFuncType } from "scripts/generate-references";
+import { ScalarFunc as ScalarFuncType } from "@/types/docs";
 
 export default function Page() {
   return <Func func={func} />;
@@ -381,7 +182,7 @@ export const generateAggregateFunction = (func: AggregateFunc) => {
  */
 
 import { Func } from "@/components/docs/funcs/Func";
-import { ScalarFunc as ScalarFuncType } from "scripts/generate-references";
+import { ScalarFunc as ScalarFuncType } from "@/types/docs";
 
 export default function Page() {
   return <Func func={func} />;
@@ -404,7 +205,7 @@ export const generateScalarOperator = (operators: ScalarOperator[]) => {
  */
 
 import { Operators } from "@/components/docs/operators/Operators";
-import { ScalarOperator } from "scripts/generate-references";
+import { ScalarOperator } from "@/types/docs";
 
 export default function Page() {
   return <Operators operators={operators} />;
@@ -427,7 +228,7 @@ export const generateTabularOperator = (operators: TabularOperator[]) => {
  */
 
 import { Operators } from "@/components/docs/operators/Operators";
-import { TabularOperator } from "scripts/generate-references";
+import { TabularOperator } from "@/types/docs";
 
 export default function Page() {
   return <Operators operators={operators} />;

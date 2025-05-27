@@ -4,7 +4,7 @@
  */
 
 import { ScalarFuncIndex } from "@/components/docs/ScalarFuncIndex";
-import { ScalarFunc as ScalarFuncType } from "scripts/generate-references";
+import { ScalarFunc as ScalarFuncType } from "@/types/docs";
 
 export default function Page() {
   return <ScalarFuncIndex funcs={funcs} />;
