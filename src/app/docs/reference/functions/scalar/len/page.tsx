@@ -4,7 +4,7 @@
  */
 
 import { Func } from "@/components/docs/funcs/Func";
-import { ScalarFunc as ScalarFuncType } from "scripts/generate-references";
+import { ScalarFunc as ScalarFuncType } from "@/types/docs";
 
 export default function Page() {
   return <Func func={func} />;

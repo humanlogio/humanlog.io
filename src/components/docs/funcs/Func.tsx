@@ -1,6 +1,6 @@
 "use client";
 
-import { ScalarFunc as ScalarFuncType } from "scripts/generate-references";
+import { ScalarFunc as ScalarFuncType } from "@/types/docs";
 
 export function Func({ func }: { func: ScalarFuncType }) {
   return (

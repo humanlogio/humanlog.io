@@ -4,7 +4,7 @@
  */
 
 import { Symbols } from "@/components/docs/symbols/Symbols";
-import { Symbol } from "scripts/generate-references";
+import { Symbol } from "@/types/docs";
 
 export default function Page() {
   return <Symbols symbols={symbols} />;

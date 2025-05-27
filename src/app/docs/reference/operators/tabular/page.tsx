@@ -4,7 +4,7 @@
  */
 
 import { Operators } from "@/components/docs/operators/Operators";
-import { TabularOperator } from "scripts/generate-references";
+import { TabularOperator } from "@/types/docs";
 
 export default function Page() {
   return <Operators operators={operators} />;
