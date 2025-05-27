@@ -165,7 +165,8 @@ export default function Pricing({
                         ) : null}
                         <div>
                           <span className="text-3xl font-bold">
-                            {displayPrice
+                            {displayPrice ||
+                            product.product?.ctaLink === "personal_use"
                               ? `$${(Math.floor(displayPrice * 100) / 100).toFixed(2)}`
                               : "Custom"}
                           </span>
