@@ -1,0 +1,15 @@
+/**
+ * @generated
+ * This file is auto-generated. Do not edit manually.
+ */
+
+import { Func } from "@/components/docs/funcs/Func";
+import { ScalarFunc as ScalarFuncType } from "@/types/docs";
+
+export default function Page() {
+  return <Func func={func} />;
+}
+
+const func: ScalarFuncType = JSON.parse(
+  '{"name":"isfinite","implemented":true,"desc":"Determines whether the provided numeric value is finite. Returns true if the value is neither infinite nor NaN (Not a Number), false otherwise. Accepts numeric input (f64 or i64) and returns a boolean result.","usage":"Tests whether a number is finite (not infinite and not NaN).","category":"validation","signatures":[{"return_type":"scalar:bool","arg_types":["scalar:f64"]},{"return_type":"scalar:bool","arg_types":["scalar:i64"]}],"examples":[{"name":"isfinite(x), return true if \'x\' is a finite number","input":[{"machineId":1,"sessionId":1,"eventId":1,"parsedAt":"2006-01-02T15:04:06.001Z","log":"{\\"ts\\":\\"2006-01-02T15:04:06.001\\", \\"lvl\\": \\"info\\", \\"x\\": 1}"}],"query":"project isfinite=isfinite([\'x\'])","output":{"Shape":{"Tabular":{"Shape":{"FreeForm":{"type":{"columns":[{"name":"isfinite","type":{"Type":{"Scalar":4}}}]},"rows":[{"items":[{"type":{"Type":{"Scalar":4}},"Kind":{"Bool":true}}]}]}}}}}},{"name":"isfinite(x), where \'x\' is numeric literal","input":[{"machineId":1,"sessionId":1,"eventId":1,"parsedAt":"2006-01-02T15:04:06.001Z","log":"{\\"ts\\":\\"2006-01-02T15:04:06.001\\", \\"lvl\\": \\"info\\"}"}],"query":"project isfinite=isfinite(1)","output":{"Shape":{"Tabular":{"Shape":{"FreeForm":{"type":{"columns":[{"name":"isfinite","type":{"Type":{"Scalar":4}}}]},"rows":[{"items":[{"type":{"Type":{"Scalar":4}},"Kind":{"Bool":true}}]}]}}}}}}]}',
+) as ScalarFuncType;

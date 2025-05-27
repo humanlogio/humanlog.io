@@ -8,20 +8,24 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { ChevronDown, ChevronRight, LayoutList } from "lucide-react";
-import { DocItem, DocSection } from "@/types/docs";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import NextLink from "next/link";
+import { NavItem as NavItemType } from "@/lib/contents";
 
-export function DocsSidebar({ docsList }: { docsList: DocSection[] }) {
+interface DocsSidebarProps {
+  navItems: NavItemType[];
+}
+
+export function DocsSidebar({ navItems }: DocsSidebarProps) {
   return (
     <>
       {/* Desktop Sidebar */}
       <div className="hidden h-screen w-64 flex-shrink-0 overflow-y-auto border-r p-4 md:block">
         <div className="mb-6 text-xl font-bold">Docs</div>
         <nav>
-          {docsList.map((section, index) => (
-            <NavItem key={index} item={section} />
+          {navItems.map((item, index) => (
+            <NavItem key={index} item={item} />
           ))}
         </nav>
       </div>
@@ -38,8 +42,8 @@ export function DocsSidebar({ docsList }: { docsList: DocSection[] }) {
             <SheetTitle>Docs</SheetTitle>
           </SheetHeader>
           <nav className="mt-8">
-            {docsList.map((section, index) => (
-              <NavItem key={index} item={section} />
+            {navItems.map((item, index) => (
+              <NavItem key={index} item={item} />
             ))}
           </nav>
         </SheetContent>
@@ -48,7 +52,7 @@ export function DocsSidebar({ docsList }: { docsList: DocSection[] }) {
   );
 }
 
-export const NavItem = ({ item }: { item: DocSection | DocItem }) => {
+export const NavItem = ({ item }: { item: NavItemType }) => {
   const pathname = usePathname();
 
   const itemId = `nav-item-${item.title.replace(/\s+/g, "-").toLowerCase()}`;
@@ -73,19 +77,19 @@ export const NavItem = ({ item }: { item: DocSection | DocItem }) => {
   }, [itemId, pathname]);
 
   const checkIfSectionContainsCurrentPath = (
-    section: DocSection,
+    item: NavItemType,
     currentPath: string,
   ): boolean => {
-    if (!("items" in section)) return false;
+    if (!item.children) return false;
 
-    return section.items.some((subItem) => {
+    return item.children?.some((subItem) => {
       if ("items" in subItem) {
         return checkIfSectionContainsCurrentPath(
-          subItem as DocSection,
+          subItem as NavItemType,
           currentPath,
         );
       } else {
-        const itemPath = `/docs/${subItem.section}/${subItem.slug}`;
+        const itemPath = `/docs/${subItem.title}/${subItem.path}`;
         return currentPath === itemPath;
       }
     });
@@ -97,10 +101,12 @@ export const NavItem = ({ item }: { item: DocSection | DocItem }) => {
     localStorage.setItem(itemId, String(newState));
   };
 
-  const isSection = "items" in item;
-  const hasChildren = isSection && item.items && item.items.length > 0;
-  const itemPath = !isSection ? `/docs/${item.section}/${item.slug}` : "";
+  const isSection = "children" in item;
+  const hasChildren = isSection && item.children && item.children.length > 0;
+  const itemPath = !isSection ? `/docs/${item.title}` : "";
   const isActive = !isSection && pathname === itemPath;
+
+  console.log("item", item);
 
   if (isOpen === null) return null;
 
@@ -124,7 +130,7 @@ export const NavItem = ({ item }: { item: DocSection | DocItem }) => {
         )}
 
         {!isSection ? (
-          <NextLink href={itemPath} className="flex-1">
+          <NextLink href={item.path} className="flex-1">
             {item.title}
           </NextLink>
         ) : (
@@ -139,7 +145,7 @@ export const NavItem = ({ item }: { item: DocSection | DocItem }) => {
 
       {hasChildren && isOpen && (
         <div className="ml-2">
-          {(item as DocSection).items.map((child, index) => (
+          {(item as NavItemType).children?.map((child, index) => (
             <NavItem key={index} item={child} />
           ))}
         </div>

@@ -12,7 +12,8 @@
     "lint": "next lint",
     "start": "next start",
     "test:e2e": "playwright test",
-    "test:unit": "vitest --watch=false"
+    "test:unit": "vitest --watch=false",
+    "generate:references": "npx tsx scripts/generate-references.ts"
   },
   "dependencies": {
     "@bufbuild/protobuf": "^1.10.0",

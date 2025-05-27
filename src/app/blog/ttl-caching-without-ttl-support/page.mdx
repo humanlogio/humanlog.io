@@ -1,0 +1,17 @@
+# How to get TTL keys with any cache
+
+You can use any key-value type of cache to create a TTL behavior[^ttl_behavior]. No need to natively supported TTL!
+
+The trick is to add a time component to your cache key, so that the key changes when the TTL period has passed.
+
+## Initial approach
+
+If you want
+
+```go
+func main() {
+
+}
+```
+
+[^ttl_behavior]: TTL behavior here means having key-values expire from the cache when a specific timespan has passed. If the key becomes invisible/unreachable, and the cache has an eviction policy, then "expired TTL" keys will naturally get evicted by the cache.
