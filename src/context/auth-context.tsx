@@ -12,15 +12,6 @@ import { getSelfURL } from "@/lib/envs";
 import { usePathname, useRouter } from "next/navigation";
 import { useAllEnvironments } from "@/context/list-environments";
 import { Loader } from "lucide-react";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogContent,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { useApiClients } from "@/context/api-provider";
 
 type AuthContextType = {
@@ -32,7 +23,7 @@ type AuthContextType = {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const loginRequiredPaths = [
-  "/settings/*",
+  "/settings/users",
   "/user/*",
   "/env/*",
   "/org/*",
