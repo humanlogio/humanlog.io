@@ -1,0 +1,39 @@
+# Installation
+
+To install `humanlog`, run this in your terminal:
+
+```bash
+curl -L "https://humanlog.io/install.sh" | sh
+```
+
+You can inspect the script manually with:
+
+```bash
+curl -L "https://humanlog.io/install.sh" | cat
+```
+
+## Enabling the query engine (experimental)
+
+> [!NOTE]
+> macOS only: the query engine is currently only implemented for macOS.
+
+> [!WARNING]
+> experimental: the query engine is experimental.
+
+To enable the query engine, run:
+
+```bash
+humanlog config enable query-engine
+```
+
+This will install `humanlog` as a background service and show a systray entry. You can then run queries with:
+
+```bash
+humanlog query 'summarize count() by msg'
+```
+
+We hope you enjoy the query engine and provide any feedback in [our community channels](/support).
+
+### other platforms
+
+While we currently only support macOS for the query engine, this is simply a matter of focus and not a hard long term restriction. We plan to support other platforms later, based on customer demand. If you would like to contribute support for your platform, please head over to the CLI's repo and look at the [service handler](https://github.com/humanlogio/humanlog/blob/master/cmd/humanlog/service_other.go) and the [systray handler](https://github.com/humanlogio/humanlog/blob/master/cmd/humanlog/systray_other.go).

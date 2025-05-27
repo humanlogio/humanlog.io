@@ -1,0 +1,15 @@
+/**
+ * @generated
+ * This file is auto-generated. Do not edit manually.
+ */
+
+import { Func } from "@/components/docs/funcs/Func";
+import { ScalarFunc as ScalarFuncType } from "@/types/docs";
+
+export default function Page() {
+  return <Func func={func} />;
+}
+
+const func: ScalarFuncType = JSON.parse(
+  '{"name":"countif","implemented":true,"desc":"Aggregates and returns the count of rows within each group where the specified boolean condition evaluates to true. Takes a boolean expression as an argument. Null values are treated as false, and the result is returned as an i64 integer.","usage":"Calculates the number of rows in each group where a condition is true.","category":"counting","signatures":[{"return_type":"scalar:i64","arg_types":["scalar:bool"]}],"examples":[{"name":"summarize count if value lt","input":[{"machineId":1,"sessionId":1,"eventId":1,"parsedAt":"2006-01-02T15:04:06.001Z","log":"{\\"ts\\":\\"2006-01-02T15:04:06.001\\", \\"lvl\\": \\"error\\", \\"msg\\":\\"log1\\",\\"source\\":{\\"line\\": 1}}"},{"machineId":1,"sessionId":1,"eventId":2,"parsedAt":"2006-01-02T15:04:06.001Z","log":"{\\"ts\\":\\"2006-01-02T15:04:06.002\\", \\"lvl\\": \\"error\\", \\"msg\\":\\"log2\\"}"},{"machineId":1,"sessionId":1,"eventId":3,"parsedAt":"2006-01-02T15:04:06.001Z","log":"{\\"ts\\":\\"2006-01-02T15:04:06.002\\", \\"lvl\\": \\"error\\", \\"msg\\":\\"log3\\",\\"source\\":{\\"line\\": 2}}"},{"machineId":1,"sessionId":1,"eventId":4,"parsedAt":"2006-01-02T15:04:06.001Z","log":"{\\"ts\\":\\"2006-01-02T15:04:06.003\\", \\"lvl\\": \\"error\\", \\"msg\\":\\"log4\\"}"},{"machineId":1,"sessionId":1,"eventId":5,"parsedAt":"2006-01-02T15:04:06.001Z","log":"{\\"ts\\":\\"2006-01-02T15:04:06.003\\", \\"lvl\\": \\"error\\", \\"msg\\":\\"log5\\",\\"source\\":{\\"line\\": 3}}"},{"machineId":1,"sessionId":1,"eventId":6,"parsedAt":"2006-01-02T15:04:06.001Z","log":"{\\"ts\\":\\"2006-01-02T15:04:06.003\\", \\"lvl\\": \\"error\\", \\"msg\\":\\"log6\\",\\"source\\":{\\"line\\": 4}}"},{"machineId":1,"sessionId":1,"eventId":7,"parsedAt":"2006-01-02T15:04:06.001Z","log":"{\\"ts\\":\\"2006-01-02T15:04:06.003\\", \\"lvl\\": \\"error\\", \\"msg\\":\\"log7\\",\\"source\\":{\\"line\\": 5}}"}],"query":"summarize countif([\'source.line\'] > 3)","output":{"Shape":{"Tabular":{"Shape":{"FreeForm":{"type":{"columns":[{"name":"countif","type":{"Type":{"Scalar":3}}}]},"rows":[{"items":[{"type":{"Type":{"Scalar":3}},"Kind":{"I64":2}}]}]}}}}}}]}',
+) as ScalarFuncType;

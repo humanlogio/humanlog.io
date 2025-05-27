@@ -41,7 +41,6 @@ import { getEnvUrl, getUserSettingsUrl } from "@/lib/utils/navigation";
 import { useAllEnvironments, UserState } from "@/context/list-environments";
 import { Button } from "@/components/ui/button";
 import config from "@/features/config";
-import { getFirstDoc } from "@/lib/docs";
 import { getAllowedUsage } from "@/services/featureService";
 import {
   AllowedUsageResponse,
@@ -56,7 +55,7 @@ interface Source {
 
 const navLinks = [
   {
-    href: `${getFirstDoc()?.fullPath}`,
+    href: "/docs/get-started/instoduction",
     text: "Docs",
   },
   // TODO: when blog is ready
