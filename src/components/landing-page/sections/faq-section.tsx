@@ -132,7 +132,7 @@ const faqItems: FAQItem[] = [
     answer:
       "Humanlog's query language is a pipeline-based language, inspired by KustoQL™. It's powerful for filtering, aggregating, and analyzing observability data.",
     linkText: "Read the query language reference with examples",
-    linkHref: "/docs/reference/reference",
+    linkHref: "/docs/reference",
   },
   {
     id: "logs-vs-traces",
