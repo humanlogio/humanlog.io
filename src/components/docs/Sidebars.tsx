@@ -9,22 +9,46 @@ import {
 } from "@/components/ui/sheet";
 import { ChevronDown, ChevronRight, LayoutList } from "lucide-react";
 import { useEffect, useState } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import NextLink from "next/link";
 import { NavItem as NavItemType } from "@/lib/contents";
+import config from "@/features/config";
 
 interface DocsSidebarProps {
   navItems: NavItemType[];
 }
 
 export function DocsSidebar({ navItems }: DocsSidebarProps) {
+  // Filter items based on environment
+  const filterNavItems = (items: NavItemType[]): NavItemType[] => {
+    return items
+      .filter((item) => {
+        // If devOnly is true, only show in development environment
+        if (item.devOnly) {
+          return !config.NEXT_PUBLIC_IS_PROD;
+        }
+        return true;
+      })
+      .map((item) => {
+        if (item.children && item.children.length > 0) {
+          return {
+            ...item,
+            children: filterNavItems(item.children),
+          };
+        }
+        return item;
+      });
+  };
+
+  const filteredNavItems = filterNavItems(navItems);
+
   return (
     <>
       {/* Desktop Sidebar */}
       <div className="hidden h-screen w-64 flex-shrink-0 overflow-y-auto border-r p-4 md:block">
         <div className="mb-6 text-xl font-bold">Docs</div>
         <nav>
-          {navItems.map((item, index) => (
+          {filteredNavItems.map((item, index) => (
             <NavItem key={index} item={item} />
           ))}
         </nav>
@@ -33,16 +57,16 @@ export function DocsSidebar({ navItems }: DocsSidebarProps) {
       {/* Mobile Sidebar */}
       <Sheet>
         <SheetTrigger asChild>
-          <button className="absolute top-20 right-4 rounded border p-1 md:hidden">
-            <LayoutList className="h-4 w-4" />
+          <button className="bg-muted fixed top-20 right-4 z-50 flex h-10 w-10 items-center justify-center rounded-full text-white shadow-md md:hidden">
+            <LayoutList className="h-5 w-5" />
           </button>
         </SheetTrigger>
-        <SheetContent className="dark:bg-darkBg w-full dark:text-white">
+        <SheetContent className="w-full overflow-y-auto pt-12 dark:bg-black dark:text-white">
           <SheetHeader className="text-left">
             <SheetTitle>Docs</SheetTitle>
           </SheetHeader>
-          <nav className="mt-8">
-            {navItems.map((item, index) => (
+          <nav className="mt-4 pb-20">
+            {filteredNavItems.map((item, index) => (
               <NavItem key={index} item={item} />
             ))}
           </nav>
@@ -54,9 +78,38 @@ export function DocsSidebar({ navItems }: DocsSidebarProps) {
 
 export const NavItem = ({ item }: { item: NavItemType }) => {
   const pathname = usePathname();
+  const router = useRouter();
+  const [currentHash, setCurrentHash] = useState<string>("");
 
   const itemId = `nav-item-${item.title.replace(/\s+/g, "-").toLowerCase()}`;
   const [isOpen, setIsOpen] = useState<boolean | null>(null);
+
+  // Update the hash whenever it changes in the URL
+  useEffect(() => {
+    const updateHash = () => {
+      const hash = window.location.hash
+        ? window.location.hash.substring(1)
+        : "";
+      setCurrentHash(hash);
+    };
+
+    // Set initial hash
+    updateHash();
+
+    // Add hash change event listener
+    window.addEventListener("hashchange", updateHash);
+
+    return () => {
+      window.removeEventListener("hashchange", updateHash);
+    };
+  }, []);
+
+  // Ensure component updates when pathname changes
+  useEffect(() => {
+    // Update hash when pathname changes
+    const hash = window.location.hash ? window.location.hash.substring(1) : "";
+    setCurrentHash(hash);
+  }, [pathname]);
 
   useEffect(() => {
     const savedState = localStorage.getItem(itemId);
@@ -64,7 +117,7 @@ export const NavItem = ({ item }: { item: NavItemType }) => {
     if (savedState !== null) {
       setIsOpen(savedState === "true");
     } else {
-      if ("items" in item) {
+      if (item.children) {
         const shouldOpen = checkIfSectionContainsCurrentPath(item, pathname);
         setIsOpen(shouldOpen);
         if (shouldOpen) {
@@ -74,7 +127,18 @@ export const NavItem = ({ item }: { item: NavItemType }) => {
         setIsOpen(false);
       }
     }
-  }, [itemId, pathname]);
+  }, [itemId, pathname, item.children]);
+
+  useEffect(() => {
+    // Handle hash scrolling when page loads
+    if (window.location.hash) {
+      const id = window.location.hash.substring(1);
+      const element = document.getElementById(id);
+      if (element) {
+        element.scrollIntoView({ behavior: "smooth" });
+      }
+    }
+  }, [pathname]);
 
   const checkIfSectionContainsCurrentPath = (
     item: NavItemType,
@@ -83,14 +147,12 @@ export const NavItem = ({ item }: { item: NavItemType }) => {
     if (!item.children) return false;
 
     return item.children?.some((subItem) => {
-      if ("items" in subItem) {
-        return checkIfSectionContainsCurrentPath(
-          subItem as NavItemType,
-          currentPath,
-        );
+      if (subItem.children) {
+        return checkIfSectionContainsCurrentPath(subItem, currentPath);
       } else {
-        const itemPath = `/docs/${subItem.title}/${subItem.path}`;
-        return currentPath === itemPath;
+        // Check if the current path matches the item path or its path without hash
+        const pathWithoutHash = subItem.path.split("#")[0];
+        return currentPath === subItem.path || currentPath === pathWithoutHash;
       }
     });
   };
@@ -101,12 +163,60 @@ export const NavItem = ({ item }: { item: NavItemType }) => {
     localStorage.setItem(itemId, String(newState));
   };
 
-  const isSection = "children" in item;
-  const hasChildren = isSection && item.children && item.children.length > 0;
-  const itemPath = !isSection ? `/docs/${item.title}` : "";
-  const isActive = !isSection && pathname === itemPath;
+  const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    if (item.path.includes("#")) {
+      e.preventDefault();
 
-  console.log("item", item);
+      // Navigate to the page first if needed
+      const [pagePath, hash] = item.path.split("#");
+      const currentPathWithoutHash = pathname.split("#")[0];
+
+      if (pagePath && currentPathWithoutHash !== pagePath) {
+        router.push(item.path);
+      } else {
+        // If already on the correct page, just scroll to the element
+        const element = document.getElementById(hash);
+        if (element) {
+          element.scrollIntoView({ behavior: "smooth" });
+          // Update URL with hash without full page reload
+          window.history.pushState({}, "", item.path);
+          // Update current hash state to trigger re-render
+          setCurrentHash(hash);
+          // Dispatch a custom hashchange event to notify all components
+          window.dispatchEvent(new Event("hashchange"));
+        }
+      }
+    }
+  };
+
+  const isSection = item.children && item.children.length > 0;
+  const hasChildren = isSection;
+
+  const isActive = (() => {
+    // Exact path match
+    if (pathname === item.path) return true;
+
+    // Hash path case (e.g., /docs/reference/functions/scalar#abs)
+    if (item.path.includes("#")) {
+      const [itemBasePath, itemHash] = item.path.split("#");
+
+      // Activate when both base path and hash match
+      if (pathname === itemBasePath && currentHash === itemHash) {
+        // Only in development, log which item is being activated
+        if (process.env.NODE_ENV === "development") {
+          console.log(
+            "Activating item:",
+            item.title,
+            "Hash match:",
+            currentHash === itemHash,
+          );
+        }
+        return true;
+      }
+    }
+
+    return false;
+  })();
 
   if (isOpen === null) return null;
 
@@ -114,7 +224,7 @@ export const NavItem = ({ item }: { item: NavItemType }) => {
     <div className="flex flex-col">
       <div
         className={`flex items-center rounded-md px-4 py-2 hover:underline ${
-          isActive ? "bg-slate-100 dark:bg-slate-800" : ""
+          isActive ? "font-bold" : ""
         }`}
       >
         {hasChildren ? (
@@ -130,7 +240,11 @@ export const NavItem = ({ item }: { item: NavItemType }) => {
         )}
 
         {!isSection ? (
-          <NextLink href={item.path} className="flex-1">
+          <NextLink
+            href={item.path}
+            className="flex-1"
+            onClick={item.path.includes("#") ? handleClick : undefined}
+          >
             {item.title}
           </NextLink>
         ) : (
@@ -145,7 +259,7 @@ export const NavItem = ({ item }: { item: NavItemType }) => {
 
       {hasChildren && isOpen && (
         <div className="ml-2">
-          {(item as NavItemType).children?.map((child, index) => (
+          {item.children?.map((child, index) => (
             <NavItem key={index} item={child} />
           ))}
         </div>
