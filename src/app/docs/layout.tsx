@@ -97,7 +97,7 @@ export default function DocsLayout({ children }: { children: ReactNode }) {
         <DocsSidebar navItems={navItems} />
       </div>
       <main className="w-full flex-1 p-2 md:p-6">
-        <div className="w-ful pl-64">{children}</div>
+        <div className="prose w-full max-w-none pl-64">{children}</div>
       </main>
     </div>
   );
