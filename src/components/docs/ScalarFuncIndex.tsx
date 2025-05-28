@@ -1,21 +1,25 @@
 "use client";
 
 import { ScalarFunc as ScalarFuncType } from "@/types/docs";
-import Link from "next/link";
+import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
-import { useState } from "react";
-import { Badge } from "@/components/ui/badge";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Func } from "@/components/docs/funcs/Func";
 
 export function ScalarFuncIndex({ funcs }: { funcs: ScalarFuncType[] }) {
   const [searchTerm, setSearchTerm] = useState("");
+
+  // Scroll to hash element when component mounts
+  useEffect(() => {
+    if (window.location.hash) {
+      const id = window.location.hash.substring(1);
+      const element = document.getElementById(id);
+      if (element) {
+        setTimeout(() => {
+          element.scrollIntoView({ behavior: "smooth" });
+        }, 100);
+      }
+    }
+  }, []);
 
   // Group functions by category
   const functionsByCategory = funcs.reduce<Record<string, ScalarFuncType[]>>(
@@ -79,7 +83,7 @@ export function ScalarFuncIndex({ funcs }: { funcs: ScalarFuncType[] }) {
       {filteredCategories.length === 0 ? (
         <div className="rounded-lg border border-dashed p-8 text-center">
           <p className="text-muted-foreground">
-            {`No functions found matching "{searchTerm}"`}
+            {`No functions found matching "${searchTerm}"`}
           </p>
         </div>
       ) : (
@@ -91,49 +95,23 @@ export function ScalarFuncIndex({ funcs }: { funcs: ScalarFuncType[] }) {
           );
 
           return (
-            <div key={category} className="space-y-4">
-              <h2 className="text-2xl font-semibold">{category}</h2>
+            <div key={category} className="space-y-8">
+              <h2
+                id={`category-${category.toLowerCase().replace(/\s+/g, "-")}`}
+                className="scroll-mt-20 text-2xl font-semibold"
+              >
+                {category}
+              </h2>
 
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="space-y-12">
                 {categoryFuncs.map((func) => (
-                  <Link
-                    key={func.name}
-                    href={`/docs/reference/functions/scalar/${func.name}`}
-                    className="transition-transform hover:scale-[1.01]"
+                  <div
+                    key={`function-${func.name}`}
+                    id={func.name}
+                    className="scroll-mt-20"
                   >
-                    <Card>
-                      <CardHeader className="pb-2">
-                        <div className="flex items-center justify-between">
-                          <CardTitle className="text-lg">{func.name}</CardTitle>
-                          {func.implemented !== false ? (
-                            <Badge
-                              variant="outline"
-                              className="bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400"
-                            >
-                              Implemented
-                            </Badge>
-                          ) : (
-                            <Badge
-                              variant="outline"
-                              className="bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400"
-                            >
-                              Coming Soon
-                            </Badge>
-                          )}
-                        </div>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="text-muted-foreground line-clamp-2 text-sm">
-                          {func.desc}
-                        </p>
-                      </CardContent>
-                      <CardFooter className="pt-0">
-                        <div className="bg-muted w-full overflow-hidden rounded px-2 py-1 text-ellipsis whitespace-nowrap">
-                          <code className="text-xs">{func.usage}</code>
-                        </div>
-                      </CardFooter>
-                    </Card>
-                  </Link>
+                    <Func func={func} />
+                  </div>
                 ))}
               </div>
             </div>

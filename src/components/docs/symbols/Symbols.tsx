@@ -92,7 +92,7 @@ export function Symbols({ symbols }: { symbols: Symbol[] }) {
                 </TableHeader>
                 <TableBody>
                   {sortedSymbols.map((symbol, i) => (
-                    <TableRow key={`${i}-${symbol.name}`}>
+                    <TableRow key={`${i}-${symbol.name}`} id={symbol.name}>
                       <TableCell className="font-mono font-medium">
                         {symbol.name}
                       </TableCell>
@@ -109,7 +109,7 @@ export function Symbols({ symbols }: { symbols: Symbol[] }) {
             ) : (
               <div className="py-4 text-center">
                 <p className="text-muted-foreground">
-                  {`No symbols found matching "{searchTerm}"`}
+                  {`No symbols found matching "${searchTerm}"`}
                 </p>
               </div>
             )}
@@ -134,9 +134,11 @@ export function Symbols({ symbols }: { symbols: Symbol[] }) {
                   {typeSymbols
                     .sort((a, b) => a.name.localeCompare(b.name))
                     .map((symbol, i) => (
-                      <TableRow key={`${i}-${symbol.name}`}>
+                      <TableRow key={`${i}-${symbol.name}`} id={symbol.name}>
                         <TableCell className="font-mono font-medium">
-                          {symbol.name}
+                          <div id={symbol.name} className="scroll-mt-20">
+                            {symbol.name}
+                          </div>
                         </TableCell>
                         <TableCell>{symbol.desc}</TableCell>
                       </TableRow>

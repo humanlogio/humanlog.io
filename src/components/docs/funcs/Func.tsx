@@ -13,10 +13,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export function Func({ func }: { func: ScalarFuncType }) {
   return (
-    <div className="space-y-6">
-      <div className="border-b pb-4">
-        <div className="mb-4 flex items-center gap-3">
-          <h1 className="mb-0 text-3xl font-bold">{func.name}</h1>
+    <div className="w-full max-w-full space-y-6 overflow-hidden" id={func.name}>
+      <div className="w-full border-b pb-4">
+        <div className="mb-4 flex flex-wrap items-center gap-3">
+          <h1 className="mb-0 scroll-mt-20 text-3xl font-bold">{func.name}</h1>
           {func.implemented !== false ? (
             <Badge
               variant="outline"
@@ -39,20 +39,25 @@ export function Func({ func }: { func: ScalarFuncType }) {
         <p className="text-muted-foreground mt-2 text-lg">{func.desc}</p>
       </div>
 
-      <div className="space-y-4">
+      <div className="w-full space-y-4">
         <h2 className="text-xl font-semibold">Usage</h2>
-        <div className="bg-muted rounded-md p-4">
-          <code className="font-mono text-sm">{func.usage}</code>
+        <div className="bg-muted w-full overflow-hidden rounded-md p-4">
+          <code className="overflow-wrap-anywhere font-mono text-sm whitespace-pre-wrap">
+            {func.usage}
+          </code>
         </div>
       </div>
 
-      <div className="space-y-4">
+      <div className="w-full space-y-4">
         <h2 className="text-xl font-semibold">Signatures</h2>
-        <div className="space-y-2">
+        <div className="w-full space-y-2">
           {func.signatures.map((signature, i) => (
-            <div key={i} className="bg-muted rounded-md p-4">
-              <code className="font-mono text-sm">
-                {func.name}({signature.arg_types.join(", ")}) →{" "}
+            <div
+              key={i}
+              className="bg-muted w-full overflow-hidden rounded-md p-4"
+            >
+              <code className="overflow-wrap-anywhere font-mono text-sm whitespace-pre-wrap">
+                {func.name}({signature.arg_types?.join(", ")}) →{" "}
                 {signature.return_type}
               </code>
             </div>
@@ -60,19 +65,15 @@ export function Func({ func }: { func: ScalarFuncType }) {
         </div>
       </div>
 
-      {func.examples.length > 0 && (
-        <div className="space-y-4">
+      {func.examples?.length > 0 && (
+        <div className="w-full space-y-4">
           <h2 className="text-xl font-semibold">Examples</h2>
-          <Tabs
-            defaultValue={func.examples[0].name
-              .replace(/\s+/g, "-")
-              .toLowerCase()}
-          >
-            <TabsList className="w-full justify-start">
+          <Tabs defaultValue={`${func.name}-example-0`} className="w-full">
+            <TabsList className="w-full flex-wrap justify-start">
               {func.examples.map((example, i) => (
                 <TabsTrigger
-                  key={`tab-${i}`}
-                  value={example.name.replace(/\s+/g, "-").toLowerCase()}
+                  key={`${func.name}-tab-${i}`}
+                  value={`${func.name}-example-${i}`}
                 >
                   {example.name}
                 </TabsTrigger>
@@ -81,39 +82,39 @@ export function Func({ func }: { func: ScalarFuncType }) {
 
             {func.examples.map((example, i) => (
               <TabsContent
-                key={`content-${i}`}
-                value={example.name.replace(/\s+/g, "-").toLowerCase()}
-                className="mt-4 space-y-4"
+                key={`${func.name}-content-${i}`}
+                value={`${func.name}-example-${i}`}
+                className="mt-4 w-full space-y-4"
               >
-                <Card>
+                <Card className="w-full">
                   <CardHeader>
                     <CardTitle>Query</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <pre className="bg-muted overflow-x-auto rounded-md p-4">
-                      <code className="text-sm text-black dark:text-white">
+                    <pre className="bg-muted w-full overflow-x-auto rounded-md p-4">
+                      <code className="overflow-wrap-anywhere text-sm whitespace-pre-wrap text-black dark:text-white">
                         {example.query}
                       </code>
                     </pre>
                   </CardContent>
                 </Card>
 
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                  <Card>
+                <div className="grid w-full grid-cols-1 gap-4 md:grid-cols-2">
+                  <Card className="w-full">
                     <CardHeader>
                       <CardTitle>Input</CardTitle>
                       <CardDescription>Sample log entries</CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <div className="bg-muted max-h-80 overflow-y-auto rounded-md p-4">
-                        <pre className="text-xs">
+                      <div className="bg-muted max-h-80 w-full overflow-y-auto rounded-md p-4">
+                        <pre className="overflow-wrap-anywhere text-xs whitespace-pre-wrap">
                           {JSON.stringify(example.input, null, 2)}
                         </pre>
                       </div>
                     </CardContent>
                   </Card>
 
-                  <Card>
+                  <Card className="w-full">
                     <CardHeader>
                       <CardTitle>Output</CardTitle>
                       <CardDescription>
@@ -121,8 +122,8 @@ export function Func({ func }: { func: ScalarFuncType }) {
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <div className="bg-muted max-h-80 overflow-y-auto rounded-md p-4">
-                        <pre className="text-xs">
+                      <div className="bg-muted max-h-80 w-full overflow-y-auto rounded-md p-4">
+                        <pre className="overflow-wrap-anywhere text-xs whitespace-pre-wrap">
                           {JSON.stringify(example.output, null, 2)}
                         </pre>
                       </div>

@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/sheet";
 import { ChevronDown, ChevronRight, LayoutList } from "lucide-react";
 import { useEffect, useState } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import NextLink from "next/link";
 import { NavItem as NavItemType } from "@/lib/contents";
 
@@ -54,6 +54,7 @@ export function DocsSidebar({ navItems }: DocsSidebarProps) {
 
 export const NavItem = ({ item }: { item: NavItemType }) => {
   const pathname = usePathname();
+  const router = useRouter();
 
   const itemId = `nav-item-${item.title.replace(/\s+/g, "-").toLowerCase()}`;
   const [isOpen, setIsOpen] = useState<boolean | null>(null);
@@ -64,7 +65,7 @@ export const NavItem = ({ item }: { item: NavItemType }) => {
     if (savedState !== null) {
       setIsOpen(savedState === "true");
     } else {
-      if ("items" in item) {
+      if (item.children) {
         const shouldOpen = checkIfSectionContainsCurrentPath(item, pathname);
         setIsOpen(shouldOpen);
         if (shouldOpen) {
@@ -74,7 +75,18 @@ export const NavItem = ({ item }: { item: NavItemType }) => {
         setIsOpen(false);
       }
     }
-  }, [itemId, pathname]);
+  }, [itemId, pathname, item.children]);
+
+  useEffect(() => {
+    // Handle hash scrolling when page loads
+    if (window.location.hash) {
+      const id = window.location.hash.substring(1);
+      const element = document.getElementById(id);
+      if (element) {
+        element.scrollIntoView({ behavior: "smooth" });
+      }
+    }
+  }, [pathname]);
 
   const checkIfSectionContainsCurrentPath = (
     item: NavItemType,
@@ -83,14 +95,12 @@ export const NavItem = ({ item }: { item: NavItemType }) => {
     if (!item.children) return false;
 
     return item.children?.some((subItem) => {
-      if ("items" in subItem) {
-        return checkIfSectionContainsCurrentPath(
-          subItem as NavItemType,
-          currentPath,
-        );
+      if (subItem.children) {
+        return checkIfSectionContainsCurrentPath(subItem, currentPath);
       } else {
-        const itemPath = `/docs/${subItem.title}/${subItem.path}`;
-        return currentPath === itemPath;
+        // Check if the current path matches the item path or its path without hash
+        const pathWithoutHash = subItem.path.split("#")[0];
+        return currentPath === subItem.path || currentPath === pathWithoutHash;
       }
     });
   };
@@ -101,12 +111,33 @@ export const NavItem = ({ item }: { item: NavItemType }) => {
     localStorage.setItem(itemId, String(newState));
   };
 
-  const isSection = "children" in item;
-  const hasChildren = isSection && item.children && item.children.length > 0;
-  const itemPath = !isSection ? `/docs/${item.title}` : "";
-  const isActive = !isSection && pathname === itemPath;
+  const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    if (item.path.includes("#")) {
+      e.preventDefault();
 
-  console.log("item", item);
+      // Navigate to the page first if needed
+      const [pagePath, hash] = item.path.split("#");
+      const currentPathWithoutHash = pathname.split("#")[0];
+
+      if (pagePath && currentPathWithoutHash !== pagePath) {
+        router.push(item.path);
+      } else {
+        // If already on the correct page, just scroll to the element
+        const element = document.getElementById(hash);
+        if (element) {
+          element.scrollIntoView({ behavior: "smooth" });
+          // Update URL with hash without full page reload
+          window.history.pushState({}, "", item.path);
+        }
+      }
+    }
+  };
+
+  const isSection = item.children && item.children.length > 0;
+  const hasChildren = isSection;
+  const isActive =
+    pathname === item.path ||
+    (item.path.includes("#") && pathname === item.path.split("#")[1]);
 
   if (isOpen === null) return null;
 
@@ -114,7 +145,7 @@ export const NavItem = ({ item }: { item: NavItemType }) => {
     <div className="flex flex-col">
       <div
         className={`flex items-center rounded-md px-4 py-2 hover:underline ${
-          isActive ? "bg-slate-100 dark:bg-slate-800" : ""
+          isActive ? "font-semibold" : ""
         }`}
       >
         {hasChildren ? (
@@ -130,7 +161,11 @@ export const NavItem = ({ item }: { item: NavItemType }) => {
         )}
 
         {!isSection ? (
-          <NextLink href={item.path} className="flex-1">
+          <NextLink
+            href={item.path}
+            className="flex-1"
+            onClick={item.path.includes("#") ? handleClick : undefined}
+          >
             {item.title}
           </NextLink>
         ) : (
@@ -145,7 +180,7 @@ export const NavItem = ({ item }: { item: NavItemType }) => {
 
       {hasChildren && isOpen && (
         <div className="ml-2">
-          {(item as NavItemType).children?.map((child, index) => (
+          {item.children?.map((child, index) => (
             <NavItem key={index} item={child} />
           ))}
         </div>

@@ -23,9 +23,12 @@ const writeFileInDir = (filename: string, content: string) => {
   fs.writeFileSync(filename, content);
 };
 
-// URL 생성 헬퍼 함수
 const urlForScalarFunctionsIndex = () => {
   return `/docs/reference/functions/scalar`;
+};
+
+const urlForAggregateFunctionsIndex = () => {
+  return `/docs/reference/functions/aggregate`;
 };
 
 const urlForScalarFunction = (func: ScalarFunc) => {
@@ -44,12 +47,26 @@ const urlForTabularOperator = (operators: TabularOperator[]) => {
   return `/docs/reference/operators/tabular`;
 };
 
-/**
- * Symbols 참조 문서 생성 함수
- */
 export const generateSymbolsReference = (ref: Reference) => {
   generateLogsReference(ref.symbols);
   generateSpansReference(ref.symbols);
+};
+
+export const generateReferenceDump = (ref: Reference) => {
+  const refDump = JSON.stringify(JSON.stringify(ref));
+  const filename = `src/lib/utils/reference.ts`;
+
+  writeFileInDir(
+    filename,
+    `/**
+ * @generated
+ * This file is auto-generated. Do not edit manually.
+ */
+ 
+import { Reference } from "@/types/docs";
+export const reference: Reference = JSON.parse(${refDump}) as Reference;
+`,
+  );
 };
 
 export const generateLogsReference = (symbols: Symbols) => {
@@ -98,9 +115,6 @@ const symbols: Symbol[] = JSON.parse(${spansSymbols}) as Symbol[];
   );
 };
 
-/**
- * Functions 참조 문서 생성 함수
- */
 export const generateScalarFunctionsIndex = (ref: Reference) => {
   const scalarFuncs = JSON.stringify(JSON.stringify(ref.funcs.scalar));
   const urlPath = urlForScalarFunctionsIndex();
@@ -126,7 +140,7 @@ const funcs: ScalarFuncType[] = JSON.parse(${scalarFuncs}) as ScalarFuncType[];
 
 export const generateAggregateFunctionIndex = (ref: Reference) => {
   const AggregateFunc = JSON.stringify(JSON.stringify(ref.funcs.aggregate));
-  const urlPath = urlForScalarFunctionsIndex();
+  const urlPath = urlForAggregateFunctionsIndex();
   const filename = `src/app${urlPath}/page.tsx`;
   writeFileInDir(
     filename,
