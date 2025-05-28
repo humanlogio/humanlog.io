@@ -1,3 +1,146 @@
 # Basic Usage
 
-{/* @antoine Please fill in the content here and remove the published field when pushing to production. */}
+Once `humanlog` is [installed](/docs/get-started/installation), it's time to put some data in there. Humanlog has first class support for:
+- line-oriented log data, particularly for structured JSON/logfmt data
+- OpenTelemetry tracing data
+
+
+## Ingest
+
+### Ingesting Logs
+
+Ingesting logs in humanlog is trivial. Simply pipe them into the CLI, or feed them to the CLI's stdin.
+
+Run your app or service with `humanlog` on its output:
+
+```bash
+my_app | humanlog
+```
+
+Or feed your file to `humanlog`:
+
+```bash
+humanlog < your_log_file
+```
+
+You will see your logs prettified, and they will have been ingested in the localhost engine. You can then query them.
+
+If you just want to ingest the logs without prettifying them, use:
+
+```bash
+# ingest logs from an app, without printing them
+my_app | humanlog ingest
+
+# ingest logs from a file, without printing them
+humanlog ingest < your_log_file
+```
+
+### Ingesting OpenTelemetry (tracing, more to come)
+
+Ingesting **OpenTelemetry works outside the box** with no need to do anything in most cases.
+
+If `humanlog` is running, it will listen on port `4317` and `4318` for the OpenTelemetry protocol (OTLP). Simply start your service and if your app is configured with the default OpenTelemetry values, everything will work by default with no action needed on your end.
+
+You can monitor your spans either being streamed into `humanlog` with:
+
+```
+humanlog stream 'traces | filter true'
+```
+
+> [!NOTE]
+> Tracing can produce a lot of data. Visualizing a stream of all spans being emitted in real time can tax your browser.
+
+If your app needs to be told where to export the OpenTelemetry data, here are commonly used values. Note that the `default` usually do not need to be specified:
+
+| Situation                            | `OTEL_EXPORTER_OTLP_ENDPOINT`      |
+|--------------------------------------|------------------------------------|
+| Default (same host, OTLP/HTTP)       | `http://localhost:4317`            |
+| Default (same host, OTLP/gRPC)       | `http://localhost:4318`            |
+| Docker, Orbstack, `kind` (OTLP/HTTP) | `http://host.docker.internal:4317` |
+| Docker, Orbstack, `kind` (OTLP/gRPC) | `http://host.docker.internal:4318` |
+
+The `host.docker.internal` hostname will allow programs running inside virtualized container runtimes (example `Docker Desktop on Mac`, `OrbStack`, `Rancher Desktop`, `Podman`). If you're asking, we recommend [Orbstack](https://orbstack.dev/?utm_source=humanlog.io).
+
+## Working With Your Data
+
+Querying data in humanlog is done using the Humanlog Query Language. You can learn all the details about it in the [reference documentation](/docs/reference).
+
+There are two types of query: historical and stream queries. The **Query** tab lets you query historical data (anything that has been ingested), while the **Stream** tab lets you work on a stream of data as it is being received by humanlog. The query language is the same for both, but some features available in the historical mode are not possible in stream mode, simply due to the nature of stream data.
+
+By default, when we talk about **query**ing, we meant querying data that has been ingested and stored in humanlog. We will talk about **stream** queries whenever we mean queries that are open-ended.
+
+The result of a normal query is static. This means that a normal query will run against the data that exists *at the time* the query is initiated and then return the matching data. Data that arrives in the future is not included in the dataset. On the other hand, **stream queries** run against incoming data, row by row, event by event, in real time.
+
+### Query
+
+You can run queries against point-in-time (historical) data in two ways:
+
+Via the CLI:
+
+```bash
+humanlog query 'filter request_id == "2937400f-b5c5-426f-b07a-4c7723ff6740"'
+```
+
+Which will open the UI with a view on this query... or [directly via the UI](/localhost/query):
+
+<img src="/images/docs/get-started/basic-usage/query-tab.png" width="400" />
+
+You can read and learn [more about queries here](/docs/features/query).
+
+### Stream
+
+You can run stream queries in two ways:
+
+Via the CLI:
+
+```bash
+humanlog stream 'filter msg == "something in the future that i'm looking forward to"'
+```
+
+Which will open the UI with a view on this stream of data... or [directly via the UI](/localhost/stream):
+
+<img src="/images/docs/get-started/basic-usage/stream-tab.png" width="400" />
+
+You can read and learn [more about streams here](/docs/features/stream).
+
+## Sharing Your Work
+
+You can share the results of your queries in public or in private. This is a great way to share your findings with friends and colleagues, so they can see the insights you gathered during your investigations. Here's an [example public share](https://humanlog.io/share/public/01JSJYH3W2ZCK8S5BWMYZ879QB).
+
+Sharing results is easy. Simply click on the share button next to a data panel:
+
+<img src="/images/docs/get-started/basic-usage/share-button.png" width="400" />
+
+This will open a modal that asks you to chose a privacy setting:
+
+<img src="/images/docs/get-started/basic-usage/share-modal.png" width="400" />
+
+Clicking on either choices will produce a link that you can share:
+
+<img src="/images/docs/get-started/basic-usage/share-link.png" width="400" />
+
+These links will render your query and the associated results:
+
+<img src="/images/docs/get-started/basic-usage/share-result.png" width="400" />
+
+- Public shares are like public GitHub Gists, others can see them on your profile page.
+- Private shares are like private GitHub Gists, anyone with the link can see them, but they do not show up on your profile page.
+
+You can read and learn [more about sharing here](/docs/features/sharing). Note that usage of the share feature involves sending your data to our cloud for archival. Be careful about what you share.
+
+## Prettifying logs
+
+You can use `humanlog` simply to prettify ugly JSON or logfmt logs. You simply pass these logs into the CLI via `stdin` and they'll be prettified.
+
+### Color Themes
+
+You can change the default themes used by both the UI and the CLI [in your settings](/settings/localhost).
+
+<img src="/images/docs/get-started/basic-usage/themes.png" width="400" />
+
+Coming soon:
+- Saving color themes by name.
+- Sharing themes with others.
+- Using named themes from a library.
+
+You can read and learn [more about themes here](/docs/features/themes).
