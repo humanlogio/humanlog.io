@@ -170,8 +170,6 @@ const PageHeader: React.FC = () => {
     setSelected(_selected);
   }, [pathname, sources]);
 
-  console.log("user", user);
-
   const renderAvatarBlock = (user: UserState) => {
     if (user === "loading") {
       return <Loader className="animate-spin md:text-white" />;

@@ -18,13 +18,36 @@ interface DocsSidebarProps {
 }
 
 export function DocsSidebar({ navItems }: DocsSidebarProps) {
+  // Filter items based on environment
+  const filterNavItems = (items: NavItemType[]): NavItemType[] => {
+    return items
+      .filter((item) => {
+        // If devOnly is true, only show in development environment
+        if (item.devOnly) {
+          return process.env.NODE_ENV === "development";
+        }
+        return true;
+      })
+      .map((item) => {
+        if (item.children && item.children.length > 0) {
+          return {
+            ...item,
+            children: filterNavItems(item.children),
+          };
+        }
+        return item;
+      });
+  };
+
+  const filteredNavItems = filterNavItems(navItems);
+
   return (
     <>
       {/* Desktop Sidebar */}
       <div className="hidden h-screen w-64 flex-shrink-0 overflow-y-auto border-r p-4 md:block">
         <div className="mb-6 text-xl font-bold">Docs</div>
         <nav>
-          {navItems.map((item, index) => (
+          {filteredNavItems.map((item, index) => (
             <NavItem key={index} item={item} />
           ))}
         </nav>
@@ -42,7 +65,7 @@ export function DocsSidebar({ navItems }: DocsSidebarProps) {
             <SheetTitle>Docs</SheetTitle>
           </SheetHeader>
           <nav className="mt-8">
-            {navItems.map((item, index) => (
+            {filteredNavItems.map((item, index) => (
               <NavItem key={index} item={item} />
             ))}
           </nav>

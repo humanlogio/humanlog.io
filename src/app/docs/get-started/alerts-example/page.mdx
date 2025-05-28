@@ -1,0 +1,75 @@
+import { Note, Tip, Warning, Important, Caution } from "@/components/ui/Alert";
+
+# Alert Examples
+
+This page demonstrates how to use our custom alert components in MDX files. These alerts are designed to highlight important information with different styles based on the type of message.
+
+## Basic Usage
+
+<Note>
+  This is a simple note alert. Use it to call attention to supplemental
+  information or tips that aren't critical.
+</Note>
+
+<Tip>
+  Tips are helpful suggestions that can improve the user experience or provide
+  shortcuts. Use them to share best practices.
+</Tip>
+
+<Warning>
+  Warnings indicate potential issues that users should be aware of. They
+  highlight actions that might lead to problems.
+</Warning>
+
+<Important>
+  Important alerts emphasize critical information that users need to know to
+  successfully complete a task.
+</Important>
+
+<Caution>
+  Caution alerts highlight potential negative consequences of an action, similar
+  to warnings but with more emphasis on danger.
+</Caution>
+
+## Customizing Alert Titles
+
+You can also customize the title of each alert:
+
+<Note title="Custom Note Title">
+  This note has a custom title instead of the default "Note" text.
+</Note>
+
+<Warning title="Attention Required">
+  You can use custom titles to be more specific about the nature of the warning.
+</Warning>
+
+## Using Markdown Inside Alerts
+
+Alerts support Markdown content inside them:
+
+<Important>
+  You can use **bold text**, *italic text*, and even:
+  
+  - Bullet points
+  - With multiple items
+  
+  Or `inline code` and code blocks:
+  
+  ```javascript
+  // Example code
+  function example() {
+    return "Hello, world!";
+  }
+  ```
+
+</Important>
+
+## When to Use Each Alert Type
+
+- **Note**: General information that is helpful but not critical
+- **Tip**: Optional information that can help users be more successful
+- **Important**: Crucial information necessary for users to succeed
+- **Warning**: Critical content demanding immediate user attention due to potential risks
+- **Caution**: Information about negative potential consequences of an action
+
+These alerts help make your documentation more scannable and help users quickly identify important information at different levels of urgency.
