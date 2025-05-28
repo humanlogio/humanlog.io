@@ -11,34 +11,41 @@ export default function DocsLayout({ children }: { children: ReactNode }) {
       title: "Get Started",
       path: "/docs/get-started",
       children: [
-        //TODO: Add basic usage
-        // {
-        //   title: "Basic Usage",
-        //   path: "/docs/get-started/basic-usage",
-        // },
-        { title: "Installation", path: "/docs/get-started/installation" },
         { title: "Introduction", path: "/docs/get-started/introduction" },
+        { title: "Installation", path: "/docs/get-started/installation" },
+        { title: "Basic Usage", path: "/docs/get-started/basic-usage" },
       ],
     },
     {
-      title: "Dev only",
-      path: "/docs/dev-only",
-      devOnly: true,
+      title: "Features",
+      path: "/docs/features",
       children: [
+        { title: "CLI", path: "/docs/features/cli" },
+        { title: "Query", path: "/docs/features/query" },
+        { title: "Stream", path: "/docs/features/stream" },
+        { title: "Sharing", path: "/docs/features/sharing" },
+        { title: "Themes", path: "/docs/features/themes" },
+      ],
+    },
+    {
+      title: "Concepts",
+      path: "/docs/concepts",
+      children: [
+        { title: "Overview", path: "/docs/concepts" },
+        { title: "Logging", path: "/docs/concepts/logging" },
+        { title: "Tracing", path: "/docs/concepts/tracing" },
+        { title: "Localhost", path: "/docs/concepts/localhost" },
+      ],
+    },
+    {
+      title: "Integrations",
+      path: "/docs/integrations",
+      children: [
+        { title: "Overview", path: "/docs/integrations" },
+        { title: "OpenTelemetry", path: "/docs/integrations/opentelemetry" },
         {
-          title: "Alerts Example",
-          path: "/docs/dev-only/alerts-example",
-          devOnly: true,
-        },
-        {
-          title: "Mermaid Diagrams",
-          path: "/docs/dev-only/mermaid-example",
-          devOnly: true,
-        },
-        {
-          title: "Test Code",
-          path: "/docs/dev-only/test-code",
-          devOnly: true,
+          title: "OpenTelemetry",
+          path: "/docs/integrations/structured-logging",
         },
       ],
     },
@@ -46,6 +53,10 @@ export default function DocsLayout({ children }: { children: ReactNode }) {
       title: "Reference",
       path: "/docs/reference",
       children: [
+        {
+          title: "Overview",
+          path: "/docs/reference",
+        },
         {
           title: "Symbols",
           path: "/docs/reference/symbols",
@@ -103,6 +114,28 @@ export default function DocsLayout({ children }: { children: ReactNode }) {
               })),
             },
           ],
+        },
+      ],
+    },
+    {
+      title: "Dev only",
+      path: "/docs/dev-only",
+      devOnly: true,
+      children: [
+        {
+          title: "Alerts Example",
+          path: "/docs/dev-only/alerts-example",
+          devOnly: true,
+        },
+        {
+          title: "Mermaid Diagrams",
+          path: "/docs/dev-only/mermaid-example",
+          devOnly: true,
+        },
+        {
+          title: "Test Code",
+          path: "/docs/dev-only/test-code",
+          devOnly: true,
         },
       ],
     },

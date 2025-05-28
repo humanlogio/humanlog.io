@@ -32,7 +32,7 @@ const faqItems: FAQItem[] = [
     answer:
       "It's as safe to use on your laptop as jq or other CLI tools that work with data. If you would use awk, grep, or jq to slice and dice your data, you can use humanlog. As long as you don't purposefully click 'Share results' your data will never leave your machine.",
     linkText: "View our privacy policy",
-    linkHref: "/privacy",
+    linkHref: "/legal/privacy",
   },
   {
     id: "data-privacy",
@@ -40,7 +40,7 @@ const faqItems: FAQItem[] = [
     answer:
       "No, all your data stays local by default. Humanlog processes everything on your machine, and you control when and what to share.",
     linkText: "Learn more about our privacy approach",
-    linkHref: "/docs/privacy",
+    linkHref: "/docs/concepts/localhost#privacy",
   },
   {
     id: "pricing",
@@ -150,7 +150,7 @@ const faqItems: FAQItem[] = [
     answer:
       "You can easily share your queries or results with our sharable link feature. Send links to key findings so teammates can reproduce them.",
     linkText: "Learn about sharing",
-    linkHref: "/docs/sharing",
+    linkHref: "/docs/features/sharing",
   },
   {
     id: "hosted-version",
