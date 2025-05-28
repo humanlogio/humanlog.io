@@ -57,7 +57,7 @@ export function DocsSidebar({ navItems }: DocsSidebarProps) {
       {/* Mobile Sidebar */}
       <Sheet>
         <SheetTrigger asChild>
-          <button className="bg-primary fixed top-20 right-4 z-50 flex h-10 w-10 items-center justify-center rounded-full text-white shadow-md md:hidden">
+          <button className="bg-muted fixed top-20 right-4 z-50 flex h-10 w-10 items-center justify-center rounded-full text-white shadow-md md:hidden">
             <LayoutList className="h-5 w-5" />
           </button>
         </SheetTrigger>
@@ -224,7 +224,7 @@ export const NavItem = ({ item }: { item: NavItemType }) => {
     <div className="flex flex-col">
       <div
         className={`flex items-center rounded-md px-4 py-2 hover:underline ${
-          isActive ? "font-semibold" : ""
+          isActive ? "font-bold" : ""
         }`}
       >
         {hasChildren ? (
