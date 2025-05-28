@@ -56,15 +56,15 @@ export function DocsSidebar({ navItems }: DocsSidebarProps) {
       {/* Mobile Sidebar */}
       <Sheet>
         <SheetTrigger asChild>
-          <button className="absolute top-20 right-4 rounded border p-1 md:hidden">
-            <LayoutList className="h-4 w-4" />
+          <button className="bg-primary fixed top-20 right-4 z-50 flex h-10 w-10 items-center justify-center rounded-full text-white shadow-md md:hidden">
+            <LayoutList className="h-5 w-5" />
           </button>
         </SheetTrigger>
-        <SheetContent className="dark:bg-darkBg w-full dark:text-white">
+        <SheetContent className="w-full overflow-y-auto pt-12 dark:bg-black dark:text-white">
           <SheetHeader className="text-left">
             <SheetTitle>Docs</SheetTitle>
           </SheetHeader>
-          <nav className="mt-8">
+          <nav className="mt-4 pb-20">
             {filteredNavItems.map((item, index) => (
               <NavItem key={index} item={item} />
             ))}
