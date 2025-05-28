@@ -21,33 +21,15 @@ export function ScalarFuncIndex({ funcs }: { funcs: ScalarFuncType[] }) {
     }
   }, []);
 
-  // Group functions by category
-  const functionsByCategory = funcs.reduce<Record<string, ScalarFuncType[]>>(
-    (acc, func) => {
-      const category = func.category || "Other";
-      if (!acc[category]) {
-        acc[category] = [];
-      }
-      acc[category].push(func);
-      return acc;
-    },
-    {},
-  );
-
   // Filter functions based on search term
-  const filteredCategories = Object.keys(functionsByCategory).filter(
-    (category) => {
-      const categoryFuncs = functionsByCategory[category];
-      return categoryFuncs.some(
-        (func) =>
-          func.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          func.desc.toLowerCase().includes(searchTerm.toLowerCase()),
-      );
-    },
+  const filteredFuncs = funcs.filter(
+    (func) =>
+      func.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      func.desc.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   return (
-    <div className="space-y-8">
+    <div className="w-full max-w-full space-y-8">
       <div className="flex flex-col space-y-4">
         <h1 className="text-3xl font-bold">Scalar Functions</h1>
         <p className="text-muted-foreground">
@@ -80,43 +62,24 @@ export function ScalarFuncIndex({ funcs }: { funcs: ScalarFuncType[] }) {
         </div>
       </div>
 
-      {filteredCategories.length === 0 ? (
+      {filteredFuncs.length === 0 ? (
         <div className="rounded-lg border border-dashed p-8 text-center">
           <p className="text-muted-foreground">
             {`No functions found matching "${searchTerm}"`}
           </p>
         </div>
       ) : (
-        filteredCategories.map((category) => {
-          const categoryFuncs = functionsByCategory[category].filter(
-            (func) =>
-              func.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-              func.desc.toLowerCase().includes(searchTerm.toLowerCase()),
-          );
-
-          return (
-            <div key={category} className="space-y-8">
-              <h2
-                id={`category-${category.toLowerCase().replace(/\s+/g, "-")}`}
-                className="scroll-mt-20 text-2xl font-semibold"
-              >
-                {category}
-              </h2>
-
-              <div className="space-y-12">
-                {categoryFuncs.map((func) => (
-                  <div
-                    key={`function-${func.name}`}
-                    id={func.name}
-                    className="scroll-mt-20"
-                  >
-                    <Func func={func} />
-                  </div>
-                ))}
-              </div>
+        <div className="space-y-12">
+          {filteredFuncs.map((func) => (
+            <div
+              key={`function-${func.name}`}
+              id={func.name}
+              className="scroll-mt-20"
+            >
+              <Func func={func} />
             </div>
-          );
-        })
+          ))}
+        </div>
       )}
     </div>
   );
