@@ -70,15 +70,13 @@ export function Operators({ operators }: OperatorsProps) {
       {filteredOperators.length === 0 ? (
         <div className="rounded-lg border border-dashed p-8 text-center">
           <p className="text-muted-foreground">
-            {`No operators found matching "{searchTerm}"`}
+            {`No operators found matching "${searchTerm}"`}
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-8">
-          {filteredOperators.map((operator, i) => (
-            <Operator operator={operator} key={`${i}-${operator.name}`} />
-          ))}
-        </div>
+        filteredOperators.map((operator, i) => (
+          <Operator key={`${i}-${operator.name}`} operator={operator} />
+        ))
       )}
     </div>
   );
@@ -96,7 +94,9 @@ export function Operator({ operator }: OperatorProps) {
       <CardHeader className="bg-muted/50 border-b">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <CardTitle className="text-xl">{operator.name}</CardTitle>
+            <CardTitle id={operator.name} className="scroll-mt-20 text-xl">
+              {operator.name}
+            </CardTitle>
             {operator.implemented !== false ? (
               <Badge
                 variant="outline"
@@ -131,8 +131,11 @@ export function Operator({ operator }: OperatorProps) {
               <div className="space-y-2">
                 <h2 className="text-lg font-semibold">Syntax</h2>
                 <div className="space-y-2">
-                  {(operator as TabularOperator).syntax?.map((syn, index) => (
-                    <div key={index} className="bg-muted rounded-md p-4">
+                  {(operator as TabularOperator).syntax?.map((syn, i) => (
+                    <div
+                      key={`${i}-${syn}`}
+                      className="bg-muted rounded-md p-4"
+                    >
                       <code className="font-mono text-sm">{syn}</code>
                     </div>
                   ))}
@@ -142,34 +145,30 @@ export function Operator({ operator }: OperatorProps) {
           </div>
         )}
 
-        {operator.examples && operator.examples.length > 0 && (
+        {operator.examples?.length > 0 && (
           <div className="space-y-4">
             <h2 className="text-lg font-semibold">Examples</h2>
-            <Tabs
-              defaultValue={operator.examples[0].name
-                .replace(/\s+/g, "-")
-                .toLowerCase()}
-            >
+            <Tabs defaultValue={`${operator.name}-example-0`}>
               <TabsList className="w-full justify-start">
                 {operator.examples.map((example, i) => (
                   <TabsTrigger
-                    key={`tab-${i}`}
-                    value={example.name.replace(/\s+/g, "-").toLowerCase()}
+                    key={`${operator.name}-tab-${i}`}
+                    value={`${operator.name}-example-${i}`}
                   >
                     {example.name}
                   </TabsTrigger>
                 ))}
               </TabsList>
 
-              {operator.examples.map((example, index) => (
+              {operator.examples.map((example, i) => (
                 <TabsContent
-                  key={index}
-                  value={example.name.replace(/\s+/g, "-").toLowerCase()}
+                  key={`${operator.name}-content-${i}`}
+                  value={`${operator.name}-example-${i}`}
                   className="mt-4 space-y-4"
                 >
                   <Card>
                     <CardHeader>
-                      <CardTitle className="text-base">Query</CardTitle>
+                      <CardTitle>Query</CardTitle>
                     </CardHeader>
                     <CardContent>
                       <pre className="bg-muted overflow-x-auto rounded-md p-4">
