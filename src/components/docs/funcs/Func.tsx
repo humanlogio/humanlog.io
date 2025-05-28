@@ -69,7 +69,7 @@ export function Func({ func }: { func: ScalarFuncType }) {
         <div className="w-full space-y-4">
           <h2 className="text-xl font-semibold">Examples</h2>
           <Tabs defaultValue={`${func.name}-example-0`} className="w-full">
-            <TabsList className="w-full flex-wrap justify-start">
+            <TabsList className="h-auto w-full flex-wrap justify-start">
               {func.examples.map((example, i) => (
                 <TabsTrigger
                   key={`${func.name}-tab-${i}`}
