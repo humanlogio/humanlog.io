@@ -33,30 +33,34 @@ The datasource is optional. If not specified, it will be assumed to be `logs`.
 <detail>Nerdy fact: the empty query</detail>
 
 The empty query:
+
 ```kusto
 // no query
 ```
+
 is equivalent to querying the `logs` datasource for _all_ rows.
+
 ```kusto
 // functional equivalent
 logs | filter true
 ```
+
 </summary>
 
-Querying in humanlog involves two important concepts: *tables* and *rows*. Like in other languages, you can use *operators* and *functions*.
+Querying in humanlog involves two important concepts: _tables_ and _rows_. Like in other languages, you can use _operators_ and _functions_.
 
-- A *table* is like a database table: it has columns with names and types, and rows. Tables are also refered to as *tabular* data.
-- A *row* is an entry in a table: for each table column, the row will contain a scalar value.
+- A _table_ is like a database table: it has columns with names and types, and rows. Tables are also refered to as _tabular_ data.
+- A _row_ is an entry in a table: for each table column, the row will contain a scalar value.
 
 Functions and operators that operate on a whole table at once are called:
 
-- *tabular operators*: operators that work on a set of table rows (either the entire table, or a subset of the table). Example: `filter` is a tabular operator that filters the rows on the input that will make it to the output.
-- *aggregate functions*: functions that work on a set of values inside table rows (either all rows in the table, or a subset of rows). Example: `count()` is an aggregate function that counts the total number of rows on the input, and emits the count on the output.
+- _tabular operators_: operators that work on a set of table rows (either the entire table, or a subset of the table). Example: `filter` is a tabular operator that filters the rows on the input that will make it to the output.
+- _aggregate functions_: functions that work on a set of values inside table rows (either all rows in the table, or a subset of rows). Example: `count()` is an aggregate function that counts the total number of rows on the input, and emits the count on the output.
 
 Functions and operators that operate on a specific scalar values inside a table row are called:
 
-- *scalar operators*: operate with one row in scope at a time. They can operate on columns in the row. Think of your usual `==`, `!=`, `+`, `-`, `contains` and so on. These are either binary or unary operators, like in most other programming languages. Example: `msg == "hello world"` uses the `==` operator and references the `msg` column and a `"hello world"` string literal.
-- *scalar functions*: operate with one row in scope at a time. They can reference columns in the row. Think of functions like `strcat("hello", "world")` which concatenates strings. These are essentially the same as operators, but are always invoked with a function name and parenthesis, and can take 0-to-many arguments. Example: `len(msg) > 0` uses the `len` function, which computes the length of its input. For `strcat("hello", ", ", "world")`, `strcat` is the function, which takes a variable amount of `string` typed arguments.
+- _scalar operators_: operate with one row in scope at a time. They can operate on columns in the row. Think of your usual `==`, `!=`, `+`, `-`, `contains` and so on. These are either binary or unary operators, like in most other programming languages. Example: `msg == "hello world"` uses the `==` operator and references the `msg` column and a `"hello world"` string literal.
+- _scalar functions_: operate with one row in scope at a time. They can reference columns in the row. Think of functions like `strcat("hello", "world")` which concatenates strings. These are essentially the same as operators, but are always invoked with a function name and parenthesis, and can take 0-to-many arguments. Example: `len(msg) > 0` uses the `len` function, which computes the length of its input. For `strcat("hello", ", ", "world")`, `strcat` is the function, which takes a variable amount of `string` typed arguments.
 
 In our earlier example:
 
@@ -64,7 +68,7 @@ In our earlier example:
 traces | <operator_0> | <operator_1> | ... | <operator_N>
 ```
 
-A pipeline `<operator_0>` will be composed of *tabular operator* followed by arguments for the operator. Each operator has its own syntax. You can find a complete list of [all tabular operator here](/docs/reference/operators/tabular).
+A pipeline `<operator_0>` will be composed of _tabular operator_ followed by arguments for the operator. Each operator has its own syntax. You can find a complete list of [all tabular operator here](/docs/reference/operators/tabular).
 
 ## Pipeline
 
@@ -73,6 +77,7 @@ As you saw before, a query contains 0-to-many tabular operator separated by `|`.
 ## Logs and Spans
 
 Humanlog has ✨special✨ support for specific types of tabular data.
+
 - Logs
 - Spans (in distributed tracing, spans make up a trace).
 - ... more special types may come later.
@@ -100,7 +105,6 @@ Like for logs and spans, we try to detect some interesting type of data shapes a
 ```
 <insert example of heatmap>
 ```
-
 
 ## Examples
 
