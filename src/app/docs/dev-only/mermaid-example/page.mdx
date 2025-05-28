@@ -1,0 +1,133 @@
+# Mermaid Diagram Examples
+
+This page demonstrates how to use Mermaid diagrams in MDX files. Mermaid is a JavaScript-based diagramming and charting tool that renders Markdown-inspired text definitions to create diagrams dynamically.
+
+## Basic Usage
+
+To add a Mermaid diagram, simply use a code block with the `mermaid` language:
+
+````markdown
+```mermaid
+graph TD;
+    A[Start] --> B{Is it working?};
+    B -->|Yes| C[Great!];
+    B -->|No| D[Debug];
+    D --> B;
+    C --> E[Deploy];
+```
+````
+
+````
+
+Which renders as:
+
+```mermaid
+graph TD;
+    A[Start] --> B{Is it working?};
+    B -->|Yes| C[Great!];
+    B -->|No| D[Debug];
+    D --> B;
+    C --> E[Deploy];
+````
+
+## Diagram Types
+
+### Sequence Diagram
+
+Sequence diagrams are useful for showing the interaction between different objects over time:
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant Server
+    participant Database
+
+    Client->>Server: Request Data
+    Server->>Database: Query Database
+    Database-->>Server: Return Results
+    Server-->>Client: Send Response
+```
+
+### Class Diagram
+
+Class diagrams help visualize the structure of a system:
+
+```mermaid
+classDiagram
+    class Animal {
+        +name: string
+        +age: int
+        +makeSound()
+    }
+    class Dog {
+        +breed: string
+        +fetch()
+    }
+    class Cat {
+        +color: string
+        +climb()
+    }
+    Animal <|-- Dog
+    Animal <|-- Cat
+```
+
+### Entity Relationship Diagram
+
+ERDs are useful for database schema design:
+
+```mermaid
+erDiagram
+    CUSTOMER ||--o{ ORDER : places
+    ORDER ||--|{ LINE-ITEM : contains
+    CUSTOMER }|..|{ DELIVERY-ADDRESS : uses
+```
+
+### Gantt Chart
+
+Gantt charts are helpful for project planning:
+
+```mermaid
+gantt
+    title A Gantt Diagram
+    dateFormat  YYYY-MM-DD
+    section Section
+    A task           :a1, 2023-01-01, 30d
+    Another task     :after a1, 20d
+    section Another
+    Task in sec      :2023-01-12, 12d
+    another task     :24d
+```
+
+### State Diagram
+
+State diagrams show how an entity changes states:
+
+```mermaid
+stateDiagram-v2
+    [*] --> Still
+    Still --> [*]
+    Still --> Moving
+    Moving --> Still
+    Moving --> Crash
+    Crash --> [*]
+```
+
+### Pie Chart
+
+Simple pie charts to show proportions:
+
+```mermaid
+pie
+    title Key Value Distribution
+    "A" : 25
+    "B" : 30
+    "C" : 45
+```
+
+## Advanced Tips
+
+- Keep diagrams simple and focused
+- Use comments to explain complex parts
+- Consider using colors strategically
+- Break complex diagrams into smaller ones
+- Use appropriate diagram types for different data structures

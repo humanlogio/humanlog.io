@@ -12,6 +12,7 @@ import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import NextLink from "next/link";
 import { NavItem as NavItemType } from "@/lib/contents";
+import config from "@/features/config";
 
 interface DocsSidebarProps {
   navItems: NavItemType[];
@@ -24,7 +25,7 @@ export function DocsSidebar({ navItems }: DocsSidebarProps) {
       .filter((item) => {
         // If devOnly is true, only show in development environment
         if (item.devOnly) {
-          return process.env.NODE_ENV === "development";
+          return !config.NEXT_PUBLIC_IS_PROD;
         }
         return true;
       })

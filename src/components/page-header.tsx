@@ -55,7 +55,7 @@ interface Source {
 
 const navLinks = [
   {
-    href: "/docs/get-started/introduction",
+    href: "/docs/get-started/installation",
     text: "Docs",
   },
   // TODO: when blog is ready
