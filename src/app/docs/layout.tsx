@@ -96,11 +96,14 @@ export default function DocsLayout({ children }: { children: ReactNode }) {
 
   return (
     <div className="flex min-h-screen w-full overflow-x-hidden">
+      {/* Sidebar - fixed on desktop, uses Sheet on mobile */}
       <div className="fixed top-0 left-0 z-10 flex h-full flex-col bg-white dark:bg-black">
         <DocsSidebar navItems={navItems} />
       </div>
-      <main className="w-full flex-1 p-2 md:p-6">
-        <div className="prose w-full max-w-none pl-64">{children}</div>
+
+      {/* Main content area with proper padding based on screen size */}
+      <main className="w-full flex-1 p-4 pt-16 md:p-6 md:pt-6">
+        <div className="prose w-full max-w-none md:pl-64">{children}</div>
       </main>
     </div>
   );
