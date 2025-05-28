@@ -55,7 +55,7 @@ interface Source {
 
 const navLinks = [
   {
-    href: "/docs/get-started/instoduction",
+    href: "/docs/get-started/installation",
     text: "Docs",
   },
   // TODO: when blog is ready
@@ -279,7 +279,7 @@ const PageHeader: React.FC = () => {
 
   return (
     <header className="bg-muted sticky top-0 left-0 z-30">
-      <div className="container flex flex-row items-center justify-between gap-8 py-2">
+      <div className="flex flex-row items-center justify-between gap-8 px-2 py-2 md:container">
         <div className="hidden w-full flex-row items-center justify-between gap-8 md:flex">
           <div className="flex flex-row items-center gap-8">
             <Logo />
