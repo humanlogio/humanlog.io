@@ -4,17 +4,28 @@ import path from "path";
 
 import { scanDirectory, NavItem } from "@/lib/contents";
 import { reference } from "@/lib/utils/reference";
+import config from "@/features/config";
 
 export default function DocsLayout({ children }: { children: ReactNode }) {
-  // Create sidebar navigation items based on the reference data
+  const isProd = config.NEXT_PUBLIC_IS_PROD;
+
   const navItems: NavItem[] = [
     {
       title: "Get Started",
       path: "/docs/get-started",
       children: [
-        { title: "Basic Usage", path: "/docs/get-started/basic-usage" },
+        {
+          title: "Basic Usage",
+          path: "/docs/get-started/basic-usage",
+          devOnly: true,
+        },
         { title: "Installation", path: "/docs/get-started/installation" },
-        { title: "introduction", path: "/docs/get-started/introduction" },
+        { title: "Introduction", path: "/docs/get-started/introduction" },
+        {
+          title: "Alerts Example",
+          path: "/docs/get-started/alerts-example",
+          devOnly: true,
+        },
       ],
     },
     {
@@ -28,18 +39,10 @@ export default function DocsLayout({ children }: { children: ReactNode }) {
             {
               title: "Logs",
               path: "/docs/reference/symbols/logs",
-              // children: reference.symbols.logs.map((log) => ({
-              //   title: log.name,
-              //   path: `/docs/reference/symbols/logs#${log.name}`,
-              // })),
             },
             {
               title: "Spans",
               path: "/docs/reference/symbols/spans",
-              // children: reference.symbols.spans.map((span) => ({
-              //   title: span.name,
-              //   path: `/docs/reference/symbols/spans#${span.name}`,
-              // })),
             },
           ],
         },
@@ -93,7 +96,7 @@ export default function DocsLayout({ children }: { children: ReactNode }) {
 
   return (
     <div className="flex min-h-screen w-full overflow-x-hidden">
-      <div className="dark:bg-darkBg fixed top-0 left-0 z-10 flex h-full flex-col bg-white">
+      <div className="fixed top-0 left-0 z-10 flex h-full flex-col bg-white dark:bg-black">
         <DocsSidebar navItems={navItems} />
       </div>
       <main className="w-full flex-1 p-2 md:p-6">

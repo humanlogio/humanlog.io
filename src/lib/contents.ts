@@ -5,6 +5,7 @@ export interface NavItem {
   title: string;
   path: string;
   children?: NavItem[];
+  devOnly?: boolean;
 }
 
 export const scanDirectory = (
