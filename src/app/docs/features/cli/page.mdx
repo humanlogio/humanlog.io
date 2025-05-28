@@ -23,20 +23,16 @@ curl -L "https://humanlog.io/install.sh" | cat
 `humanlog` is a cross-platform binary, however not all features work on all platforms.
 
 | Feature                 | macOS | Linux | Windows |
-|-------------------------|-------|-------|---------|
-| Parsing, prettifying    | ✅    | ✅     | ✅      |
-| Localhost observability | ✅    | ✅     |         |
-| Query engine            | ✅    | ✅     |         |
-| Installs as a service   | ✅    |        |         |
-| Menu bar                | ✅    |        |         |
+| ----------------------- | ----- | ----- | ------- |
+| Parsing, prettifying    | ✅    | ✅    | ✅      |
+| Localhost observability | ✅    | ✅    |         |
+| Query engine            | ✅    | ✅    |         |
+| Installs as a service   | ✅    |       |         |
+| Menu bar                | ✅    |       |         |
 
 #### macOS
 
-
-
 #### Linux
-
-
 
 #### Windows
 
@@ -45,18 +41,21 @@ On Windows, humanlog is only a structured log prettifier at this time. If there 
 <details>
   <summary>Click me</summary>
 
-  ### Heading
-  1. Foo
-  2. Bar
-     * Baz
-     * Qux
+### Heading
 
-  ### Some Javascript
-  ```js
-  function logSomething(something) {
-    console.log('Something', something);
-  }
-  ```
+1. Foo
+2. Bar
+   - Baz
+   - Qux
+
+### Some Javascript
+
+```js
+function logSomething(something) {
+  console.log("Something", something);
+}
+```
+
 </details>
 
 > [!NOTE]
@@ -66,13 +65,13 @@ On Windows, humanlog is only a structured log prettifier at this time. If there 
 
 The install script supports a few configurations:
 
-| Environment variable      | Description |
-| ----------- | ----------- |
-| `HUMANLOG_CHANNEL` | Release channel to install from. Defaults to `main`. Available channels are: `weekly`. |
-| `HUMANLOG_DEBUG` | If not-empty, will print every instruction that the install script performs (bash's `set -x`).|
-| `HUMANLOG_INSTALL` | Where to install humanlog. By default, `humanlog` will otherwise deduct a sensible install location. |
-| `CI` or `NONINTERACTIVE`        | If not empty, disables any interaction as part of the installation process (no onboarding, no prompt). Meant for use in scripts and in CI pipelines. |
-| `INTERACTIVE` | If not empty, forces interactions to be enabled. In some case, the install script might detect that it runs in an non-interactive mode by mistake. If you want to force it to be interactive, set this variable to any value. |
+| Environment variable     | Description                                                                                                                                                                                                                   |
+| ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `HUMANLOG_CHANNEL`       | Release channel to install from. Defaults to `main`. Available channels are: `weekly`.                                                                                                                                        |
+| `HUMANLOG_DEBUG`         | If not-empty, will print every instruction that the install script performs (bash's `set -x`).                                                                                                                                |
+| `HUMANLOG_INSTALL`       | Where to install humanlog. By default, `humanlog` will otherwise deduct a sensible install location.                                                                                                                          |
+| `CI` or `NONINTERACTIVE` | If not empty, disables any interaction as part of the installation process (no onboarding, no prompt). Meant for use in scripts and in CI pipelines.                                                                          |
+| `INTERACTIVE`            | If not empty, forces interactions to be enabled. In some case, the install script might detect that it runs in an non-interactive mode by mistake. If you want to force it to be interactive, set this variable to any value. |
 
 ### Verifying your install
 

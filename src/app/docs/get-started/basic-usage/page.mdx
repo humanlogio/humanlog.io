@@ -1,9 +1,9 @@
 # Basic Usage
 
 Once `humanlog` is [installed](/docs/get-started/installation), it's time to put some data in there. Humanlog has first class support for:
+
 - line-oriented log data, particularly for structured JSON/logfmt data
 - OpenTelemetry tracing data
-
 
 ## Ingest
 
@@ -53,7 +53,7 @@ humanlog stream 'traces | filter true'
 If your app needs to be told where to export the OpenTelemetry data, here are commonly used values. Note that the `default` usually do not need to be specified:
 
 | Situation                            | `OTEL_EXPORTER_OTLP_ENDPOINT`      |
-|--------------------------------------|------------------------------------|
+| ------------------------------------ | ---------------------------------- |
 | Default (same host, OTLP/HTTP)       | `http://localhost:4317`            |
 | Default (same host, OTLP/gRPC)       | `http://localhost:4318`            |
 | Docker, Orbstack, `kind` (OTLP/HTTP) | `http://host.docker.internal:4317` |
@@ -69,7 +69,7 @@ There are two types of query: historical and stream queries. The **Query** tab l
 
 By default, when we talk about **query**ing, we meant querying data that has been ingested and stored in humanlog. We will talk about **stream** queries whenever we mean queries that are open-ended.
 
-The result of a normal query is static. This means that a normal query will run against the data that exists *at the time* the query is initiated and then return the matching data. Data that arrives in the future is not included in the dataset. On the other hand, **stream queries** run against incoming data, row by row, event by event, in real time.
+The result of a normal query is static. This means that a normal query will run against the data that exists _at the time_ the query is initiated and then return the matching data. Data that arrives in the future is not included in the dataset. On the other hand, **stream queries** run against incoming data, row by row, event by event, in real time.
 
 ### Query
 
@@ -139,6 +139,7 @@ You can change the default themes used by both the UI and the CLI [in your setti
 <img src="/images/docs/get-started/basic-usage/themes.png" width="400" />
 
 Coming soon:
+
 - Saving color themes by name.
 - Sharing themes with others.
 - Using named themes from a library.
