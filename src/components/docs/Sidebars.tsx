@@ -55,9 +55,37 @@ export function DocsSidebar({ navItems }: DocsSidebarProps) {
 export const NavItem = ({ item }: { item: NavItemType }) => {
   const pathname = usePathname();
   const router = useRouter();
+  const [currentHash, setCurrentHash] = useState<string>("");
 
   const itemId = `nav-item-${item.title.replace(/\s+/g, "-").toLowerCase()}`;
   const [isOpen, setIsOpen] = useState<boolean | null>(null);
+
+  // Update the hash whenever it changes in the URL
+  useEffect(() => {
+    const updateHash = () => {
+      const hash = window.location.hash
+        ? window.location.hash.substring(1)
+        : "";
+      setCurrentHash(hash);
+    };
+
+    // Set initial hash
+    updateHash();
+
+    // Add hash change event listener
+    window.addEventListener("hashchange", updateHash);
+
+    return () => {
+      window.removeEventListener("hashchange", updateHash);
+    };
+  }, []);
+
+  // Ensure component updates when pathname changes
+  useEffect(() => {
+    // Update hash when pathname changes
+    const hash = window.location.hash ? window.location.hash.substring(1) : "";
+    setCurrentHash(hash);
+  }, [pathname]);
 
   useEffect(() => {
     const savedState = localStorage.getItem(itemId);
@@ -128,6 +156,10 @@ export const NavItem = ({ item }: { item: NavItemType }) => {
           element.scrollIntoView({ behavior: "smooth" });
           // Update URL with hash without full page reload
           window.history.pushState({}, "", item.path);
+          // Update current hash state to trigger re-render
+          setCurrentHash(hash);
+          // Dispatch a custom hashchange event to notify all components
+          window.dispatchEvent(new Event("hashchange"));
         }
       }
     }
@@ -135,9 +167,32 @@ export const NavItem = ({ item }: { item: NavItemType }) => {
 
   const isSection = item.children && item.children.length > 0;
   const hasChildren = isSection;
-  const isActive =
-    pathname === item.path ||
-    (item.path.includes("#") && pathname === item.path.split("#")[1]);
+
+  const isActive = (() => {
+    // Exact path match
+    if (pathname === item.path) return true;
+
+    // Hash path case (e.g., /docs/reference/functions/scalar#abs)
+    if (item.path.includes("#")) {
+      const [itemBasePath, itemHash] = item.path.split("#");
+
+      // Activate when both base path and hash match
+      if (pathname === itemBasePath && currentHash === itemHash) {
+        // Only in development, log which item is being activated
+        if (process.env.NODE_ENV === "development") {
+          console.log(
+            "Activating item:",
+            item.title,
+            "Hash match:",
+            currentHash === itemHash,
+          );
+        }
+        return true;
+      }
+    }
+
+    return false;
+  })();
 
   if (isOpen === null) return null;
 
