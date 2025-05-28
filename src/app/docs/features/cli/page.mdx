@@ -1,0 +1,99 @@
+# Introduction
+
+The `humanlog` CLI is a swiss army knife tool for observability data. When invoked with no arguments, it reads line-by-line from standard input and tries to parse logs. If it finds something that looks like a log line in structured format, it will render it in a prettified manner.
+
+## Installation & Setup
+
+Installing `humanlog` is easy and can be done in a single step:
+
+```bash
+curl -sSL "https://humanlog.io/install.sh" | bash
+```
+
+This will install `humanlog` on your system and integrate with your shell's `$PATH` so that you can invoke it.
+
+You can inspect the script manually with:
+
+```bash
+curl -L "https://humanlog.io/install.sh" | cat
+```
+
+### Supported Platforms
+
+`humanlog` is a cross-platform binary, however not all features work on all platforms.
+
+| Feature                 | macOS | Linux | Windows |
+|-------------------------|-------|-------|---------|
+| Parsing, prettifying    | ✅    | ✅     | ✅      |
+| Localhost observability | ✅    | ✅     |         |
+| Query engine            | ✅    | ✅     |         |
+| Installs as a service   | ✅    |        |         |
+| Menu bar                | ✅    |        |         |
+
+#### macOS
+
+
+
+#### Linux
+
+
+
+#### Windows
+
+On Windows, humanlog is only a structured log prettifier at this time. If there is commercial demand for this platform (or open-source contributions), support for Windows is possible.
+
+<details>
+  <summary>Click me</summary>
+
+  ### Heading
+  1. Foo
+  2. Bar
+     * Baz
+     * Qux
+
+  ### Some Javascript
+  ```js
+  function logSomething(something) {
+    console.log('Something', something);
+  }
+  ```
+</details>
+
+> [!NOTE]
+> New versions of humanlog are currently not being produced for Windows.
+
+### Tweaking the install
+
+The install script supports a few configurations:
+
+| Environment variable      | Description |
+| ----------- | ----------- |
+| `HUMANLOG_CHANNEL` | Release channel to install from. Defaults to `main`. Available channels are: `weekly`. |
+| `HUMANLOG_DEBUG` | If not-empty, will print every instruction that the install script performs (bash's `set -x`).|
+| `HUMANLOG_INSTALL` | Where to install humanlog. By default, `humanlog` will otherwise deduct a sensible install location. |
+| `CI` or `NONINTERACTIVE`        | If not empty, disables any interaction as part of the installation process (no onboarding, no prompt). Meant for use in scripts and in CI pipelines. |
+| `INTERACTIVE` | If not empty, forces interactions to be enabled. In some case, the install script might detect that it runs in an non-interactive mode by mistake. If you want to force it to be interactive, set this variable to any value. |
+
+### Verifying your install
+
+### Updates
+
+#### Compatibility
+
+We aim to make humanlog versions compatible with the last minor release. This means that updating from version `vA.B.C` to version `v.A.B+1.C` should always work.
+
+Skipping minor releases _may_ or may not work.
+
+### Configuration
+
+## Quick Start
+
+## Common Workflows & Examples
+
+### Piping logs
+
+### Embedding in CLI scripts or CI pipelines
+
+### Ingesting only (no prettified output)
+
+## FAQ

@@ -1,0 +1,50 @@
+# Introduction
+
+Humanlog is the observability platform that puts developers first. When you install `humanlog`, you gain a full observability suite right on your laptop. See, understand and query your logs and distributed traces as part of your development workflow.
+
+Already have an observability solution at work that's not giving you what you need? Pull your data on your machine and feed it into `humanlog` to get your work done right here, right now.
+
+## Fast Developer Iteration Loop
+
+Iteration speed is critical to crafting quality software. Things that take 30min to iterate on cannot be polished to the same level as things that can be improved every 10 seconds.
+
+Don't wait until production to finally:
+- see what querying your logs feels like.
+- find out that your tracing spans have inconsistent names.
+- find out that your tracing spans are disconnected.
+- find out that you emit way too many logs or spans.
+- realize that you're missing critical coverage in some sections.
+- vizualize what your traces look like.
+- craft queries to detect problematic events.
+
+Humanlog brings into your development environment all the powers that you would expect in a full observability suite in production - except you don't need to wait to deploy before getting feedback.
+
+## Easy To Use Tooling
+
+You can install `humanlog` in one command and get going. You don't need:
+- no complicated **docker-compose**, **tilt**, **skaffold**, **devspace** setup
+- no installing and running a full stack of software (Grafana's **LGTM stack**).
+- no running individual docker containers to see your traces (`docker run jaeger`)
+- no sending your data to the cloud just to see, query and understand it.
+
+One application, everything you need out of the box.
+
+## A Way To Share Your Findings
+
+You can share the results of your investigations with friends and colleagues. Run a query and found the root cause to your problem? Click the share `<share>` button to get a permalink to your results. Share it in public or privately to show to others what you found.
+
+See the [sharing your work](/docs/features/sharing) section to learn more.
+
+## A CLI to parse ugly JSON/logfmt logs
+
+You adopted structured logging and your application logs in newline-delimited JSON or logfmt. Great!
+
+But now your logs are unreadable. Humanlog makes them readable again
+
+Feeding these logs into `humanlog`:
+
+![Raw Logs!](/images/docs/get-started/introduction/raw_logs.gif "Raw Logs")
+
+Will turn them into this pretty output:
+
+![Pretty Logs](/images/docs/get-started/introduction/pretty_logs.gif "Pretty Logs")
