@@ -4,26 +4,40 @@ import path from "path";
 
 import { scanDirectory, NavItem } from "@/lib/contents";
 import { reference } from "@/lib/utils/reference";
-import config from "@/features/config";
 
 export default function DocsLayout({ children }: { children: ReactNode }) {
-  const isProd = config.NEXT_PUBLIC_IS_PROD;
-
   const navItems: NavItem[] = [
     {
       title: "Get Started",
       path: "/docs/get-started",
       children: [
-        {
-          title: "Basic Usage",
-          path: "/docs/get-started/basic-usage",
-          devOnly: true,
-        },
+        //TODO: Add basic usage
+        // {
+        //   title: "Basic Usage",
+        //   path: "/docs/get-started/basic-usage",
+        // },
         { title: "Installation", path: "/docs/get-started/installation" },
         { title: "Introduction", path: "/docs/get-started/introduction" },
+      ],
+    },
+    {
+      title: "Dev only",
+      path: "/docs/dev-only",
+      devOnly: true,
+      children: [
         {
           title: "Alerts Example",
-          path: "/docs/get-started/alerts-example",
+          path: "/docs/dev-only/alerts-example",
+          devOnly: true,
+        },
+        {
+          title: "Mermaid Diagrams",
+          path: "/docs/dev-only/mermaid-example",
+          devOnly: true,
+        },
+        {
+          title: "Test Code",
+          path: "/docs/dev-only/test-code",
           devOnly: true,
         },
       ],
