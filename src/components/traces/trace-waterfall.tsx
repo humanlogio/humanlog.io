@@ -114,12 +114,26 @@ export const TraceWaterfall = ({
       return ids;
     };
 
+    const getTotalDescendantCount = (node: SpanTreeNode): number => {
+      let count = 0;
+      node.children.forEach((child, index, array) => {
+        // Count the child itself
+        count++;
+        // Only add descendants if this is not the last child
+        if (index < array.length - 1) {
+          count += getTotalDescendantCount(child);
+        }
+      });
+      return count;
+    };
+
     if (hiddenNodes.has(node.span.spanId) || !areAllParentsVisible(node)) {
       return;
     }
 
     const canToggle = node.children && node.children.length > 0;
     const isFolded = foldedNodes.has(node.span.spanId);
+    const totalDescendants = getTotalDescendantCount(node);
 
     return (
       <>
@@ -160,11 +174,8 @@ export const TraceWaterfall = ({
                     <div
                       className={twMerge("absolute left-[-8px] w-[2px]")}
                       style={{
-                        height: `${(node.children.length + 1) * 60}px`,
-                        top:
-                          node.children.length > 0
-                            ? `-${node.children.length * 5}px`
-                            : "",
+                        height: `${(totalDescendants + 1) * 40}px`,
+                        top: "-22px",
                         backgroundColor:
                           serviceColors[node.parent.span.serviceName],
                       }}
@@ -217,7 +228,7 @@ export const TraceWaterfall = ({
 
               {node.children.length > 0 && (
                 <div
-                  className="absolute bottom-[-4px] left-[9.5px] h-3 w-[2px]"
+                  className="absolute bottom-[-2px] left-[9.5px] h-3 w-[2px]"
                   style={{
                     backgroundColor: serviceColors[node.span.serviceName],
                   }}
