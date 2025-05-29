@@ -164,7 +164,7 @@ export const TraceWaterfall = ({
                 <div className="absolute flex items-center">
                   {node.isLast ? (
                     <div
-                      className="absolute top-[-17px] left-[-8px] h-5 w-[2px]"
+                      className="absolute top-[-17px] left-[-8px] h-5 w-[1px]"
                       style={{
                         backgroundColor:
                           serviceColors[node.parent.span.serviceName],
@@ -172,7 +172,7 @@ export const TraceWaterfall = ({
                     />
                   ) : (
                     <div
-                      className={twMerge("absolute left-[-8px] w-[2px]")}
+                      className={twMerge("absolute left-[-8px] w-[1px]")}
                       style={{
                         height: `${(totalDescendants + 1) * 40}px`,
                         top: "-22px",
@@ -183,7 +183,7 @@ export const TraceWaterfall = ({
                   )}
                   {node.children.length > 0 ? (
                     <div
-                      className="absolute left-[-8px] h-[2px] w-2"
+                      className="absolute left-[-8px] h-[1px] w-2"
                       style={{
                         backgroundColor:
                           serviceColors[node.parent.span.serviceName],
@@ -191,7 +191,7 @@ export const TraceWaterfall = ({
                     />
                   ) : (
                     <div
-                      className="absolute left-[-8px] h-[2px] w-5"
+                      className="absolute left-[-8px] h-[1px] w-5"
                       style={{
                         backgroundColor:
                           serviceColors[node.parent.span.serviceName],
@@ -228,7 +228,7 @@ export const TraceWaterfall = ({
 
               {node.children.length > 0 && (
                 <div
-                  className="absolute bottom-[-2px] left-[9.5px] h-3 w-[2px]"
+                  className="absolute bottom-[-2px] left-[9.5px] h-3 w-[1px]"
                   style={{
                     backgroundColor: serviceColors[node.span.serviceName],
                   }}
