@@ -30,16 +30,16 @@ interface TracesProps {
 }
 
 const colorPalette = [
-  "#69b3a2", // teal
-  "#e41a1c", // red
-  "#377eb8", // blue
-  "#4daf4a", // green
-  "#984ea3", // purple
-  "#ff7f00", // orange
-  "#ffff33", // yellow
-  "#a65628", // brown
-  "#f781bf", // pink
-  "#999999", // gray
+  "#5a7fc9", // Medium blue
+  "#c9618f", // Medium pink
+  "#4dacb9", // Medium sky blue
+  "#8864ad", // Medium purple
+  "#65ac55", // Medium green
+  "#d99456", // Medium orange
+  "#7a7dcb", // Medium lavender
+  "#97b967", // Medium lime
+  "#4daa95", // Medium mint
+  "#c26674", // Medium coral
 ];
 
 const ago10s = new Timestamp({
