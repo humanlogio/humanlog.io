@@ -1,52 +1,48 @@
 # Introduction
 
-Humanlog is the observability platform that puts developers first. When you install `humanlog`, you gain a full observability suite right on your laptop. See, understand and query your logs and distributed traces as part of your development workflow.
+Humanlog is the observability platform that puts developers first. Install it on your laptop and instantly get a full suite for exploring logs and distributed traces—no cloud, no extra services, no waiting for production.
 
-Already have an observability solution at work that's not giving you what you need? Pull your data on your machine and feed it into `humanlog` to get your work done right here, right now.
+## What Is Humanlog?
 
-## Fast Developer Iteration Loop
+Humanlog brings production-grade observability right into your dev loop.
+Whether you're chasing down a tricky bug in local Docker containers or validating your OpenTelemetry spans before you ship, Humanlog gives you:
 
-Iteration speed is critical to crafting quality software. Things that take 30min to iterate on cannot be polished to the same level as things that can be improved every 10 seconds.
+- **Full insight** (logs, traces)
+- **Ultra-fast iteration** on your own machine
+- **Privacy** your data never leaves your machine
 
-Don't wait until production to finally:
+## Why Local-first Matters
 
-- see what querying your logs feels like.
-- find out that your tracing spans have inconsistent names.
-- find out that your tracing spans are disconnected.
-- find out that you emit way too many logs or spans.
-- realize that you're missing critical coverage in some sections.
-- vizualize what your traces look like.
-- craft queries to detect problematic events.
+Iteration speed is everything. Waiting 30 minutes to deploy, reproduce, and inspect is a blocker; Humanlog's localhost engine lets you:
 
-Humanlog brings into your development environment all the powers that you would expect in a full observability suite in production - except you don't need to wait to deploy before getting feedback.
+> See, tweak, and re-run your queries in seconds—so you can catch logging anomalies, span-naming inconsistencies, or missing trace coverage before you ever merge.
 
-## Easy To Use Tooling
+## Key Benefits
 
-You can install `humanlog` in one command and get going. You don't need:
+1. **Speed**
+   Leverage your laptop's CPU, disk, and memory for sub-second querying.
 
-- no complicated **docker-compose**, **tilt**, **skaffold**, **devspace** setup
-- no installing and running a full stack of software (Grafana's **LGTM stack**).
-- no running individual docker containers to see your traces (`docker run jaeger`)
-- no sending your data to the cloud just to see, query and understand it.
+2. **Privacy**
+   No third-party services, no data exfiltration. Your logs and traces stay local.
 
-One application, everything you need out of the box.
+3. **Developer-first Workflow**
+   A platform that works in your developer environment.
 
-## A Way To Share Your Findings
+## Quick Preview
 
-You can share the results of your investigations with friends and colleagues. Run a query and found the root cause to your problem? Click the share `<share>` button to get a permalink to your results. Share it in public or privately to show to others what you found.
+### Raw JSON/logfmt → Pretty CLI Output
 
-See the [sharing your work](/docs/features/sharing) section to learn more.
+<p align="center">
+  <img src="/images/docs/get-started/introduction/raw_logs.gif" alt="Raw Logs!" width="45%"/>
+  <img src="/images/docs/get-started/introduction/pretty_logs.gif" alt="Pretty Logs" width="45%"/>
+</p>
 
-## A CLI to parse ugly JSON/logfmt logs
+---
 
-You adopted structured logging and your application logs in newline-delimited JSON or logfmt. Great!
+## What's Next?
 
-But now your logs are unreadable. Humanlog makes them readable again
+- 👉 [Installation →](/docs/get-started/installation)
+- 👉 [Basic Usage →](/docs/get-started/basic-usage)
+- 👉 [Deep dive into localhost & concepts →](/docs/concepts/localhost)
 
-Feeding these logs into `humanlog`:
-
-![Raw Logs!](/images/docs/get-started/introduction/raw_logs.gif "Raw Logs")
-
-Will turn them into this pretty output:
-
-![Pretty Logs](/images/docs/get-started/introduction/pretty_logs.gif "Pretty Logs")
+Need help or want to give feedback? Join our [community channels](/support).

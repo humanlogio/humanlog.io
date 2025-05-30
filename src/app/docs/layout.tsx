@@ -17,6 +17,16 @@ export default function DocsLayout({ children }: { children: ReactNode }) {
       ],
     },
     {
+      title: "Concepts",
+      path: "/docs/concepts",
+      children: [
+        { title: "Overview", path: "/docs/concepts" },
+        { title: "Logging", path: "/docs/concepts/logging" },
+        { title: "Tracing", path: "/docs/concepts/tracing" },
+        { title: "Localhost", path: "/docs/concepts/localhost" },
+      ],
+    },
+    {
       title: "Features",
       path: "/docs/features",
       children: [
@@ -25,16 +35,6 @@ export default function DocsLayout({ children }: { children: ReactNode }) {
         { title: "Stream", path: "/docs/features/stream" },
         { title: "Sharing", path: "/docs/features/sharing" },
         { title: "Themes", path: "/docs/features/themes" },
-      ],
-    },
-    {
-      title: "Concepts",
-      path: "/docs/concepts",
-      children: [
-        { title: "Overview", path: "/docs/concepts" },
-        { title: "Logging", path: "/docs/concepts/logging" },
-        { title: "Tracing", path: "/docs/concepts/tracing" },
-        { title: "Localhost", path: "/docs/concepts/localhost" },
       ],
     },
     {
