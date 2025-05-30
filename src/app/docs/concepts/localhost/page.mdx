@@ -1,12 +1,46 @@
 import { Note, Tip, Warning, Important, Caution } from "@/components/ui/Alert";
 
-# Localhost Development As A First Class Citizen
+# Introduction
+
+> Localhost Development As A First Class Citizen
+
+Craftpeople like having their tools right here in their hands, where they can use them immediately, with no latency, with the full power of their machine, without having to go through a CI and CD pipeline, without having to SSO yet another time.
+
+Have you ever spent an inordinate amount of time iterating on span names and attributes? Doing the code change, shipping a PR to production, waiting to see the outcome. If you're lucky only, 30 minutes have passed and you haven't gotten distracted by something else.
+
+We have all sorts of tools available in our development environments. We can run incredibly powerful local tests, integrating against locally running databases, Kubernetes, and otherwise production grade technologies.
+
+But when it comes to observability, this is left as an afterthought. You can spin up a Jaeger container to see traces, or setup a complicated docker-compose file with an observability platform deployed. But this is so onerous that, except for the most diligent and dedicated, we have almost never done it.
+
+Humanlog brings this experience back to a human level.
+
+> We believe that localhost development is here to stay. Having a fast feedback loop on our laptop is critical. What we can easily see, we can easily understand, fix and improve.
+
+## Waste
+
+It's no secret that a lot of observability data is never going to be seen by anyone, is wasted, and should never have been emitted in the first place. But as practitioners, it's often difficult in situ to determine whether our service will generate too much or too little observability data. So we tend to err toward abundance.
+
+This ends up wasting a lot of resource and money. How to combat this? Hygiene, of course. But how to maintain hygiene when we can hardly see what's dirty? Bring back the visibility into your local workflow.
+
+Humanlog lets you iterate and make mistakes on your machine. You don't pay per byte ingested. You own your hardware, your laptop. You don't pollute your production data with tests.
+
+## Speed
+
+Production servers can be powerful, or slow. The move to virtualized cloud servers hasn't meant an improvement in overall compute efficiency. Many cloud providers schedule your VMs on old hardware. You can pay a premium to get dedicated modern metal, but this ties back into our previous discussion on waste.
+
+Most of us have pretty powerful machines at our fingertips. A run-of-the-mill developer machine will often have 8 cores and 16GB of memory. No multitenancy, just you and your keyboard.
+
+Humanlog lets you leverage this compute power and isolation for your iteration speed. You can ingest and query a surprisingly large amount of data in quasi real-time on a modern machine with a modern SSD. Bring this back home and work on your telemetry data locally. Ship to production with an already well crafted set of observability signals.
 
 ## Privacy
 
 One advantage of working with observability data on your localhost is that your data doesn't leave your machine by default. This means that you can use `humanlog` locally without having to review our security posture. Your data is safe on your disk.
 
-### The Fine Prints
+Adopting a new observability cloud provider is a big deal. They will be handling a lot of data for you that can be sensitive. Sending production data to a new platform that hasn't been vetted is a big no-no in most businesses. So when the production tools available to you don't meet your needs, you're a bit left out of luck. You can fetch the data locally and load it into general analytical tools and work from there, but this experience is not well crafted.
+
+Humanlog bridges that gap. You don't need a vendor review to start exploring your data.
+
+### The Fine Print
 
 While your observability data does not leave your machine, things that do end up saved in our systems are:
 
@@ -16,10 +50,18 @@ While your observability data does not leave your machine, things that do end up
 | Saved queries | When you use the [saved query](/docs/features/query#saved-queries) feature, the information you enter is saved in our system in order to bring it back to you.                              |
 | Saved results | When you use the [share results](/docs/features/sharing) feature, the output data shown from your query is saved in our systems, along with the query, in order to power the share feature. |
 
-Note that this list is for documentation purpose only and is not meant to be authoritative. Read our [privacy policy](/legal/privacy) for the legalese.
+Note that this list is for documentation purposes only and is not meant to be authoritative. Read our [privacy policy](/legal/privacy) for the legalese.
 
 <Important>
-  If you share your query results by using the [share](/docs/features/sharing)
-  feature, the data in view will be uploaded to our cloud in order to make it
-  visible to the people you want to share it with.
+If you share your query results by using the [share](/docs/features/sharing) feature, the data in view will be uploaded to our cloud to make it visible to the people you want to share it with.
 </Important>
+
+---
+
+## What's Next?
+
+- 👉 [Learn more about our approach to logging →](/docs/concepts/logging)
+- 👉 [Discover tracing →](/docs/concepts/tracing)
+- 👉 [Learn the query language →](/docs/reference)
+
+Need help or want to give feedback? Join our [community channels](/support).

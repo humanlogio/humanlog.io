@@ -1,0 +1,82 @@
+# Introduction
+
+Logging is the dinosaur of observability. Like hammers, logging is simple and plainly useful. You don't need to think hard to understand how logging can help you see what your system is doing. Implementing a logger in your service is usually trivial. The first thing that we all learn is how to print "Hello world".
+
+> Unlike dinosaurs, logging is never going extinct.
+
+Logging is here to stay. It's a very basic and yet very useful tool. The best combination. You can't stop logging. No one should stop logging. Never stop logging.
+
+-  Get a [*"Never Stop Logging"* shirt 👕 →](https://shop.humanlog.io)
+
+
+## Conceptual Idea
+
+When it comes to observability data, we often talk about three pillars:
+
+- **Logging**: a set of list of events through systems.
+- **Tracing**: a set of directed graph of events through systems.
+- **Metrics**: an aggregated value representing events that occurred at a given location in a system.
+
+When thinking of logs, a good mental model is that of a set of ordered list, where the order of items in each list is only preserved within the list. No global order exists: you cannot join lists and assume that there is a single valid order for logs that came from different lists.
+
+A log is better looked at as a flat list of event that went through a system, where the only relationship between a log line and another is the *happens before* and *happens after* relationship **within a single log source**. It's like a primitive logbook. The order of pages within the book only make sense within the book. Ordering pages across different logbooks doesn't make sense (but can still be useful). The logbook tells you information about what happened from the perspective of its authors. Sometimes, storylines in a logbook get confused, and it's left as an exercise to the reader to decorticate which pages belong to the same story arc.
+
+On the other hand, tracing preserves a larger ordering of events, while trading higher computational overhead and implementation complexity. See our [deep dive into tracing](/docs/concepts/tracing).
+
+## Logging for Humans
+
+In recent years, a very powerful trend toward **structured logging** has taken hold. The `humanlog` CLI was initially created to address this development. A *structured log* is a log that is written in an easily parseable structured format. In practice, this means newline-delimited **JSON** or **logfmt**.
+
+Structured logging unlocks powerful new capabilities. Traditional SIEM tools worked against arbitrarily shaped strings, often multilines messages, largely reliant on regular expression engines for extraction of semantic data. In comparison, structured logging keeps the semantic separation of data within each log line... separate. Using plaintext and fairly readable formats such as logfmt and JSON, modern logging allows both human-readable output and machine parseable key-value pairs.
+
+This comes at a cost. While still human readable, JSON or logfmt lack visual cues that more human friendly plaintext format provided. This is where the `humanlog` CLI's first task comes in.
+
+We want you to leverage structured logging at home and at work (and in your car, basement, on vacation, at your in-laws). That's why `humanlog` is first and foremost a structured logging **helper tool**. You feed it logs, and if they're structured, it will make them much more readable.
+
+Here's what raw structured logs look like, and how humanlog prettifies them.
+
+<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+  <figure className="flex flex-col items-center">
+    <img src="/images/docs/concepts/logging/raw_logs.gif"
+         alt="Raw Logs!"
+         className="w-full rounded-lg shadow-md" />
+    <figcaption className="mt-2 text-sm text-gray-500">Raw structured logs</figcaption>
+  </figure>
+
+  <figure className="flex flex-col items-center">
+    <img src="/images/docs/concepts/logging/pretty_logs.gif"
+         alt="Pretty Logs"
+         className="w-full rounded-lg shadow-md" />
+    <figcaption className="mt-2 text-sm text-gray-500">Prettified by <code>humanlog</code></figcaption>
+  </figure>
+</div>
+
+## Logging for Machines
+
+But why log in JSON or logfmt in the first place? Why not print colored logs to `stdout` right away? Because in modern software, logs are (unfortunately) for machines first. In most case beyond local development, logs are never going to be seen by anyone but machines.
+
+In production, your service will be deployed alongside hundred other services, all emitting their own logs. These logs will get taken out of each service and brought into a centralized place, dumped alongside every other log. Without structured logging, these logs are nothing but an arbitrary blurb of bytes (hopefully printable UTF8). With structured logging, it's a different story.
+
+Keeping the logs in an unambiguously machine parseable format provides huge advantages. Your logs become a powerful source of analytical data.
+
+<div class="mx-auto max-w-3xl aspect-video">
+  <iframe
+    src="https://www.youtube.com/embed/_SgYiAl2xVY"
+    title="Centralized Logging Demo"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+    allowfullscreen
+    class="w-full h-full rounded-lg shadow-md"
+  ></iframe>
+> Watch this short talk about structured logging.
+</div>
+
+
+---
+
+## What's Next?
+
+- 👉 [Learn about tracing →](/docs/concepts/tracing)
+- 👉 [Deep dive into localhost & concepts →](/docs/concepts/localhost)
+- 👉 [Learn the query language →](/docs/reference)
+
+Need help or want to give feedback? Join our [community channels](/support).
