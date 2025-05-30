@@ -32,6 +32,8 @@ Most of us have pretty powerful machines at our fingertips. A run-of-the-mill de
 
 Humanlog lets you leverage this compute power and isolation for your iteration speed. You can ingest and query a surprisingly large amount of data in quasi real-time on a modern machine with a modern SSD. Bring this back home and work on your telemetry data locally. Ship to production with an already well crafted set of observability signals.
 
+That "playground" mindset is difficult to achieve when you're battling rate limits or shared-cluster quotas.
+
 ## Privacy
 
 One advantage of working with observability data on your localhost is that your data doesn't leave your machine by default. This means that you can use `humanlog` locally without having to review our security posture. Your data is safe on your disk.
@@ -39,6 +41,8 @@ One advantage of working with observability data on your localhost is that your 
 Adopting a new observability cloud provider is a big deal. They will be handling a lot of data for you that can be sensitive. Sending production data to a new platform that hasn't been vetted is a big no-no in most businesses. So when the production tools available to you don't meet your needs, you're a bit left out of luck. You can fetch the data locally and load it into general analytical tools and work from there, but this experience is not well crafted.
 
 Humanlog bridges that gap. You don't need a vendor review to start exploring your data.
+
+Sensitive logs and PII stay on your machine. No risk of accidentally exfiltrating HIPAA data or leaking credentials to a third-party SaaS.
 
 ### The Fine Print
 
