@@ -28,7 +28,7 @@ import {
 } from "lucide-react";
 import { getSelfURL } from "@/lib/envs";
 import InstallCTA from "@/components/landing-page/shared/install-cta";
-import { SpansContainer } from "@/components/log-interface/query-output/traces/spans-container";
+import { SpansContainer } from "@/components/log-interface/query-output/traces/spans-container";
 import Terminal from "@/components/landing-page/shared/ui/terminal";
 
 const AboveFoldHero: React.FC = () => {

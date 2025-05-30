@@ -23,24 +23,12 @@ import { Spans } from "api/js/types/v1/data_pb";
 import { Timestamp } from "@bufbuild/protobuf";
 import { toBigInt } from "@/lib/utils/valueFactories";
 import { makeStrKV } from "@/lib/utils/kvFactories";
+import { getColorByIndex } from "@/lib/utils/colors";
 
 interface TracesProps {
   traceId: string | null;
   spanId?: string | null;
 }
-
-const colorPalette = [
-  "#5a7fc9", // Medium blue
-  "#c9618f", // Medium pink
-  "#4dacb9", // Medium sky blue
-  "#8864ad", // Medium purple
-  "#65ac55", // Medium green
-  "#d99456", // Medium orange
-  "#7a7dcb", // Medium lavender
-  "#97b967", // Medium lime
-  "#4daa95", // Medium mint
-  "#c26674", // Medium coral
-];
 
 const ago10s = new Timestamp({
   seconds: toBigInt(Date.now() / 1000 - 10),
@@ -237,7 +225,7 @@ export const Traces = ({ traceId, spanId }: TracesProps) => {
     const serviceNames = [...new Set(spans.map((span) => span.serviceName))];
 
     serviceNames.forEach((name, i) => {
-      _serviceColors[name] = colorPalette[i % colorPalette.length];
+      _serviceColors[name] = getColorByIndex(i);
     });
     setServiceColors(_serviceColors);
   }, [spans, traceId]);
