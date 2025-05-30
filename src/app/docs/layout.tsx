@@ -1,8 +1,6 @@
 import { DocsSidebar } from "@/components/docs/Sidebars";
 import { ReactNode } from "react";
-import path from "path";
-
-import { scanDirectory, NavItem } from "@/lib/contents";
+import { NavItem } from "@/lib/contents";
 import { reference } from "@/lib/utils/reference";
 
 export default function DocsLayout({ children }: { children: ReactNode }) {
@@ -44,7 +42,7 @@ export default function DocsLayout({ children }: { children: ReactNode }) {
         { title: "Overview", path: "/docs/integrations" },
         { title: "OpenTelemetry", path: "/docs/integrations/opentelemetry" },
         {
-          title: "OpenTelemetry",
+          title: "Structured Logging",
           path: "/docs/integrations/structured-logging",
         },
       ],
