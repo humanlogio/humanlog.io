@@ -1,28 +1,58 @@
+import { Note, Tip, Warning, Important, Caution } from "@/components/ui/Alert";
+import Terminal from "@/components/landing-page/shared/ui/terminal";
+
+
 # Installation
 
-To install `humanlog`, run this in your terminal:
+Run this one-liner in your terminal:
 
 ```bash
 curl -L "https://humanlog.io/install.sh" | sh
 ```
 
-This will install `humanlog` as a background service and show a systray entry. You can then run queries with:
+This will:
+
+- Install the `humanlog` binary into your $PATH
+- Launch the local observability engine as a background service
+- Register a menu-bar/tray icon for easy access
+
+## Verify Your Install
 
 ```bash
-humanlog query 'summarize count() by msg'
+humanlog --version
 ```
 
-We hope you enjoy the query engine and provide any feedback in [our community channels](/support).
+You should see something like:
 
-## More Details
+```
+humanlog version x.y.z
+```
 
-More details on installing the CLI can be found in the [CLI section of the documentation](/docs/features/cli).
+### Supported Platforms
 
-## Platforms
+`humanlog` is a cross-platform binary, however not all features work on all platforms.
 
-We support:
+| Feature                 | macOS | Linux | Windows |
+| ----------------------- | ----- | ----- | ------- |
+| Parsing, prettifying    | ✅    | ✅    | ✅      |
+| Localhost observability | ✅    | ✅    |         |
+| Query engine            | ✅    | ✅    |         |
+| Service install         | ✅    |       |         |
+| Menu bar                | ✅    |       |         |
 
-- _macOS_: full support
-- _linux_: must manually run `humanlog service run` to run the localhost engine (support for systemd service coming soon)
 
-While we currently only support macOS and linux for the query engine, this is simply a matter of focus and not a hard long term restriction. We plan to support other platforms later, based on customer demand. If you would like to contribute support for your platform, please head over to the CLI's repo and look at the [service handler](https://github.com/humanlogio/humanlog/blob/master/cmd/humanlog/service_other.go) and the [systray handler](https://github.com/humanlogio/humanlog/blob/master/cmd/humanlog/systray_other.go).
+
+<Note title="Linux note">
+    The service isn't started automatically, run:
+    ```bash
+    humanlog service run
+    ```
+</Note>
+
+
+## Next Steps
+
+- 👉 [Basic Usage →](/docs/get-started/basic-usage)
+- 👉 [CLI Reference →](/docs/features/cli)
+
+Need help or want to give feedback? Join our [community channels](/support).
