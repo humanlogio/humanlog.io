@@ -1,6 +1,10 @@
 import { Span } from "api/js/types/v1/tracing_pb";
 import { getColorByIndex } from "@/lib/utils/colors";
-import type { ServiceCallMap, Node, Link } from "../types";
+import type {
+  ServiceCallMap,
+  Node,
+  Link,
+} from "@/components/log-interface/query-output/traces/service-map/types";
 
 /**
  * Analyzes inter-service call relationships for Service Map

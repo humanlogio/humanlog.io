@@ -1,6 +1,6 @@
 import { Span } from "api/js/types/v1/tracing_pb";
 import { Timestamp, Duration } from "@bufbuild/protobuf";
-import type { SampleDataScenario } from "../types";
+import type { SampleDataScenario } from "@/components/log-interface/query-output/traces/service-map/types";
 import { makeSpan } from "@/lib/utils/spanFactories";
 import { makeStrKV } from "@/lib/utils/kvFactories";
 

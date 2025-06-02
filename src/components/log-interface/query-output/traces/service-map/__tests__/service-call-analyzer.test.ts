@@ -5,7 +5,7 @@ import {
   generateServiceCallMap,
   groupSpansByService,
   getSelectedNodeInfo,
-} from "../utils/service-call-analyzer";
+} from "@/components/log-interface/query-output/traces/service-map/utils/service-call-analyzer";
 
 /**
  * @vitest-environment jsdom
