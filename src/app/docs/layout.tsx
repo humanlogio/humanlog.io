@@ -76,18 +76,22 @@ export default function DocsLayout({ children }: { children: ReactNode }) {
             {
               title: "Scalar",
               path: "/docs/reference/functions/scalar",
-              children: reference.funcs.scalar.map((func) => ({
-                title: func.name,
-                path: `/docs/reference/functions/scalar#${func.name}`,
-              })),
+              children: reference.funcs.scalar
+                .filter((func) => func.implemented)
+                .map((func) => ({
+                  title: func.name,
+                  path: `/docs/reference/functions/scalar#${func.name}`,
+                })),
             },
             {
               title: "Aggregate",
               path: "/docs/reference/functions/aggregate",
-              children: reference.funcs.aggregate.map((func) => ({
-                title: func.name,
-                path: `/docs/reference/functions/aggregate#${func.name}`,
-              })),
+              children: reference.funcs.aggregate
+                .filter((func) => func.implemented)
+                .map((func) => ({
+                  title: func.name,
+                  path: `/docs/reference/functions/aggregate#${func.name}`,
+                })),
             },
           ],
         },
@@ -98,18 +102,22 @@ export default function DocsLayout({ children }: { children: ReactNode }) {
             {
               title: "Scalar",
               path: "/docs/reference/operators/scalar",
-              children: reference.operators.scalar.map((op) => ({
-                title: op.name,
-                path: `/docs/reference/operators/scalar#${op.name}`,
-              })),
+              children: reference.operators.scalar
+                .filter((op) => op.implemented)
+                .map((op) => ({
+                  title: op.name,
+                  path: `/docs/reference/operators/scalar#${op.name}`,
+                })),
             },
             {
               title: "Tabular",
               path: "/docs/reference/operators/tabular",
-              children: reference.operators.tabular.map((op) => ({
-                title: op.name,
-                path: `/docs/reference/operators/tabular#${op.name}`,
-              })),
+              children: reference.operators.tabular
+                .filter((op) => op.implemented)
+                .map((op) => ({
+                  title: op.name,
+                  path: `/docs/reference/operators/tabular#${op.name}`,
+                })),
             },
           ],
         },
@@ -142,13 +150,15 @@ export default function DocsLayout({ children }: { children: ReactNode }) {
   return (
     <div className="flex min-h-screen w-full overflow-x-hidden">
       {/* Sidebar - fixed on desktop, uses Sheet on mobile */}
-      <div className="fixed top-0 left-0 z-10 flex h-full flex-col bg-white dark:bg-black">
+      <div className="fixed top-12 left-0 z-10 flex h-full flex-col bg-white dark:bg-black">
         <DocsSidebar navItems={navItems} />
       </div>
 
       {/* Main content area with proper padding based on screen size */}
       <main className="w-full flex-1 p-4 pt-16 md:p-6 md:pt-6">
-        <div className="prose w-full max-w-none md:pl-64">{children}</div>
+        <div className="prose flex w-full max-w-none justify-center md:pl-64">
+          <div className="max-w-[1000px]">{children}</div>
+        </div>
       </main>
     </div>
   );

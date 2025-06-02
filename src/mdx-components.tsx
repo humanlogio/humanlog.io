@@ -20,19 +20,7 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
         return <MermaidRenderer code={childNode.props.children} />;
       }
 
-      // Check if this is a code block with a language and apply syntax highlighting
-      if (childNode.type === "code" && language) {
-        return (
-          <CodeBlock
-            code={codeContent}
-            language={language}
-            className="my-4 w-full"
-          />
-        );
-      }
-
-      // Otherwise, render the pre as normal
-      return <pre {...props}>{children}</pre>;
+      return <CodeBlock code={codeContent} language={language} />;
     },
 
     ...components,
