@@ -97,9 +97,11 @@ export function ApiClientsProvider({
     deleteCookie();
     localStorage.removeItem("hlog_session");
     try {
-      await apiClients.localhost.doLogout({
-        returnToURL,
+      await apiClients.user.getLogoutURL({
+        returnTo: returnToURL,
       });
+
+      apiClients.localhost.doLogout({});
     } catch (error) {
       console.error("Failed to get logout URL:", error);
       // router.push("/login");
