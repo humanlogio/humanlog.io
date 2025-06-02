@@ -45,7 +45,7 @@ export function DocsSidebar({ navItems }: DocsSidebarProps) {
   return (
     <>
       {/* Desktop Sidebar */}
-      <div className="hidden h-screen w-64 flex-shrink-0 overflow-y-auto border-r p-4 md:block">
+      <div className="hidden h-[calc(100vh-3rem)] w-64 flex-shrink-0 overflow-y-auto border-r px-4 py-8 md:block">
         <div className="mb-6 text-xl font-bold">Docs</div>
         <nav>
           {filteredNavItems.map((item, index) => (
