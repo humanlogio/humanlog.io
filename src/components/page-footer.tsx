@@ -1,10 +1,12 @@
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
-
 import Logo from "@/components/logo";
 import dayjs from "dayjs";
 import { GithubMark } from "@/components/icons/github-mark";
 import { DiscordMark } from "@/components/icons/discord-mark";
+import { usePathname } from "next/navigation";
 
 const iconSocialLinks = [
   {
@@ -38,7 +40,17 @@ const footerLinks = [
   },
 ];
 
+const pagesWithoutFooter = ["/docs"];
+
 const PageFooter = () => {
+  const pathname = usePathname();
+
+  const showFooter = !pagesWithoutFooter.some((path) =>
+    pathname.startsWith(path),
+  );
+
+  if (!showFooter) return null;
+
   return (
     <footer className="bg-muted py-10">
       <div className="container">
