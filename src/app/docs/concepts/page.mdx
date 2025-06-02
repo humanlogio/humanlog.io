@@ -10,10 +10,6 @@ When it comes to observability data, we often talk about three pillars:
 - [**Tracing**](/docs/concepts/tracing): a set of directed graph of events through systems.
 - **Metrics**: an aggregated value representing events that occurred at a given location in a system.
 
-Tracing represents individual requests flowing through your system. Unlike logs, which are only loosely related to line before and after them, traces are made of a collection of span, and each span keeps a reference to (1) which trace they belong to and (2) their parent span (unless they are the root span). This allows spans to create a tree datastructure of a request going through a system.
-
-A trace is a tree of spans. The spans are the nodes in the tree, and they are connected via edges represented in the `parent_span_id` property of spans.
-
 ---
 
 ## What's Next?
