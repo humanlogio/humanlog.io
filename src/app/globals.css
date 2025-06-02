@@ -203,3 +203,10 @@ button {
   --tw-prose-th-borders: var(--border);
   --tw-prose-td-borders: var(--border);
 }
+.prose p {
+  font-size: 16px;
+}
+
+.prose ul {
+  font-size: 16px;
+}
