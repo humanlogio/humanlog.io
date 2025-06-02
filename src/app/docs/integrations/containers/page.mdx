@@ -4,8 +4,12 @@
 
 You can pipe your logs into `humanlog` from Docker:
 
-```
-docker attach 86e17ac9f03b | humanlog
+```bash
+# find the container to monitor
+docker ps
+
+# stream the logs into humanlog
+docker logs 86e17ac9f03b | humanlog
 ```
 
 ## OpenTelemetry
@@ -18,3 +22,12 @@ If you work with container runtimes such as Docker, Orbstack, Podman, Rancher, `
 | OTLP/gRPC | `http://host.docker.internal:4318` |
 
 The `host.docker.internal` hostname will allow programs running inside virtualized container runtimes (example `Docker Desktop on Mac`, `OrbStack`, `Rancher Desktop`, `Podman`). If you're asking, we recommend [Orbstack](https://orbstack.dev/?utm_source=humanlog.io).
+
+## What's Next?
+
+- 💻 [Deep dive into localhost & concepts →](/docs/concepts/localhost)
+- 🕵 [How to query →](/docs/features/query)
+- 🌊 [How to stream →](/docs/features/stream)
+- 📚 [Learn the language →](/docs/reference)
+
+Need help or want to give feedback? Join our [community channels](/support).

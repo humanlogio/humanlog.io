@@ -32,7 +32,28 @@ curl -L "https://humanlog.io/install.sh" | cat
 
 #### macOS
 
+On macOS, humanlog will automatically install as a background service and start a menu bar integration. This menu bar allows you to sign in, initiate queries, and also represents a visual signal that humanlog is running in the background.
+
+You can start ingesting data via `stdin` on the CLI or via the [OpenTelemetry integration](/docs/integrations/opentelemetry). Then use it as a data source in the [query page](https://humanlog.io/localhost/query).
+
 #### Linux
+
+On Linux, humanlog can run as a background service but does not currently automatically installs itself as a systemd service. You can run it as a simple service:
+
+```systemd
+[Unit]
+Description=Humanlog Query Engine
+
+[Service]
+ExecStart=$HOME/.humanlog/bin/humanlog
+
+[Install]
+WantedBy=multi-user.target
+```
+
+Once `humanlog` runs as a background service, you can use it as a data source in the [query page](https://humanlog.io/localhost/query).
+
+> We do not currently implement a systray or menubar for Linux distributions.
 
 #### Windows
 
@@ -55,9 +76,38 @@ The install script supports a few configurations:
 
 ### Verifying your install
 
+After installing `humanlog`, you can verify that your installation is working by running the following command:
+
+```bash
+humanlog --version
+```
+
+This should print the current version.
+
+If this is not what you would expect, verify if `humanlog` is perhaps installed in multiple locations in your `PATH`. Make sure that the latest version is installed in the earliest location in your `PATH`.
+
 ### Updates
 
+You can check if new versions are available by running:
+
+```bash
+humanlog version check
+```
+
+You can easily update `humanlog` by using the self-update mechanism:
+
+```bash
+humanlog version update
+```
+
+This will check which version is the latest and perform an update if a newer version is available.
+
+By default, `humanlog` checks for updates in the background whenever you invoke it, or when it runs as a background service. If a new version is available, it will let you know in the CLI's output, either at the beginning or at the very end of your CLI invocation. The background service will notify you of new updates via your operating system's default notification mechanism.
+
+
 #### Compatibility
+
+When updating, `humanlog` will perform data migrations for both its internal state file, its database and for your config file. As such, updates are not always reversible. For example, updating from `v0.8.4` to `v0.8.5` performs an migration on your config file. Running a `v0.8.4` binary with the migrated `v0.8.5` configuration format will lead to errors.
 
 We aim to make humanlog versions compatible with the last minor release. This means that updating from version `vA.B.C` to version `v.A.B+1.C` should always work.
 
@@ -65,14 +115,133 @@ Skipping minor releases _may_ or may not work.
 
 ### Configuration
 
+The configuration file for both the `humanlog` CLI and the humanlog background service lives in:
+
+```
+~/.config/humanlog/config.json
+```
+
+The CLI offers various amenities to work with it.
+
+```bash
+# reset your config file to defaults. this overwrites your changes
+humanlog config reset-to-defaults
+
+# edit your config in the Web UI. notably for convenient theme editing!
+humanlog config edit
+
+# show the content of your config. merely a convenience
+humanlog config show
+
+# show what the defaults are, for values where you didn't specify anything
+humanlog config show-defaults
+
+# enable features
+humanlog config enable
+
+# disable features
+humanlog config disable
+
+# hacks to configure humanlog for compatibility with some annoying software
+humanlog config hack
+# example: configure humanlog to downgrade protocols to be compatible with
+# netskope's man-in-the-middling
+humanlog config hack for-netskope
+```
+
 ## Quick Start
+
+Once `humanlog` is installed, it works as both a CLI and a background service.
+
+- The **CLI** allows you to pipe logs and prettify them, which also ingests them in humanlog's localhost database.
+- The **background service** ingests your data and allows the Web UI to query it.
+
+To get started after installing:
+
+```bash
+# ingest some logs
+humanlog < logfile
+
+# query them (here with a useless filter for demonstration purpose)
+humanlog query 'filter true'
+```
+
+This will (1) ingest logs and prettify them and (2) open the web UI on the localhost query page, with your `filter true` query as the input and the query result as the output.
+
+To start also querying and displaying tracing data, simply start your OpenTelemetry enabled application with default values, and your application should automatically send its data to the background service.
+
+- Learn more about [OpenTelemetry integration](/docs/integrations/opentelemetry).
 
 ## Common Workflows & Examples
 
+The most common workflow with `humanlog` is to pass ugly logs into it to make them prettier. This is done by simply piping logs into `humanlog`'s standard input.
+
 ### Piping logs
+
+Piping logs into `humanlog` will prettify them and also ingest them in your localhost database.
+
+```bash
+# prettify the logs (and ingest them for later querying)
+my_app | humanlog
+```
+
+Humanlog parses line-oriented logs. A log entry is anything that has a `\n` at the end. Structured logs, in JSON or logfmt format, will be detected and made extra pretty. Key-values in logs will also be extracted and made queryable by the query engine.
+
+You can [query any log or span](/docs/features/query) that has been ingested:
+
+```bash
+# query for logs that have a msg longer than 10
+humanog query 'filter len(msg) > 10'
+
+# count how many logs have been ingested by level
+humanlog query 'summarize count() by lvl'
+
+# sample 10 spans where the duration was greater than 200ms
+humanlog query 'traces | where duration > 200ms | sample 10'
+```
+
+Whenever `humanlog` is receiving logs, you can also watch these logs being emitted in real-time using the [streaming query feature](/docs/features/stream).
+
+```bash
+# stream all the logs that are at level "error"
+humanlog stream 'filter lvl == "ERROR"'
+```
+
+As long as `humanlog` hasn't received `EOF` from your application, it will keep ingesting and prettifying logs.
 
 ### Embedding in CLI scripts or CI pipelines
 
+You can embed `humanlog` in CLI and CI pipelines for prettifying logs or ingesting them. In some environment, automatic detection of coloring can appear broken. This is usually because of (nested) terminal emulators. In such case, you can pass the `--color` flag to specify how you want colors to be emitted:
+
+```bash
+# no colors
+my_command | humanlog --color=off
+# colors on, detect the light/dark theme automatically
+my_command | humanlog --color=on
+# colors on, using the dark theme
+my_command | humanlog --color=dark
+# colors on, using the light theme
+my_command | humanlog --color=light
+```
+
 ### Ingesting only (no prettified output)
 
+If you want to simply ingest logs without any pretty output, pass the output (`stdout`) of humanlog to `/dev/null`.
+
+```bash
+my_app | humanlog > /dev/null
+```
+
 ## FAQ
+
+Any questions that hasn't been answered will be added here. Join our [community channels](/support) to ask any question you may have about the CLI.
+
+## What's Next?
+
+- 💻 [Deep dive into localhost & concepts →](/docs/concepts/localhost)
+- 🕵 [How to query →](/docs/features/query)
+- 🌊 [How to stream →](/docs/features/stream)
+- 📚 [Learn the language →](/docs/reference)
+- 💅 [Make it pretty →](/docs/features/themes)
+
+Need help or want to give feedback? Join our [community channels](/support).
