@@ -9,9 +9,9 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
+import CodeBlock from "@/components/CodeBlock";
 
 interface OperatorsProps {
   operators: ScalarOperator[] | TabularOperator[];
@@ -74,9 +74,11 @@ export function Operators({ operators }: OperatorsProps) {
           </p>
         </div>
       ) : (
-        filteredOperators.map((operator, i) => (
-          <Operator key={`${i}-${operator.name}`} operator={operator} />
-        ))
+        filteredOperators
+          .filter((operator) => operator.implemented)
+          .map((operator, i) => (
+            <Operator key={`${i}-${operator.name}`} operator={operator} />
+          ))
       )}
     </div>
   );
@@ -97,21 +99,6 @@ export function Operator({ operator }: OperatorProps) {
             <CardTitle id={operator.name} className="scroll-mt-20 text-xl">
               {operator.name}
             </CardTitle>
-            {operator.implemented !== false ? (
-              <Badge
-                variant="outline"
-                className="bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400"
-              >
-                Implemented
-              </Badge>
-            ) : (
-              <Badge
-                variant="outline"
-                className="bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400"
-              >
-                Coming Soon
-              </Badge>
-            )}
           </div>
         </div>
         <CardDescription className="mt-2">{operator.desc}</CardDescription>
@@ -171,11 +158,7 @@ export function Operator({ operator }: OperatorProps) {
                       <CardTitle>Query</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <pre className="bg-muted overflow-x-auto rounded-md p-4">
-                        <code className="text-sm text-black dark:text-white">
-                          {example.query}
-                        </code>
-                      </pre>
+                      <CodeBlock code={example.query} language="kusto" />
                     </CardContent>
                   </Card>
 
