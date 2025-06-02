@@ -104,7 +104,6 @@ This will check which version is the latest and perform an update if a newer ver
 
 By default, `humanlog` checks for updates in the background whenever you invoke it, or when it runs as a background service. If a new version is available, it will let you know in the CLI's output, either at the beginning or at the very end of your CLI invocation. The background service will notify you of new updates via your operating system's default notification mechanism.
 
-
 #### Compatibility
 
 When updating, `humanlog` will perform data migrations for both its internal state file, its database and for your config file. As such, updates are not always reversible. For example, updating from `v0.8.4` to `v0.8.5` performs an migration on your config file. Running a `v0.8.4` binary with the migrated `v0.8.5` configuration format will lead to errors.
