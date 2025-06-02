@@ -1,14 +1,64 @@
-# Introduction
+# Concepts
 
-What's the difference between logs and traces?
+> **Localhost development as a first-class citizen**;
 
-## Conceptual Idea
+Humanlog starts from a simple conviction: your laptop is the best place to _see_ what your code is doing. By putting observability tooling **on your machine first**, you get a zero-latency feedback loop, total privacy, and the freedom to experiment before you pollute production or pay per-byte bills.
 
-When it comes to observability data, we often talk about three pillars:
+This section gathers the core ideas that shape that experience. Think of it as the map you consult before diving into the individual deep-dives that follow.
 
-- [**Logging**](/docs/concepts/logging): a set of list of events through systems.
-- [**Tracing**](/docs/concepts/tracing): a set of directed graph of events through systems.
-- **Metrics**: an aggregated value representing events that occurred at a given location in a system.
+---
+
+## Localhost-first philosophy
+
+Running Humanlog locally is not an after-thought or a “trial mode.”
+It is the primary workflow:
+
+- **Speed** - SSD-powered queries finish while your test suite is still compiling.
+- **Waste-free** - iterate on span names and log shapes without shipping throw-away data to the cloud.
+- **Privacy by default** - nothing leaves your disk unless you ask for it.
+
+Learn why this matters, how we avoid the usual Docker-compose yak-shave, and what (little) data ever touches our servers in [**Localhost**](/docs/concepts/localhost).
+
+---
+
+## The three pillars of telemetry
+
+| Pillar      | Mental model                           | Typical use-case                                   |
+| ----------- | -------------------------------------- | -------------------------------------------------- |
+| **Logging** | Ordered lists of events                | Long-term forensics, security audits, BI queries   |
+| **Tracing** | Directed graphs of spans (per request) | Live debugging, latency breakdown, causal analysis |
+| **Metrics** | Aggregated numbers over windows        | Dashboards, alerts, SLO burn-rates                 |
+
+### Logging
+
+Flat lists, human-readable _and_ machine-parsable (JSON, **logfmt**). Structured logs unlock powerful search while staying grep-able, and Humanlog prettifies them so you still enjoy reading them in a terminal. Dive in → [Logging](/docs/concepts/logging).
+
+### Tracing
+
+Every request becomes a tree of spans with `trace_id` and `parent_span_id` glue. High volume, shorter retention, but an unbeatable microscope when you need to follow a flow end-to-end. Dive in → [Tracing](/docs/concepts/tracing).
+
+### Metrics (coming soon)
+
+We treat metrics as a _projection_ of logs and traces: once you have rich raw data, roll-ups are a query away. Native metrics collection and down-sampling controls will land after v1.
+
+---
+
+## Query language, storage, and scale
+
+All pillars share the same embedded column-store beneath Humanlog. A unified pipeline-inspired language lets you slice by any field, aggregate and visualize your data.
+
+Because it runs locally first, you can stress-test gigabyte datasets before committing to a cluster plan. When you outgrow the laptop, the same engine powers the upcoming hosted tier—no “rewrite in cloud” tax.
+
+---
+
+## How to read this section
+
+1. **Start with Localhost** to set up your playground.
+2. Skim **Logging** and **Tracing** to understand how we model data.
+3. Jump to the **Reference** when you need exact syntax or API details.
+4. Circle back whenever a concept feels fuzzy—each page links deeper material, demos, and design rationales.
+
+Happy spelunking, and never stop logging! 🪵
 
 ---
 
@@ -19,4 +69,4 @@ When it comes to observability data, we often talk about three pillars:
 - 📕 [Our local-development manifesto →](/docs/concepts/localhost)
 - 👉 [Learn the query language →](/docs/reference)
 
-Need help or want to give feedback? Join our [community channels](/support).
+Need help or want to share feedback? Join the conversation in our [community channels](/support).
