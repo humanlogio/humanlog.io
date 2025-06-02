@@ -3,7 +3,7 @@
  * This file is auto-generated. Do not edit manually.
  */
 
-import { Symbols } from "@/components/docs/symbols/Symbols";
+import { Symbols } from "@/components/docs/reference/symbols/Symbols";
 import { Symbol } from "@/types/docs";
 
 export default function Page() {

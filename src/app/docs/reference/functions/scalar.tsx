@@ -3,7 +3,7 @@
  * This file is auto-generated. Do not edit manually.
  */
 
-import { ScalarFuncIndex } from "@/components/docs/ScalarFuncIndex";
+import { ScalarFuncIndex } from "@/components/docs/reference/ScalarFuncIndex";
 import { ScalarFunc as ScalarFuncType } from "@/types/docs";
 
 export default function Page() {

@@ -62,7 +62,7 @@ export const generateReferenceDump = (ref: Reference) => {
  * @generated
  * This file is auto-generated. Do not edit manually.
  */
- 
+
 import { Reference } from "@/types/docs";
 export const reference: Reference = JSON.parse(${refDump}) as Reference;
 `,
@@ -80,13 +80,13 @@ export const generateLogsReference = (symbols: Symbols) => {
  * This file is auto-generated. Do not edit manually.
  */
 
-import { Symbols } from "@/components/docs/symbols/Symbols";
+import { Symbols } from "@/components/docs/reference/symbols/Symbols";
 import { Symbol } from "@/types/docs";
 
 export default function Page() {
   return <Symbols symbols={symbols} />;
 }
-  
+
 const symbols: Symbol[] = JSON.parse(${logsSymbols}) as Symbol[];
 `,
   );
@@ -103,13 +103,13 @@ export const generateSpansReference = (symbols: Symbols) => {
  * This file is auto-generated. Do not edit manually.
  */
 
-import { Symbols } from "@/components/docs/symbols/Symbols";
+import { Symbols } from "@/components/docs/reference/symbols/Symbols";
 import { Symbol } from "@/types/docs";
 
 export default function Page() {
   return <Symbols symbols={symbols} />;
 }
-  
+
 const symbols: Symbol[] = JSON.parse(${spansSymbols}) as Symbol[];
 `,
   );
@@ -126,13 +126,13 @@ export const generateScalarFunctionsIndex = (ref: Reference) => {
  * This file is auto-generated. Do not edit manually.
  */
 
-import { ScalarFuncIndex } from "@/components/docs/ScalarFuncIndex";
+import { ScalarFuncIndex } from "@/components/docs/reference/ScalarFuncIndex";
 import { ScalarFunc as ScalarFuncType } from "@/types/docs";
 
 export default function Page() {
   return <ScalarFuncIndex funcs={funcs} />;
 }
-  
+
 const funcs: ScalarFuncType[] = JSON.parse(${scalarFuncs}) as ScalarFuncType[];
 `,
   );
@@ -149,13 +149,13 @@ export const generateAggregateFunctionIndex = (ref: Reference) => {
  * This file is auto-generated. Do not edit manually.
  */
 
-import { ScalarFuncIndex } from "@/components/docs/ScalarFuncIndex";
+import { ScalarFuncIndex } from "@/components/docs/reference/ScalarFuncIndex";
 import { ScalarFunc as ScalarFuncType } from "@/types/docs";
 
 export default function Page() {
   return <ScalarFuncIndex funcs={funcs} />;
 }
-  
+
 const funcs: ScalarFuncType[] = JSON.parse(${AggregateFunc}) as ScalarFuncType[];
 `,
   );
@@ -172,13 +172,13 @@ export const generateScalarFunction = (func: ScalarFunc) => {
  * This file is auto-generated. Do not edit manually.
  */
 
-import { Func } from "@/components/docs/funcs/Func";
+import { Func } from "@/components/docs/reference/funcs/Func";
 import { ScalarFunc as ScalarFuncType } from "@/types/docs";
 
 export default function Page() {
   return <Func func={func} />;
 }
-  
+
 const func: ScalarFuncType = JSON.parse(${scalarFuncType}) as ScalarFuncType;
 `,
   );
@@ -195,13 +195,13 @@ export const generateAggregateFunction = (func: AggregateFunc) => {
  * This file is auto-generated. Do not edit manually.
  */
 
-import { Func } from "@/components/docs/funcs/Func";
+import { Func } from "@/components/docs/reference/funcs/Func";
 import { ScalarFunc as ScalarFuncType } from "@/types/docs";
 
 export default function Page() {
   return <Func func={func} />;
 }
-  
+
 const func: ScalarFuncType = JSON.parse(${scalarFuncType}) as ScalarFuncType;
 `,
   );
@@ -218,13 +218,13 @@ export const generateScalarOperator = (operators: ScalarOperator[]) => {
  * This file is auto-generated. Do not edit manually.
  */
 
-import { Operators } from "@/components/docs/operators/Operators";
+import { Operators } from "@/components/docs/reference/operators/Operators";
 import { ScalarOperator } from "@/types/docs";
 
 export default function Page() {
   return <Operators operators={operators} />;
 }
-  
+
 const operators: ScalarOperator[] = JSON.parse(${operatorType}) as ScalarOperator[];
 `,
   );
@@ -241,13 +241,13 @@ export const generateTabularOperator = (operators: TabularOperator[]) => {
  * This file is auto-generated. Do not edit manually.
  */
 
-import { Operators } from "@/components/docs/operators/Operators";
+import { Operators } from "@/components/docs/reference/operators/Operators";
 import { TabularOperator } from "@/types/docs";
 
 export default function Page() {
   return <Operators operators={operators} />;
 }
-  
+
 const operators: TabularOperator[] = JSON.parse(${operatorType}) as TabularOperator[];
 `,
   );
