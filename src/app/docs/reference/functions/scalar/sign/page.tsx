@@ -3,7 +3,7 @@
  * This file is auto-generated. Do not edit manually.
  */
 
-import { Func } from "@/components/docs/funcs/Func";
+import { Func } from "@/components/docs/reference/funcs/Func";
 import { ScalarFunc as ScalarFuncType } from "@/types/docs";
 
 export default function Page() {

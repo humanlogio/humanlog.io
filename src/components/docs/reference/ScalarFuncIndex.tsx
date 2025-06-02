@@ -3,7 +3,7 @@
 import { ScalarFunc as ScalarFuncType } from "@/types/docs";
 import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
-import { Func } from "@/components/docs/funcs/Func";
+import { Func } from "@/components/docs/reference/funcs/Func";
 
 export function ScalarFuncIndex({ funcs }: { funcs: ScalarFuncType[] }) {
   const [searchTerm, setSearchTerm] = useState("");
