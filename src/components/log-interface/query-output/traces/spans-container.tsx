@@ -13,6 +13,7 @@ import { extractFromStreamResponses } from "@/lib/utils/dataHelpers";
 import { ServiceMap } from "@/components/log-interface/query-output/traces/service-map";
 import { SpanList } from "@/components/log-interface/query-output/traces/span-list";
 import { getSampleScenarioByName } from "@/components/log-interface/query-output/traces/service-map/utils/sample-data-generator";
+import FeatureFlag from "@/components/posthog/feature-flag";
 
 interface FreeFormContainerProps {
   query: Query | undefined;
@@ -88,29 +89,31 @@ export const SpansContainer = ({
 
   return (
     <>
-      <div className="space-y-4">
-        {/* View Mode Toggle */}
-        <div className="inline-flex items-center rounded-lg border border-gray-200 dark:border-gray-700">
-          <Button
-            variant={viewMode === "list" ? "default" : "ghost"}
-            size="sm"
-            onClick={() => setViewMode("list")}
-            className="rounded-r-none border-r"
-          >
-            <List size={16} className="mr-1" />
-            List
-          </Button>
-          <Button
-            variant={viewMode === "map" ? "default" : "ghost"}
-            size="sm"
-            onClick={() => setViewMode("map")}
-            className="rounded-l-none"
-          >
-            <Network size={16} className="mr-1" />
-            Service Map
-          </Button>
+      <FeatureFlag flagKey="service-map-enabled" fallback={null}>
+        <div className="space-y-4">
+          {/* View Mode Toggle */}
+          <div className="inline-flex items-center rounded-lg border border-gray-200 dark:border-gray-700">
+            <Button
+              variant={viewMode === "list" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setViewMode("list")}
+              className="rounded-r-none border-r"
+            >
+              <List size={16} className="mr-1" />
+              List
+            </Button>
+            <Button
+              variant={viewMode === "map" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setViewMode("map")}
+              className="rounded-l-none"
+            >
+              <Network size={16} className="mr-1" />
+              Service Map
+            </Button>
+          </div>
         </div>
-      </div>
+      </FeatureFlag>
 
       {/* Spans list */}
       {viewMode === "list" && (
