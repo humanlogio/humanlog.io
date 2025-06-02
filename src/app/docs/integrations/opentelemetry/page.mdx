@@ -1,5 +1,35 @@
 # OpenTelemetry
 
+Humanlog supports ingesting OpenTelemetry data right out of the box.
+
+## What is OpenTelemetry
+
+OpenTelemetry, also known as OTEL, is a standard for emitting telemetry data that allows you to decouple your metrics, logging and tracing code from specific vendors. It implements:
+
+- SDKs for major languages, allowing you to perform logging, tracing and metric emission.
+- A set of wire protocols (HTTP/JSON, gRPC) with well defined interface, allowing an ecosystem of interchangeable and compatible components from various vendors.
+- A standard definition for what logging, tracing and metrics mean.
+- A set of canonical "exporters" and "collectors" as reference implementations.
+
+This allows adopters to integrate a single telemetry mechanism in their application that is completely vendor neutral. In turn, their observability data can be forwarded to various endpoints and vendors without fear of vendor locking.
+
+## Using With Humanlog
+
+When running as a service, the `humanlog` CLI exposes supports both of the OpenTelemetry protocols (OTLP):
+
+- **OTLP/gRPC** on `http://localhost:4317`
+- **OTLP/HTTP** on `http://localhost:4318`
+
+Learn more about OTLP in the [official OpenTelemetry documentations](https://opentelemetry.io/docs/specs/otlp/).
+
+These ports are configured in the config file at the following path:
+
+```bash
+$ humanlog config show | jq '.runtime.experimental_features.serve_localhost.otlp'
+{
+  "grpc_port": 4318,
+  "http_port": 4317
+}
 ```
-todo
-```
+
+Learn more about the configuration file in [the CLI documentation](/docs/features/cli).
