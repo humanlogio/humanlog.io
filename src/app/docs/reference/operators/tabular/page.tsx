@@ -3,7 +3,7 @@
  * This file is auto-generated. Do not edit manually.
  */
 
-import { Operators } from "@/components/docs/operators/Operators";
+import { Operators } from "@/components/docs/reference/operators/Operators";
 import { TabularOperator } from "@/types/docs";
 
 export default function Page() {

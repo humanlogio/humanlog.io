@@ -1,4 +1,4 @@
-import { DocsSidebar } from "@/components/docs/Sidebars";
+import { DocsSidebar } from "@/components/docs/reference/Sidebars";
 import { ReactNode } from "react";
 import { NavItem } from "@/lib/contents";
 import { reference } from "@/lib/utils/reference";
