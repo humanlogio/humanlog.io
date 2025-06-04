@@ -12,6 +12,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import CodeBlock from "@/components/CodeBlock";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 interface OperatorsProps {
   operators: ScalarOperator[] | TabularOperator[];
@@ -108,67 +114,58 @@ export function Operator({ operator }: OperatorProps) {
         {operator.examples?.length > 0 && (
           <div className="space-y-4">
             <h2 className="text-lg font-semibold">Examples</h2>
-            <Tabs defaultValue={`${operator.name}-example-0`}>
-              <TabsList className="w-full justify-start">
-                {operator.examples.map((example, i) => (
-                  <TabsTrigger
-                    key={`${operator.name}-tab-${i}`}
-                    value={`${operator.name}-example-${i}`}
-                  >
-                    {example.name}
-                  </TabsTrigger>
-                ))}
-              </TabsList>
 
-              {operator.examples.map((example, i) => (
-                <TabsContent
-                  key={`${operator.name}-content-${i}`}
-                  value={`${operator.name}-example-${i}`}
-                  className="mt-4 space-y-4"
-                >
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Query</CardTitle>
-                    </CardHeader>
-                    <CardContent className="p-0">
-                      <CodeBlock code={example.query} language="kusto" />
-                    </CardContent>
-                  </Card>
+            {operator.examples.length > 0 && (
+              <Accordion
+                type="multiple"
+                className="not-prose w-full rounded-xl border"
+              >
+                {operator.examples.map((example, i) => {
+                  return (
+                    <AccordionItem
+                      key={`${operator.name}-example-${i}`}
+                      value={`${operator.name}-example-${i}`}
+                      className="border-none px-0"
+                    >
+                      <AccordionTrigger className="px-5 py-4 hover:bg-zinc-50 hover:no-underline dark:hover:bg-zinc-900">
+                        {example.name}
+                      </AccordionTrigger>
+                      <AccordionContent className="border-y p-3">
+                        <Card>
+                          <CardHeader>
+                            <CardTitle>Query</CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <CardContent className="p-0">
+                              <CodeBlock
+                                code={example.query}
+                                language="kusto"
+                              />
+                            </CardContent>
+                          </CardContent>
+                        </Card>
 
-                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="text-base">Input</CardTitle>
-                        <CardDescription>Sample log entries</CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="bg-muted max-h-60 overflow-y-auto rounded-md p-4">
-                          <pre className="text-xs">
-                            {JSON.stringify(example.input, null, 2)}
-                          </pre>
-                        </div>
-                      </CardContent>
-                    </Card>
-
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="text-base">Output</CardTitle>
-                        <CardDescription>
-                          Result after applying operator
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="bg-muted max-h-60 overflow-y-auto rounded-md p-4">
-                          <pre className="text-xs">
-                            {JSON.stringify(example.output, null, 2)}
-                          </pre>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </div>
-                </TabsContent>
-              ))}
-            </Tabs>
+                        <Card className="mt-2">
+                          <CardHeader>
+                            <CardTitle className="text-base">Output</CardTitle>
+                            <CardDescription>
+                              Result after applying operator
+                            </CardDescription>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="bg-muted max-h-60 overflow-y-auto rounded-md p-4">
+                              <pre className="text-xs">
+                                {JSON.stringify(example.output, null, 2)}
+                              </pre>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </AccordionContent>
+                    </AccordionItem>
+                  );
+                })}
+              </Accordion>
+            )}
           </div>
         )}
       </CardContent>
