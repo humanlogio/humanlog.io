@@ -157,7 +157,7 @@ export default function DocsLayout({ children }: { children: ReactNode }) {
       {/* Main content area with proper padding based on screen size */}
       <main className="w-full flex-1 p-4 pt-16 md:p-6 md:pt-6">
         <div className="prose flex w-full max-w-none justify-center md:pl-64">
-          <div className="max-w-[1000px]">{children}</div>
+          <div className="w-[1000px]">{children}</div>
         </div>
       </main>
     </div>
