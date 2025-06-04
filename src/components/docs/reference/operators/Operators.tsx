@@ -130,7 +130,7 @@ export function Operator({ operator }: OperatorProps) {
                     <CardHeader>
                       <CardTitle>Query</CardTitle>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className="p-0">
                       <CodeBlock code={example.query} language="kusto" />
                     </CardContent>
                   </Card>
