@@ -17,21 +17,6 @@ export function Func({ func }: { func: ScalarFuncType }) {
       <div className="w-full border-b pb-4">
         <div className="mb-4 flex flex-wrap items-center gap-3">
           <h1 className="mb-0 scroll-mt-20 text-3xl font-bold">{func.name}</h1>
-          {func.implemented !== false ? (
-            <Badge
-              variant="outline"
-              className="bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400"
-            >
-              Implemented
-            </Badge>
-          ) : (
-            <Badge
-              variant="outline"
-              className="bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400"
-            >
-              Coming Soon
-            </Badge>
-          )}
           <Badge className="bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300">
             {func.category}
           </Badge>
