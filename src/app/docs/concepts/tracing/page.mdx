@@ -1,39 +1,39 @@
 # Tracing
 
-Tracing is the process of _tracing_ a request through all of your systems and keeping track of where the request went.
+Tracing is the process of _tracing_ a request through all of your systems and keeping track of where the request went, providing essential visibility into your application's behavior.
 
 ## Conceptual Idea
 
 When it comes to observability data, we often talk about three pillars:
 
-- [**Logging**](/docs/concepts/logging): a set of list of events through systems.
-- [**Tracing**](/docs/concepts/tracing): a set of directed graph of events through systems.
+- [**Logging**](/docs/concepts/logging): a set of lists of events through systems.
+- [**Tracing**](/docs/concepts/tracing): a set of directed graphs of events through systems.
 - **Metrics**: an aggregated value representing events that occurred at a given location in a system.
 
-Tracing represents individual requests flowing through your system. Unlike logs, which are only loosely related to the lines before and after them, traces are made of a collection of spans, and each span keeps a reference to (1) the trace to which it belongs and (2) its parent span (unless it is the root span). This allows spans to create a tree data structure of a request going through a system.
+Tracing represents individual requests flowing through your system. Unlike logs, which are only loosely related to entries before and after them, traces consist of a collection of spans. Each span maintains a reference to (1) the trace to which it belongs and (2) its parent span (unless it is the root span). This structure creates a tree that maps a request's journey through your system.
 
-A trace is a tree of spans. The spans are the nodes in the tree, and they are connected via edges represented in the `parent_span_id` property of spans.
+A trace is essentially a tree of spans. The spans are the nodes in the tree, and they are connected via edges represented by the `parent_span_id` property of each span.
 
 ## Analogy
 
-Think of tracing like following a random shopper in your shopping mall and keeping track of where they entered the mall, which shop they entered first, what they touched inside the shop, when they exited the shop, which shops they went to next… and eventually when they left the shopping mall.
+Think of tracing like following a shopper in your mall and recording their journey—where they entered, which shop they visited first, what they interacted with inside, when they exited, which shops they visited next, and eventually when they left the mall.
 
-Along the way, you write letters about what happened and send them in mini-envelopes to the back office. Every time a user passes through, you write and apply a sticker on their back that contains a unique ID for this user interaction and a specific ID for the letter you're writing in this specific location. As the user walks through the shopping mall, each measuring station updates the sticker and emits an envelope about what it saw.
+As they move through the mall, you write notes about what happened and send them in mini-envelopes to the back office. Whenever a shopper passes through a checkpoint, you place a sticker on their back containing a unique ID for this specific journey and an ID for the note you're writing at this particular location. As the shopper continues through the mall, each checkpoint updates the sticker and sends its observations to the back office.
 
-- **User enters mall**: start writing your letter, assign `trace_id` and `span_id`. Keep the envelope in your pocket. Write `trace_id` and `span_id` on a sticker and stick it on the user's back.
+- **User enters mall**: Start writing your letter, assign a `trace_id` and `span_id`. Keep the envelope in your pocket. Write the `trace_id` and `span_id` on a sticker and place it on the user's back.
 
-  - **User goes to first shop**: read back the `trace_id` and `span_id` from the sticker. Start a new letter, reusing `trace_id`, assigning `parent_span_id = span_id`, and assigning a new `span_id`. Write the existing `trace_id` and the new `span_id` on a new sticker, and stick it on the user's back over the existing one. Keep the letter in your pocket.
-  - **User walks out of the first shop**: take your sticker and remove it. On your letter, write how long it took and whatever happened. Put the letter in an envelope and send it to the back office.
-  - **User goes to the second shop**: rinse and repeat…
+  - **User goes to first shop**: Read the `trace_id` and `span_id` from the sticker. Start a new letter, reusing the `trace_id`, assigning `parent_span_id = span_id`, and creating a new `span_id`. Write the existing `trace_id` and new `span_id` on a fresh sticker, and place it over the existing one. Keep this letter in your pocket.
+  - **User walks out of the first shop**: Remove your sticker. On your letter, record how long the visit took and what happened. Put the letter in an envelope and send it to the back office.
+  - **User goes to the second shop**: Repeat the process...
 
-- **User exits mall**: wrap up your letter with the duration and details of what you saw at the gate. Send it to the back office.
+- **User exits mall**: Finalize your letter with the duration and details of what you observed at the exit. Send it to the back office.
 
 Essentially, each station does two things:
 
 - It records information about what it saw from its own perspective.
 - It applies a sticker on the user's back so that the next station knows about the tracking IDs for this user.
 
-When the back office receives these letters, it can assemble them by `trace_id` and then create a tree with the letters by matching them in a `parent_span_id = span_id` fashion.
+When the back office receives all these letters, it assembles them by `trace_id` and then constructs a tree by connecting them through the `parent_span_id = span_id` relationships.
 
 ## Comparison to Logging
 
@@ -47,9 +47,9 @@ In terms of cutting through a system, both logging and tracing provide a similar
 
 This is all true and great in theory, but in practice, logging and tracing differ in quite drastic ways. It all boils down to **expectations** and **usage**.
 
-Users of logging systems expect retention of data for long-term investigation purposes, over timelines spanning weeks, months, and years. Logs often get sent to cold storage. They are used to detect persistent threats—security intrusions that might have started many months ago.
+Users of logging systems expect data retention for long-term investigations—spanning weeks, months, and years. Logs typically migrate to cold storage and serve critical security functions, such as detecting persistent threats that may have originated months earlier.
 
-On the other hand, users of tracing systems expect to emit a _lot_ of span data to measure many more call sites than a logger normally would. Expectations include being able to query a live set of tracing data (within minutes, hours, or days) and being able to emit a huge volume of span data. When a user observes a trace, they expect to see fine details about every span.
+On the other hand, users of tracing systems expect to emit a _lot_ of span data to measure many more call sites than a logger normally would. Expectations include being able to query a live set of tracing data (within minutes, hours, or days) and being able to emit a huge volume of span data. When a user observes a trace, they expect to see fine details about every span in the request flow.
 
 | Expectations  | Logging      | Tracing                   |
 | ------------- | ------------ | ------------------------- |
@@ -65,13 +65,13 @@ On the other hand, users of tracing systems expect to emit a _lot_ of span data 
 - _Sampling_: whether all data is ingested in the first place.
 - _Sub-sampling_: whether ingested data of a certain age gets reshaped before moving to a different storage tier—for example, erasing records and details from ingested spans or recording only high-level summaries for data older than a given period.
 
-While logging and tracing are fundamentally quite similar in theory, their vastly different **user experience** expectations lead to dramatically different implementations.
+While logging and tracing share fundamental similarities in theory, their dramatically different **user experience** expectations necessitate vastly different implementations in most observability platforms.
 
 ## Localhost in Humanlog
 
 The localhost experience of Humanlog doesn't distinguish between logging and tracing in terms of retention. However, if your application emits a lot of spans, you can expect them to make up most of your databases' storage footprint. Future work will help manage this footprint. Please reach out via our [community channels](/support) to let us know if you hit problems with this so we can prioritize the work.
 
-Because Humanlog on localhost is a dev tool, we recommend that you **do not** sample your spans in development, so that you can have complete fidelity over what your work looks like.
+Because Humanlog on localhost is a dev tool, we recommend that you **do not** sample your spans in development, so that you can have complete fidelity over what your work looks like. In development environments, you're typically generating much less data than in production, and seeing everything is more valuable than the performance trade-offs that sampling addresses at scale.
 
 ---
 

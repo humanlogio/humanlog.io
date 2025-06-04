@@ -2,7 +2,7 @@ import { Note, Important } from "@/components/ui/Alert";
 
 # Querying Your Data
 
-Humanlog features a query engine that allows you to query your data in a declarative manner. The language is called [Humanlog Query Language](/docs/reference). It's a pipeline-based language where you define a series of operations to apply to your data. Read the reference for detailed information. Or keep reading here for a high level overview of how the query feature works and example usages.
+Humanlog features a powerful query engine that allows you to query your data in a declarative manner. The language is called [Humanlog Query Language](/docs/reference). It's a pipeline-based language where you define a series of operations to apply to your data. Read the reference for detailed information, or continue reading here for a high-level overview of how the query feature works with example usages.
 
 ## Basic Usage
 
@@ -33,19 +33,19 @@ To execute a query, first write a query in the query editor area and then either
 
 ### Querying Via the CLI
 
-Querying via the CLI is mostly a helper to open the UI with a query already set up.
+Querying via the CLI primarily serves as a convenient way to open the UI with a query already set up.
 
 ```bash
 humanlog query 'filter true | take 10'
 ```
 
-Which will open the UI with that executes this query and displays its result.
+This will open the UI, execute the specified query, and display its result.
 
 <img src="/images/docs/features/query/query-tab.png" width="80%" />
 
 ## Query Editor Area
 
-The query editor area let's you write your queries. Along with a space to write your query, click on the "Run" button to execute it, on the query library button to open the query library sidebar, or on the save button to save your query.
+The query editor area lets you write your queries. Along with a space to write your query, you can click on the "Run" button to execute it, the query library button to open the query library sidebar, or the save button to save your query.
 
 <img src="/images/docs/features/query/query-editor-run.png" width="80%" />
 
@@ -61,7 +61,7 @@ The query editor area let's you write your queries. Along with a space to write 
 
 ## Discovering Symbols In Scope
 
-Opening the query library nav bar to see the symbols in scope.
+Open the query library nav bar to see the symbols in scope.
 
 <img src="/images/docs/features/query/query-library-button.png" width="80%" />
 
@@ -73,10 +73,10 @@ You can click on a symbol to add it to your query.
 
 <img src="/images/docs/features/query/add-symbol.png" width="80%" />
 
-Otherwise, you can type it out. The rules for refering to arbitrary symbols are:
+Alternatively, you can type it out manually. The rules for referring to arbitrary symbols are:
 
 - If the symbol contains only letters, numbers and underscores, you can refer to it as-is.
-- Otherwise, you must refer to it as an index expression, using single or double quote strings like `["my symbol.name!"]` or `['my symbol.name!']`.
+- Otherwise, you must refer to it as an index expression, using single or double quoted strings like `["my symbol.name!"]` or `['my symbol.name!']`.
 
 Example:
 
@@ -91,7 +91,7 @@ filter ['build.Commit'] == "d31fade"
 
 ## Reviewing Historical Queries
 
-Every query that you run is saved in your "Recent queries" list. This allows you to retrieve results from previous queries. To see your recent queries, open the query library sidebar.
+Every query that you run is automatically saved in your "Recent queries" list. This allows you to quickly retrieve results from previous queries, creating a fast feedback loop during debugging sessions. To see your recent queries, open the query library sidebar.
 
 <img src="/images/docs/features/query/query-library-button.png" width="80%" />
 
@@ -134,7 +134,7 @@ Saved queries can be edited and have notes attached to them, so you can remember
 
 ## Query Results
 
-The query result area is where you can see the results of your query. Depending on the type of data you're querying, the results will be displayed in different ways. The datatype of the data is detected automatically and the query engine will attempt to render it in a useful manner. In many cases, you can change the theme of the result to better suit your needs. See the [themes](/docs/features/themes) section for more information.
+The query result area displays the output of your query. The presentation format adapts based on the detected datatype, with the query engine selecting an appropriate rendering method. You can customize the appearance using themes if needed. See the [themes](/docs/features/themes) section for more information.
 
 ### Logs
 
@@ -145,7 +145,7 @@ When querying logs data, the results will be displayed in prettified form using 
   width="80%"
 />
 
-By default, the query engine will group logs by session. This is to ensure that logs are shown in an order that makes sense based on the source of where they were emitted. See the logging](/docs/concepts/logging) section for more information about ordering of logs.
+By default, the query engine groups logs by session. This ensures that logs are displayed in a logical order based on their emission source, providing a coherent view of system behavior. See the [logging](/docs/concepts/logging) section for more information about log ordering.
 
 <img
   src="/images/docs/features/query/log-results-many-session.png"
@@ -179,14 +179,14 @@ You can hover over a key-value to see its value, its type and then click on prem
   width="80%"
 />
 
-Sometimes log lines, even prettified, can get quite long. In this cases, you may want to split the log lines in a vertical manner. Click on the "Toggle section line breaks in log" button to activate this mode.
+Sometimes log lines, even when prettified, can become quite long. In these cases, you may want to display log lines vertically for better readability. Click on the "Toggle section line breaks in log" button to activate this mode.
 
 <img
   src="/images/docs/features/query/log-results-vertical-split-button.png"
   width="80%"
 />
 
-This shows your logs with each key values split on its own line. Return to the horizontal layout by clicking on the "Toggle section line breaks in log" button again.
+This displays your logs with each key-value pair on its own line. You can return to the horizontal layout by clicking on the "Toggle section line breaks in log" button again.
 
 <img
   src="/images/docs/features/query/log-results-horizontal-split-button.png"
@@ -201,7 +201,7 @@ Query spans by specifying the `traces` datatype at the start of your query.
 traces | take 10
 ```
 
-This will take 10 spans from your tracing data and display them in span-mode.
+This command will retrieve 10 spans from your tracing data and display them in span-mode, enabling you to debug your distributed system locally without deploying to production.
 
 <img src="/images/docs/features/query/span-results-overview.png" width="80%" />
 
@@ -226,7 +226,7 @@ Otherwise clicking on the span name or trace ID will open a page that shows the 
   width="80%"
 />
 
-This page lets you see the span within the context of its trace, where all spans are shown in a waterfall layout. You can view details about the trace.
+This page presents the span within the context of its trace, with all spans shown in an intuitive waterfall layout. You can view comprehensive details about the trace, allowing you to verify your instrumentation works correctly without deploying to production.
 
 <img src="/images/docs/features/query/trace-waterfall.png" width="80%" />
 
@@ -235,5 +235,3 @@ This page lets you see the span within the context of its trace, where all spans
 ## Sharing Your Results
 
 Once you've found something you like, click on the share button to start sharing your results. Learn more about it in the [sharing](/docs/features/sharing) section.
-
-{/* keep this as a heading, it is referenced elsewhere */}
