@@ -27,7 +27,8 @@ To execute a query, first write a query in the query editor area and then either
 <img src="/images/docs/features/query/query-editor-run-query.png" width="80%" />
 
 <Note>
-  Otherwise, you can navigate to the `localhost` query page directly at [localhost/query](/localhost/query).
+  Otherwise, you can navigate to the `localhost` query page directly at
+  [localhost/query](/localhost/query).
 </Note>
 
 ### Querying Via the CLI
@@ -110,7 +111,10 @@ You can save queries into your "Saved queries" collection by clicking on the "Sa
 
 This will open a modal where you can name your query and add a note.
 
-<img src="/images/docs/features/query/saved-query-create-modal.png" width="80%" />
+<img
+  src="/images/docs/features/query/saved-query-create-modal.png"
+  width="80%"
+/>
 
 You can review the saved queries in the "Query library" side bar. First click on the query library button.
 
@@ -136,11 +140,17 @@ The query result area is where you can see the results of your query. Depending 
 
 When querying logs data, the results will be displayed in prettified form using the signature display format of `humanlog`. This is the same format that `humanlog` uses when ingesting logs, and it looks like this:
 
-<img src="/images/docs/features/query/log-results-single-session.png" width="80%" />
+<img
+  src="/images/docs/features/query/log-results-single-session.png"
+  width="80%"
+/>
 
 By default, the query engine will group logs by session. This is to ensure that logs are shown in an order that makes sense based on the source of where they were emitted. See the logging](/docs/concepts/logging) section for more information about ordering of logs.
 
-<img src="/images/docs/features/query/log-results-many-session.png" width="80%" />
+<img
+  src="/images/docs/features/query/log-results-many-session.png"
+  width="80%"
+/>
 
 You can disable this behavior by turning off the "Split By Session" toggle.
 
@@ -150,23 +160,38 @@ If you don't want to see prettified results, you can turn off the "Pretty" toggl
 
 You can hover over a log to see its metadata. Depending on where you hover, you will see different things. Hovering over the timestamp, level or message will let you see the core information about the log line such as the event ID, timestamp, level, message.
 
-<img src="/images/docs/features/query/log-results-hover-header.png" width="80%" />
+<img
+  src="/images/docs/features/query/log-results-hover-header.png"
+  width="80%"
+/>
 
 You can click on the tooltip buttons to help further filter down the results. Doing so will update your query to add a `filter` clause.
 
-<img src="/images/docs/features/query/log-results-hover-click.gif" width="80%" />
+<img
+  src="/images/docs/features/query/log-results-hover-click.gif"
+  width="80%"
+/>
 
 You can hover over a key-value to see its value, its type and then click on premade filters to add to your query.
 
-<img src="/images/docs/features/query/log-results-hover-key-value.png" width="80%" />
+<img
+  src="/images/docs/features/query/log-results-hover-key-value.png"
+  width="80%"
+/>
 
 Sometimes log lines, even prettified, can get quite long. In this cases, you may want to split the log lines in a vertical manner. Click on the "Toggle section line breaks in log" button to activate this mode.
 
-<img src="/images/docs/features/query/log-results-vertical-split-button.png" width="80%" />
+<img
+  src="/images/docs/features/query/log-results-vertical-split-button.png"
+  width="80%"
+/>
 
 This shows your logs with each key values split on its own line. Return to the horizontal layout by clicking on the "Toggle section line breaks in log" button again.
 
-<img src="/images/docs/features/query/log-results-horizontal-split-button.png" width="80%" />
+<img
+  src="/images/docs/features/query/log-results-horizontal-split-button.png"
+  width="80%"
+/>
 
 ### Spans
 
@@ -182,24 +207,30 @@ This will take 10 spans from your tracing data and display them in span-mode.
 
 If you want to see more details about the span, such as its resource attributes or span attributes, click on the expand button.
 
-<img src="/images/docs/features/query/span-results-expand-span.png" width="80%" />
+<img
+  src="/images/docs/features/query/span-results-expand-span.png"
+  width="80%"
+/>
 
 You can hover over a span to see its metadata. Clicking on the tooltip buttons will let you add premade filters to your query.
 
-<img src="/images/docs/features/query/span-results-hover-tooltip.png" width="80%" />
+<img
+  src="/images/docs/features/query/span-results-hover-tooltip.png"
+  width="80%"
+/>
 
 Otherwise clicking on the span name or trace ID will open a page that shows the span in its trace.
 
-<img src="/images/docs/features/query/span-results-click-span.png" width="80%" />
+<img
+  src="/images/docs/features/query/span-results-click-span.png"
+  width="80%"
+/>
 
 This page lets you see the span within the context of its trace, where all spans are shown in a waterfall layout. You can view details about the trace.
 
 <img src="/images/docs/features/query/trace-waterfall.png" width="80%" />
 
-
 ### Tables
-
-
 
 ## Sharing Your Results
 
