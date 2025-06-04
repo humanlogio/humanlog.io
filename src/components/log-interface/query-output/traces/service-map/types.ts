@@ -31,8 +31,13 @@ export interface ServiceCallMap {
   rootServices: string[];
   serviceLevels: { [key: string]: number };
 
+  // Precomputed service metadata
+  serviceSpanCounts: { [key: string]: number };
+  serviceTraceIds: { [key: string]: string[] };
+
   // D3 visualization-ready data
   nodes: Node[];
+  nodesMap: { [key: string]: Node }; // New map for O(1) lookups
   links: Link[];
 
   // Helper methods
@@ -40,14 +45,11 @@ export interface ServiceCallMap {
   getCallees: (service: string) => string[];
   getCallCount: (caller: string, callee: string) => number;
   getAvgDuration: (caller: string, callee: string) => number;
-}
 
-export interface SelectedNodeInfo {
-  node: Node;
-  callers: string[];
-  callees: string[];
-  traceIds: string[];
-  totalSpans: number;
+  // New helper methods for precomputed data
+  getServiceSpanCount: (service: string) => number;
+  getServiceTraceIds: (service: string) => string[];
+  getNode: (serviceId: string) => Node | null;
 }
 
 export interface SampleDataScenario {

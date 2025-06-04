@@ -14,8 +14,23 @@ import type {
 export function generateServiceCallMap(spans: Span[]): ServiceCallMap {
   // spanId to service mapping
   const spanToService: { [key: string]: string } = {};
+
+  // Precompute service metadata for performance
+  const serviceSpanCounts: { [key: string]: number } = {};
+  const serviceTraceIds: { [key: string]: Set<string> } = {};
+
   spans.forEach((span) => {
     spanToService[span.spanId] = span.serviceName;
+
+    // Count spans per service
+    serviceSpanCounts[span.serviceName] =
+      (serviceSpanCounts[span.serviceName] || 0) + 1;
+
+    // Collect unique trace IDs per service
+    if (!serviceTraceIds[span.serviceName]) {
+      serviceTraceIds[span.serviceName] = new Set();
+    }
+    serviceTraceIds[span.serviceName].add(span.traceId);
   });
 
   // Service call relationships
@@ -110,15 +125,29 @@ export function generateServiceCallMap(spans: Span[]): ServiceCallMap {
     }
   });
 
-  // Generate nodes and edges for service map visualization
-  const nodes: Node[] = Array.from(allServices).map((service, index) => ({
+  // Generate nodes - convert to map for O(1) lookups
+  const nodesArray: Node[] = Array.from(allServices).map((service, index) => ({
     id: service,
     name: service,
     type: "service",
-    spanCount: spans.filter((span) => span.serviceName === service).length,
+    spanCount: serviceSpanCounts[service],
     color: getColorByIndex(index),
     level: serviceLevels[service] || 0,
   }));
+
+  // Convert nodes array to map for O(1) lookups
+  const nodesMap: { [key: string]: Node } = {};
+  nodesArray.forEach((node) => {
+    nodesMap[node.id] = node;
+  });
+
+  // Convert serviceTraceIds from Sets to arrays once
+  const serviceTraceIdsArrays = Object.fromEntries(
+    Object.entries(serviceTraceIds).map(([service, traceSet]) => [
+      service,
+      Array.from(traceSet),
+    ]),
+  );
 
   const links: Link[] = [];
   Object.entries(serviceCallCounts).forEach(([caller, callees]) => {
@@ -147,8 +176,13 @@ export function generateServiceCallMap(spans: Span[]): ServiceCallMap {
     rootServices,
     serviceLevels,
 
+    // Precomputed service metadata
+    serviceSpanCounts,
+    serviceTraceIds: serviceTraceIdsArrays,
+
     // D3 visualization-ready data
-    nodes,
+    nodes: nodesArray, // Keep array for backward compatibility
+    nodesMap, // New map for O(1) lookups
     links,
 
     // Helper methods
@@ -176,6 +210,19 @@ export function generateServiceCallMap(spans: Span[]): ServiceCallMap {
       const total = durations.reduce((sum, d) => sum + d, 0);
       return total / durations.length;
     },
+
+    // New helper methods for precomputed data
+    getServiceSpanCount: (service: string) => {
+      return serviceSpanCounts[service] || 0;
+    },
+
+    getServiceTraceIds: (service: string) => {
+      return serviceTraceIdsArrays[service] || [];
+    },
+
+    getNode: (serviceId: string) => {
+      return nodesMap[serviceId] || null;
+    },
   };
 }
 
@@ -195,39 +242,4 @@ export function groupSpansByService(spans: Span[]): { [key: string]: Span[] } {
   });
 
   return spansByService;
-}
-
-/**
- * Gets detailed information about a selected service node
- * @param selectedNode Service name
- * @param spans All spans
- * @param serviceCallMap Analyzed service call map
- * @returns Detailed node information or null
- */
-export function getSelectedNodeInfo(
-  selectedNode: string | null,
-  spans: Span[],
-  serviceCallMap: ServiceCallMap,
-) {
-  if (!selectedNode) return null;
-
-  const node = serviceCallMap.nodes.find((n) => n.id === selectedNode);
-  if (!node) return null;
-
-  const callers = serviceCallMap.getCallers(selectedNode);
-  const callees = serviceCallMap.getCallees(selectedNode);
-
-  // Get trace IDs for this service
-  const serviceSpans = spans.filter(
-    (span) => span.serviceName === selectedNode,
-  );
-  const traceIds = [...new Set(serviceSpans.map((span) => span.traceId))];
-
-  return {
-    node,
-    callers,
-    callees,
-    traceIds,
-    totalSpans: serviceSpans.length,
-  };
 }
