@@ -210,3 +210,9 @@ button {
 .prose ul {
   font-size: 16px;
 }
+
+.prose img {
+  border-radius: 0.5rem;
+  box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.1);
+  width: 100%;
+}
