@@ -1,5 +1,115 @@
 # Structured Logging
 
+Humanlog excels at parsing and displaying structured logs, providing instant readability for JSON, logfmt, and other structured formats. This page explains structured logging concepts, popular formats, and how to leverage Humanlog with common logging libraries.
+
+## What is Structured Logging?
+
+Structured logging is the practice of emitting log events not as free-form text but as data objects with well-defined fields. Instead of writing a line like:
+
 ```
-todo
+2025-06-05 12:34:56 WARN User 123 failed to log in from IP 10.0.0.5
 ```
+
+You would write something like:
+
+```json
+{
+  "timestamp": "2025-06-05T12:34:56Z",
+  "level": "WARN",
+  "msg": "User failed to log in",
+  "user_id": "123",
+  "source_ip": "10.0.0.5"
+}
+```
+
+This approach treats logs as discrete data structures rather than text lines, making them machine-parsable and allowing systems to easily query, filter, and analyze logs based on specific fields.
+
+## Common Structured Log Formats
+
+Humanlog supports the two most popular structured logging formats out of the box:
+
+### JSON
+
+JSON is the most widely used format for structured logs because of its ubiquity, human-readability, and universal support across languages and platforms.
+
+```json
+{
+  "level": "info",
+  "ts": 1591024000,
+  "msg": "Request completed",
+  "method": "GET",
+  "path": "/api/users",
+  "status": 200,
+  "duration_ms": 42,
+  "user_id": "abc123"
+}
+```
+
+### logfmt
+
+Logfmt is a lightweight key-value format popular in the Go ecosystem and other modern services. It's more compact than JSON while still being machine-parsable.
+
+```
+level=info ts=1591024000 msg="Request completed" method=GET path=/api/users status=200 duration_ms=42 user_id=abc123
+```
+
+## Benefits of Structured Logging with Humanlog
+
+### 1. Improved Readability
+
+Humanlog instantly transforms dense JSON or logfmt logs into human-readable, colorized output, making debugging faster and more intuitive while preserving all structured data.
+
+### 2. Powerful Filtering and Querying
+
+With structured logs, you can leverage Humanlog's query capabilities to filter by specific field values, making it easy to isolate relevant logs:
+
+```bash
+cat application.log | humanlog
+```
+
+You can then query the logs using the `humanlog query` command:
+
+```bash
+humanlog query 'filter msg=="getting auth URL"'
+```
+
+## Visualizing Structured Logs in Humanlog
+
+Humanlog automatically detects and beautifully formats JSON and logfmt logs in the terminal. To use it, simply pipe your logs through the `humanlog` command:
+
+```bash
+# View logs from a file
+cat application.log | humanlog
+
+# Stream logs from a running application
+tail -f application.log | humanlog
+
+# View container logs
+docker logs my-container | humanlog
+```
+
+Humanlog will:
+
+1. Parse the structured log format (JSON/logfmt)
+2. Apply smart colorization based on log levels
+3. Format timestamps for better readability
+
+## Best Practices for Structured Logging
+
+1. **Be Consistent with Field Names**: Use a consistent naming convention across services (e.g., `user_id` vs. `userId`).
+
+2. **Include Context Fields**: Always include essential context like service name, environment, request ID, or trace ID.
+
+3. **Use Appropriate Log Levels**: Follow standard log level conventions (DEBUG, INFO, WARN, ERROR).
+
+4. **Add Timestamp**: Ensure each log entry has a precise timestamp (preferably in ISO 8601 format).
+
+5. **Keep Messages Concise**: Use the `message`/`msg` field for human-readable summaries and put details in dedicated fields.
+
+## Learn More
+
+- 📊 [Humanlog CLI Features](/docs/features/cli)
+- 🔍 [Query Language](/docs/reference)
+- 🔄 [OpenTelemetry Integration](/docs/integrations/opentelemetry)
+
+Need help or want to give feedback? Join our [community channels](/support).

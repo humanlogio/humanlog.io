@@ -4,13 +4,13 @@ import { Note, Tip, Warning, Important, Caution } from "@/components/ui/Alert";
 
 > Localhost Development As A First Class Citizen
 
-Craftpeople like having their tools right here in their hands, where they can use them immediately, with no latency, with the full power of their machine, without having to go through a CI and CD pipeline, without having to SSO yet another time.
+Craftspeople thrive when their tools are right at their fingertips—immediate access, zero latency, full machine power—without the delays of CI/CD pipelines or yet another SSO login.
 
-Have you ever spent an inordinate amount of time iterating on span names and attributes? Doing the code change, shipping a PR to production, waiting to see the outcome. If you're lucky only, 30 minutes have passed and you haven't gotten distracted by something else.
+Have you ever spent an inordinate amount of time iterating on span names and attributes? You make the code change, ship a PR to production, then wait to see the outcome. If you're lucky, only 30 minutes have passed and you haven't gotten distracted by something else.
 
-We have all sorts of tools available in our development environments. We can run incredibly powerful local tests, integrating against locally running databases, Kubernetes, and otherwise production grade technologies.
+We have all sorts of tools available in our development environments. We can run incredibly powerful local tests, integrating against locally running databases, Kubernetes, and other production-grade technologies.
 
-But when it comes to observability, this is left as an afterthought. You can spin up a Jaeger container to see traces, or setup a complicated docker-compose file with an observability platform deployed. But this is so onerous that, except for the most diligent and dedicated, we have almost never done it.
+But when it comes to observability, this is left as an afterthought. You can spin up a Jaeger container to see traces, or set up a complicated docker-compose file with an observability platform deployed. But this is so onerous that, except for the most diligent and dedicated among us, we almost never do it.
 
 Humanlog brings this experience back to a human level.
 
@@ -20,7 +20,7 @@ Humanlog brings this experience back to a human level.
 
 It's no secret that a lot of observability data is never going to be seen by anyone, is wasted, and should never have been emitted in the first place. But as practitioners, it's often difficult in situ to determine whether our service will generate too much or too little observability data. So we tend to err toward abundance.
 
-This ends up wasting a lot of resource and money. How to combat this? Hygiene, of course. But how to maintain hygiene when we can hardly see what's dirty? Bring back the visibility into your local workflow.
+This wastes resources and money. The solution? Better hygiene. But how can we clean what we can't see? By bringing visibility into your local workflow.
 
 Humanlog lets you iterate and make mistakes on your machine. You don't pay per byte ingested. You own your hardware, your laptop. You don't pollute your production data with tests.
 
@@ -30,7 +30,7 @@ Production servers can be powerful, or slow. The move to virtualized cloud serve
 
 Most of us have pretty powerful machines at our fingertips. A run-of-the-mill developer machine will often have 8 cores and 16GB of memory. No multitenancy, just you and your keyboard.
 
-Humanlog lets you leverage this compute power and isolation for your iteration speed. You can ingest and query a surprisingly large amount of data in quasi real-time on a modern machine with a modern SSD. Bring this back home and work on your telemetry data locally. Ship to production with an already well crafted set of observability signals.
+Humanlog lets you leverage this compute power and isolation for your iteration speed. You can ingest and query a surprisingly large amount of data in quasi real-time on a modern machine with a modern SSD. Bring this back home and work on your telemetry data locally. Ship to production with an already well-crafted set of observability signals.
 
 That "playground" mindset is difficult to achieve when you're battling rate limits or shared-cluster quotas.
 
@@ -38,7 +38,7 @@ That "playground" mindset is difficult to achieve when you're battling rate limi
 
 One advantage of working with observability data on your localhost is that your data doesn't leave your machine by default. This means that you can use `humanlog` locally without having to review our security posture. Your data is safe on your disk.
 
-Adopting a new observability cloud provider is a big deal. They will be handling a lot of data for you that can be sensitive. Sending production data to a new platform that hasn't been vetted is a big no-no in most businesses. So when the production tools available to you don't meet your needs, you're a bit left out of luck. You can fetch the data locally and load it into general analytical tools and work from there, but this experience is not well crafted.
+Adopting a new observability cloud provider is a significant decision. Cloud vendors gain access to your sensitive operational data. Most businesses strictly prohibit sending production data to platforms that haven't undergone thorough security vetting. So when the production tools available to you don't meet your needs, you're left a bit out of luck. You can fetch the data locally and load it into general analytical tools and work from there, but this experience is not well crafted.
 
 Humanlog bridges that gap. You don't need a vendor review to start exploring your data.
 

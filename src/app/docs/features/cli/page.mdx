@@ -2,7 +2,7 @@ import { Note, Tip, Warning, Important, Caution } from "@/components/ui/Alert";
 
 # CLI
 
-The `humanlog` CLI is a swiss army knife tool for observability data. When invoked with no arguments, it reads line-by-line from standard input and tries to parse logs. If it finds something that looks like a log line in structured format, it will render it in a prettified manner.
+The `humanlog` CLI is a Swiss Army knife for observability data. When invoked with no arguments, it reads line-by-line from standard input and parses logs. If it detects a structured log line, it renders it in a prettified manner that makes it easier to read and analyze.
 
 ## Installation & Setup
 
@@ -40,7 +40,7 @@ You can start ingesting data via `stdin` on the CLI or via the [OpenTelemetry in
 
 #### Linux
 
-On Linux, humanlog can run as a background service but does not currently automatically installs itself as a systemd service. You can run it as a simple service:
+On Linux, humanlog can run as a background service but does not currently automatically install itself as a systemd service. You can run it as a simple service:
 
 ```systemd
 [Unit]
@@ -73,7 +73,7 @@ The install script supports a few configurations:
 | ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `HUMANLOG_CHANNEL`       | Release channel to install from. Defaults to `main`. Available channels are: `weekly`.                                                                                                                                        |
 | `HUMANLOG_DEBUG`         | If not-empty, will print every instruction that the install script performs (bash's `set -x`).                                                                                                                                |
-| `HUMANLOG_INSTALL`       | Where to install humanlog. By default, `humanlog` will otherwise deduct a sensible install location.                                                                                                                          |
+| `HUMANLOG_INSTALL`       | Where to install humanlog. By default, `humanlog` will determine a sensible install location.                                                                                                                          |
 | `CI` or `NONINTERACTIVE` | If not empty, disables any interaction as part of the installation process (no onboarding, no prompt). Meant for use in scripts and in CI pipelines.                                                                          |
 | `INTERACTIVE`            | If not empty, forces interactions to be enabled. In some case, the install script might detect that it runs in an non-interactive mode by mistake. If you want to force it to be interactive, set this variable to any value. |
 
@@ -113,7 +113,7 @@ When updating, `humanlog` will perform data migrations for both its internal sta
 
 We aim to make humanlog versions compatible with the last minor release. This means that updating from version `vA.B.C` to version `v.A.B+1.C` should always work.
 
-Skipping minor releases _may_ or may not work.
+Skipping minor releases may work in some cases, but is not officially supported.
 
 ### Configuration
 
@@ -164,23 +164,23 @@ To get started after installing:
 # ingest some logs
 humanlog < logfile
 
-# query them (here with a useless filter for demonstration purpose)
+# query them (here with a useless filter for demonstration purposes)
 humanlog query 'filter true'
 ```
 
 This will (1) ingest logs and prettify them and (2) open the web UI on the localhost query page, with your `filter true` query as the input and the query result as the output.
 
-To start also querying and displaying tracing data, simply start your OpenTelemetry enabled application with default values, and your application should automatically send its data to the background service.
+To start querying and displaying tracing data, simply launch your OpenTelemetry-enabled application with default values. Your application will automatically send its data to the local background service, enabling rapid debugging without deploying to production environments.
 
 - Learn more about [OpenTelemetry integration](/docs/integrations/opentelemetry).
 
 ## Common Workflows & Examples
 
-The most common workflow with `humanlog` is to pass ugly logs into it to make them prettier. This is done by simply piping logs into `humanlog`'s standard input.
+The most common workflow with `humanlog` is transforming raw, unformatted logs into an elegant, readable format. This transformation happens by simply piping logs into `humanlog`'s standard input.
 
 ### Piping logs
 
-Piping logs into `humanlog` will prettify them and also ingest them in your localhost database.
+Piping logs into `humanlog` will prettify them and ingest them in your localhost database.
 
 ```bash
 # prettify the logs (and ingest them for later querying)
@@ -193,7 +193,7 @@ You can [query any log or span](/docs/features/query) that has been ingested:
 
 ```bash
 # query for logs that have a msg longer than 10
-humanog query 'filter len(msg) > 10'
+humanlog query 'filter len(msg) > 10'
 
 # count how many logs have been ingested by level
 humanlog query 'summarize count() by lvl'
@@ -213,7 +213,7 @@ As long as `humanlog` hasn't received `EOF` from your application, it will keep 
 
 ### Embedding in CLI scripts or CI pipelines
 
-You can embed `humanlog` in CLI and CI pipelines for prettifying logs or ingesting them. In some environment, automatic detection of coloring can appear broken. This is usually because of (nested) terminal emulators. In such case, you can pass the `--color` flag to specify how you want colors to be emitted:
+You can embed `humanlog` in CLI and CI pipelines for prettifying logs or ingesting them. In some environments, automatic detection of coloring can appear broken. This typically happens with nested terminal emulators. In such cases, you can pass the `--color` flag to specify how you want colors to be emitted:
 
 ```bash
 # no colors
@@ -236,7 +236,7 @@ my_app | humanlog > /dev/null
 
 ## FAQ
 
-Any questions that hasn't been answered will be added here. Join our [community channels](/support) to ask any question you may have about the CLI.
+Any questions that haven't been answered will be added here. Join our [community channels](/support) to ask any questions you may have about the CLI.
 
 ## What's Next?
 

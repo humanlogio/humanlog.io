@@ -14,14 +14,14 @@ docker logs 86e17ac9f03b | humanlog
 
 ## OpenTelemetry
 
-If you work with container runtimes such as Docker, Orbstack, Podman, Rancher, `humanlog` may not be directly reachable by your applications if they do not share the host network. However, you can still have your app send its data to `humanlog` by configuring it to export OpenTelemetry data to the following endpoints:
+If you work with container runtimes such as Docker, Orbstack, Podman, or Rancher, `humanlog` may not be directly reachable by your applications when they don't share the host network. However, you can still have your app send its data to `humanlog` by configuring it to export OpenTelemetry data to the following endpoints:
 
-| Situation | `OTEL_EXPORTER_OTLP_ENDPOINT`      |
+| Protocol  | `OTEL_EXPORTER_OTLP_ENDPOINT`      |
 | --------- | ---------------------------------- |
-| OTLP/HTTP | `http://host.docker.internal:4317` |
-| OTLP/gRPC | `http://host.docker.internal:4318` |
+| OTLP/gRPC | `http://host.docker.internal:4317` |
+| OTLP/HTTP | `http://host.docker.internal:4318` |
 
-The `host.docker.internal` hostname will allow programs running inside virtualized container runtimes (example `Docker Desktop on Mac`, `OrbStack`, `Rancher Desktop`, `Podman`). If you're asking, we recommend [Orbstack](https://orbstack.dev/?utm_source=humanlog.io).
+The `host.docker.internal` hostname enables communication from programs running inside virtualized container runtimes (like `Docker Desktop on Mac`, `OrbStack`, `Rancher Desktop`, or `Podman`) to services on your host machine. If you're wondering which container runtime we prefer, we recommend [Orbstack](https://orbstack.dev/?utm_source=humanlog.io) for its performance and developer experience.
 
 ## What's Next?
 

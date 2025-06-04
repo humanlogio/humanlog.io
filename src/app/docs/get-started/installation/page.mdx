@@ -29,7 +29,7 @@ humanlog version x.y.z
 
 ### Supported Platforms
 
-`humanlog` is a cross-platform binary, however not all features work on all platforms.
+`humanlog` is a cross-platform binary, however, not all features work on all platforms.
 
 | Feature                 | macOS | Linux | Windows |
 | ----------------------- | ----- | ----- | ------- |
@@ -39,8 +39,14 @@ humanlog version x.y.z
 | Service install         | ✅    |       |         |
 | Menu bar                | ✅    |       |         |
 
-<Note title="Linux note">
-  The service isn't started automatically, run: ```bash humanlog service run ```
+<Note title="Linux users">
+  On Linux, the service isn't started automatically. To start the observability engine, run:
+
+  ```bash
+  humanlog service run
+  ```
+
+  This launches the local debugging environment where you can analyze logs and traces.
 </Note>
 
 ## Next Steps
