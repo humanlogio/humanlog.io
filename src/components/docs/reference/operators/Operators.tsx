@@ -105,33 +105,6 @@ export function Operator({ operator }: OperatorProps) {
       </CardHeader>
 
       <CardContent className="space-y-6 p-6">
-        {isTabular && (
-          <div className="space-y-4">
-            <h2 className="text-lg font-semibold">Usage</h2>
-            <div className="bg-muted rounded-md p-4">
-              <code className="font-mono text-sm">
-                {(operator as TabularOperator).usage}
-              </code>
-            </div>
-
-            {(operator as TabularOperator).syntax && (
-              <div className="space-y-2">
-                <h2 className="text-lg font-semibold">Syntax</h2>
-                <div className="space-y-2">
-                  {(operator as TabularOperator).syntax?.map((syn, i) => (
-                    <div
-                      key={`${i}-${syn}`}
-                      className="bg-muted rounded-md p-4"
-                    >
-                      <code className="font-mono text-sm">{syn}</code>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-
         {operator.examples?.length > 0 && (
           <div className="space-y-4">
             <h2 className="text-lg font-semibold">Examples</h2>

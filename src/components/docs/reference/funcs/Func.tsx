@@ -10,6 +10,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import CodeBlock from "@/components/CodeBlock";
 
 export function Func({ func }: { func: ScalarFuncType }) {
   return (
@@ -22,15 +23,6 @@ export function Func({ func }: { func: ScalarFuncType }) {
           </Badge>
         </div>
         <p className="text-muted-foreground mt-2 text-lg">{func.desc}</p>
-      </div>
-
-      <div className="w-full space-y-4">
-        <h2 className="text-xl font-semibold">Usage</h2>
-        <div className="bg-muted w-full overflow-hidden rounded-md p-4">
-          <code className="overflow-wrap-anywhere font-mono text-sm whitespace-pre-wrap">
-            {func.usage}
-          </code>
-        </div>
       </div>
 
       <div className="w-full space-y-4">
@@ -76,11 +68,9 @@ export function Func({ func }: { func: ScalarFuncType }) {
                     <CardTitle>Query</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <pre className="bg-muted w-full overflow-x-auto rounded-md p-4">
-                      <code className="overflow-wrap-anywhere text-sm whitespace-pre-wrap text-black dark:text-white">
-                        {example.query}
-                      </code>
-                    </pre>
+                    <CardContent>
+                      <CodeBlock code={example.query} language="kusto" />
+                    </CardContent>
                   </CardContent>
                 </Card>
 
