@@ -70,15 +70,17 @@ export function ScalarFuncIndex({ funcs }: { funcs: ScalarFuncType[] }) {
         </div>
       ) : (
         <div className="space-y-12">
-          {filteredFuncs.map((func) => (
-            <div
-              key={`function-${func.name}`}
-              id={func.name}
-              className="scroll-mt-20"
-            >
-              <Func func={func} />
-            </div>
-          ))}
+          {filteredFuncs
+            .filter((func) => func.implemented)
+            .map((func) => (
+              <div
+                key={`function-${func.name}`}
+                id={func.name}
+                className="scroll-mt-20"
+              >
+                <Func func={func} />
+              </div>
+            ))}
         </div>
       )}
     </div>

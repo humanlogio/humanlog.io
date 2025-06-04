@@ -157,7 +157,9 @@ export default function DocsLayout({ children }: { children: ReactNode }) {
       {/* Main content area with responsive layout */}
       <main className="w-full flex-1 p-4 pt-16 md:p-6 md:pt-6">
         <div className="prose w-full max-w-none md:flex md:justify-center md:pl-64">
-          <div className="md:w-[1000px]">{children}</div>
+          <div className="md:w-[550px] lg:w-[800px] xl:w-[1000px]">
+            {children}
+          </div>
         </div>
       </main>
     </div>
