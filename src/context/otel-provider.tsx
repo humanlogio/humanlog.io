@@ -1,8 +1,6 @@
 "use client";
 
 import {
-  ConsoleSpanExporter,
-  SimpleSpanProcessor,
   BatchSpanProcessor,
   WebTracerProvider,
 } from "@opentelemetry/sdk-trace-web";
@@ -45,7 +43,6 @@ export function OTELProvider({ children }: { children: ReactNode }) {
   const provider = new WebTracerProvider({
     resource: resource,
     spanProcessors: [
-      new SimpleSpanProcessor(new ConsoleSpanExporter()),
       new BatchSpanProcessor(exporter, {
         // The maximum queue size. After the size is reached spans are dropped.
         maxQueueSize: 100,
@@ -68,7 +65,7 @@ export function OTELProvider({ children }: { children: ReactNode }) {
     instrumentations: [
       ...getWebAutoInstrumentations({
         "@opentelemetry/instrumentation-document-load": {},
-        "@opentelemetry/instrumentation-user-interaction": {},
+        // "@opentelemetry/instrumentation-user-interaction": {}, // too noisy
         "@opentelemetry/instrumentation-fetch": {
           propagateTraceHeaderCorsUrls: [
             /http\:\/\/localhost\:32764.*/,
