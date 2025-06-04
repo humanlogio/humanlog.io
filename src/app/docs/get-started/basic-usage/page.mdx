@@ -11,7 +11,7 @@ Once `humanlog` is [installed](/docs/get-started/installation), it's time to put
 
 ### Ingesting Logs
 
-Ingesting logs in humanlog is trivial. Simply pipe them into the CLI, or feed them to the CLI's stdin.
+Ingesting logs in humanlog is straightforward. Simply pipe them into the CLI or feed them to the CLI's stdin.
 
 Run your app or service with `humanlog` on its output:
 
@@ -25,7 +25,7 @@ Or feed your file to `humanlog`:
 humanlog < your_log_file
 ```
 
-You will see your logs prettified, and they will have been ingested in the localhost engine. You can then query them.
+Your logs will appear prettified and will be ingested into the localhost engine. You can then query them.
 
 If you just want to ingest the logs without prettifying them, use:
 
@@ -39,9 +39,9 @@ humanlog ingest < your_log_file
 
 ### Ingesting OpenTelemetry (tracing, more to come)
 
-Ingesting **OpenTelemetry works outside the box** with no need to do anything in most cases.
+Ingesting **OpenTelemetry works out of the box** with no need to do anything special in most cases.
 
-If `humanlog` is running, it will listen on port `4317` and `4318` for the OpenTelemetry protocol (OTLP). Simply start your service and if your app is configured with the default OpenTelemetry values, everything will work by default with no action needed on your end.
+When `humanlog` is running, it listens on ports `4317` and `4318` for the OpenTelemetry protocol (OTLP). Simply start your service with the default OpenTelemetry configuration, and everything will work automatically without any additional setup.
 
 You can monitor your spans either being streamed into `humanlog` with:
 
@@ -63,7 +63,7 @@ If your app needs to be told where to export the OpenTelemetry data, here are co
 | Docker, Orbstack, `kind` (OTLP/HTTP) | `http://host.docker.internal:4317` |
 | Docker, Orbstack, `kind` (OTLP/gRPC) | `http://host.docker.internal:4318` |
 
-The `host.docker.internal` hostname will allow programs running inside virtualized container runtimes (example `Docker Desktop on Mac`, `OrbStack`, `Rancher Desktop`, `Podman`). If you're asking, we recommend [Orbstack](https://orbstack.dev/?utm_source=humanlog.io).
+The `host.docker.internal` hostname enables programs running inside virtualized container runtimes (such as `Docker Desktop on Mac`, `OrbStack`, `Rancher Desktop`, or `Podman`) to communicate with services on your host machine. If you're wondering which container solution to use, we recommend [Orbstack](https://orbstack.dev/?utm_source=humanlog.io).
 
 ## Working With Your Data
 
@@ -71,9 +71,9 @@ Querying data in humanlog is done using the Humanlog Query Language. You can lea
 
 There are two types of query: historical and stream queries. The **Query** tab lets you query historical data (anything that has been ingested), while the **Stream** tab lets you work on a stream of data as it is being received by humanlog. The query language is the same for both, but some features available in the historical mode are not possible in stream mode, simply due to the nature of stream data.
 
-By default, when we talk about **query**ing, we meant querying data that has been ingested and stored in humanlog. We will talk about **stream** queries whenever we mean queries that are open-ended.
+By default, when we talk about **query**ing, we mean querying data that has been ingested and stored in humanlog. We use the term **stream** queries whenever we're referring to queries that are open-ended.
 
-The result of a normal query is static. This means that a normal query will run against the data that exists _at the time_ the query is initiated and then return the matching data. Data that arrives in the future is not included in the dataset. On the other hand, **stream queries** run against incoming data, row by row, event by event, in real time.
+The result of a normal query is static. This means that a normal query runs against the data that exists _at the time_ the query is initiated and returns only the matching data. Data that arrives afterward is not included in the result set. In contrast, **stream queries** run against incoming data, row by row, event by event, in real time.
 
 ### Query
 
@@ -115,11 +115,11 @@ Sharing results is easy. Simply click on the share button next to a data panel:
 
 <img src="/images/docs/get-started/basic-usage/share-button.png" />
 
-This will open a modal that asks you to chose a privacy setting:
+This will open a modal that asks you to choose a privacy setting:
 
 <img src="/images/docs/get-started/basic-usage/share-modal.png" />
 
-Clicking on either choices will produce a link that you can share:
+Clicking on either option will produce a link that you can share:
 
 <img src="/images/docs/get-started/basic-usage/share-link.png" />
 
@@ -130,11 +130,11 @@ These links will render your query and the associated results:
 - Public shares are like public GitHub Gists, others can see them on your profile page.
 - Private shares are like private GitHub Gists, anyone with the link can see them, but they do not show up on your profile page.
 
-You can read and learn [more about sharing here](/docs/features/sharing). Note that usage of the share feature involves sending your data to our cloud for archival. Be careful about what you share.
+You can read and learn [more about sharing here](/docs/features/sharing). Note that using the share feature involves sending your data to our cloud for archival. Exercise caution regarding what data you choose to share, especially when dealing with sensitive information.
 
 ## Prettifying logs
 
-You can use `humanlog` simply to prettify ugly JSON or logfmt logs. You simply pass these logs into the CLI via `stdin` and they'll be prettified.
+You can use `humanlog` simply to prettify unwieldy JSON or logfmt logs. Just pass these logs into the CLI via `stdin` and they'll be transformed into a more readable format.
 
 ### Color Themes
 

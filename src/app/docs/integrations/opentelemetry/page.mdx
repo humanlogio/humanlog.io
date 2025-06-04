@@ -4,31 +4,33 @@ Humanlog supports ingesting OpenTelemetry data right out of the box.
 
 ## What is OpenTelemetry
 
-OpenTelemetry, also known as OTEL, is a standard for emitting telemetry data that allows you to decouple your metrics, logging and tracing code from specific vendors. It implements:
+OpenTelemetry, often abbreviated as OTEL, is a standardized framework for emitting telemetry data that decouples your metrics, logging, and tracing code from specific vendors. It provides:
 
-- SDKs for major languages, allowing you to perform logging, tracing and metric emission.
-- A set of wire protocols (HTTP/JSON, gRPC) with well defined interface, allowing an ecosystem of interchangeable and compatible components from various vendors.
-- A standard definition for what logging, tracing and metrics mean.
-- A set of canonical "exporters" and "collectors" as reference implementations.
+- SDKs for major programming languages, enabling comprehensive logging, tracing, and metric collection
+- Well-defined wire protocols (HTTP/JSON, gRPC) that create an ecosystem of interchangeable and compatible components from various vendors
+- Standardized definitions for logging, tracing, and metrics
+- Reference implementations of "exporters" and "collectors" that serve as canonical examples
 
-This allows adopters to integrate a single telemetry mechanism in their application that is completely vendor neutral. In turn, their observability data can be forwarded to various endpoints and vendors without fear of vendor locking.
+This architecture allows developers to integrate a single, vendor-neutral telemetry mechanism into their applications. As a result, observability data can be directed to various endpoints and vendors without concern about vendor lock-in.
 
 ## Using With Humanlog
 
-When running as a service, the `humanlog` CLI exposes supports both of the OpenTelemetry protocols (OTLP):
+When running as a service, the `humanlog` CLI supports both OpenTelemetry protocols (OTLP):
 
 - **OTLP/gRPC** on `http://localhost:4317`
 - **OTLP/HTTP** on `http://localhost:4318`
 
-Learn more about OTLP in the [official OpenTelemetry documentations](https://opentelemetry.io/docs/specs/otlp/).
+By debugging your telemetry data locally with Humanlog, you can verify your instrumentation works correctly before deploying to production—shortening feedback loops and keeping sensitive data on your machine.
+
+Learn more about OTLP in the [official OpenTelemetry documentation](https://opentelemetry.io/docs/specs/otlp/).
 
 These ports are configured in the config file at the following path:
 
 ```bash
 $ humanlog config show | jq '.runtime.experimental_features.serve_localhost.otlp'
 {
-  "grpc_port": 4318,
-  "http_port": 4317
+  "grpc_port": 4317,
+  "http_port": 4318
 }
 ```
 
