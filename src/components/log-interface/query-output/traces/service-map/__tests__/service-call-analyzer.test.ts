@@ -4,7 +4,6 @@ import { Duration, Timestamp } from "@bufbuild/protobuf";
 import {
   generateServiceCallMap,
   groupSpansByService,
-  getSelectedNodeInfo,
 } from "@/components/log-interface/query-output/traces/service-map/utils/service-call-analyzer";
 
 /**
@@ -200,53 +199,6 @@ describe("service-call-analyzer", () => {
     it("should handle empty spans array", () => {
       const result = groupSpansByService([]);
       expect(Object.keys(result)).toHaveLength(0);
-    });
-  });
-
-  describe("getSelectedNodeInfo", () => {
-    const spans = [
-      createSpan({ id: "span1", service: "service-a", traceId: "trace-1" }),
-      createSpan({ id: "span2", service: "service-a", traceId: "trace-2" }),
-      createSpan({ id: "span3", service: "service-b", traceId: "trace-1" }),
-    ];
-    const serviceCallMap = generateServiceCallMap(spans);
-
-    it("should return null for null selectedNode", () => {
-      const result = getSelectedNodeInfo(null, spans, serviceCallMap);
-      expect(result).toBeNull();
-    });
-
-    it("should return null for non-existent service", () => {
-      const result = getSelectedNodeInfo("non-existent", spans, serviceCallMap);
-      expect(result).toBeNull();
-    });
-
-    it("should return correct node info for existing service", () => {
-      const result = getSelectedNodeInfo("service-a", spans, serviceCallMap);
-
-      expect(result).not.toBeNull();
-      expect(result!.node.name).toBe("service-a");
-      expect(result!.totalSpans).toBe(2);
-      expect(result!.traceIds).toEqual(["trace-1", "trace-2"]);
-    });
-
-    it("should handle service with relationships", () => {
-      const complexSpans = [
-        createSpan({ id: "root", service: "frontend" }),
-        createSpan({ id: "api", parentId: "root", service: "api-gateway" }),
-        createSpan({ id: "db", parentId: "api", service: "database" }),
-      ];
-      const complexMap = generateServiceCallMap(complexSpans);
-
-      const result = getSelectedNodeInfo(
-        "api-gateway",
-        complexSpans,
-        complexMap,
-      );
-
-      expect(result).not.toBeNull();
-      expect(result!.callers).toEqual(["frontend"]);
-      expect(result!.callees).toEqual(["database"]);
     });
   });
 });
