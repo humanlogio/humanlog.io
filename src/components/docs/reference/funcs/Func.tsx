@@ -68,7 +68,7 @@ export function Func({ func }: { func: ScalarFuncType }) {
                     <CardTitle>Query</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <CardContent>
+                    <CardContent className="p-0">
                       <CodeBlock code={example.query} language="kusto" />
                     </CardContent>
                   </CardContent>
