@@ -18,68 +18,69 @@ interface ServiceMapProps {
 export const ServiceMap = ({ spans }: ServiceMapProps) => {
   const svgRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const svgContainerRef = useRef<HTMLDivElement>(null);
   const [serviceCallMap, setServiceCallMap] = useState<any>(null);
   const [dimensions, setDimensions] = useState({ width: 600, height: 400 });
   const [selectedNode, setSelectedNode] = useState<string | null>(null);
 
+  const d3NodesRef = useRef<d3.Selection<
+    SVGGElement,
+    any,
+    SVGGElement,
+    unknown
+  > | null>(null);
+  const d3LinksRef = useRef<d3.Selection<
+    SVGLineElement,
+    any,
+    SVGGElement,
+    unknown
+  > | null>(null);
+  const d3LinkLabelsRef = useRef<d3.Selection<
+    SVGTextElement,
+    any,
+    SVGGElement,
+    unknown
+  > | null>(null);
+
   // Handle resize
   useEffect(() => {
     const handleResize = () => {
-      if (containerRef.current) {
-        const rect = containerRef.current.getBoundingClientRect();
+      if (svgContainerRef.current) {
+        const rect = svgContainerRef.current.getBoundingClientRect();
         setDimensions({
-          width: Math.max(800, rect.width - 32), // padding
-          height: Math.max(600, window.innerHeight * 0.7), // 70% of viewport height
+          width: rect.width,
+          height: rect.height,
         });
       }
     };
 
+    // Initial measurement
     handleResize();
+
+    // Add resize observer for more accurate tracking
+    const resizeObserver = new ResizeObserver(handleResize);
+    if (svgContainerRef.current) {
+      resizeObserver.observe(svgContainerRef.current);
+    }
+
+    // Fallback resize listener
     window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
+
+    return () => {
+      resizeObserver.disconnect();
+      window.removeEventListener("resize", handleResize);
+    };
   }, []);
 
   useEffect(() => {
     if (!spans) return;
 
-    // Method 1: Object form with serviceName as key
-    const spansByService: { [key: string]: Span[] } = {};
-
-    // Method 2: Array with serviceName as key
-    const serviceGroups: { serviceName: string; spans: Span[] }[] = [];
-
-    spans.forEach((span) => {
-      // Method 1: Group by object form
-      if (!spansByService[span.serviceName]) {
-        spansByService[span.serviceName] = [];
-      }
-      spansByService[span.serviceName].push(span);
-
-      // Method 2: Group by array form
-      const existingGroup = serviceGroups.find(
-        (group) => group.serviceName === span.serviceName,
-      );
-      if (existingGroup) {
-        existingGroup.spans.push(span);
-      } else {
-        serviceGroups.push({
-          serviceName: span.serviceName,
-          spans: [span],
-        });
-      }
-    });
-
-    // Generate Service Map data
+    // Generate Service Map data with precomputed metadata
     const serviceCallMap = generateServiceCallMap(spans);
     setServiceCallMap(serviceCallMap);
-
-    // Output span count for each service
-    Object.entries(spansByService).forEach(([serviceName, spans]) => {
-      console.log(`Service: ${serviceName}, Spans: ${spans.length}`);
-    });
   }, [spans]);
 
-  // D3 Hierarchical Layout Setup
+  // D3 Hierarchical Layout Setup - REMOVED selectedNode from dependencies
   useEffect(() => {
     if (
       !serviceCallMap ||
@@ -111,7 +112,7 @@ export const ServiceMap = ({ spans }: ServiceMapProps) => {
     });
 
     const maxLevel = Math.max(...Object.keys(nodesByLevel).map(Number));
-    const levelHeight = (height - 50) / (maxLevel + 1);
+    const levelHeight = (height - 100) / (maxLevel + 1);
     const nodeRadius = 40;
 
     // Position nodes hierarchically
@@ -119,15 +120,15 @@ export const ServiceMap = ({ spans }: ServiceMapProps) => {
       const level = node.level || 0;
       const nodesAtLevel = nodesByLevel[level];
       const nodeIndex = nodesAtLevel.findIndex((n) => n.id === node.id);
-      const levelWidth = width - 100; // 100px for padding
-      const nodeSpacing = levelWidth / (nodesAtLevel.length + 1);
+      const levelWidth = width - 200;
+      const nodeSpacing = Math.max(150, levelWidth / (nodesAtLevel.length + 1));
 
       return {
         ...node,
-        x: 50 + nodeSpacing * (nodeIndex + 1), // 50px left padding
-        y: 50 + level * levelHeight, // 50px top padding
-        fx: 50 + nodeSpacing * (nodeIndex + 1), // Fix position
-        fy: 50 + level * levelHeight,
+        x: 100 + nodeSpacing * (nodeIndex + 1),
+        y: 75 + level * levelHeight,
+        fx: 100 + nodeSpacing * (nodeIndex + 1),
+        fy: 75 + level * levelHeight,
       };
     });
 
@@ -166,31 +167,41 @@ export const ServiceMap = ({ spans }: ServiceMapProps) => {
       const normalWidth = 2;
 
       // Highlight links where this node is source or target
-      g.selectAll(".link")
-        .filter((d: any) => {
-          const linkData = d as Link;
-          return linkData.source === nodeId || linkData.target === nodeId;
-        })
-        .attr("stroke", isHighlighted ? highlightColor : normalColor)
-        .attr("stroke-width", isHighlighted ? highlightWidth : normalWidth);
+      if (d3LinksRef.current) {
+        d3LinksRef.current
+          .filter((d: any) => {
+            const linkData = d as Link;
+            return linkData.source === nodeId || linkData.target === nodeId;
+          })
+          .attr("stroke", isHighlighted ? highlightColor : normalColor)
+          .attr("stroke-width", isHighlighted ? highlightWidth : normalWidth);
+      }
 
       // Highlight link labels
-      g.selectAll(".link-label")
-        .filter((d: any) => {
-          const linkData = d as Link;
-          return linkData.source === nodeId || linkData.target === nodeId;
-        })
-        .attr("fill", isHighlighted ? highlightColor : normalColor)
-        .attr("font-weight", isHighlighted ? "bold" : "normal");
+      if (d3LinkLabelsRef.current) {
+        d3LinkLabelsRef.current
+          .filter((d: any) => {
+            const linkData = d as Link;
+            return linkData.source === nodeId || linkData.target === nodeId;
+          })
+          .attr("fill", isHighlighted ? highlightColor : normalColor)
+          .attr("font-weight", isHighlighted ? "bold" : "normal");
+      }
     };
 
     const highlightNode = (nodeId: string, isHighlighted: boolean) => {
-      g.selectAll(".node")
-        .filter((d: any) => (d as Node).id === nodeId)
-        .select("circle")
-        .attr("stroke-width", isHighlighted ? 5 : 3)
-        .attr("fill-opacity", isHighlighted ? 0.4 : 0.2);
+      if (d3NodesRef.current) {
+        d3NodesRef.current
+          .filter((d: any) => (d as Node).id === nodeId)
+          .select("circle")
+          .attr("stroke-width", isHighlighted ? 5 : 3)
+          .attr("fill-opacity", isHighlighted ? 0.4 : 0.2);
+      }
     };
+
+    // Expose highlighting functions for external use
+    (svg.node() as any).highlightConnectedLinks = highlightConnectedLinks;
+    (svg.node() as any).highlightNode = highlightNode;
 
     // Add arrow marker definition
     svg
@@ -242,6 +253,9 @@ export const ServiceMap = ({ spans }: ServiceMapProps) => {
         return targetNode ? targetNode.y : 0;
       });
 
+    // Store reference for highlighting updates
+    d3LinksRef.current = link;
+
     // Create link labels
     const linkLabel = g
       .selectAll(".link-label")
@@ -283,6 +297,9 @@ export const ServiceMap = ({ spans }: ServiceMapProps) => {
         return `avg: ${formatDuration(duration)}`;
       });
 
+    // Store reference for highlighting updates
+    d3LinkLabelsRef.current = linkLabel;
+
     // Create node groups
     const node = g
       .selectAll(".node")
@@ -294,6 +311,9 @@ export const ServiceMap = ({ spans }: ServiceMapProps) => {
         "transform",
         (d: any) => `translate(${(d as Node).x},${(d as Node).y})`,
       );
+
+    // Store reference for highlighting updates
+    d3NodesRef.current = node;
 
     // Add circles to nodes
     node
@@ -375,19 +395,8 @@ export const ServiceMap = ({ spans }: ServiceMapProps) => {
         // Toggle selection
         if (selectedNode === nodeData.id) {
           setSelectedNode(null);
-          highlightConnectedLinks(nodeData.id, false);
-          highlightNode(nodeData.id, false);
         } else {
-          // Clear previous selection
-          if (selectedNode) {
-            highlightConnectedLinks(selectedNode, false);
-            highlightNode(selectedNode, false);
-          }
-
-          // Set new selection
           setSelectedNode(nodeData.id);
-          highlightConnectedLinks(nodeData.id, true);
-          highlightNode(nodeData.id, true);
         }
       });
 
@@ -409,14 +418,45 @@ export const ServiceMap = ({ spans }: ServiceMapProps) => {
       .attr("font-size", "10px")
       .attr("fill", secondaryTextColor)
       .text((d: any) => `${(d as Node).spanCount} spans`);
+  }, [serviceCallMap, dimensions]); // Removed selectedNode from dependencies
 
-    // Apply initial highlighting if there's a selected node
+  // Separate useEffect for handling selection highlighting without re-rendering
+  useEffect(() => {
+    if (!svgRef.current) return;
+
+    const svgElement = svgRef.current as any;
+    const highlightConnectedLinks = svgElement.highlightConnectedLinks;
+    const highlightNode = svgElement.highlightNode;
+
+    if (!highlightConnectedLinks || !highlightNode) return;
+
+    // Clear all previous highlights
+    if (d3NodesRef.current) {
+      d3NodesRef.current
+        .selectAll("circle")
+        .attr("stroke-width", 3)
+        .attr("fill-opacity", 0.2);
+    }
+
+    if (d3LinksRef.current && d3LinkLabelsRef.current) {
+      const isDarkMode = document.documentElement.classList.contains("dark");
+      const secondaryTextColor = isDarkMode ? "#d1d5db" : "#6b7280";
+
+      d3LinksRef.current
+        .attr("stroke", secondaryTextColor)
+        .attr("stroke-width", 2);
+
+      d3LinkLabelsRef.current
+        .attr("fill", secondaryTextColor)
+        .attr("font-weight", "normal");
+    }
+
+    // Apply highlighting for selected node
     if (selectedNode) {
       highlightConnectedLinks(selectedNode, true);
       highlightNode(selectedNode, true);
     }
-  }, [serviceCallMap, dimensions, selectedNode]);
-
+  }, [selectedNode]);
   if (!serviceCallMap) {
     return (
       <div className="flex h-96 items-center justify-center">
@@ -427,28 +467,27 @@ export const ServiceMap = ({ spans }: ServiceMapProps) => {
 
   const { nodes } = serviceCallMap;
 
-  // Get detailed info for selected node
+  // Get detailed info for selected node (now optimized)
   const getSelectedNodeInfo = () => {
     if (!selectedNode) return null;
 
-    const node = nodes.find((n: any) => n.id === selectedNode);
+    // Use O(1) map lookup instead of O(n) find
+    const node = serviceCallMap.getNode(selectedNode);
     if (!node) return null;
 
     const callers = serviceCallMap.getCallers(selectedNode);
     const callees = serviceCallMap.getCallees(selectedNode);
 
-    // Get trace IDs for this service
-    const serviceSpans = spans.filter(
-      (span) => span.serviceName === selectedNode,
-    );
-    const traceIds = [...new Set(serviceSpans.map((span) => span.traceId))];
+    // Use precomputed data instead of filtering spans
+    const traceIds = serviceCallMap.getServiceTraceIds(selectedNode);
+    const totalSpans = serviceCallMap.getServiceSpanCount(selectedNode);
 
     return {
       node,
       callers,
       callees,
       traceIds,
-      totalSpans: serviceSpans.length,
+      totalSpans,
     };
   };
 
@@ -464,219 +503,224 @@ export const ServiceMap = ({ spans }: ServiceMapProps) => {
         </p>
       </div>
 
-      <div className="bg-background dark:bg-background max-h-[calc(100vh-200px)] rounded-lg border">
-        <div className="flex">
-          <div className="bg-card dark:bg-card flex-1 border-r">
+      <div className="bg-background dark:bg-background h-[calc(100vh-200px)] overflow-hidden rounded-lg border">
+        <div className="flex h-full">
+          <div
+            ref={svgContainerRef}
+            className="bg-card dark:bg-card flex-1 overflow-hidden border-r"
+          >
             <svg
               ref={svgRef}
               width={dimensions.width}
               height={dimensions.height}
-              className="w-full cursor-move"
+              className="h-full w-full cursor-move"
               style={{ background: "transparent" }}
             />
           </div>
 
           {/* Service Stats */}
-          <div className="bg-muted/50 dark:bg-muted/50 flex w-80 flex-col gap-2 overflow-y-auto p-4">
-            {selectedNodeInfo ? (
-              // Selected Node Details
-              <>
-                <div className="mb-4">
-                  <div className="mb-2 flex items-center gap-2">
-                    <div
-                      className="h-4 w-4 rounded-full"
-                      style={{ backgroundColor: selectedNodeInfo.node.color }}
-                    />
-                    <h4 className="text-foreground dark:text-foreground text-lg font-semibold">
-                      {selectedNodeInfo.node.name}
-                    </h4>
-                    <span className="text-muted-foreground bg-muted dark:bg-muted rounded px-2 py-1 text-xs">
-                      Level {selectedNodeInfo.node.level}
-                    </span>
-                  </div>
-                  <p className="text-muted-foreground dark:text-muted-foreground text-xs">
-                    {selectedNodeInfo.totalSpans} spans across{" "}
-                    {selectedNodeInfo.traceIds.length} traces
-                  </p>
-                </div>
-
-                {/* Trace IDs */}
-                <div className="mb-4">
-                  <h5 className="text-foreground dark:text-foreground mb-2 text-sm font-medium">
-                    Traces ({selectedNodeInfo.traceIds.length})
-                  </h5>
-                  <div className="max-h-40 space-y-1 overflow-y-auto">
-                    {selectedNodeInfo.traceIds.map((traceId: string) => (
-                      <div
-                        key={traceId}
-                        className="bg-card dark:bg-card rounded p-2 text-xs"
-                      >
-                        <code className="text-foreground dark:text-foreground font-mono text-xs break-all">
-                          {traceId}
-                        </code>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Incoming Services */}
-                <div className="mb-4">
-                  <h5 className="text-foreground dark:text-foreground mb-2 text-sm font-medium">
-                    Incoming Services ({selectedNodeInfo.callers.length})
-                  </h5>
-                  {selectedNodeInfo.callers.length > 0 ? (
-                    <div className="space-y-1">
-                      {selectedNodeInfo.callers.map((caller: string) => {
-                        const callerNode = nodes.find(
-                          (n: any) => n.id === caller,
-                        );
-                        const avgDuration = serviceCallMap.getAvgDuration(
-                          caller,
-                          selectedNode,
-                        );
-                        const seconds = Math.floor(avgDuration / 1000);
-                        const nanos = (avgDuration % 1000) * 1_000_000;
-                        const duration = new Duration({
-                          seconds: BigInt(seconds),
-                          nanos,
-                        });
-
-                        return (
-                          <div
-                            key={caller}
-                            className="bg-card dark:bg-card flex items-center justify-between rounded p-2 text-xs"
-                          >
-                            <div className="flex items-center gap-2">
-                              <div
-                                className="h-2 w-2 rounded-full"
-                                style={{
-                                  backgroundColor:
-                                    callerNode?.color || "#6b7280",
-                                }}
-                              />
-                              <span className="text-foreground dark:text-foreground">
-                                {caller}
-                              </span>
-                            </div>
-                            <span className="text-muted-foreground dark:text-muted-foreground">
-                              {avgDuration > 0
-                                ? formatDuration(duration)
-                                : "N/A"}
-                            </span>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  ) : (
-                    <p className="text-muted-foreground dark:text-muted-foreground text-xs italic">
-                      No incoming services (root service)
-                    </p>
-                  )}
-                </div>
-
-                {/* Outgoing Services */}
-                <div className="mb-4">
-                  <h5 className="text-foreground dark:text-foreground mb-2 text-sm font-medium">
-                    Outgoing Services ({selectedNodeInfo.callees.length})
-                  </h5>
-                  {selectedNodeInfo.callees.length > 0 ? (
-                    <div className="space-y-1">
-                      {selectedNodeInfo.callees.map((callee: string) => {
-                        const calleeNode = nodes.find(
-                          (n: any) => n.id === callee,
-                        );
-                        const avgDuration = serviceCallMap.getAvgDuration(
-                          selectedNode,
-                          callee,
-                        );
-                        const seconds = Math.floor(avgDuration / 1000);
-                        const nanos = (avgDuration % 1000) * 1_000_000;
-                        const duration = new Duration({
-                          seconds: BigInt(seconds),
-                          nanos,
-                        });
-
-                        return (
-                          <div
-                            key={callee}
-                            className="bg-card dark:bg-card flex items-center justify-between rounded p-2 text-xs"
-                          >
-                            <div className="flex items-center gap-2">
-                              <div
-                                className="h-2 w-2 rounded-full"
-                                style={{
-                                  backgroundColor:
-                                    calleeNode?.color || "#6b7280",
-                                }}
-                              />
-                              <span className="text-foreground dark:text-foreground">
-                                {callee}
-                              </span>
-                            </div>
-                            <span className="text-muted-foreground dark:text-muted-foreground">
-                              {avgDuration > 0
-                                ? formatDuration(duration)
-                                : "N/A"}
-                            </span>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  ) : (
-                    <p className="text-muted-foreground dark:text-muted-foreground text-xs italic">
-                      No outgoing services (leaf service)
-                    </p>
-                  )}
-                </div>
-              </>
-            ) : (
-              // All Services List
-              <>
-                <div className="mb-2">
-                  <h4 className="text-foreground dark:text-foreground text-sm font-semibold">
-                    Service Details
-                  </h4>
-                  <p className="text-muted-foreground dark:text-muted-foreground text-xs">
-                    {nodes.length} services detected
-                  </p>
-                </div>
-                {nodes.map((node: any, index: number) => {
-                  const callers = serviceCallMap.getCallers(node.id);
-                  const callees = serviceCallMap.getCallees(node.id);
-
-                  return (
-                    <Card
-                      key={node.id}
-                      className="border-border dark:border-border bg-card dark:bg-card hover:bg-muted/30 cursor-pointer p-3 shadow-none transition-all"
-                      onClick={() => {
-                        // Toggle selection
-                        if (selectedNode === node.id) {
-                          setSelectedNode(null);
-                        } else {
-                          setSelectedNode(node.id);
-                        }
-                      }}
-                    >
-                      <div className="flex items-center gap-2">
+          <div className="bg-muted/50 dark:bg-muted/50 flex w-80 flex-col overflow-hidden">
+            <div className="flex-1 overflow-y-auto p-4">
+              <div className="flex flex-col gap-2">
+                {selectedNodeInfo ? (
+                  // Selected Node Details
+                  <>
+                    <div className="mb-4">
+                      <div className="mb-2 flex items-center gap-2">
                         <div
-                          className="h-3 w-3 rounded-full"
-                          style={{ backgroundColor: node.color }}
+                          className="h-4 w-4 rounded-full"
+                          style={{
+                            backgroundColor: selectedNodeInfo.node.color,
+                          }}
                         />
-                        <h4 className="text-sm font-medium">{node.name}</h4>
-                        <span className="text-muted-foreground bg-muted dark:bg-muted rounded px-1.5 py-0.5 text-xs">
-                          L{node.level}
+                        <h4 className="text-foreground dark:text-foreground text-lg font-semibold">
+                          {selectedNodeInfo.node.name}
+                        </h4>
+                        <span className="text-muted-foreground bg-muted dark:bg-muted rounded px-2 py-1 text-xs">
+                          Level {selectedNodeInfo.node.level}
                         </span>
                       </div>
-                      <div className="text-muted-foreground dark:text-muted-foreground mt-1 text-xs">
-                        <div>Spans: {node.spanCount}</div>
-                        <div>Calls: {callees.length}</div>
-                        <div>Called by: {callers.length}</div>
+                      <p className="text-muted-foreground dark:text-muted-foreground text-xs">
+                        {selectedNodeInfo.totalSpans} spans across{" "}
+                        {selectedNodeInfo.traceIds.length} traces
+                      </p>
+                    </div>
+
+                    {/* Trace IDs */}
+                    <div className="mb-4">
+                      <h5 className="text-foreground dark:text-foreground mb-2 text-sm font-medium">
+                        Traces ({selectedNodeInfo.traceIds.length})
+                      </h5>
+                      <div className="max-h-40 space-y-1 overflow-y-auto">
+                        {selectedNodeInfo.traceIds.map((traceId: string) => (
+                          <div
+                            key={traceId}
+                            className="bg-card dark:bg-card rounded p-2 text-xs"
+                          >
+                            <code className="text-foreground dark:text-foreground font-mono text-xs break-all">
+                              {traceId}
+                            </code>
+                          </div>
+                        ))}
                       </div>
-                    </Card>
-                  );
-                })}
-              </>
-            )}
+                    </div>
+
+                    {/* Incoming Services */}
+                    <div className="mb-4">
+                      <h5 className="text-foreground dark:text-foreground mb-2 text-sm font-medium">
+                        Incoming Services ({selectedNodeInfo.callers.length})
+                      </h5>
+                      {selectedNodeInfo.callers.length > 0 ? (
+                        <div className="space-y-1">
+                          {selectedNodeInfo.callers.map((caller: string) => {
+                            const callerNode = serviceCallMap.nodesMap[caller];
+                            const avgDuration = serviceCallMap.getAvgDuration(
+                              caller,
+                              selectedNode,
+                            );
+                            const seconds = Math.floor(avgDuration / 1000);
+                            const nanos = (avgDuration % 1000) * 1_000_000;
+                            const duration = new Duration({
+                              seconds: BigInt(seconds),
+                              nanos,
+                            });
+
+                            return (
+                              <div
+                                key={caller}
+                                className="bg-card dark:bg-card flex items-center justify-between rounded p-2 text-xs"
+                              >
+                                <div className="flex items-center gap-2">
+                                  <div
+                                    className="h-2 w-2 rounded-full"
+                                    style={{
+                                      backgroundColor:
+                                        callerNode?.color || "#6b7280",
+                                    }}
+                                  />
+                                  <span className="text-foreground dark:text-foreground">
+                                    {caller}
+                                  </span>
+                                </div>
+                                <span className="text-muted-foreground dark:text-muted-foreground">
+                                  {avgDuration > 0
+                                    ? formatDuration(duration)
+                                    : "N/A"}
+                                </span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <p className="text-muted-foreground dark:text-muted-foreground text-xs italic">
+                          No incoming services (root service)
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Outgoing Services */}
+                    <div className="mb-4">
+                      <h5 className="text-foreground dark:text-foreground mb-2 text-sm font-medium">
+                        Outgoing Services ({selectedNodeInfo.callees.length})
+                      </h5>
+                      {selectedNodeInfo.callees.length > 0 ? (
+                        <div className="space-y-1">
+                          {selectedNodeInfo.callees.map((callee: string) => {
+                            const calleeNode = serviceCallMap.nodesMap[callee];
+                            const avgDuration = serviceCallMap.getAvgDuration(
+                              selectedNode,
+                              callee,
+                            );
+                            const seconds = Math.floor(avgDuration / 1000);
+                            const nanos = (avgDuration % 1000) * 1_000_000;
+                            const duration = new Duration({
+                              seconds: BigInt(seconds),
+                              nanos,
+                            });
+
+                            return (
+                              <div
+                                key={callee}
+                                className="bg-card dark:bg-card flex items-center justify-between rounded p-2 text-xs"
+                              >
+                                <div className="flex items-center gap-2">
+                                  <div
+                                    className="h-2 w-2 rounded-full"
+                                    style={{
+                                      backgroundColor:
+                                        calleeNode?.color || "#6b7280",
+                                    }}
+                                  />
+                                  <span className="text-foreground dark:text-foreground">
+                                    {callee}
+                                  </span>
+                                </div>
+                                <span className="text-muted-foreground dark:text-muted-foreground">
+                                  {avgDuration > 0
+                                    ? formatDuration(duration)
+                                    : "N/A"}
+                                </span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <p className="text-muted-foreground dark:text-muted-foreground text-xs italic">
+                          No outgoing services (leaf service)
+                        </p>
+                      )}
+                    </div>
+                  </>
+                ) : (
+                  // All Services List
+                  <>
+                    <div className="mb-2">
+                      <h4 className="text-foreground dark:text-foreground text-sm font-semibold">
+                        Service Details
+                      </h4>
+                      <p className="text-muted-foreground dark:text-muted-foreground text-xs">
+                        {nodes.length} services detected
+                      </p>
+                    </div>
+                    {nodes.map((node: any, index: number) => {
+                      const callers = serviceCallMap.getCallers(node.id);
+                      const callees = serviceCallMap.getCallees(node.id);
+
+                      return (
+                        <Card
+                          key={node.id}
+                          className="border-border dark:border-border bg-card dark:bg-card hover:bg-muted/30 cursor-pointer p-3 shadow-none transition-all"
+                          onClick={() => {
+                            // Toggle selection
+                            if (selectedNode === node.id) {
+                              setSelectedNode(null);
+                            } else {
+                              setSelectedNode(node.id);
+                            }
+                          }}
+                        >
+                          <div className="flex items-center gap-2">
+                            <div
+                              className="h-3 w-3 rounded-full"
+                              style={{ backgroundColor: node.color }}
+                            />
+                            <h4 className="text-sm font-medium">{node.name}</h4>
+                            <span className="text-muted-foreground bg-muted dark:bg-muted rounded px-1.5 py-0.5 text-xs">
+                              L{node.level}
+                            </span>
+                          </div>
+                          <div className="text-muted-foreground dark:text-muted-foreground mt-1 text-xs">
+                            <div>Spans: {node.spanCount}</div>
+                            <div>Calls: {callees.length}</div>
+                            <div>Called by: {callers.length}</div>
+                          </div>
+                        </Card>
+                      );
+                    })}
+                  </>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       </div>
