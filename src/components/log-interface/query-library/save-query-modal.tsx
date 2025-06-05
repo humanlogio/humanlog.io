@@ -136,13 +136,17 @@ export const SaveQueryModal = ({
 
   return (
     <Dialog open={isSaveQueryModalOpen} onOpenChange={setIsSaveQueryModalOpen}>
-      <DialogContent>
+      <DialogContent className="overflow-hidden md:max-w-4xl">
         <DialogTitle />
         {isFetching ? (
           <Loader className="animate-spin" />
         ) : (
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} autoComplete="off">
+            <form
+              onSubmit={form.handleSubmit(onSubmit)}
+              autoComplete="off"
+              className="space-y-4 overflow-hidden"
+            >
               <FormField
                 control={form.control}
                 name="query"
@@ -150,7 +154,7 @@ export const SaveQueryModal = ({
                   <FormItem className="flex flex-col items-start">
                     <FormLabel>Query</FormLabel>
                     <FormControl>
-                      <div className="w-full overflow-hidden rounded-md border py-3">
+                      <div className="w-full max-w-full overflow-hidden rounded-md border py-3">
                         <MonacoEditor {...field} value={field.value || ""} />
                       </div>
                     </FormControl>
@@ -162,7 +166,7 @@ export const SaveQueryModal = ({
                 control={form.control}
                 name="name"
                 render={({ field, fieldState }) => (
-                  <FormItem className="mt-4 flex flex-col items-start">
+                  <FormItem className="flex flex-col items-start">
                     <FormLabel>Name</FormLabel>
                     <FormControl>
                       <Input
@@ -170,7 +174,7 @@ export const SaveQueryModal = ({
                         type="text"
                         autoComplete="off"
                         placeholder="Give your query a name..."
-                        className="w-full"
+                        className="w-full max-w-full"
                       />
                     </FormControl>
                     <FormMessage />
@@ -181,24 +185,26 @@ export const SaveQueryModal = ({
                 control={form.control}
                 name="note"
                 render={({ field }) => (
-                  <FormItem className="mt-4 flex flex-col items-start">
+                  <FormItem className="flex flex-col items-start">
                     <FormLabel>Note</FormLabel>
                     <FormControl>
-                      <MarkdownEditor
-                        id="query-note"
-                        value={field.value || ""}
-                        onChange={field.onChange}
-                        placeholder="Add optional notes or description (supports Markdown)"
-                        label=""
-                        error={form.formState.errors.note?.message}
-                      />
+                      <div className="w-full max-w-full">
+                        <MarkdownEditor
+                          id="query-note"
+                          value={field.value || ""}
+                          onChange={field.onChange}
+                          placeholder="Add optional notes or description (supports Markdown)"
+                          label=""
+                          error={form.formState.errors.note?.message}
+                        />
+                      </div>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
 
-              <DialogFooter className="mt-4 flex-row">
+              <DialogFooter className="flex-row">
                 <Button
                   variant="outline"
                   size="sm"
