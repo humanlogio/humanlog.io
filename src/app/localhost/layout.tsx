@@ -40,7 +40,7 @@ const LocalhostLayout = ({ children }: LocalhostLayoutProps) => {
       name: "Stream",
       path: "/localhost/stream",
       icon: <Activity size={16} />,
-      disabled: isProd ? true : false,
+      disabled: false,
     },
     {
       name: "Dashboard",
