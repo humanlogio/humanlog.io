@@ -13,36 +13,29 @@ Structured logging is the practice of emitting log events not as free-form text 
 You would write something like:
 
 ```json
-{
-  "timestamp": "2025-06-05T12:34:56Z",
-  "level": "WARN",
-  "msg": "User failed to log in",
-  "user_id": "123",
-  "source_ip": "10.0.0.5"
-}
+{"timestamp": "2025-06-05T12:34:56Z", "level": "WARN", "msg": "User failed to log in", "user_id": "123", "source_ip": "10.0.0.5"}
 ```
 
 This approach treats logs as discrete data structures rather than text lines, making them machine-parsable and allowing systems to easily query, filter, and analyze logs based on specific fields.
 
 ## Common Structured Log Formats
 
-Humanlog supports the two most popular structured logging formats out of the box:
+Humanlog supports the two most popular structured logging formats out of the box: JSON and logfmt.  When you pipe logs into Humanlog, it will automatically detect the format and apply the appropriate parsing logic. If it cannot detect the format, it will default to parsing the logs as text.
+
+When a structured log format is detected and the following fields are found, Humanlog will automatically apply the appropriate parsing logic:
+
+- a log level field (commonly `level` or `lvl`)
+- a message field (commonly `msg` or `message`)
+- a timestamp field (commonly `ts`, `time`, or `timestamp`)
+
+You can configure these fields in your config file or in the CLI's flags. See [CLI flags](/docs/features/cli) for more information.
 
 ### JSON
 
-JSON is the most widely used format for structured logs because of its ubiquity, human-readability, and universal support across languages and platforms.
+JSON is the most widely used format for structured logs because of its ubiquity, human-readability, and universal support across languages and platforms. Humanlog can parse JSON logs as long as they are newline separated (also known as NDJSON).
 
 ```json
-{
-  "level": "info",
-  "ts": 1591024000,
-  "msg": "Request completed",
-  "method": "GET",
-  "path": "/api/users",
-  "status": 200,
-  "duration_ms": 42,
-  "user_id": "abc123"
-}
+{"level": "info", "ts": 1591024000, "msg": "Request completed", "method": "GET", "path": "/api/users", "status": 200, "duration_ms": 42, "user_id": "abc123"}
 ```
 
 ### logfmt
