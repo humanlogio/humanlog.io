@@ -40,7 +40,7 @@ const LocalhostLayout = ({ children }: LocalhostLayoutProps) => {
       name: "Stream",
       path: "/localhost/stream",
       icon: <Activity size={16} />,
-      disabled: isProd ? true : false,
+      disabled: false,
     },
     {
       name: "Dashboard",
@@ -61,6 +61,7 @@ const LocalhostLayout = ({ children }: LocalhostLayoutProps) => {
       isProd &&
       pathname !== "/localhost/query" &&
       !pathname.startsWith("/localhost/traces") &&
+      !pathname.startsWith("/localhost/stream") &&
       pathname.startsWith("/localhost/")
     ) {
       router.push("/localhost/query");
