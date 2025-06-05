@@ -61,6 +61,7 @@ const LocalhostLayout = ({ children }: LocalhostLayoutProps) => {
       isProd &&
       pathname !== "/localhost/query" &&
       !pathname.startsWith("/localhost/traces") &&
+      !pathname.startsWith("/localhost/stream") &&
       pathname.startsWith("/localhost/")
     ) {
       router.push("/localhost/query");
