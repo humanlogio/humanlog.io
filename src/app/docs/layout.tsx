@@ -45,6 +45,10 @@ export default function DocsLayout({ children }: { children: ReactNode }) {
           title: "Structured Logging",
           path: "/docs/integrations/structured-logging",
         },
+        {
+          title: "Containers",
+          path: "/docs/integrations/containers",
+        },
       ],
     },
     {
