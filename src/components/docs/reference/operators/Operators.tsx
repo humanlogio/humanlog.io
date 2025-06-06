@@ -8,7 +8,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import CodeBlock from "@/components/CodeBlock";
@@ -18,6 +17,8 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { Data } from "api/js/types/v1/data_pb";
+import { DataRenderer } from "@/components/log-interface/query-output";
 
 interface OperatorsProps {
   operators: ScalarOperator[] | TabularOperator[];
@@ -97,6 +98,17 @@ interface OperatorProps {
 export function Operator({ operator }: OperatorProps) {
   const isTabular = "syntax" in operator;
 
+  const convertOutputToData = (output: any): Data | null => {
+    try {
+      // Convert JSON output to protobuf Data type
+      const data = Data.fromJson(output);
+      return data;
+    } catch (error) {
+      console.error("Failed to convert output to Data:", error);
+      return null;
+    }
+  };
+
   return (
     <Card className="overflow-hidden">
       <CardHeader className="bg-muted/50 border-b">
@@ -121,6 +133,8 @@ export function Operator({ operator }: OperatorProps) {
                 className="not-prose w-full rounded-xl border"
               >
                 {operator.examples.map((example, i) => {
+                  const convertedData = convertOutputToData(example.output);
+
                   return (
                     <AccordionItem
                       key={`${operator.name}-example-${i}`}
@@ -153,11 +167,15 @@ export function Operator({ operator }: OperatorProps) {
                             </CardDescription>
                           </CardHeader>
                           <CardContent>
-                            <div className="bg-muted max-h-60 overflow-y-auto rounded-md p-4">
-                              <pre className="text-xs">
-                                {JSON.stringify(example.output, null, 2)}
-                              </pre>
-                            </div>
+                            {convertedData ? (
+                              <DataRenderer data={convertedData} />
+                            ) : (
+                              <div className="bg-muted max-h-60 overflow-y-auto rounded-md p-4">
+                                <pre className="text-xs">
+                                  {JSON.stringify(example.output, null, 2)}
+                                </pre>
+                              </div>
+                            )}
                           </CardContent>
                         </Card>
                       </AccordionContent>
