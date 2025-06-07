@@ -19,7 +19,6 @@ import { QueryResponse, StreamResponse } from "api/js/svc/query/v1/service_pb";
 import { Data } from "api/js/types/v1/data_pb";
 import { Cursor } from "api/js/types/v1/cursor_pb";
 import { getShapeFromResponse } from "@/lib/utils/dataHelpers";
-
 import { Button } from "@/components/ui/button";
 
 interface QueryOutputProps {
@@ -123,7 +122,7 @@ interface DataRendererProps {
   isStream?: boolean;
 }
 
-const DataRenderer = ({
+export const DataRenderer = ({
   data,
   next,
   parsedQuery,
@@ -150,7 +149,7 @@ const DataRenderer = ({
           <>
             <div className="mt-2 flex flex-col gap-1">
               <ToggleShowPretty />
-              {!streamRes && <ToggleSplit />}
+              {!streamRes && parsedQuery && <ToggleSplit />}
             </div>
             <div className="flex-1">
               <SessionPanel
@@ -159,7 +158,7 @@ const DataRenderer = ({
                 initialNext={next}
                 query={parsedQuery}
                 queryHistoryEntry={queryHistoryEntry}
-                ids={extractQueryIds(parsedQuery as Query)}
+                {...(parsedQuery && { ids: extractQueryIds(parsedQuery) })}
               />
             </div>
           </>
