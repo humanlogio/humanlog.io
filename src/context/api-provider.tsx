@@ -38,6 +38,7 @@ import { Environment } from "api/js/types/v1/environment_pb";
 import config from "@/features/config";
 import { v4 as uuidv4 } from "uuid";
 import { useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 type ApiProviderType = {
   apiClients: ApiClients | null;
@@ -46,7 +47,6 @@ type ApiProviderType = {
     React.SetStateAction<Environment | undefined>
   >;
   authenticated: boolean;
-  doLogout: () => void;
 };
 
 type ApiClients = {
@@ -77,6 +77,7 @@ export function ApiClientsProvider({
   children: React.ReactNode;
 }) {
   const isProd = config.NEXT_PUBLIC_IS_PROD;
+  const router = useRouter();
   const returnToURL = getSelfURL();
 
   const [cookies, setCookie] = useCookies();
@@ -88,25 +89,6 @@ export function ApiClientsProvider({
   const searchParams = useSearchParams();
   const localhostPort = searchParams.get("demo_port") ?? "32764";
   const localhostBaseUrl = `http://localhost:${localhostPort}`;
-
-  const deleteCookie = () => {
-    document.cookie = `hlog_session=; path=/; domain=.humanlog${config.TLD}; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
-  };
-
-  const doLogout = async () => {
-    deleteCookie();
-    localStorage.removeItem("hlog_session");
-    try {
-      await apiClients.user.getLogoutURL({
-        returnTo: returnToURL,
-      });
-
-      apiClients.localhost.doLogout({ returnToURL });
-    } catch (error) {
-      console.error("Failed to get logout URL:", error);
-      // router.push("/login");
-    }
-  };
 
   const apiClients = useMemo((): ApiClients => {
     const auther = (): Interceptor => {
@@ -185,7 +167,6 @@ export function ApiClientsProvider({
             activeEnvironment,
             setActiveEnvironment,
             authenticated,
-            doLogout,
           }}
         >
           {children}
