@@ -4,6 +4,14 @@ import { formatTimestamp } from "@/lib/utils/formatTimeStamp";
 import { Loader } from "lucide-react";
 import * as d3 from "d3";
 import { Data } from "api/js/types/v1/data_pb";
+import { useTheme } from "next-themes";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface HistogramProps {
   data?: Table;
@@ -47,9 +55,103 @@ export default function Histogram({
   const [tooltipData, setTooltipData] = useState<Cell[] | null>(null);
   const [hoveredCell, setHoveredCell] = useState<Cell | null>(null);
   const [sharedData, setSharedData] = useState<Data | null>(null);
+  const [colorTheme, setColorTheme] = useState<
+    "spectral" | "blues" | "reds" | "viridis" | "plasma"
+  >("spectral");
+
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
 
   const svgRef = useRef<SVGSVGElement>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
+
+  // Color scale function based on theme
+  const getColorScale = (maxCount: number) => {
+    switch (colorTheme) {
+      case "spectral":
+        // Reversed spectral: low = blue, high = red
+        return d3
+          .scaleSequential()
+          .domain([0, maxCount])
+          .interpolator((t) => d3.interpolateSpectral(1 - t));
+
+      case "blues":
+        return d3
+          .scaleSequential()
+          .domain([0, maxCount])
+          .interpolator((t) => {
+            if (t === 0) return "transparent";
+
+            if (isDark) {
+              // Dark mode: low = slightly visible, high = bright blue
+              const baseColor = d3.rgb(d3.interpolateBlues(0.8));
+              const alpha = 0.3 + t * 0.7;
+              return `rgba(${baseColor.r}, ${baseColor.g}, ${baseColor.b}, ${alpha})`;
+            } else {
+              // Light mode: low = white-ish blue, high = dark blue
+              const darkBlue = d3.rgb(d3.interpolateBlues(0.9));
+              const lightBlue = d3.rgb(d3.interpolateBlues(0.1));
+              const r = Math.round(
+                lightBlue.r + (darkBlue.r - lightBlue.r) * t,
+              );
+              const g = Math.round(
+                lightBlue.g + (darkBlue.g - lightBlue.g) * t,
+              );
+              const b = Math.round(
+                lightBlue.b + (darkBlue.b - lightBlue.b) * t,
+              );
+              return `rgb(${r}, ${g}, ${b})`;
+            }
+          });
+
+      case "reds":
+        return d3
+          .scaleSequential()
+          .domain([0, maxCount])
+          .interpolator((t) => {
+            if (t === 0) return "transparent";
+
+            if (isDark) {
+              // Dark mode: low = slightly visible, high = bright red
+              const baseColor = d3.rgb(d3.interpolateReds(0.8));
+              const alpha = 0.3 + t * 0.7;
+              return `rgba(${baseColor.r}, ${baseColor.g}, ${baseColor.b}, ${alpha})`;
+            } else {
+              // Light mode: low = white-ish red, high = dark red
+              const darkRed = d3.rgb(d3.interpolateReds(0.9));
+              const lightRed = d3.rgb(d3.interpolateReds(0.1));
+              const r = Math.round(lightRed.r + (darkRed.r - lightRed.r) * t);
+              const g = Math.round(lightRed.g + (darkRed.g - lightRed.g) * t);
+              const b = Math.round(lightRed.b + (darkRed.b - lightRed.b) * t);
+              return `rgb(${r}, ${g}, ${b})`;
+            }
+          });
+
+      case "viridis":
+        return d3
+          .scaleSequential()
+          .domain([0, maxCount])
+          .interpolator((t) => {
+            if (t === 0) return "transparent";
+            return d3.interpolateViridis(t);
+          });
+
+      case "plasma":
+        return d3
+          .scaleSequential()
+          .domain([0, maxCount])
+          .interpolator((t) => {
+            if (t === 0) return "transparent";
+            return d3.interpolatePlasma(t);
+          });
+
+      default:
+        return d3
+          .scaleSequential()
+          .domain([0, maxCount])
+          .interpolator(d3.interpolateSpectral);
+    }
+  };
 
   const processedData = useMemo<ProcessedData>(() => {
     try {
@@ -168,10 +270,7 @@ export default function Histogram({
       .range([0, height]);
     // .padding(0.1);
 
-    const colorScale = d3
-      .scaleSequential()
-      .domain([0, processedData.maxCount])
-      .interpolator(d3.interpolateSpectral);
+    const colorScale = getColorScale(processedData.maxCount);
 
     g.selectAll(".cell")
       .data(processedData.heatmapData)
@@ -278,11 +377,6 @@ export default function Histogram({
         `translate(${width + margin.left + 10}, ${margin.top})`,
       );
 
-    const legendScale = d3
-      .scaleSequential()
-      .domain([0, processedData.maxCount])
-      .interpolator(d3.interpolateSpectral);
-
     const defs = svg.append("defs");
     const linearGradient = defs
       .append("linearGradient")
@@ -299,7 +393,7 @@ export default function Histogram({
       linearGradient
         .append("stop")
         .attr("offset", `${offset * 100}%`)
-        .attr("stop-color", legendScale(value));
+        .attr("stop-color", colorScale(value));
     }
 
     legend
@@ -329,7 +423,7 @@ export default function Histogram({
       .attr("y", -legendWidth - 35)
       .style("text-anchor", "middle")
       .text("Count");
-  }, [processedData, loading]);
+  }, [processedData, loading, colorTheme, isDark]);
 
   useEffect(() => {
     if (!tooltipData || !tooltipRef.current) return;
@@ -381,10 +475,31 @@ export default function Histogram({
           })}
         </div>
 
-        <div className="text-xs">
+        <div className="text-right text-xs">
           <p>Time points: {processedData.timePoints.length}</p>
           <p>Bucket count: {processedData.bucketValues.length}</p>
           <p>Max count: {processedData.maxCount}</p>
+        </div>
+      </div>
+
+      <div className="flex items-center justify-end">
+        <div className="flex items-center gap-2">
+          <label className="text-sm font-medium">Color Theme:</label>
+          <Select
+            value={colorTheme}
+            onValueChange={(value) => setColorTheme(value as typeof colorTheme)}
+          >
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Select color theme" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="spectral">Spectral (Blue→Red)</SelectItem>
+              <SelectItem value="blues">Blues</SelectItem>
+              <SelectItem value="reds">Reds</SelectItem>
+              <SelectItem value="viridis">Viridis</SelectItem>
+              <SelectItem value="plasma">Plasma</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
