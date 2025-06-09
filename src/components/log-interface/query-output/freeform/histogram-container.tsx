@@ -65,94 +65,6 @@ export default function Histogram({
   const svgRef = useRef<SVGSVGElement>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
 
-  // Color scale function based on theme
-  const getColorScale = (maxCount: number) => {
-    switch (colorTheme) {
-      case "spectral":
-        // Reversed spectral: low = blue, high = red
-        return d3
-          .scaleSequential()
-          .domain([0, maxCount])
-          .interpolator((t) => d3.interpolateSpectral(1 - t));
-
-      case "blues":
-        return d3
-          .scaleSequential()
-          .domain([0, maxCount])
-          .interpolator((t) => {
-            if (t === 0) return "transparent";
-
-            if (isDark) {
-              // Dark mode: low = slightly visible, high = bright blue
-              const baseColor = d3.rgb(d3.interpolateBlues(0.8));
-              const alpha = 0.3 + t * 0.7;
-              return `rgba(${baseColor.r}, ${baseColor.g}, ${baseColor.b}, ${alpha})`;
-            } else {
-              // Light mode: low = white-ish blue, high = dark blue
-              const darkBlue = d3.rgb(d3.interpolateBlues(0.9));
-              const lightBlue = d3.rgb(d3.interpolateBlues(0.1));
-              const r = Math.round(
-                lightBlue.r + (darkBlue.r - lightBlue.r) * t,
-              );
-              const g = Math.round(
-                lightBlue.g + (darkBlue.g - lightBlue.g) * t,
-              );
-              const b = Math.round(
-                lightBlue.b + (darkBlue.b - lightBlue.b) * t,
-              );
-              return `rgb(${r}, ${g}, ${b})`;
-            }
-          });
-
-      case "reds":
-        return d3
-          .scaleSequential()
-          .domain([0, maxCount])
-          .interpolator((t) => {
-            if (t === 0) return "transparent";
-
-            if (isDark) {
-              // Dark mode: low = slightly visible, high = bright red
-              const baseColor = d3.rgb(d3.interpolateReds(0.8));
-              const alpha = 0.3 + t * 0.7;
-              return `rgba(${baseColor.r}, ${baseColor.g}, ${baseColor.b}, ${alpha})`;
-            } else {
-              // Light mode: low = white-ish red, high = dark red
-              const darkRed = d3.rgb(d3.interpolateReds(0.9));
-              const lightRed = d3.rgb(d3.interpolateReds(0.1));
-              const r = Math.round(lightRed.r + (darkRed.r - lightRed.r) * t);
-              const g = Math.round(lightRed.g + (darkRed.g - lightRed.g) * t);
-              const b = Math.round(lightRed.b + (darkRed.b - lightRed.b) * t);
-              return `rgb(${r}, ${g}, ${b})`;
-            }
-          });
-
-      case "viridis":
-        return d3
-          .scaleSequential()
-          .domain([0, maxCount])
-          .interpolator((t) => {
-            if (t === 0) return "transparent";
-            return d3.interpolateViridis(t);
-          });
-
-      case "plasma":
-        return d3
-          .scaleSequential()
-          .domain([0, maxCount])
-          .interpolator((t) => {
-            if (t === 0) return "transparent";
-            return d3.interpolatePlasma(t);
-          });
-
-      default:
-        return d3
-          .scaleSequential()
-          .domain([0, maxCount])
-          .interpolator(d3.interpolateSpectral);
-    }
-  };
-
   const processedData = useMemo<ProcessedData>(() => {
     try {
       const histogramPoints: HistogramDataPoint[] = [];
@@ -270,7 +182,11 @@ export default function Histogram({
       .range([0, height]);
     // .padding(0.1);
 
-    const colorScale = getColorScale(processedData.maxCount);
+    const colorScale = getColorScale(
+      processedData.maxCount,
+      colorTheme,
+      isDark,
+    );
 
     g.selectAll(".cell")
       .data(processedData.heatmapData)
@@ -532,3 +448,88 @@ export default function Histogram({
     </div>
   );
 }
+
+const getColorScale = (
+  maxCount: number,
+  colorTheme: string,
+  isDark: boolean,
+) => {
+  switch (colorTheme) {
+    case "spectral":
+      // Reversed spectral: low = blue, high = red
+      return d3
+        .scaleSequential()
+        .domain([0, maxCount])
+        .interpolator((t) => d3.interpolateSpectral(1 - t));
+
+    case "blues":
+      return d3
+        .scaleSequential()
+        .domain([0, maxCount])
+        .interpolator((t) => {
+          if (t === 0) return "transparent";
+
+          if (isDark) {
+            // Dark mode: low = slightly visible, high = bright blue
+            const baseColor = d3.rgb(d3.interpolateBlues(0.8));
+            const alpha = 0.3 + t * 0.7;
+            return `rgba(${baseColor.r}, ${baseColor.g}, ${baseColor.b}, ${alpha})`;
+          } else {
+            // Light mode: low = white-ish blue, high = dark blue
+            const darkBlue = d3.rgb(d3.interpolateBlues(0.9));
+            const lightBlue = d3.rgb(d3.interpolateBlues(0.1));
+            const r = Math.round(lightBlue.r + (darkBlue.r - lightBlue.r) * t);
+            const g = Math.round(lightBlue.g + (darkBlue.g - lightBlue.g) * t);
+            const b = Math.round(lightBlue.b + (darkBlue.b - lightBlue.b) * t);
+            return `rgb(${r}, ${g}, ${b})`;
+          }
+        });
+
+    case "reds":
+      return d3
+        .scaleSequential()
+        .domain([0, maxCount])
+        .interpolator((t) => {
+          if (t === 0) return "transparent";
+
+          if (isDark) {
+            // Dark mode: low = slightly visible, high = bright red
+            const baseColor = d3.rgb(d3.interpolateReds(0.8));
+            const alpha = 0.3 + t * 0.7;
+            return `rgba(${baseColor.r}, ${baseColor.g}, ${baseColor.b}, ${alpha})`;
+          } else {
+            // Light mode: low = white-ish red, high = dark red
+            const darkRed = d3.rgb(d3.interpolateReds(0.9));
+            const lightRed = d3.rgb(d3.interpolateReds(0.1));
+            const r = Math.round(lightRed.r + (darkRed.r - lightRed.r) * t);
+            const g = Math.round(lightRed.g + (darkRed.g - lightRed.g) * t);
+            const b = Math.round(lightRed.b + (darkRed.b - lightRed.b) * t);
+            return `rgb(${r}, ${g}, ${b})`;
+          }
+        });
+
+    case "viridis":
+      return d3
+        .scaleSequential()
+        .domain([0, maxCount])
+        .interpolator((t) => {
+          if (t === 0) return "transparent";
+          return d3.interpolateViridis(t);
+        });
+
+    case "plasma":
+      return d3
+        .scaleSequential()
+        .domain([0, maxCount])
+        .interpolator((t) => {
+          if (t === 0) return "transparent";
+          return d3.interpolatePlasma(t);
+        });
+
+    default:
+      return d3
+        .scaleSequential()
+        .domain([0, maxCount])
+        .interpolator(d3.interpolateSpectral);
+  }
+};
