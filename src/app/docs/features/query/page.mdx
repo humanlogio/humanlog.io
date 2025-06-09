@@ -1,10 +1,10 @@
 import { Note, Important } from "@/components/ui/Alert";
 
-# Querying Your Data
+<h1 id="querying-your-data">Querying Your Data</h1>
 
 Humanlog features a powerful query engine that allows you to query your data in a declarative manner. The language is called [Humanlog Query Language](/docs/reference). It's a pipeline-based language where you define a series of operations to apply to your data. Read the reference for detailed information, or continue reading here for a high-level overview of how the query feature works with example usages.
 
-## Basic Usage
+<h2 id="basic-usage">Basic Usage</h2>
 
 You can run queries in two ways: via the CLI or the UI.
 
@@ -43,7 +43,7 @@ This will open the UI, execute the specified query, and display its result.
 
 <img src="/images/docs/features/query/query-tab.png" width="80%" />
 
-## Query Editor Area
+<h2 id="query-editor-area">Query Editor Area</h2>
 
 The query editor area lets you write your queries. Along with a space to write your query, you can click on the "Run" button to execute it, the query library button to open the query library sidebar, or the save button to save your query.
 
@@ -59,7 +59,7 @@ The query editor area lets you write your queries. Along with a space to write y
 
 > Save the query for later use.
 
-## Discovering Symbols In Scope
+<h2 id="discovering-symbols-in-scope">Discovering Symbols In Scope</h2>
 
 Open the query library nav bar to see the symbols in scope.
 
@@ -89,7 +89,7 @@ filter request_id == "2937400f-b5c5-426f-b07a-4c7723ff6740"
 filter ['build.Commit'] == "d31fade"
 ```
 
-## Reviewing Historical Queries
+<h2 id="reviewing-historical-queries">Reviewing Historical Queries</h2>
 
 Every query that you run is automatically saved in your "Recent queries" list. This allows you to quickly retrieve results from previous queries, creating a fast feedback loop during debugging sessions. To see your recent queries, open the query library sidebar.
 
@@ -103,7 +103,7 @@ You can run, copy or delete recent queries from this list.
 
 <img src="/images/docs/features/query/recent-query-submenu.png" width="80%" />
 
-## Saving Your Favorite Queries
+<h2 id="saving-your-favorite-queries">Saving Your Favorite Queries</h2>
 
 You can save queries into your "Saved queries" collection by clicking on the "Save" button in the query tab.
 
@@ -132,7 +132,7 @@ Saved queries can be edited and have notes attached to them, so you can remember
 
 <img src="/images/docs/features/query/saved-query-editor.png" width="80%" />
 
-## Query Results
+<h2 id="query-results">Query Results</h2>
 
 The query result area displays the output of your query. The presentation format adapts based on the detected datatype, with the query engine selecting an appropriate rendering method. You can customize the appearance using themes if needed. See the [themes](/docs/features/themes) section for more information.
 
@@ -240,7 +240,7 @@ Depending on the shape of the data of the table, some special render modes will 
 
 <img src="/images/docs/features/query/table-results-heatmap.png" width="80%" />
 
-## Sharing Your Results
+<h2 id="sharing-your-results">Sharing Your Results</h2>
 
 Once you've found something you like, click on the share button to start sharing your results.
 
@@ -262,7 +262,7 @@ Clicking on the link will open a page that shows your query and the associated r
 
 Learn more about it in the [sharing](/docs/features/sharing) section.
 
-## FAQ
+<h2 id="faq">FAQ</h2>
 
 Any questions that haven't been answered will be added here. Join our [community channels](/support) to ask any questions you may have about the query page.
 
