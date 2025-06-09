@@ -265,9 +265,6 @@ function install_project_binary_atomically() {
 
 	mkdir -p "\${tmpdir}" || abort "Failed to create staging directory: \${tmpdir}"
 
-	# Always clean up on exit or failure
-	trap 'rm -rf "\${tmpdir}"' EXIT INT TERM
-
 	curl -q --fail --show-error --location --progress-bar --output "\${tarball}" "\${tarball_url}" || abort "Download failed"
 	tar -xzf "\${tarball}" -C "\${tmpdir}" || abort "Extraction failed"
 	chmod +x "\${staged_binary}" || abort "Failed to make binary executable"
