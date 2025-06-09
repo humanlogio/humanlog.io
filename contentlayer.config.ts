@@ -1,6 +1,9 @@
 import { defineDocumentType, makeSource } from "contentlayer2/source-files";
 import remarkGfm from "remark-gfm";
 
+const rehypeSlug = require("rehype-slug");
+const remarkHeadingId = require("remark-heading-id");
+
 export const Doc = defineDocumentType(() => ({
   name: "Doc",
   filePathPattern: `docs/**/*.mdx`,
@@ -87,6 +90,7 @@ export default makeSource({
   contentDirPath: "src/content",
   documentTypes: [Doc, Blog],
   mdx: {
-    remarkPlugins: [remarkGfm],
+    remarkPlugins: [remarkGfm, remarkHeadingId],
+    rehypePlugins: [rehypeSlug],
   },
 });
