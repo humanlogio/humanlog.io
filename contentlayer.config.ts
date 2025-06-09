@@ -1,8 +1,7 @@
 import { defineDocumentType, makeSource } from "contentlayer2/source-files";
 import remarkGfm from "remark-gfm";
-
-const rehypeSlug = require("rehype-slug");
-const remarkHeadingId = require("remark-heading-id");
+// @ts-ignore
+import remarkHeadingId from "remark-heading-id";
 
 export const Doc = defineDocumentType(() => ({
   name: "Doc",
@@ -91,6 +90,5 @@ export default makeSource({
   documentTypes: [Doc, Blog],
   mdx: {
     remarkPlugins: [remarkGfm, remarkHeadingId],
-    rehypePlugins: [rehypeSlug],
   },
 });
