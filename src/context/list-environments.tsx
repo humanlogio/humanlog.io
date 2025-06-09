@@ -32,6 +32,7 @@ type AllEnvironments = {
   defaultOrg: Organization | null;
   listEnvironments: ListEnvironmentResponse_ListItem[];
   doLogin: (returnUrl?: string) => void;
+  doLogout: () => void;
   getUserInfo: () => void;
   filterBySymbol: FilterBySymbol | null;
   onClickFilterBy: (
@@ -48,6 +49,7 @@ const ListEnvironmentContext = createContext<AllEnvironments>({
   defaultOrg: null,
   listEnvironments: [],
   doLogin: () => {},
+  doLogout: () => {},
   getUserInfo: () => {},
   filterBySymbol: null,
   onClickFilterBy: () => {},
@@ -107,6 +109,10 @@ export function ListEnvironmentsProvider({
   //     }
   //   }
   // };
+
+  const deleteCookie = () => {
+    document.cookie = `hlog_session=; path=/; domain=.humanlog${config.TLD}; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
+  };
 
   const checkBrowser = async () => {
     try {
@@ -187,6 +193,26 @@ export function ListEnvironmentsProvider({
       doBrowserLogin(returnUrl ?? returnToURL);
       getUserInfo();
       return;
+    }
+  };
+
+  const doLogout = async () => {
+    deleteCookie();
+    localStorage.removeItem("hlog_session");
+    try {
+      if (!apiClients) return;
+
+      if (!localhostValid) {
+        const { logoutUrl } = await apiClients.user.getLogoutURL({
+          returnTo: returnToURL,
+        });
+        router.push(logoutUrl);
+      }
+
+      apiClients?.localhost.doLogout({ returnToURL });
+    } catch (error) {
+      console.error("Failed to get logout URL:", error);
+      // router.push("/login");
     }
   };
 
@@ -277,6 +303,7 @@ export function ListEnvironmentsProvider({
         defaultOrg,
         listEnvironments,
         doLogin,
+        doLogout,
         filterBySymbol,
         onClickFilterBy,
       }}
