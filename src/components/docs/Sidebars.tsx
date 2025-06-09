@@ -172,18 +172,79 @@ export const NavItem = ({ item }: { item: NavItemType }) => {
       const currentPathWithoutHash = pathname.split("#")[0];
 
       if (pagePath && currentPathWithoutHash !== pagePath) {
+        // Different page - navigate to it
         router.push(item.path);
       } else {
-        // If already on the correct page, just scroll to the element
-        const element = document.getElementById(hash);
+        // Same page - just scroll to element
+        // Try to find the element by the hash
+        let element = document.getElementById(hash);
+
+        // If element not found, try converting hash to a more compatible format
+        if (!element) {
+          // Try with different case or format transformations
+          const alternativeSelectors = [
+            hash.toLowerCase(),
+            hash.replace(/-/g, " ").toLowerCase(),
+            hash.replace(/\s+/g, "-").toLowerCase(),
+          ];
+
+          for (const selector of alternativeSelectors) {
+            element = document.getElementById(selector);
+            if (element) break;
+          }
+        }
+
+        // If still not found, try finding by text content
+        if (!element) {
+          const headings = document.querySelectorAll("h1, h2, h3, h4, h5, h6");
+          const targetText = hash.replace(/-/g, " ").toLowerCase();
+
+          for (const heading of headings) {
+            if (heading.textContent?.toLowerCase().includes(targetText)) {
+              element = heading as HTMLElement;
+              break;
+            }
+          }
+        }
+
         if (element) {
-          element.scrollIntoView({ behavior: "smooth" });
-          // Update URL with hash without full page reload
+          // Scroll to element with some offset for fixed headers
+          const yOffset = -80; // Adjust based on your header height
+          const y =
+            element.getBoundingClientRect().top + window.pageYOffset + yOffset;
+
+          window.scrollTo({ top: y, behavior: "smooth" });
+
+          // Update URL with hash
           window.history.pushState({}, "", item.path);
-          // Update current hash state to trigger re-render
           setCurrentHash(hash);
-          // Dispatch a custom hashchange event to notify all components
           window.dispatchEvent(new Event("hashchange"));
+        } else {
+          console.warn(`Element with id "${hash}" not found`);
+
+          // Debug: Log all available IDs in the page
+          if (process.env.NODE_ENV === "development") {
+            const allElementsWithIds = document.querySelectorAll("[id]");
+            const allHeadings = document.querySelectorAll(
+              "h1, h2, h3, h4, h5, h6",
+            );
+
+            console.log(
+              "Available element IDs:",
+              Array.from(allElementsWithIds).map((el) => el.id),
+            );
+            console.log(
+              "Available headings:",
+              Array.from(allHeadings).map((h) => ({
+                tag: h.tagName,
+                text: h.textContent,
+                id: h.id,
+              })),
+            );
+          }
+
+          // Fallback: just update the URL and let browser handle it
+          window.location.hash = hash;
         }
       }
     }
