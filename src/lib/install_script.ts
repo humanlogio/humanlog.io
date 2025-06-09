@@ -163,7 +163,7 @@ function append_content_to_file() {
 function add_path_bash() {
 	local path="$1"
 	local profile="\${HOME}/.bash_profile"
-	local line="export PATH=\"\${path}:\$PATH\""
+	local line="export PATH=\"\${path}:\\\$PATH\""
 
 	if ! check_file_has_content "\${profile}" "\${line}"; then
 		append_content_to_file "\${profile}" "\${line}"
@@ -175,7 +175,7 @@ function add_path_bash() {
 function add_path_zsh() {
 	local path="$1"
 	local profile="\${HOME}/.zshrc"
-	local line="export PATH=\"\${path}:\$PATH\""
+	local line="export PATH=\"\${path}:\\\$PATH\""
 
 	if ! check_file_has_content "\${profile}" "\${line}"; then
 		append_content_to_file "\${profile}" "\${line}"
