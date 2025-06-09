@@ -1,5 +1,7 @@
 import { defineDocumentType, makeSource } from "contentlayer2/source-files";
 import remarkGfm from "remark-gfm";
+// @ts-ignore
+import remarkHeadingId from "remark-heading-id";
 
 export const Doc = defineDocumentType(() => ({
   name: "Doc",
@@ -87,6 +89,6 @@ export default makeSource({
   contentDirPath: "src/content",
   documentTypes: [Doc, Blog],
   mdx: {
-    remarkPlugins: [remarkGfm],
+    remarkPlugins: [remarkGfm, remarkHeadingId],
   },
 });
