@@ -73,7 +73,8 @@ const PageHeader: React.FC = () => {
   const pathname = usePathname();
   const isProd = config.NEXT_PUBLIC_IS_PROD;
 
-  const { setActiveEnvironment, doLogout, apiClients } = useApiClients();
+  const { setActiveEnvironment, apiClients } = useApiClients();
+  const { doLogout } = useAllEnvironments();
 
   const {
     user,
