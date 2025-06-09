@@ -101,7 +101,7 @@ export function ApiClientsProvider({
         returnTo: returnToURL,
       });
 
-      apiClients.localhost.doLogout({});
+      apiClients.localhost.doLogout({ returnToURL });
     } catch (error) {
       console.error("Failed to get logout URL:", error);
       // router.push("/login");
