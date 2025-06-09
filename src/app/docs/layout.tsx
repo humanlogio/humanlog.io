@@ -1,4 +1,4 @@
-import { DocsSidebar } from "@/components/docs/reference/Sidebars";
+import { DocsSidebar } from "@/components/docs/Sidebars";
 import { ReactNode } from "react";
 import { NavItem } from "@/lib/contents";
 import { reference } from "@/lib/utils/reference";
@@ -29,7 +29,38 @@ export default function DocsLayout({ children }: { children: ReactNode }) {
       path: "/docs/features",
       children: [
         { title: "CLI", path: "/docs/features/cli" },
-        { title: "Query", path: "/docs/features/query" },
+        {
+          title: "Query",
+          path: "/docs/features/query",
+          children: [
+            { title: "Basic Usage", path: "/docs/features/query#basic-usage" },
+            {
+              title: "Query Editor Area",
+              path: "/docs/features/query#query-editor-area",
+            },
+            {
+              title: "Discovering Symbols In Scope",
+              path: "/docs/features/query#discovering-symbols-in-scope",
+            },
+            {
+              title: "Reviewing Historical Queries",
+              path: "/docs/features/query#reviewing-historical-queries",
+            },
+            {
+              title: "Saving Your Favorite Queries",
+              path: "/docs/features/query#saving-your-favorite-queries",
+            },
+            {
+              title: "Query Results",
+              path: "/docs/features/query#query-results",
+            },
+            {
+              title: "Sharing Your Results",
+              path: "/docs/features/query#sharing-your-results",
+            },
+            { title: "FAQ", path: "/docs/features/query#faq" },
+          ],
+        },
         { title: "Stream", path: "/docs/features/stream" },
         { title: "Sharing", path: "/docs/features/sharing" },
         { title: "Themes", path: "/docs/features/themes" },
