@@ -41,11 +41,6 @@ import { getEnvUrl, getUserSettingsUrl } from "@/lib/utils/navigation";
 import { useAllEnvironments, UserState } from "@/context/list-environments";
 import { Button } from "@/components/ui/button";
 import config from "@/features/config";
-import { getAllowedUsage } from "@/services/featureService";
-import {
-  AllowedUsageResponse,
-  AllowedUsageResponse_LocalhostUsage,
-} from "api/js/svc/feature/v1/service_pb";
 
 interface Source {
   name: string;
@@ -73,8 +68,8 @@ const PageHeader: React.FC = () => {
   const pathname = usePathname();
   const isProd = config.NEXT_PUBLIC_IS_PROD;
 
-  const { setActiveEnvironment, apiClients } = useApiClients();
-  const { doLogout } = useAllEnvironments();
+  const { setActiveEnvironment } = useApiClients();
+  const { doLogout, allowedUsage } = useAllEnvironments();
 
   const {
     user,
@@ -87,8 +82,6 @@ const PageHeader: React.FC = () => {
 
   const [sources, setSources] = useState<Source[]>();
   const [selected, setSelected] = useState<Source>();
-  const [allowedUsage, setAllowedUsage] =
-    useState<AllowedUsageResponse_LocalhostUsage>();
 
   const router = useRouter();
 
@@ -106,19 +99,6 @@ const PageHeader: React.FC = () => {
       router.push(_selected?.path);
     }
   };
-
-  const handleAllowedUsage = async () => {
-    if (!apiClients || user === "loading" || user === "not-logged-in") return;
-    await getAllowedUsage(apiClients.feature, {
-      onSuccess: (res: AllowedUsageResponse) => {
-        setAllowedUsage(res.localhostUsage);
-      },
-    });
-  };
-
-  useEffect(() => {
-    handleAllowedUsage();
-  }, [user]);
 
   useEffect(() => {
     let _sources: { name: string; path: string; value: string }[] = [];
