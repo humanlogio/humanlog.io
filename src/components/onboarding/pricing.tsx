@@ -15,7 +15,7 @@ import { ConnectError } from "@connectrpc/connect";
 
 export default function OnboardingPricing() {
   const { apiClients } = useApiClients();
-  const { user, doLogin } = useAllEnvironments();
+  const { user, doLogin, handleAllowedUsage } = useAllEnvironments();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
 
@@ -52,7 +52,7 @@ export default function OnboardingPricing() {
           },
         },
       });
-
+      handleAllowedUsage();
       toast.success("Welcome to HumanLog! You're all set with the free plan.");
       router.push("/localhost");
     } catch (error) {

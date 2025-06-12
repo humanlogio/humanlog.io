@@ -12,7 +12,7 @@ import { Loader } from "lucide-react";
 
 export const OnboardingUsername = () => {
   const { apiClients } = useApiClients();
-  const { user, doLogin } = useAllEnvironments();
+  const { user, doLogin, getUserInfo } = useAllEnvironments();
   const [username, setUsername] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
@@ -24,6 +24,7 @@ export const OnboardingUsername = () => {
     await updateUser(apiClients.user, user.firstName, user.lastName, username, {
       onSuccess: (res) => {
         if (res.user?.username) {
+          getUserInfo();
           toast.success("Username successfully updated");
           router.push("/onboarding?step=pricing");
           setIsSubmitting(false);
