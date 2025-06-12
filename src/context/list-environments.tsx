@@ -16,6 +16,9 @@ import { getSelfURL } from "@/lib/envs";
 import { usePathname, useRouter } from "next/navigation";
 import config from "@/features/config";
 import { BinaryOp_Operator, Expr } from "api/js/types/v1/query_pb";
+import { AllowedUsageResponse } from "api/js/svc/feature/v1/service_pb";
+import { AllowedUsageResponse_LocalhostUsage } from "api/js/svc/feature/v1/service_pb";
+import { getAllowedUsage } from "@/services/featureService";
 
 export type UserState = User | "loading" | "not-logged-in";
 
@@ -40,6 +43,8 @@ type AllEnvironments = {
     symbolValue: Expr,
     op?: BinaryOp_Operator,
   ) => void;
+  allowedUsage: AllowedUsageResponse_LocalhostUsage | null;
+  handleAllowedUsage: () => void;
 };
 
 const ListEnvironmentContext = createContext<AllEnvironments>({
@@ -53,6 +58,8 @@ const ListEnvironmentContext = createContext<AllEnvironments>({
   getUserInfo: () => {},
   filterBySymbol: null,
   onClickFilterBy: () => {},
+  allowedUsage: null,
+  handleAllowedUsage: () => {},
 });
 
 export function ListEnvironmentsProvider({
@@ -78,6 +85,8 @@ export function ListEnvironmentsProvider({
   const [filterBySymbol, setFilterBySymbol] = useState<FilterBySymbol | null>(
     null,
   );
+  const [allowedUsage, setAllowedUsage] =
+    useState<AllowedUsageResponse_LocalhostUsage | null>(null);
 
   // TODO: broken🛠️
   // const getRefreshToken = async () => {
@@ -242,6 +251,19 @@ export function ListEnvironmentsProvider({
       setCurrentOrg(browserAuthRes?.currentOrganization ?? null);
       setDefaultOrg(browserAuthRes?.defaultOrganization ?? null);
     }
+    handleAllowedUsage();
+  };
+
+  const handleAllowedUsage = async () => {
+    if (!apiClients || user === "loading" || user === "not-logged-in") return;
+    await getAllowedUsage(apiClients.feature, {
+      onSuccess: (res: AllowedUsageResponse) => {
+        setAllowedUsage(res.localhostUsage);
+      },
+      onError: (err) => {
+        console.error(err);
+      },
+    });
   };
 
   const onClickFilterBy = (
@@ -306,6 +328,8 @@ export function ListEnvironmentsProvider({
         doLogout,
         filterBySymbol,
         onClickFilterBy,
+        allowedUsage,
+        handleAllowedUsage,
       }}
     >
       {children}
