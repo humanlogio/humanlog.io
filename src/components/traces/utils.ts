@@ -113,8 +113,8 @@ export const walkSpanTreeNodeFlat = (
   let out: ReactNode[] = [self];
 
   node.children.forEach((child) => {
-    let childOut = walkSpanTreeNodeFlat(child, onTreeNode);
-    out.push(childOut);
+    const childOut = walkSpanTreeNodeFlat(child, onTreeNode);
+    out.push(...childOut);
   });
   return out;
 };

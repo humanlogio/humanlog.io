@@ -359,9 +359,14 @@ export const TraceWaterfall = ({
 
       {/* Timeline visualization */}
       <div className="divide-y p-2">
-        {spanTree.map((head) => {
-          return walkSpanTreeNodeFlat(head, renderSpanAsRow);
-        })}
+        {spanTree
+          .map((head) => {
+            const flatNodes = walkSpanTreeNodeFlat(head, renderSpanAsRow);
+            return flatNodes.map((node, nodeIndex) => (
+              <div key={`${head.span.spanId}-${nodeIndex}`}>{node}</div>
+            ));
+          })
+          .flat()}
       </div>
     </>
   );
