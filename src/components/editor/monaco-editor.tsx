@@ -241,6 +241,7 @@ const MonacoEditor = ({
       defaultLanguage={LANGUAGE_ID}
       theme={isDarkMode ? "humanlogql-dark" : "humanlogql-light"}
       value={value}
+      defaultValue="filter true"
       onChange={onChange}
       options={mergedOptions}
       onMount={handleEditorDidMount}
