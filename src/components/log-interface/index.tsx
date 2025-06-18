@@ -360,7 +360,7 @@ const LogInterface = ({ nav }: LogInterfaceProps) => {
                 nav={nav}
               />
               {/* CHART */}
-              <FeatureFlag flagKey="graph-view" fallback={null}>
+              <FeatureFlag flagKey="experiment_graph_view_temp" fallback={null}>
                 {nav === "query" && <Graph />}
               </FeatureFlag>
             </div>

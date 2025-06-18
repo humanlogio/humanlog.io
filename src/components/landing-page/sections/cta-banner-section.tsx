@@ -22,7 +22,7 @@ const CTABannerSection: React.FC = () => {
           <InstallCTA buttonText="Install Now" />
         </div>
 
-        <FeatureFlag flagKey="cloud-waitlist-section" fallback={null}>
+        <FeatureFlag flagKey="experiment_cloud_waitlist_temp" fallback={null}>
           <div className="mt-10 text-center">
             <h3 className="mb-4 text-xl font-medium">
               Need a hosted solution for your team?
