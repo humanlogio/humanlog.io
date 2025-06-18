@@ -372,6 +372,7 @@ const LogInterface = ({ nav }: LogInterfaceProps) => {
                 queryHistoryEntry={queryHistoryEntry}
                 onStopStream={stopStream}
                 isStreamPaused={isStreamPaused}
+                nav={nav}
               />
             )}
           </div>
