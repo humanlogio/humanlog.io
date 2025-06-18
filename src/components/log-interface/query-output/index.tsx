@@ -20,6 +20,7 @@ import { Data } from "api/js/types/v1/data_pb";
 import { Cursor } from "api/js/types/v1/cursor_pb";
 import { getShapeFromResponse } from "@/lib/utils/dataHelpers";
 import { Button } from "@/components/ui/button";
+import { useSearchParams } from "next/navigation";
 
 interface QueryOutputProps {
   queryRes: QueryResponse | null;
@@ -29,6 +30,7 @@ interface QueryOutputProps {
   queryHistoryEntry?: QueryHistoryEntry;
   onStopStream: () => void;
   isStreamPaused: boolean;
+  nav?: "query" | "stream";
 }
 
 const QueryOutput = ({
@@ -39,7 +41,10 @@ const QueryOutput = ({
   queryHistoryEntry,
   onStopStream,
   isStreamPaused,
+  nav,
 }: QueryOutputProps) => {
+  const searchParams = useSearchParams();
+  const queryString = searchParams.get("query");
   const [output, setOutput] = useState<ReactNode>();
   const isStreamMode = streamRes.length > 0;
 
@@ -49,6 +54,33 @@ const QueryOutput = ({
         return (
           <div className="flex w-full flex-1 items-center justify-center">
             <Loader className="animate-spin" />
+          </div>
+        );
+      }
+
+      if (queryString === null) {
+        const isStreamMode = nav === "stream";
+        return (
+          <div className="flex flex-1 items-center justify-center">
+            <div className="mt-10 text-center">
+              <h3 className="mb-2 text-xl font-semibold">
+                {isStreamMode
+                  ? "Ready to stream your logs?"
+                  : "Ready to query your logs?"}
+              </h3>
+              <p className="text-muted-foreground mb-4">
+                Click the{" "}
+                <span className="bg-muted rounded px-2 py-1 font-semibold">
+                  {" "}
+                  Run
+                </span>{" "}
+                button or press{" "}
+                <span className="bg-muted rounded px-2 py-1 font-semibold">
+                  ⌘+Enter
+                </span>{" "}
+                to {isStreamMode ? "start streaming" : "execute your query"}
+              </p>
+            </div>
           </div>
         );
       }
@@ -108,6 +140,7 @@ const QueryOutput = ({
     parsedQuery,
     queryHistoryEntry,
     isStreamMode,
+    queryString,
   ]);
 
   return output;

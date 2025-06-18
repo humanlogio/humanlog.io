@@ -56,6 +56,7 @@ import { trace, SpanStatusCode } from "@opentelemetry/api";
 import { ConnectError } from "@connectrpc/connect";
 import { Duration } from "@bufbuild/protobuf";
 import { newIdentifierExpr } from "@/lib/utils/queryExpressions";
+import FeatureFlag from "@/components/posthog/feature-flag";
 
 export type DataCase =
   | "subqueries"
@@ -78,7 +79,6 @@ interface LogInterfaceProps {
 }
 
 const LogInterface = ({ nav }: LogInterfaceProps) => {
-  const isProd = config.NEXT_PUBLIC_IS_PROD;
   const limit = 100;
 
   const router = useRouter();
@@ -347,12 +347,7 @@ const LogInterface = ({ nav }: LogInterfaceProps) => {
           <div
             className={`flex h-full flex-col gap-4 px-10 py-8 ${isLibraryOpen && "overflow-y-auto"}`}
           >
-            <div
-              className={twMerge(
-                "items-center gap-8",
-                !isProd && nav === "query" && "grid grid-cols-2",
-              )}
-            >
+            <div className={twMerge("items-center gap-8")}>
               <QueryInput
                 errMsg={queryParseErrMsg}
                 onExecuteQuery={executeQuery}
@@ -362,9 +357,12 @@ const LogInterface = ({ nav }: LogInterfaceProps) => {
                 parsedQuery={parsedQuery}
                 setSavedQueryId={setSavedQueryId}
                 setIsLibraryOpen={setIsLibraryOpen}
+                nav={nav}
               />
               {/* CHART */}
-              {!isProd && nav === "query" && <Graph />}
+              <FeatureFlag flagKey="graph-view" fallback={null}>
+                {nav === "query" && <Graph />}
+              </FeatureFlag>
             </div>
             {!isQueryHistoryLoading && (
               <QueryOutput
@@ -375,6 +373,7 @@ const LogInterface = ({ nav }: LogInterfaceProps) => {
                 queryHistoryEntry={queryHistoryEntry}
                 onStopStream={stopStream}
                 isStreamPaused={isStreamPaused}
+                nav={nav}
               />
             )}
           </div>

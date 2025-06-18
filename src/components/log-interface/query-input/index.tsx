@@ -38,6 +38,12 @@ import { useAllEnvironments } from "@/context/list-environments";
 import dynamic from "next/dynamic";
 import { newBinaryExpr } from "@/lib/utils/queryExpressions";
 
+const DEFAULT_QUERY_EXAMPLES = {
+  query:
+    'logs | filter lvl == "error" | summarize error_count=count() by bin(ts, 1h)',
+  stream: 'traces | filter service_name == "your_service"',
+} as const;
+
 const MonacoEditor = dynamic(
   () => import("@/components/editor/monaco-editor"),
   { ssr: false },
@@ -53,6 +59,7 @@ interface QueryInputProps {
   setSavedQueryId?: Dispatch<SetStateAction<bigint | undefined>>;
   setIsLibraryOpen?: Dispatch<SetStateAction<boolean>>;
   fromExternalPage?: boolean;
+  nav?: "query" | "stream";
 }
 
 const QueryInput = ({
@@ -65,6 +72,7 @@ const QueryInput = ({
   setSavedQueryId,
   setIsLibraryOpen,
   fromExternalPage = false,
+  nav,
 }: QueryInputProps) => {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -289,6 +297,11 @@ const QueryInput = ({
           </TooltipProvider>
           <MonacoEditor
             value={editorContent}
+            defaultValue={
+              nav === "stream"
+                ? DEFAULT_QUERY_EXAMPLES.stream
+                : DEFAULT_QUERY_EXAMPLES.query
+            }
             onChange={(value) => setEditorContent(value || "")}
             onMount={handleEditorDidMount}
           />
