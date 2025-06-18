@@ -16,9 +16,6 @@ import { humanlogqlLanguageDefinition } from "@/components/editor/monarch";
 import { themes } from "@/components/editor/themes";
 import { Symbol } from "api/js/types/v1/symbol_pb";
 import { useApiClients } from "@/context/api-provider";
-import { ConnectError } from "@connectrpc/connect";
-import { toast } from "sonner";
-import { ListSymbolsResponse_ListItem } from "api/js/svc/query/v1/service_pb";
 
 interface MonacoEditorProps extends Omit<EditorProps, "theme"> {
   width?: number | string;
@@ -46,11 +43,12 @@ const defaultOptions: editor.IStandaloneEditorConstructionOptions = {
   },
   language: LANGUAGE_ID,
   placeholder: "The query language is defined in the docs :)",
+  scrollBeyondLastLine: false,
 };
 
 const MonacoEditor = ({
   width = "100%",
-  height = 150,
+  height = 60,
   value,
   onChange,
   onMount,
@@ -61,6 +59,7 @@ const MonacoEditor = ({
   const { apiClients } = useApiClients();
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
   const monacoRef = useRef<typeof import("monaco-editor") | null>(null);
+  const [dynamicHeight, setDynamicHeight] = useState<number>(height);
   const isDarkMode =
     theme === "dark" ||
     (theme === "system" &&
@@ -76,6 +75,51 @@ const MonacoEditor = ({
       editorRef.current.layout();
     }
   }, []);
+
+  // Auto-resize based on content
+  useEffect(() => {
+    if (editorRef.current && value) {
+      const lineCount = value.split("\n").length;
+      const minHeight = 60;
+      const maxHeight = 200;
+      const lineHeight = 18;
+      const padding = 10;
+
+      const calculatedHeight = Math.min(
+        Math.max(lineCount * lineHeight + padding, minHeight),
+        maxHeight,
+      );
+
+      setDynamicHeight(calculatedHeight);
+    } else {
+      setDynamicHeight(height);
+    }
+  }, [value, height]);
+
+  // Recalculate height on mount to handle modal scenarios
+  useEffect(() => {
+    if (value) {
+      const lineCount = value.split("\n").length;
+      const minHeight = 60;
+      const maxHeight = 200;
+      const lineHeight = 18;
+      const padding = 10;
+
+      const calculatedHeight = Math.min(
+        Math.max(lineCount * lineHeight + padding, minHeight),
+        maxHeight,
+      );
+
+      setDynamicHeight(calculatedHeight);
+    }
+  }, []); // Run only on mount
+
+  // Update editor layout when height changes
+  useEffect(() => {
+    if (editorRef.current) {
+      editorRef.current.layout();
+    }
+  }, [dynamicHeight]);
 
   const handleEditorDidMount: OnMount = (editor, monaco) => {
     editorRef.current = editor;
@@ -193,7 +237,7 @@ const MonacoEditor = ({
   return (
     <Editor
       width={width}
-      height={height}
+      height={dynamicHeight}
       defaultLanguage={LANGUAGE_ID}
       theme={isDarkMode ? "humanlogql-dark" : "humanlogql-light"}
       value={value}
