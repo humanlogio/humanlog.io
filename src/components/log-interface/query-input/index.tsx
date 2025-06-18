@@ -53,6 +53,7 @@ interface QueryInputProps {
   setSavedQueryId?: Dispatch<SetStateAction<bigint | undefined>>;
   setIsLibraryOpen?: Dispatch<SetStateAction<boolean>>;
   fromExternalPage?: boolean;
+  nav?: "query" | "stream";
 }
 
 const QueryInput = ({
@@ -65,6 +66,7 @@ const QueryInput = ({
   setSavedQueryId,
   setIsLibraryOpen,
   fromExternalPage = false,
+  nav,
 }: QueryInputProps) => {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -289,6 +291,11 @@ const QueryInput = ({
           </TooltipProvider>
           <MonacoEditor
             value={editorContent}
+            defaultValue={
+              nav === "stream"
+                ? "traces | filter true"
+                : "filter true | take 100"
+            }
             onChange={(value) => setEditorContent(value || "")}
             onMount={handleEditorDidMount}
           />
