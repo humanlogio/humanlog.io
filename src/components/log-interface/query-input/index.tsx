@@ -38,6 +38,12 @@ import { useAllEnvironments } from "@/context/list-environments";
 import dynamic from "next/dynamic";
 import { newBinaryExpr } from "@/lib/utils/queryExpressions";
 
+const DEFAULT_QUERY_EXAMPLES = {
+  query:
+    'logs | filter lvl == "error" | summarize error_count=count() by bin(ts, 1h)',
+  stream: 'traces | filter service_name == "your_service"',
+} as const;
+
 const MonacoEditor = dynamic(
   () => import("@/components/editor/monaco-editor"),
   { ssr: false },
@@ -293,8 +299,8 @@ const QueryInput = ({
             value={editorContent}
             defaultValue={
               nav === "stream"
-                ? "traces | filter true"
-                : "filter true | take 100"
+                ? DEFAULT_QUERY_EXAMPLES.stream
+                : DEFAULT_QUERY_EXAMPLES.query
             }
             onChange={(value) => setEditorContent(value || "")}
             onMount={handleEditorDidMount}
