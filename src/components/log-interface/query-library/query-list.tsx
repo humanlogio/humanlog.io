@@ -83,7 +83,9 @@ export const QueryList = <T,>({
     {
       key: "1",
       text: "Run Query",
-      func: (id: bigint, query: string) => router.push(`?query=${query}`),
+      func: (id: bigint, query: string) => {
+        router.push(`?query=${encodeURIComponent(query)}`);
+      },
     },
     {
       key: "2",
