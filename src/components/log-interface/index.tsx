@@ -357,6 +357,7 @@ const LogInterface = ({ nav }: LogInterfaceProps) => {
                 parsedQuery={parsedQuery}
                 setSavedQueryId={setSavedQueryId}
                 setIsLibraryOpen={setIsLibraryOpen}
+                nav={nav}
               />
               {/* CHART */}
               <FeatureFlag flagKey="graph-view" fallback={null}>
