@@ -16,7 +16,7 @@ export const OPERATORS = [
   {
     label: "equals (==)",
     value: BinaryOp_Operator.CMP_EQ,
-    cases: ["str", "i64", "ts", "blob", "arr", "obj", "map", "default"],
+    cases: ["str", "i64", "f64", "bool", "ts",  "dur", "blob", "arr", "obj", "map", "default"],
   },
   {
     label: "not equals (!=)",
