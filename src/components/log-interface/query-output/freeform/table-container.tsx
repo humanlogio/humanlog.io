@@ -1,5 +1,5 @@
-import { valueToJSX } from "@/lib/hooks/valueFormatters";
-import { Arr, TableType_Column } from "api/js/types/v1/types_pb";
+import { valueToString, varTypeToString } from "@/lib/utils/valueFormatters";
+import { Arr, TableType_Column, ScalarType } from "api/js/types/v1/types_pb";
 import { useMemo, useState } from "react";
 import {
   CellContext,
@@ -7,6 +7,20 @@ import {
   getCoreRowModel,
   useReactTable,
 } from "@tanstack/react-table";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
+  FilterByKeyValue,
+  KeyValueRow,
+} from "@/components/log-interface/query-output/session/session-control";
+import {
+  newIdentifierExpr,
+  newLiteralExpr,
+} from "@/lib/utils/queryExpressions";
 
 interface TableProps {
   tableColumns?: TableType_Column[];
@@ -22,42 +36,12 @@ const TableContainer = ({ tableColumns, tableRows, targetRef }: TableProps) => {
     if (!tableColumns || tableColumns.length === 0) return [];
 
     return tableColumns.map((col, colIndex) => {
-      let size = 100;
-      let maxSize = 300;
-      let minSize = 60;
-      switch (col.name) {
-        case "raw":
-          size = 500;
-          maxSize = 1500;
-          minSize = 300;
-          break;
-        case "machine":
-        case "event":
-        case "lvl":
-          size = 60;
-          maxSize = 100;
-          minSize = 30;
-          break;
-        case "parsed_at":
-        case "ts":
-          size = 180;
-          break;
-        case "session":
-          size = 150;
-          maxSize = 250;
-          break;
-        default:
-          size = 100;
-          maxSize = 300;
-          minSize = 60;
-      }
-
       return {
         accessorKey: col.name,
         header: col.name,
-        minSize,
-        size,
-        maxSize,
+        minSize: 60,
+        size: 150,
+        maxSize: 1000,
         state: {
           columnSizing,
           columnSizingInfo,
@@ -71,7 +55,29 @@ const TableContainer = ({ tableColumns, tableRows, targetRef }: TableProps) => {
             return null;
 
           const item = tableRows[rowIndex].items[colIndex];
-          return item ? valueToJSX(item) : null;
+          const column = tableColumns[colIndex];
+
+          return item ? (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className="cursor-pointer rounded px-1 py-0.5 hover:bg-slate-100 dark:hover:bg-slate-800">
+                  {valueToString(item)}
+                </span>
+              </TooltipTrigger>
+              <TooltipContent>
+                <div className="space-y-1 text-xs">
+                  <KeyValueRow label="Value" value={valueToString(item)} />
+                  <div className="mt-2 border-t border-gray-200 pt-2">
+                    <FilterByKeyValue
+                      symbolName={newIdentifierExpr(column?.name || "")}
+                      symbolValue={newLiteralExpr(item)}
+                      symbolCase={item.kind.case}
+                    />
+                  </div>
+                </div>
+              </TooltipContent>
+            </Tooltip>
+          ) : null;
         },
       };
     });
@@ -83,95 +89,137 @@ const TableContainer = ({ tableColumns, tableRows, targetRef }: TableProps) => {
     columns,
     enableColumnResizing: true,
     columnResizeMode: "onChange",
-    debugTable: true,
-    debugHeaders: true,
-    debugColumns: true,
   });
 
   return (
-    <div className="text-[10px]">
-      <style jsx>{`
-        .resizer {
-          position: absolute;
-          top: 0;
-          right: -2px;
-          height: 100%;
-          width: 3px;
-          cursor: col-resize;
-          user-select: none;
-          touch-action: none;
-          z-index: 1;
-        }
+    <div className="flex w-full flex-col rounded-md bg-white dark:bg-black">
+      <div className="flex flex-grow text-xs">
+        <div className="w-full overflow-x-auto py-2">
+          <style jsx>{`
+            .resizer {
+              position: absolute;
+              top: 0;
+              right: -3px;
+              height: 100%;
+              width: 6px;
+              cursor: col-resize;
+              user-select: none;
+              touch-action: none;
+              z-index: 1;
+            }
 
-        .resizer.isResizing {
-          background: rgba(0, 0, 0, 0.8);
-          opacity: 1;
-        }
+           
 
-        @media (hover: hover) {
-          .resizer:hover {
-            background: rgba(0, 0, 0, 0.6);
-          }
-        }
-      `}</style>
-      <div className="overflow-auto">
-        <table className="mt-4 w-full table-fixed">
-          <thead className="dark:bg-darkBg bg-muted border">
-            {table.getHeaderGroups().map((headerGroup) => (
-              <tr key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <th
-                    style={{
-                      position: "relative",
-                      width: `${header.getSize()}px`,
-                      overflow: "visible",
-                    }}
-                    key={header.id}
-                    className="border-border border px-2 dark:border-white"
-                  >
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext(),
-                        )}
-                    {header.column.getCanResize() && (
-                      <div
-                        onMouseDown={header.getResizeHandler()}
-                        onTouchStart={header.getResizeHandler()}
-                        className={`resizer ${
-                          header.column.getIsResizing() ? "isResizing" : ""
+            @media (hover: hover) {
+              .resizer:hover {
+                background: black;
+                opacity: 0.5;
+              }
+            }
+          `}</style>
+
+          <div className="overflow-hidden rounded">
+            <div className="scroll-container scrollbar-thin scrollbar-track-slate-100 scrollbar-thumb-slate-300 dark:scrollbar-track-slate-700 dark:scrollbar-thumb-slate-600 overflow-x-auto">
+              <TooltipProvider>
+                <table className="w-full table-fixed font-mono">
+                  <thead className="bg-muted">
+                    {table.getHeaderGroups().map((headerGroup) => (
+                      <tr key={headerGroup.id}>
+                        {headerGroup.headers.map((header, headerIndex) => {
+                          const column = tableColumns?.[headerIndex];
+                          const typeString = column
+                            ? varTypeToString(column.type)
+                            : "unknown";
+
+                          return (
+                            <th
+                              style={{
+                                position: "relative",
+                                width: `${header.getSize()}px`,
+                                overflow: "visible",
+                              }}
+                              key={header.id}
+                              className="px-2 py-2 text-left font-semibold tracking-wider text-slate-700 dark:text-slate-300"
+                            >
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <div>
+                                    {header.isPlaceholder
+                                      ? null
+                                      : flexRender(
+                                          header.column.columnDef.header,
+                                          header.getContext(),
+                                        )}
+                                  </div>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <div className="space-y-1 text-xs">
+                                    <KeyValueRow
+                                      label="Column"
+                                      value={column?.name || ""}
+                                    />
+                                    <KeyValueRow
+                                      label="Type"
+                                      value={typeString}
+                                    />
+                                  </div>
+                                </TooltipContent>
+                              </Tooltip>
+                              {header.column.getCanResize() && (
+                                <div
+                                  onMouseDown={header.getResizeHandler()}
+                                  onTouchStart={header.getResizeHandler()}
+                                  className={`resizer ${
+                                    header.column.getIsResizing()
+                                      ? "isResizing"
+                                      : ""
+                                  }`}
+                                  title="Drag to resize column"
+                                ></div>
+                              )}
+                            </th>
+                          );
+                        })}
+                      </tr>
+                    ))}
+                  </thead>
+
+                  <tbody>
+                    {table.getRowModel().rows.map((row, rowIndex) => (
+                      <tr
+                        key={row.id}
+                        className={`hover:bg-slate-100 dark:hover:bg-slate-900 ${
+                          rowIndex % 2 === 1
+                            ? "bg-black/[0.02] dark:bg-white/[0.1]"
+                            : ""
                         }`}
-                      ></div>
-                    )}
-                  </th>
-                ))}
-              </tr>
-            ))}
-          </thead>
-
-          <tbody>
-            {table.getRowModel().rows.map((row) => (
-              <tr key={row.id}>
-                {row.getVisibleCells().map((cell) => (
-                  <td
-                    style={{
-                      width: `${cell.column.getSize()}px`,
-                      maxWidth: "none",
-                    }}
-                    key={cell.id}
-                    className="border-border border px-2 break-words text-ellipsis dark:border-white"
-                  >
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </td>
-                ))}
-              </tr>
-            ))}
-            <tr ref={targetRef}>
-              <td />
-            </tr>
-          </tbody>
-        </table>
+                      >
+                        {row.getVisibleCells().map((cell) => (
+                          <td
+                            style={{
+                              width: `${cell.column.getSize()}px`,
+                              maxWidth: "none",
+                            }}
+                            key={cell.id}
+                            className="px-2 py-1 break-words text-ellipsis"
+                          >
+                            {flexRender(
+                              cell.column.columnDef.cell,
+                              cell.getContext(),
+                            )}
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                    <tr ref={targetRef}>
+                      <td colSpan={tableColumns?.length || 1} className="h-4" />
+                    </tr>
+                  </tbody>
+                </table>
+              </TooltipProvider>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
