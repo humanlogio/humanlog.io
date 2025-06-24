@@ -12,16 +12,16 @@ import {
   newTimestampExpr,
 } from "@/lib/utils/queryExpressions";
 
-const OPERATORS = [
+export const OPERATORS = [
   {
     label: "equals (==)",
     value: BinaryOp_Operator.CMP_EQ,
-    cases: ["str", "i64", "ts", "default"],
+    cases: ["str", "i64", "ts", "blob", "arr", "obj", "map", "default"],
   },
   {
     label: "not equals (!=)",
     value: BinaryOp_Operator.CMP_NOTEQ,
-    cases: ["str", "i64", "ts", "default"],
+    cases: ["str", "i64", "ts", "blob", "arr", "obj", "map", "default"],
   },
   {
     label: "contains",
