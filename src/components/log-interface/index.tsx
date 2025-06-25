@@ -256,7 +256,6 @@ const LogInterface = ({ nav }: LogInterfaceProps) => {
         onSuccess: (res: ParseResponse) => {
           if (!res.query) return;
           setQueryParseErrMsg("");
-          console.log("res.query", res.query);
 
           handleRecordQueryHistory(editorContent, res.query);
           res.query = processQueryModifiers(res, splitByDefault);
