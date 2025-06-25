@@ -160,6 +160,7 @@ const LogInterface = ({ nav }: LogInterfaceProps) => {
 
   const handleRecordQueryHistory = (rawQuery: string, query: Query) => {
     if (!apiClients || rawQuery.length === 0) return;
+
     setIsQueryHistoryLoading(true);
     recordQueryHistory(apiClients?.user, rawQuery, query, {
       onSuccess: (res: RecordQueryHistoryResponse) => {
@@ -255,6 +256,7 @@ const LogInterface = ({ nav }: LogInterfaceProps) => {
         onSuccess: (res: ParseResponse) => {
           if (!res.query) return;
           setQueryParseErrMsg("");
+          console.log("res.query", res.query);
 
           handleRecordQueryHistory(editorContent, res.query);
           res.query = processQueryModifiers(res, splitByDefault);
@@ -330,7 +332,7 @@ const LogInterface = ({ nav }: LogInterfaceProps) => {
     if (queryString != null) {
       executeQuery(decodeURIComponent(queryString));
     }
-  }, [splitByDefault, queryString]);
+  }, [splitByDefault]);
 
   if (!localhostInfo) {
     return (
@@ -385,6 +387,7 @@ const LogInterface = ({ nav }: LogInterfaceProps) => {
           isOpen={isLibraryOpen}
           onClose={() => setIsLibraryOpen(false)}
           onClickSymbol={(symbolString) => setSymbol(symbolString)}
+          onExecuteQuery={executeQuery}
           recentQueryId={queryHistoryEntry?.id}
           savedQueryId={savedQueryId}
           setSavedQueryId={setSavedQueryId}
@@ -401,6 +404,7 @@ interface QueryLibraryPanelProps {
   recentQueryId: bigint | undefined;
   savedQueryId: bigint | undefined;
   setSavedQueryId: Dispatch<SetStateAction<bigint | undefined>>;
+  onExecuteQuery: (query: string) => void;
 }
 
 const QueryLibraryPanel = ({
@@ -410,6 +414,7 @@ const QueryLibraryPanel = ({
   recentQueryId,
   savedQueryId,
   setSavedQueryId,
+  onExecuteQuery,
 }: QueryLibraryPanelProps) => {
   if (!isOpen) return null;
 
@@ -430,6 +435,7 @@ const QueryLibraryPanel = ({
           recentQueryId={recentQueryId}
           savedQueryId={savedQueryId}
           setSavedQueryId={setSavedQueryId}
+          onExecuteQuery={onExecuteQuery}
         />
       </div>
     </Panel>

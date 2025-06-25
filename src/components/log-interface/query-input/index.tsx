@@ -3,7 +3,6 @@
 import React, {
   Dispatch,
   SetStateAction,
-  useCallback,
   useEffect,
   useRef,
   useState,
@@ -13,7 +12,6 @@ import { useApiClients } from "@/context/api-provider";
 import { editor as monacoEditor } from "monaco-editor";
 import type { OnMount } from "@monaco-editor/react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { twMerge } from "tailwind-merge";
 import * as monaco from "monaco-editor";
 import { Button } from "@/components/ui/button";
 import { List, Play, Star } from "lucide-react";
@@ -93,9 +91,7 @@ const QueryInput = ({
 
     editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, () => {
       const currentValue = editor.getValue();
-
-      onExecuteQuery(currentValue);
-      setEditorContent(currentValue);
+      executeQuery(currentValue, fromExternalPage);
     });
   };
 
@@ -222,18 +218,6 @@ const QueryInput = ({
       }
     }
   }, [symbol]);
-
-  useEffect(() => {
-    if (editorRef.current && monacoRef.current) {
-      editorRef.current.addCommand(
-        monacoRef.current.KeyMod.CtrlCmd | monacoRef.current.KeyCode.Enter,
-        () => {
-          const currentValue = editorRef.current?.getValue() || "";
-          executeQuery(currentValue, fromExternalPage);
-        },
-      );
-    }
-  }, [searchParams, onExecuteQuery]);
 
   useEffect(() => {
     setIsSaveValid(editorContent.length > 0);

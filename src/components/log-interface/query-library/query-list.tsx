@@ -49,6 +49,7 @@ interface QueryListProps<T> {
   limit?: number;
   enableEdit?: boolean;
   setSavedQueryId?: Dispatch<SetStateAction<bigint | undefined>>;
+  onExecuteQuery: (query: string) => void;
 }
 
 export const QueryList = <T,>({
@@ -63,6 +64,7 @@ export const QueryList = <T,>({
   emptyMessage = "No recent queries found",
   enableEdit = false,
   setSavedQueryId,
+  onExecuteQuery,
 }: QueryListProps<T>) => {
   const router = useRouter();
   const [isEditing, setIsEditing] = useState(false);
@@ -84,7 +86,7 @@ export const QueryList = <T,>({
       key: "1",
       text: "Run Query",
       func: (id: bigint, query: string) => {
-        router.push(`?query=${encodeURIComponent(query)}`);
+        onExecuteQuery(query);
       },
     },
     {

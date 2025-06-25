@@ -12,6 +12,7 @@ interface RecentQueryProps {
   error: Error | null;
   setData: Dispatch<SetStateAction<ListQueryHistoryResponse_ListItem[]>>;
   targetRef: (node?: Element | null) => void;
+  onExecuteQuery: (query: string) => void;
 }
 
 export const RecentQuery = ({
@@ -20,6 +21,7 @@ export const RecentQuery = ({
   error,
   setData,
   targetRef,
+  onExecuteQuery,
 }: RecentQueryProps) => {
   const { apiClients } = useApiClients();
 
@@ -60,6 +62,7 @@ export const RecentQuery = ({
       getItemID={getItemID}
       deleteItem={deleteHistoryQuery}
       emptyMessage="No recent queries found"
+      onExecuteQuery={onExecuteQuery}
     />
   );
 };
