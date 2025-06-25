@@ -13,6 +13,7 @@ interface SavedQueryProps {
   setData: Dispatch<SetStateAction<ListFavoriteQueryResponse_ListItem[]>>;
   setSavedQueryId: Dispatch<SetStateAction<bigint | undefined>>;
   targetRef: (node?: Element | null) => void;
+  onExecuteQuery: (query: string) => void;
 }
 
 export const SavedQuery = ({
@@ -22,6 +23,7 @@ export const SavedQuery = ({
   setData,
   setSavedQueryId,
   targetRef,
+  onExecuteQuery,
 }: SavedQueryProps) => {
   const { apiClients } = useApiClients();
 
@@ -70,6 +72,7 @@ export const SavedQuery = ({
       deleteItem={deleteSavedQuery}
       emptyMessage="No saved queries found"
       enableEdit={true}
+      onExecuteQuery={onExecuteQuery}
     />
   );
 };
