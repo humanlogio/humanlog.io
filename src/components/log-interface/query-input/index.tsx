@@ -3,7 +3,6 @@
 import React, {
   Dispatch,
   SetStateAction,
-  useCallback,
   useEffect,
   useRef,
   useState,
@@ -13,7 +12,6 @@ import { useApiClients } from "@/context/api-provider";
 import { editor as monacoEditor } from "monaco-editor";
 import type { OnMount } from "@monaco-editor/react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { twMerge } from "tailwind-merge";
 import * as monaco from "monaco-editor";
 import { Button } from "@/components/ui/button";
 import { List, Play, Star } from "lucide-react";
@@ -37,6 +35,7 @@ import Graph from "@/components/ui/graph/graph";
 import { useAllEnvironments } from "@/context/list-environments";
 import dynamic from "next/dynamic";
 import { newBinaryExpr } from "@/lib/utils/queryExpressions";
+import { ExecuteQuery } from "@/components/log-interface";
 
 const DEFAULT_QUERY_EXAMPLES = {
   query:
@@ -51,7 +50,7 @@ const MonacoEditor = dynamic(
 
 interface QueryInputProps {
   errMsg: string;
-  onExecuteQuery: (query: string) => void;
+  onExecuteQuery: ExecuteQuery;
   symbol?: string;
   editorContent: string;
   setEditorContent: Dispatch<SetStateAction<string>>;
@@ -93,9 +92,7 @@ const QueryInput = ({
 
     editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, () => {
       const currentValue = editor.getValue();
-
-      onExecuteQuery(currentValue);
-      setEditorContent(currentValue);
+      executeQuery(currentValue, fromExternalPage);
     });
   };
 
@@ -222,18 +219,6 @@ const QueryInput = ({
       }
     }
   }, [symbol]);
-
-  useEffect(() => {
-    if (editorRef.current && monacoRef.current) {
-      editorRef.current.addCommand(
-        monacoRef.current.KeyMod.CtrlCmd | monacoRef.current.KeyCode.Enter,
-        () => {
-          const currentValue = editorRef.current?.getValue() || "";
-          executeQuery(currentValue, fromExternalPage);
-        },
-      );
-    }
-  }, [searchParams, onExecuteQuery]);
 
   useEffect(() => {
     setIsSaveValid(editorContent.length > 0);

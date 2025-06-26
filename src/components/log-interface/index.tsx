@@ -74,6 +74,8 @@ export type DataValue =
   | VectorTimeseries
   | undefined;
 
+export type ExecuteQuery = (query: string) => void;
+
 interface LogInterfaceProps {
   nav?: "query" | "stream";
 }
@@ -160,6 +162,7 @@ const LogInterface = ({ nav }: LogInterfaceProps) => {
 
   const handleRecordQueryHistory = (rawQuery: string, query: Query) => {
     if (!apiClients || rawQuery.length === 0) return;
+
     setIsQueryHistoryLoading(true);
     recordQueryHistory(apiClients?.user, rawQuery, query, {
       onSuccess: (res: RecordQueryHistoryResponse) => {
@@ -296,7 +299,7 @@ const LogInterface = ({ nav }: LogInterfaceProps) => {
     [apiClients, activeEnvironment, limit],
   );
 
-  const executeQuery = useCallback(
+  const executeQuery: ExecuteQuery = useCallback(
     async (query: string) => {
       const tracer = trace.getTracer("query-tracer");
       const span = tracer.startSpan("query-span");
@@ -330,7 +333,7 @@ const LogInterface = ({ nav }: LogInterfaceProps) => {
     if (queryString != null) {
       executeQuery(decodeURIComponent(queryString));
     }
-  }, [splitByDefault, queryString]);
+  }, [splitByDefault]);
 
   if (!localhostInfo) {
     return (
@@ -385,6 +388,7 @@ const LogInterface = ({ nav }: LogInterfaceProps) => {
           isOpen={isLibraryOpen}
           onClose={() => setIsLibraryOpen(false)}
           onClickSymbol={(symbolString) => setSymbol(symbolString)}
+          onExecuteQuery={executeQuery}
           recentQueryId={queryHistoryEntry?.id}
           savedQueryId={savedQueryId}
           setSavedQueryId={setSavedQueryId}
@@ -401,6 +405,7 @@ interface QueryLibraryPanelProps {
   recentQueryId: bigint | undefined;
   savedQueryId: bigint | undefined;
   setSavedQueryId: Dispatch<SetStateAction<bigint | undefined>>;
+  onExecuteQuery: ExecuteQuery;
 }
 
 const QueryLibraryPanel = ({
@@ -410,6 +415,7 @@ const QueryLibraryPanel = ({
   recentQueryId,
   savedQueryId,
   setSavedQueryId,
+  onExecuteQuery,
 }: QueryLibraryPanelProps) => {
   if (!isOpen) return null;
 
@@ -430,6 +436,7 @@ const QueryLibraryPanel = ({
           recentQueryId={recentQueryId}
           savedQueryId={savedQueryId}
           setSavedQueryId={setSavedQueryId}
+          onExecuteQuery={onExecuteQuery}
         />
       </div>
     </Panel>

@@ -16,12 +16,14 @@ import {
 import { SymbolList } from "@/components/log-interface/query-library/symbol-list";
 import { SavedQuery } from "@/components/log-interface/query-library/saved-query";
 import { RecentQuery } from "@/components/log-interface/query-library/recent-query";
+import { ExecuteQuery } from "@/components/log-interface";
 
 interface QueryLibraryProps {
   onClickSymbol: (symbolString: string) => void;
   recentQueryId?: bigint;
   savedQueryId?: bigint;
   setSavedQueryId: Dispatch<SetStateAction<bigint | undefined>>;
+  onExecuteQuery: ExecuteQuery;
 }
 
 type tabsType = "symbols" | "saved" | "recent";
@@ -37,6 +39,7 @@ export const QueryLibrary = ({
   recentQueryId,
   savedQueryId,
   setSavedQueryId,
+  onExecuteQuery,
 }: QueryLibraryProps) => {
   const { apiClients, activeEnvironment } = useApiClients();
 
@@ -110,10 +113,12 @@ export const QueryLibrary = ({
 
   const updateQueryHistory = useCallback(async () => {
     const res = await apiClients?.user.getQueryHistory({ id: recentQueryId });
-    setRecentQueriesData((prev) => [
-      res as ListQueryHistoryResponse_ListItem,
-      ...prev,
-    ]);
+    setRecentQueriesData((prev) => {
+      const filtered = prev.filter(
+        (query) => query.entry?.id !== recentQueryId,
+      );
+      return [res as ListQueryHistoryResponse_ListItem, ...filtered];
+    });
   }, [recentQueryId]);
 
   const updateSavedQuery = useCallback(async () => {
@@ -122,7 +127,6 @@ export const QueryLibrary = ({
       const filtered = prev.filter(
         (query) => query.favorite?.id != savedQueryId,
       );
-      console.log("savedQueryId", savedQueryId);
       return [res as ListFavoriteQueryResponse_ListItem, ...filtered];
     });
   }, [savedQueryId]);
@@ -173,6 +177,7 @@ export const QueryLibrary = ({
             setData={setSavedQueryData}
             targetRef={savedQueryTargetRef}
             setSavedQueryId={setSavedQueryId}
+            onExecuteQuery={onExecuteQuery}
           />
         )}
         {activeTab === "recent" && (
@@ -182,6 +187,7 @@ export const QueryLibrary = ({
             error={recentQueriesError}
             setData={setRecentQueriesData}
             targetRef={recentQueriesTargetRef}
+            onExecuteQuery={onExecuteQuery}
           />
         )}
       </div>
