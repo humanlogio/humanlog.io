@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { QueryList } from "@/components/log-interface/query-library/query-list";
 import { ListFavoriteQueryResponse_ListItem } from "api/js/svc/user/v1/service_pb";
 import { Timestamp } from "@bufbuild/protobuf";
-
+import { ExecuteQuery } from "@/components/log-interface";
 interface SavedQueryProps {
   items: ListFavoriteQueryResponse_ListItem[];
   loading: boolean;
@@ -13,6 +13,7 @@ interface SavedQueryProps {
   setData: Dispatch<SetStateAction<ListFavoriteQueryResponse_ListItem[]>>;
   setSavedQueryId: Dispatch<SetStateAction<bigint | undefined>>;
   targetRef: (node?: Element | null) => void;
+  onExecuteQuery: ExecuteQuery;
 }
 
 export const SavedQuery = ({
@@ -22,6 +23,7 @@ export const SavedQuery = ({
   setData,
   setSavedQueryId,
   targetRef,
+  onExecuteQuery,
 }: SavedQueryProps) => {
   const { apiClients } = useApiClients();
 
@@ -70,6 +72,7 @@ export const SavedQuery = ({
       deleteItem={deleteSavedQuery}
       emptyMessage="No saved queries found"
       enableEdit={true}
+      onExecuteQuery={onExecuteQuery}
     />
   );
 };
