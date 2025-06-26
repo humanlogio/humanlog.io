@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { ListQueryHistoryResponse_ListItem } from "api/js/svc/user/v1/service_pb";
 import { Timestamp } from "@bufbuild/protobuf";
 import { QueryList } from "@/components/log-interface/query-library/query-list";
+import { ExecuteQuery } from "@/components/log-interface";
 
 interface RecentQueryProps {
   items: ListQueryHistoryResponse_ListItem[];
@@ -12,7 +13,7 @@ interface RecentQueryProps {
   error: Error | null;
   setData: Dispatch<SetStateAction<ListQueryHistoryResponse_ListItem[]>>;
   targetRef: (node?: Element | null) => void;
-  onExecuteQuery: (query: string) => void;
+  onExecuteQuery: ExecuteQuery;
 }
 
 export const RecentQuery = ({

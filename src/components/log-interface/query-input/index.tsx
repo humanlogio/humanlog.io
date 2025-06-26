@@ -35,6 +35,7 @@ import Graph from "@/components/ui/graph/graph";
 import { useAllEnvironments } from "@/context/list-environments";
 import dynamic from "next/dynamic";
 import { newBinaryExpr } from "@/lib/utils/queryExpressions";
+import { ExecuteQuery } from "@/components/log-interface";
 
 const DEFAULT_QUERY_EXAMPLES = {
   query:
@@ -49,7 +50,7 @@ const MonacoEditor = dynamic(
 
 interface QueryInputProps {
   errMsg: string;
-  onExecuteQuery: (query: string) => void;
+  onExecuteQuery: ExecuteQuery;
   symbol?: string;
   editorContent: string;
   setEditorContent: Dispatch<SetStateAction<string>>;
