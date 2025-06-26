@@ -80,9 +80,9 @@ export const KeyValueRow = ({
   value: string | undefined;
 }) => {
   return value ? (
-    <div className="flex">
+    <div className="flex max-w-[calc(100vw-5rem)]">
       <span className="w-28 text-gray-400">{label} </span>
-      <span>{value}</span>
+      <span className="break-words">{value}</span>
     </div>
   ) : null;
 };
