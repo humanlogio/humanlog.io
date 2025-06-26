@@ -16,13 +16,14 @@ import {
 import { SymbolList } from "@/components/log-interface/query-library/symbol-list";
 import { SavedQuery } from "@/components/log-interface/query-library/saved-query";
 import { RecentQuery } from "@/components/log-interface/query-library/recent-query";
+import { ExecuteQuery } from "@/components/log-interface";
 
 interface QueryLibraryProps {
   onClickSymbol: (symbolString: string) => void;
   recentQueryId?: bigint;
   savedQueryId?: bigint;
   setSavedQueryId: Dispatch<SetStateAction<bigint | undefined>>;
-  onExecuteQuery: (query: string) => void;
+  onExecuteQuery: ExecuteQuery;
 }
 
 type tabsType = "symbols" | "saved" | "recent";

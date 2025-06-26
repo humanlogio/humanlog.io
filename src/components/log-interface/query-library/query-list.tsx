@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
 import { Dispatch, SetStateAction, useState } from "react";
 import { SaveQueryModal } from "@/components/log-interface/query-library/save-query-modal";
+import { ExecuteQuery } from "@/components/log-interface";
 
 interface DropdownMenuItem {
   key: string;
@@ -49,7 +50,7 @@ interface QueryListProps<T> {
   limit?: number;
   enableEdit?: boolean;
   setSavedQueryId?: Dispatch<SetStateAction<bigint | undefined>>;
-  onExecuteQuery: (query: string) => void;
+  onExecuteQuery: ExecuteQuery;
 }
 
 export const QueryList = <T,>({

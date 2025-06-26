@@ -74,6 +74,8 @@ export type DataValue =
   | VectorTimeseries
   | undefined;
 
+export type ExecuteQuery = (query: string) => void;
+
 interface LogInterfaceProps {
   nav?: "query" | "stream";
 }
@@ -297,7 +299,7 @@ const LogInterface = ({ nav }: LogInterfaceProps) => {
     [apiClients, activeEnvironment, limit],
   );
 
-  const executeQuery = useCallback(
+  const executeQuery: ExecuteQuery = useCallback(
     async (query: string) => {
       const tracer = trace.getTracer("query-tracer");
       const span = tracer.startSpan("query-span");
@@ -403,7 +405,7 @@ interface QueryLibraryPanelProps {
   recentQueryId: bigint | undefined;
   savedQueryId: bigint | undefined;
   setSavedQueryId: Dispatch<SetStateAction<bigint | undefined>>;
-  onExecuteQuery: (query: string) => void;
+  onExecuteQuery: ExecuteQuery;
 }
 
 const QueryLibraryPanel = ({
