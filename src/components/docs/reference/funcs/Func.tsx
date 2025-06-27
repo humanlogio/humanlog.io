@@ -99,7 +99,11 @@ export function Func({ func }: { func: ScalarFuncType }) {
                           <div className="bg-muted max-h-80 w-full overflow-y-auto rounded-md p-4">
                             <pre className="overflow-wrap-anywhere text-xs whitespace-pre-wrap">
                               {example.input.map((input, i) => {
-                                return <code key={i}>{input.log}</code>;
+                                return (
+                                  <code key={i} className="block">
+                                    {input.log}
+                                  </code>
+                                );
                               })}
                             </pre>
                           </div>
