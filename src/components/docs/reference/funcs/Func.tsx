@@ -97,15 +97,15 @@ export function Func({ func }: { func: ScalarFuncType }) {
                         </CardHeader>
                         <CardContent>
                           <div className="bg-muted max-h-80 w-full overflow-y-auto rounded-md p-4">
-                            <pre className="overflow-wrap-anywhere text-xs whitespace-pre-wrap">
+                            <code className="overflow-wrap-anywhere text-xs whitespace-pre-wrap">
                               {example.input.map((input, i) => {
                                 return (
-                                  <code key={i} className="block">
+                                  <div key={i} className="">
                                     {input.log}
-                                  </code>
+                                  </div>
                                 );
                               })}
-                            </pre>
+                            </code>
                           </div>
                         </CardContent>
                       </Card>
