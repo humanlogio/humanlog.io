@@ -21,6 +21,7 @@ import { TransportProvider, useQuery } from "@connectrpc/connect-query";
 import { AuthService } from "api/js/svc/auth/v1/service_connect";
 import { EnvironmentService } from "api/js/svc/environment/v1/service_connect";
 import { OrganizationService } from "api/js/svc/organization/v1/service_connect";
+import { IngestService } from "api/js/svc/ingest/v1/service_connect";
 import { UserService } from "api/js/svc/user/v1/service_connect";
 import { LocalhostService } from "api/js/svc/localhost/v1/service_connect";
 import { ProductService } from "api/js/svc/product/v1/service_connect";
@@ -56,6 +57,7 @@ type ApiClients = {
   org: Client<typeof OrganizationService>;
   user: Client<typeof UserService>;
   localhost: Client<typeof LocalhostService>;
+  ingest: Client<typeof IngestService>;
   feature: Client<typeof FeatureService>;
   publicShare: Client<typeof PublicShareService>;
   userShare: Client<typeof UserShareService>;
@@ -151,6 +153,7 @@ export function ApiClientsProvider({
       userShare: createClient(UserShareService, apiTpt),
       query: createClient(QueryService, activeTransport),
       trace: createClient(TraceService, activeTransport),
+      ingest: createClient(IngestService, activeTransport),
 
       apiTransport: apiTpt,
       localhostTransport: localhostTransport,
