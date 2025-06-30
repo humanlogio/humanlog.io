@@ -47,7 +47,7 @@ On Linux, humanlog can run as a background service but does not currently automa
 Description=Humanlog Query Engine
 
 [Service]
-ExecStart=$HOME/.humanlog/bin/humanlog
+ExecStart=$HOME/.humanlog/bin/humanlog service run
 
 [Install]
 WantedBy=multi-user.target
