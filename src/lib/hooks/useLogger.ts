@@ -8,6 +8,7 @@ import { Timestamp } from "@bufbuild/protobuf";
 import { makeStructuredLogEvent } from "@/lib/utils/logEventFactories";
 import { makeStrKV, makeF64KV, makeI64KV } from "@/lib/utils/kvFactories";
 import { newStrVal } from "@/lib/utils/valueFactories";
+import { usePostHog } from "posthog-js/react";
 
 export type LogLevel = "trace" | "debug" | "info" | "warn" | "error" | "fatal";
 type LogObject = Record<string, any>;
@@ -92,13 +93,17 @@ const objToProtobuf = (logData: LogObject): LogEvent => {
 
 export const useLogger = () => {
   const { apiClients } = useApiClients();
+  const posthog = usePostHog();
 
   const machineId = BigInt(1);
   const sessionId = useMemo(() => BigInt(Date.now()), []);
 
+  const isDetailedLoggingEnabled =
+    posthog?.isFeatureEnabled("ops_sending_logs_perma") ?? false;
+
   const sendToHumanlog = useCallback(
     async (obj: LogObject) => {
-      if (!apiClients) return;
+      if (!apiClients || !isDetailedLoggingEnabled) return;
 
       const logEvent = objToProtobuf(obj);
 
@@ -120,11 +125,7 @@ export const useLogger = () => {
     return pino({
       level: "trace", // Output all log levels
       browser: {
-        // Force JSON string output to console in browser
-        serialize: true,
-        asObject: false, // Output as JSON string, not object
         write: {
-          // Output JSON string to console + auto-send to humanlog
           info: (obj: LogObject) => {
             sendToHumanlog(obj);
           },
@@ -178,7 +179,7 @@ export const useLogger = () => {
       messageKey: "msg", // Set message field to 'msg'
       timestamp: pino.stdTimeFunctions.isoTime, // ISO format timestamp in 'time' field
       // Additional humanlog compatibility settings
-      base: null, // Remove default metadata (pid, hostname, etc.)
+      base: null,
     });
   }, [sendToHumanlog]);
 
