@@ -93,14 +93,14 @@ const objToProtobuf = (logData: LogObject): LogEvent => {
 export const useLogger = () => {
   const { apiClients } = useApiClients();
 
+  const machineId = BigInt(1);
+  const sessionId = useMemo(() => BigInt(Date.now()), []);
+
   const sendToHumanlog = useCallback(
     async (obj: LogObject) => {
       if (!apiClients) return;
 
       const logEvent = objToProtobuf(obj);
-
-      const machineId = BigInt(1); // Simple machine ID for browser
-      const sessionId = BigInt(Date.now()); // Use timestamp as session ID
 
       // Use ingestStream with async generator pattern
       const request = new IngestRequest({
@@ -109,15 +109,10 @@ export const useLogger = () => {
         events: [logEvent],
       });
 
-      // // Create async generator for client streaming
-      // async function* generateRequests() {
-      //   yield request;
-      // }
-
       // Send to humanlog via ingestStream (client streaming)
       await apiClients.ingest.ingest(request);
     },
-    [apiClients],
+    [apiClients, sessionId],
   );
 
   // Create pino logger with humanlog integration
