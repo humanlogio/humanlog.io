@@ -28,6 +28,7 @@ import { ProductService } from "api/js/svc/product/v1/service_connect";
 import { FeatureService } from "api/js/svc/feature/v1/service_connect";
 import { QueryService } from "api/js/svc/query/v1/service_connect";
 import { TraceService } from "api/js/svc/query/v1/trace_service_connect";
+import { UpdateService } from "api/js/svc/cliupdate/v1/service_connect";
 
 import {
   PublicShareService,
@@ -63,7 +64,7 @@ type ApiClients = {
   userShare: Client<typeof UserShareService>;
   query: Client<typeof QueryService>;
   trace: Client<typeof TraceService>;
-
+  update: Client<typeof UpdateService>;
   apiTransport: Transport;
   localhostTransport: Transport;
   activeTransport: Transport;
@@ -154,6 +155,7 @@ export function ApiClientsProvider({
       query: createClient(QueryService, activeTransport),
       trace: createClient(TraceService, activeTransport),
       ingest: createClient(IngestService, activeTransport),
+      update: createClient(UpdateService, apiTpt),
 
       apiTransport: apiTpt,
       localhostTransport: localhostTransport,

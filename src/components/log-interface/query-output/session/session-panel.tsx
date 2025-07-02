@@ -96,8 +96,7 @@ const SessionPanel = ({
 
   const pretty = searchParams.get("pretty") !== "false";
 
-  const { apiClients } = useApiClients();
-  const { user } = useAllEnvironments();
+  const { localhostConfig } = useAllEnvironments();
 
   const { targetRef, isFetching, fetchNext, fetchData, next, setNext } =
     useInfiniteQuery(query);
@@ -113,24 +112,16 @@ const SessionPanel = ({
 
   // state
   const [logs, setLogs] = useState<IngestedLogEvent[]>();
-  const [config, setConfig] = useState<LocalhostConfig>();
+
   const [sectionBreak, setSectionBreak] = useState(false);
   const [isDark, setIsDark] = useState(false);
 
   const { getColor, getLevelColor } = useThemeColors(
     isDark,
-    themes ?? config?.formatter?.themes,
+    themes ?? localhostConfig?.formatter?.themes,
   );
   const [selectedLines, setSelectedLines] = useState<string | null>();
   const [sharedData, setSharedData] = useState<Data | null>(null);
-
-  const handleConfig = async () => {
-    if (!apiClients) return;
-    await getConfig(apiClients.localhost, {
-      onSuccess: (res) => setConfig(res.config ?? defaultConfig),
-      onError: (res) => setConfig(defaultConfig),
-    });
-  };
 
   const handleClickLine = (line: string) => {
     if (providedData) return;
@@ -207,7 +198,7 @@ const SessionPanel = ({
     } else {
       const timestamp = formatTimestamp(
         (log.structured?.timestamp as Timestamp) ?? log.parsedAt,
-        config?.formatter?.time?.format ?? "",
+        localhostConfig?.formatter?.time?.format ?? "",
       );
 
       const level = log.structured?.lvl ?? "EMPTY";
@@ -228,10 +219,6 @@ const SessionPanel = ({
 
     setIsDark(darkMode);
   }, [mode, theme]);
-
-  useEffect(() => {
-    handleConfig();
-  }, [user]);
 
   useEffect(() => {
     if (providedData) {
@@ -439,7 +426,8 @@ const SessionPanel = ({
                                 {formatTimestamp(
                                   (log.structured?.timestamp as Timestamp) ??
                                     log.parsedAt,
-                                  config?.formatter?.time?.format ?? "",
+                                  localhostConfig?.formatter?.time?.format ??
+                                    "",
                                 )}{" "}
                               </span>
                               <span className="text-gray-400">
