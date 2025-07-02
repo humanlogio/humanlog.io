@@ -1,5 +1,5 @@
 import { Version } from "api/js/types/v1/version_pb";
-import { versionCompare, versionToString } from "../version";
+import { versionCompare, versionToString } from "@/lib/utils/version";
 import { describe, test, expect } from "vitest";
 
 // Helper function to create Version objects
