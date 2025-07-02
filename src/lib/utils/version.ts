@@ -41,8 +41,8 @@ export const versionCompare = (version1: Version, version2: Version) => {
   const hasPrerelease2 =
     version2.prereleases && version2.prereleases.length > 0;
 
-  if (!hasPrerelease1 && hasPrerelease2) return 1; // 1.0.0 > 1.0.0-alpha
-  if (hasPrerelease1 && !hasPrerelease2) return -1; // 1.0.0-alpha < 1.0.0
+  if (!hasPrerelease1 && hasPrerelease2) return 1;
+  if (hasPrerelease1 && !hasPrerelease2) return -1;
 
   // Both have prereleases or both don't have prereleases
   if (hasPrerelease1 && hasPrerelease2) {
@@ -83,8 +83,6 @@ export const versionCompare = (version1: Version, version2: Version) => {
     if (pre1.length > pre2.length) return 1;
   }
 
-  // Build metadata is ignored in version precedence according to semver
-  // But we can still compare it for completeness if everything else is equal
   const build1 = version1.build || "";
   const build2 = version2.build || "";
   if (build1 < build2) return -1;
