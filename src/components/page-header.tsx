@@ -9,6 +9,9 @@ import {
   User as UserIcon,
   LogOut,
   Menu,
+  Copy,
+  Check,
+  Sparkles,
 } from "lucide-react";
 import Logo from "@/components/logo";
 import {
@@ -41,6 +44,17 @@ import { getEnvUrl, getUserSettingsUrl } from "@/lib/utils/navigation";
 import { useAllEnvironments, UserState } from "@/context/list-environments";
 import { Button } from "@/components/ui/button";
 import config from "@/features/config";
+import { getNextUpdate } from "@/services/updateService";
+import { GetNextUpdateRequest } from "api/js/svc/cliupdate/v1/service_pb";
+import { versionCompare, versionToString } from "@/lib/utils/version";
+import { Version } from "api/js/types/v1/version_pb";
+import { copyToClipboard } from "@/lib/utils/clipboard";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@radix-ui/react-tooltip";
 
 interface Source {
   name: string;
@@ -68,8 +82,8 @@ const PageHeader: React.FC = () => {
   const pathname = usePathname();
   const isProd = config.NEXT_PUBLIC_IS_PROD;
 
-  const { setActiveEnvironment } = useApiClients();
-  const { doLogout, allowedUsage } = useAllEnvironments();
+  const { setActiveEnvironment, apiClients } = useApiClients();
+  const { doLogout, allowedUsage, localhostConfig } = useAllEnvironments();
 
   const {
     user,
@@ -82,6 +96,9 @@ const PageHeader: React.FC = () => {
 
   const [sources, setSources] = useState<Source[]>();
   const [selected, setSelected] = useState<Source>();
+  const [isUpdateAvailable, setIsUpdateAvailable] = useState<boolean>(false);
+  const [nextVersion, setNextVersion] = useState<Version>();
+  const [isCopied, setIsCopied] = useState<boolean>(false);
 
   const router = useRouter();
 
@@ -150,6 +167,42 @@ const PageHeader: React.FC = () => {
     const _selected = sources?.find((source) => pathname.includes(source.path));
     setSelected(_selected);
   }, [pathname, sources]);
+
+  useEffect(() => {
+    if (!apiClients || !localhostInfo || !localhostConfig) return;
+    const req = new GetNextUpdateRequest({
+      projectName: "humanlog",
+      currentVersion: localhostInfo.clientVersion,
+      machineArchitecture: localhostInfo.architecture || "",
+      machineOperatingSystem: localhostInfo.operatingSystem || "",
+      meta: localhostInfo.meta,
+      releaseChannelName:
+        localhostConfig?.runtime?.experimentalFeatures?.releaseChannel || "",
+    });
+
+    getNextUpdate(apiClients?.update, req, {
+      onSuccess: (res) => {
+        const result = versionCompare(
+          localhostInfo.clientVersion as Version,
+          res.nextVersion as Version,
+        );
+        setNextVersion(res.nextVersion as Version);
+
+        if (result < 0) setIsUpdateAvailable(true);
+      },
+    });
+  }, [localhostInfo, localhostConfig]);
+
+  const handleCopyCommand = async () => {
+    const success = await copyToClipboard(
+      "humanlog version update",
+      "Update command",
+    );
+    if (success) {
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2000);
+    }
+  };
 
   const renderAvatarBlock = (user: UserState) => {
     if (user === "loading") {
@@ -238,9 +291,64 @@ const PageHeader: React.FC = () => {
           </SelectGroup>
         </SelectContent>
       </Select>
-      <div
-        className={`h-3 w-3 shrink-0 rounded-full ${localhostInfo ? "bg-green-500" : "bg-red-500"}`}
-      />
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger>
+            <div
+              className={`h-3 w-3 shrink-0 rounded-full ${localhostInfo ? "bg-green-500" : "bg-red-500"} ${isUpdateAvailable && "animate-pulse"}`}
+            />
+          </TooltipTrigger>
+          {isUpdateAvailable && (
+            <TooltipContent className="max-w-sm bg-transparent p-0 shadow-none">
+              <div className="border-muted space-y-3 rounded-lg border bg-white p-4 shadow-lg dark:bg-black">
+                <div className="flex items-center gap-2">
+                  <Sparkles size={16} />
+                  <h3 className="text-sm font-semibold">Update Available</h3>
+                </div>
+
+                {localhostInfo?.clientVersion && (
+                  <div className="space-y-1 text-xs">
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">Current:</span>
+                      <span className="font-mono">
+                        {versionToString(localhostInfo.clientVersion)}
+                      </span>
+                    </div>
+                    {nextVersion && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-muted-foreground">Next:</span>
+                        <span className="font-mono">
+                          {versionToString(nextVersion)}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                <div className="border-t pt-2">
+                  <p className="text-muted-foreground mb-2 text-xs">
+                    Run this command to update:
+                  </p>
+                  <div className="bg-muted flex items-center gap-2 rounded-md p-2">
+                    <code className="flex-1 font-mono text-xs">
+                      humanlog version update
+                    </code>
+                    {isCopied ? (
+                      <Check size={12} />
+                    ) : (
+                      <Copy
+                        size={12}
+                        className="text-muted-foreground hover:text-foreground cursor-pointer"
+                        onClick={handleCopyCommand}
+                      />
+                    )}
+                  </div>
+                </div>
+              </div>
+            </TooltipContent>
+          )}
+        </Tooltip>
+      </TooltipProvider>
     </div>
   );
 
