@@ -19,6 +19,8 @@ import { BinaryOp_Operator, Expr } from "api/js/types/v1/query_pb";
 import { AllowedUsageResponse } from "api/js/svc/feature/v1/service_pb";
 import { AllowedUsageResponse_LocalhostUsage } from "api/js/svc/feature/v1/service_pb";
 import { getAllowedUsage } from "@/services/featureService";
+import { LocalhostConfig } from "api/js/types/v1/localhost_config_pb";
+import { defaultConfig, getConfig } from "@/services/localhostService";
 
 export type UserState = User | "loading" | "not-logged-in";
 
@@ -45,6 +47,7 @@ type AllEnvironments = {
   ) => void;
   allowedUsage: AllowedUsageResponse_LocalhostUsage | null;
   handleAllowedUsage: () => void;
+  localhostConfig: LocalhostConfig | null;
 };
 
 const ListEnvironmentContext = createContext<AllEnvironments>({
@@ -60,6 +63,7 @@ const ListEnvironmentContext = createContext<AllEnvironments>({
   onClickFilterBy: () => {},
   allowedUsage: null,
   handleAllowedUsage: () => {},
+  localhostConfig: null,
 });
 
 export function ListEnvironmentsProvider({
@@ -87,37 +91,8 @@ export function ListEnvironmentsProvider({
   );
   const [allowedUsage, setAllowedUsage] =
     useState<AllowedUsageResponse_LocalhostUsage | null>(null);
-
-  // TODO: broken🛠️
-  // const getRefreshToken = async () => {
-  //   try {
-  //     const res = await apiClients?.user.refreshUserToken({});
-
-  //     setCookie("hlog_session", res?.token, {
-  //       path: "/",
-  //       domain: `.humanlog${config.TLD}`,
-  //       secure: true,
-  //       sameSite: "strict",
-  //     });
-
-  //     return res;
-  //   } catch (err) {
-  //     if (err instanceof ConnectError) {
-  //       if (err.code === Code.Unauthenticated) {
-  //         document.cookie = `hlog_session=; path=/; domain=.humanlog${config.TLD}; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
-  //         setBrowserValid(false);
-  //         setUser("not-logged-in");
-
-  //         toast.info(
-  //           "Your session has expired. Please log in again to continue.",
-  //         );
-  //         // router.push("/login");
-  //         doLogin();
-  //       }
-  //       throw err;
-  //     }
-  //   }
-  // };
+  const [localhostConfig, setLocalhostConfig] =
+    useState<LocalhostConfig | null>(null);
 
   const deleteCookie = () => {
     document.cookie = `hlog_session=; path=/; domain=.humanlog${config.TLD}; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
@@ -297,6 +272,14 @@ export function ListEnvironmentsProvider({
     })();
   }, [apiClients?.org, currentOrg, environmentPage, setActiveEnvironment]);
 
+  const getLocalhostConfig = () => {
+    if (!apiClients) return;
+    getConfig(apiClients.localhost, {
+      onSuccess: (res) => setLocalhostConfig(res.config ?? defaultConfig),
+      onError: (err) => setLocalhostConfig(defaultConfig),
+    });
+  };
+
   useEffect(() => {
     // Initial execution
     checkBrowser();
@@ -313,6 +296,7 @@ export function ListEnvironmentsProvider({
 
   useEffect(() => {
     getUserInfo();
+    getLocalhostConfig();
   }, [browserValid, localhostValid]);
 
   return (
@@ -330,6 +314,7 @@ export function ListEnvironmentsProvider({
         onClickFilterBy,
         allowedUsage,
         handleAllowedUsage,
+        localhostConfig,
       }}
     >
       {children}
