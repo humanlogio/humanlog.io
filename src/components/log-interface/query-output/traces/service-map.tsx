@@ -1,5 +1,4 @@
 import { Card } from "@/components/ui/card";
-import { Span } from "api/js/types/v1/tracing_pb";
 import { useEffect, useState, useRef } from "react";
 import { formatDuration } from "@/lib/utils/formatTimeStamp";
 import { Duration } from "@bufbuild/protobuf";
@@ -9,6 +8,7 @@ import {
   Node,
   Link,
 } from "@/components/log-interface/query-output/traces/service-map/types";
+import { Span } from "api/js/types/v1/otel_tracing_pb";
 
 interface ServiceMapProps {
   spans: Span[];

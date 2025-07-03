@@ -1,5 +1,5 @@
-import { Span } from "api/js/types/v1/tracing_pb";
 import { Timestamp } from "@bufbuild/protobuf";
+import { Span } from "api/js/types/v1/otel_tracing_pb";
 import { ReactNode } from "react";
 
 export interface SpanTreeNode {
@@ -72,12 +72,8 @@ export const buildSpanTree = (spans: Span[]): SpanTreeNode[] => {
   // Sort nodes by time
   const sortNodesByTime = (nodes: SpanTreeNode[]): SpanTreeNode[] => {
     return nodes.sort((a: SpanTreeNode, b: SpanTreeNode) => {
-      const aStart = a.span.timing?.start
-        ? getUnixTimestamp(a.span.timing.start)
-        : 0;
-      const bStart = b.span.timing?.start
-        ? getUnixTimestamp(b.span.timing.start)
-        : 0;
+      const aStart = a.span.time ? getUnixTimestamp(a.span.time) : 0;
+      const bStart = b.span.time ? getUnixTimestamp(b.span.time) : 0;
       return aStart - bStart;
     });
   };

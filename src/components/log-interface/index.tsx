@@ -29,7 +29,7 @@ import {
   SplitOperator_ByOperator,
   Statements,
 } from "api/js/types/v1/query_pb";
-import { Val } from "api/js/types/v1/types_pb";
+import { Table, Val } from "api/js/types/v1/types_pb";
 import { X } from "lucide-react";
 import {
   getQuery,
@@ -43,36 +43,17 @@ import QueryInput from "@/components/log-interface/query-input";
 import QueryOutput from "@/components/log-interface/query-output";
 import { QueryLibrary } from "@/components/log-interface/query-library";
 import { QueryHistoryEntry } from "api/js/types/v1/query_history_entry_pb";
-import {
-  Data_SubQueries,
-  ScalarTimeseries,
-  Tabular,
-  VectorTimeseries,
-} from "api/js/types/v1/data_pb";
+import { Subqueries, Logs, Spans } from "api/js/types/v1/data_pb";
 import { twMerge } from "tailwind-merge";
-import config from "@/features/config";
 import Graph from "@/components/ui/graph/graph";
 import { trace, SpanStatusCode } from "@opentelemetry/api";
 import { ConnectError } from "@connectrpc/connect";
 import { Duration } from "@bufbuild/protobuf";
-import { newIdentifierExpr } from "@/lib/utils/queryExpressions";
 import FeatureFlag from "@/components/posthog/feature-flag";
 
-export type DataCase =
-  | "subqueries"
-  | "tabular"
-  | "singleValue"
-  | "scalarTimeseries"
-  | "vectorTimeseries"
-  | undefined;
+export type DataCase = "subqueries" | "freeform" | "logs" | "spans" | undefined;
 
-export type DataValue =
-  | Data_SubQueries
-  | Tabular
-  | Val
-  | ScalarTimeseries
-  | VectorTimeseries
-  | undefined;
+export type DataValue = Subqueries | Logs | Spans | Table | undefined;
 
 export type ExecuteQuery = (query: string) => void;
 
@@ -117,8 +98,7 @@ const LogInterface = ({ nav }: LogInterfaceProps) => {
         value: new SplitOperator({
           by: new SplitOperator_ByOperator({
             scalars: [
-              newIdentifierExpr("machine"),
-              newIdentifierExpr("session"),
+              //TODO : add scalars
             ],
           }),
         }),
@@ -133,17 +113,14 @@ const LogInterface = ({ nav }: LogInterfaceProps) => {
     if (parseRes.dataType) {
       const { type } = parseRes.dataType;
 
-      if (
-        parseRes.query &&
-        type.case === "tabular" &&
-        type.value?.type?.case === "logEvents"
-      ) {
+      if (parseRes.query && type.case === "logs") {
         let renderStmt;
         let statements = parseRes.query.query?.statements ?? [];
 
-        if (splitByDefault) {
-          renderStmt = createSplitRenderStatement();
-        }
+        // TODO : add split by default
+        // if (splitByDefault) {
+        //   renderStmt = createSplitRenderStatement();
+        // }
 
         if (parseRes.query.query) {
           parseRes.query.query.render = renderStmt;

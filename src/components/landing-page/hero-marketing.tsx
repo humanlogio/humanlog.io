@@ -12,10 +12,6 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import SessionPanel from "@/components/log-interface/query-output/session/session-panel";
-import {
-  sampleLogs,
-  sampleSpans,
-} from "@/components/landing-page/sample-protobuf-data";
 import { useTheme } from "next-themes";
 import {
   Star,
@@ -30,6 +26,8 @@ import { getSelfURL } from "@/lib/envs";
 import InstallCTA from "@/components/landing-page/shared/install-cta";
 import { SpansContainer } from "@/components/log-interface/query-output/traces/spans-container";
 import Terminal from "@/components/landing-page/shared/ui/terminal";
+import { sampleLogs } from "@/lib/mocks/sampleLogs";
+import { sampleSpans } from "@/lib/mocks/sampleSpans";
 
 const AboveFoldHero: React.FC = () => {
   const { theme: colorMode } = useTheme();

@@ -18,11 +18,7 @@ import Histogram from "@/components/log-interface/query-output/freeform/histogra
 import { Cursor } from "api/js/types/v1/cursor_pb";
 import { StreamResponse } from "api/js/svc/query/v1/service_pb";
 import { extractFromStreamResponses } from "@/lib/utils/dataHelpers";
-import {
-  newFreeFormTablular,
-  newTable,
-  newTabularData,
-} from "@/lib/utils/dataShapeFactories";
+import { newTable, newTableData } from "@/lib/utils/dataShapeFactories";
 
 interface FreeFormContainerProps {
   query: Query | undefined;
@@ -49,9 +45,7 @@ export const FreeFormContainer = ({
   const [sharedData, setSharedData] = useState<Data | null>(null);
 
   const onClickShare = () => {
-    const data = newTabularData(
-      newFreeFormTablular(newTable(tableColumns, tableRows)),
-    );
+    const data = newTableData(newTable(tableColumns, tableRows));
     setSharedData(data);
   };
 
@@ -72,10 +66,10 @@ export const FreeFormContainer = ({
   useEffect(() => {
     next &&
       fetchNext &&
-      fetchData(({ value: shapeValue }) => {
+      fetchData((value) => {
         setTableRows((prev) => {
           if (prev) {
-            return [...prev, ...shapeValue.rows];
+            return [...prev, ...value.rows];
           }
         });
       });
@@ -83,13 +77,10 @@ export const FreeFormContainer = ({
 
   useEffect(() => {
     if (!streamRes || streamRes.length === 0) return;
-    const _tableRows = extractFromStreamResponses<Arr, Table>(
-      streamRes,
-      (value) => {
-        setTableColumns(value.type?.columns);
-        return value.rows;
-      },
-    );
+    const _tableRows = extractFromStreamResponses<Arr>(streamRes, (value) => {
+      setTableColumns(value.type?.columns);
+      return value.rows;
+    });
     setTableRows(_tableRows);
   }, [streamRes]);
 
