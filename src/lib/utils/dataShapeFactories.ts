@@ -1,4 +1,4 @@
-import { Data, Tabular, LogEvents, Spans } from "api/js/types/v1/data_pb";
+import { Data, Logs, Spans } from "api/js/types/v1/data_pb";
 import {
   Arr,
   Table,
@@ -6,37 +6,28 @@ import {
   TableType_Column,
 } from "api/js/types/v1/types_pb";
 
-export const newTabularData = (v: Tabular) => {
+export const newTableData = (v: Table) => {
   return new Data({
     shape: {
-      case: "tabular",
+      case: "freeForm",
       value: v,
     },
   });
 };
 
-export const newLogEventsTablular = (v: LogEvents) => {
-  return new Tabular({
+export const newLogsData = (v: Logs) => {
+  return new Data({
     shape: {
-      case: "logEvents",
+      case: "logs",
       value: v,
     },
   });
 };
 
-export const newSpansTabluar = (v: Spans) => {
-  return new Tabular({
+export const newSpansData = (v: Spans) => {
+  return new Data({
     shape: {
       case: "spans",
-      value: v,
-    },
-  });
-};
-
-export const newFreeFormTablular = (v: Table) => {
-  return new Tabular({
-    shape: {
-      case: "freeForm",
       value: v,
     },
   });

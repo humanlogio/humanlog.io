@@ -1,14 +1,13 @@
 import { StreamResponse } from "api/js/svc/query/v1/service_pb";
-import { Data, LogEvents, Spans, Tabular } from "api/js/types/v1/data_pb";
+import { Data, Logs, Spans, Subqueries } from "api/js/types/v1/data_pb";
 import { Table } from "api/js/types/v1/types_pb";
 
-export const onTabularData = (
+export const onData = (
   data: Data | undefined,
-  handler: (tabular: LogEvents | Table | Spans | undefined) => void,
+  handler: (data: Logs | Table | Spans | Subqueries | undefined) => void,
 ) => {
   if (!data) return;
-  if (data.shape.case !== "tabular") return;
-  handler(data.shape.value.shape.value);
+  handler(data.shape.value);
 };
 
 /**
@@ -19,7 +18,7 @@ export const onTabularData = (
  * @param extractFn - Function to extract the specific data from the matching shape value
  * @returns The extracted data array or undefined if no matching data
  */
-export function extractFromStreamResponses<T, R>(
+export function extractFromStreamResponses<T>(
   streamRes: StreamResponse[] | undefined,
   extractFn: (value: any) => T[],
 ): T[] {
@@ -28,8 +27,10 @@ export function extractFromStreamResponses<T, R>(
   const results: T[] = [];
 
   streamRes.forEach((res) => {
-    onTabularData(res.data, (tabular) => {
-      const extracted = extractFn(tabular);
+    onData(res.data, (data) => {
+      console.log("data", data);
+      const extracted = extractFn(data);
+      console.log("extracted", extracted);
       results.push(...extracted);
     });
   });

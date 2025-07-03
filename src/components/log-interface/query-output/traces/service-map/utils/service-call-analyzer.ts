@@ -1,10 +1,10 @@
-import { Span } from "api/js/types/v1/tracing_pb";
 import { getColorByIndex } from "@/lib/utils/colors";
 import type {
   ServiceCallMap,
   Node,
   Link,
 } from "@/components/log-interface/query-output/traces/service-map/types";
+import { Span } from "api/js/types/v1/otel_tracing_pb";
 
 /**
  * Analyzes inter-service call relationships for Service Map
@@ -73,10 +73,10 @@ export function generateServiceCallMap(spans: Span[]): ServiceCallMap {
         }
 
         // Calculate duration in milliseconds
-        if (span.timing?.duration) {
+        if (span?.duration) {
           const durationMs =
-            Number(span.timing.duration.seconds) * 1000 +
-            Math.floor(span.timing.duration.nanos / 1_000_000);
+            Number(span.duration.seconds) * 1000 +
+            Math.floor(span.duration.nanos / 1_000_000);
           serviceCallDurations[parentService][currentService].push(durationMs);
         }
       }
