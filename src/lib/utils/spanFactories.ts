@@ -1,8 +1,9 @@
 import { Duration, Timestamp } from "@bufbuild/protobuf";
-import { Span, Span_Timing } from "api/js/types/v1/tracing_pb";
+import { Span_Timing } from "api/js/types/v1/tracing_pb";
 import { KV } from "api/js/types/v1/types_pb";
 // Import KV helpers
 import { makeStrKV, makeI64KV, makeF64KV } from "@/lib/utils/kvFactories";
+import { Span } from "api/js/types/v1/otel_tracing_pb";
 
 /**
  * Create a protobuf Duration from milliseconds.
@@ -19,7 +20,7 @@ export const makeSpan = (
   parentSpanId: string,
   operation: string,
   serviceName: string,
-  startTime: Timestamp,
+  time: Timestamp,
   durationMs: number,
   attributes: KV[],
 ): Span => {
@@ -28,11 +29,9 @@ export const makeSpan = (
     traceId,
     parentSpanId,
     name: operation,
-    timing: new Span_Timing({
-      start: startTime,
-      duration: makeDurationFromMs(durationMs),
-    }),
     serviceName: serviceName,
-    spanAttributes: attributes,
+    time: time,
+    duration: makeDurationFromMs(durationMs),
+    attributes: attributes,
   });
 };

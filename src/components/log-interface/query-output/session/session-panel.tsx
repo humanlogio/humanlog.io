@@ -1,9 +1,7 @@
 import { copyToClipboard } from "@/lib/utils/clipboard";
 import { formatDuration, formatTimestamp } from "@/lib/utils/formatTimeStamp";
-
 import { useInfiniteQuery } from "@/lib/hooks/useInfiniteQuery";
-import { IngestedLogEvent } from "api/js/types/v1/logevent_pb";
-import { BinaryOp_Operator, Expr, Query } from "api/js/types/v1/query_pb";
+import { Query } from "api/js/types/v1/query_pb";
 import {
   Ellipsis,
   Loader,
@@ -15,13 +13,9 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { DragHandle } from "@/components/sortable/sortable-item";
 import { Button } from "@/components/ui/button";
 import { Timestamp } from "@bufbuild/protobuf";
-import {
-  FormatConfig_Themes,
-  LocalhostConfig,
-} from "api/js/types/v1/localhost_config_pb";
+import { FormatConfig_Themes } from "api/js/types/v1/localhost_config_pb";
 import { useTheme } from "next-themes";
 import { useThemeColors } from "@/lib/hooks/useThemeColors";
-import { useApiClients } from "@/context/api-provider";
 import {
   Tooltip,
   TooltipContent,
@@ -47,7 +41,7 @@ import {
   KeyValueRow,
   MetaDataTooltip,
 } from "@/components/log-interface/query-output/session/session-control";
-import { Data, LogEvents, Tabular } from "api/js/types/v1/data_pb";
+import { Data, Logs } from "api/js/types/v1/data_pb";
 import { ShareQuery } from "@/components/log-interface/share-query";
 import { QueryHistoryEntry } from "api/js/types/v1/query_history_entry_pb";
 import { defaultConfig, getConfig } from "@/services/localhostService";
@@ -55,21 +49,19 @@ import { useAllEnvironments } from "@/context/list-environments";
 import { Cursor } from "api/js/types/v1/cursor_pb";
 import { StreamResponse } from "api/js/svc/query/v1/service_pb";
 import { extractFromStreamResponses } from "@/lib/utils/dataHelpers";
-import {
-  newLogEventsTablular,
-  newTabularData,
-} from "@/lib/utils/dataShapeFactories";
+import { newLogsData } from "@/lib/utils/dataShapeFactories";
 import {
   newIdentifierExpr,
   newLiteralExpr,
 } from "@/lib/utils/queryExpressions";
+import { Log } from "api/js/types/v1/otel_logging_pb";
 
 interface SessionPanelProps {
   ids?: { machineId?: string; sessionId?: string };
   query: Query | undefined;
-  data?: LogEvents;
+  data?: Logs;
   initialNext?: Cursor | null;
-  providedData?: IngestedLogEvent[];
+  providedData?: Log[];
   mode?: "dark" | "light";
   themes?: FormatConfig_Themes;
   queryHistoryEntry?: QueryHistoryEntry;
@@ -111,7 +103,7 @@ const SessionPanel = ({
   ];
 
   // state
-  const [logs, setLogs] = useState<IngestedLogEvent[]>();
+  const [logs, setLogs] = useState<Log[]>();
 
   const [sectionBreak, setSectionBreak] = useState(false);
   const [isDark, setIsDark] = useState(false);
@@ -135,17 +127,6 @@ const SessionPanel = ({
     }
 
     router.push(`?${params}`, { scroll: false });
-  };
-
-  const isStructuredLog = (log: IngestedLogEvent) => {
-    if (
-      log.structured?.lvl ||
-      log.structured?.msg ||
-      (log.structured?.kvs && log.structured.kvs.length > 0)
-    ) {
-      return true;
-    }
-    return false;
   };
 
   const formattedValue = (value?: Val): string => {
@@ -187,23 +168,23 @@ const SessionPanel = ({
     return result;
   };
 
-  const updateSelection = (value: string, log: IngestedLogEvent) => {
+  const updateSelection = (value: string, log: Log) => {
     const selected = dropDownMenu?.find((select) => select.key === value);
     if (!selected) return;
 
     let text: string;
 
-    if (!pretty || !isStructuredLog(log)) {
+    if (!pretty) {
       text = decodeUint8Array(log.raw);
     } else {
       const timestamp = formatTimestamp(
-        (log.structured?.timestamp as Timestamp) ?? log.parsedAt,
+        (log.timestamp as Timestamp) ?? log.observedTimestamp,
         localhostConfig?.formatter?.time?.format ?? "",
       );
 
-      const level = log.structured?.lvl ?? "EMPTY";
-      const message = log.structured?.msg ?? "no message";
-      const kvText = formatKvText(log.structured?.kvs, sectionBreak);
+      const level = log.severityText ?? "EMPTY";
+      const message = log.body ?? "no message";
+      const kvText = formatKvText(log.attributes, sectionBreak);
       text = `${timestamp} |${level}| ${message} ${kvText}`;
     }
 
@@ -225,10 +206,10 @@ const SessionPanel = ({
       setLogs(providedData);
     } else if (data) {
       setNext(initialNext);
-      setLogs(data.events);
+      setLogs(data.logs);
     } else {
-      fetchData(({ value: shapeValue }) => {
-        setLogs(shapeValue.events);
+      fetchData((value) => {
+        setLogs(value.logs);
       });
     }
   }, [query]);
@@ -236,10 +217,10 @@ const SessionPanel = ({
   useEffect(() => {
     next &&
       fetchNext &&
-      fetchData(({ value: shapeValue }) => {
+      fetchData((value) => {
         setLogs((prev) => {
           if (prev) {
-            return [...prev, ...shapeValue.events];
+            return [...prev, ...value.logs];
           }
         });
       });
@@ -247,17 +228,15 @@ const SessionPanel = ({
 
   useEffect(() => {
     if (!streamRes || streamRes.length === 0) return;
-    const _logs = extractFromStreamResponses<IngestedLogEvent, LogEvents>(
+    const _logs = extractFromStreamResponses<Log>(
       streamRes,
-      (value) => value.events,
+      (value) => value.logs,
     );
     setLogs(_logs);
   }, [streamRes]);
 
   const onClickShare = () => {
-    const data = newTabularData(
-      newLogEventsTablular(new LogEvents({ events: logs })),
-    );
+    const data = newLogsData(new Logs({ logs }));
     setSharedData(data);
   };
 
@@ -346,26 +325,20 @@ const SessionPanel = ({
         >
           <div className="flex-1 border-separate overflow-x-auto py-2">
             {logs && logs.length > 0 ? (
-              logs?.map((log, i) => {
+              logs?.map((log: Log, i: number) => {
                 return (
                   <div
-                    key={`${i + 1}-${log.machineId}-${log.sessionId}-${log.eventId}`}
+                    key={`${i}-${log.ulid}`}
                     className={twMerge(
                       "relative flex w-full px-2",
-                      selectedLines ===
-                        `${i + 1}${log.machineId}${log.sessionId}${log.eventId}` &&
-                        "bg-muted",
+                      selectedLines === `${i}-${log.ulid}` && "bg-muted",
                       sectionBreak && pretty && "py-1",
                     )}
                   >
                     <button
                       type="button"
                       className={`w-5 flex-none hover:text-gray-400 ${isDark ? "text-white" : "text-black"}`}
-                      onClick={() =>
-                        handleClickLine(
-                          `${i + 1}${log.machineId}${log.sessionId}${log.eventId}`,
-                        )
-                      }
+                      onClick={() => handleClickLine(`${i}-${log.ulid}`)}
                     >
                       {i + 1}
                     </button>
@@ -374,9 +347,7 @@ const SessionPanel = ({
                       onValueChange={(value) => updateSelection(value, log)}
                     >
                       <SelectTrigger>
-                        {selectedLines ===
-                          `${i + 1}${log.machineId}${log.sessionId}${log.eventId}` &&
-                        "bg-muted" ? (
+                        {selectedLines === `${i}-${log.ulid}` && "bg-muted" ? (
                           <div className="bg-main z-1 mr-2 flex h-5 w-5 items-center justify-center rounded border">
                             <Ellipsis size={14} />
                             <SelectValue placeholder="" />
@@ -398,7 +369,7 @@ const SessionPanel = ({
                       </SelectContent>
                     </Select>
 
-                    {!pretty || !isStructuredLog(log) ? (
+                    {!pretty ? (
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <code
@@ -424,8 +395,8 @@ const SessionPanel = ({
                             <span className="inline-flex items-center">
                               <span style={{ color: getColor("time") }}>
                                 {formatTimestamp(
-                                  (log.structured?.timestamp as Timestamp) ??
-                                    log.parsedAt,
+                                  (log.timestamp as Timestamp) ??
+                                    log.observedTimestamp,
                                   localhostConfig?.formatter?.time?.format ??
                                     "",
                                 )}{" "}
@@ -434,10 +405,10 @@ const SessionPanel = ({
                                 |
                                 <span
                                   style={{
-                                    color: getLevelColor(log?.structured?.lvl),
+                                    color: getLevelColor(log.severityText),
                                   }}
                                 >
-                                  {log?.structured?.lvl || "EMPTY"}
+                                  {log?.severityText || "EMPTY"}
                                 </span>
                                 |{" "}
                               </span>
@@ -446,7 +417,7 @@ const SessionPanel = ({
                                 style={{ color: getColor("msg") }}
                                 className="mr-1"
                               >
-                                {log.structured?.msg || "no message"}
+                                {log.body || "no message"}
                               </span>
                             </span>
                           </TooltipTrigger>
@@ -459,11 +430,8 @@ const SessionPanel = ({
                             sectionBreak && "flex-col",
                           )}
                         >
-                          {log.structured?.kvs.map((kv, kvIndex) => (
-                            <span
-                              key={`${log.sessionId}-${log.eventId}-${kvIndex}`}
-                              className="mr-1 inline-flex"
-                            >
+                          {log.attributes.map((kv, kvIndex) => (
+                            <span key={kvIndex} className="mr-1 inline-flex">
                               <Tooltip>
                                 <TooltipTrigger asChild>
                                   <span className="inline">

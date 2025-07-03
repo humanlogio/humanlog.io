@@ -5,7 +5,6 @@ import {
   getDurationInMilliseconds,
   getUnixTimestamp,
 } from "@/lib/utils/formatTimeStamp";
-import { Span } from "api/js/types/v1/tracing_pb";
 import {
   Dispatch,
   ReactNode,
@@ -18,6 +17,7 @@ import {
 import { Duration } from "@bufbuild/protobuf";
 import { SpanTreeNode, walkSpanTreeNodeFlat } from "@/components/traces/utils";
 import { twMerge } from "tailwind-merge";
+import { Span } from "api/js/types/v1/otel_tracing_pb";
 
 interface TraceWaterfallProps {
   traceId: string;
@@ -56,9 +56,9 @@ export const TraceWaterfall = ({
     const ends: number[] = [];
 
     spans.forEach((span) => {
-      if (span.timing?.start && span.timing?.duration) {
-        const start = getUnixTimestamp(span.timing.start);
-        const duration = getDurationInMilliseconds(span.timing.duration);
+      if (span.time && span.duration) {
+        const start = getUnixTimestamp(span.time);
+        const duration = getDurationInMilliseconds(span.duration);
         starts.push(start);
         ends.push(start + duration);
       }
@@ -260,22 +260,16 @@ export const TraceWaterfall = ({
   };
 
   const renderTimeline = (span: Span) => {
-    const { timing, serviceName, name } = span;
-    if (
-      !timing ||
-      !timing.start ||
-      !timing.duration ||
-      totalDuration === 0 ||
-      !serviceColors
-    ) {
+    const { time, duration, serviceName, name } = span;
+    if (!time || !duration || totalDuration === 0 || !serviceColors) {
       return <></>;
     }
 
-    const start = getUnixTimestamp(timing.start);
-    const duration = getDurationInMilliseconds(timing.duration);
+    const start = getUnixTimestamp(time);
+    const durationMilliseconds = getDurationInMilliseconds(duration);
 
     const left = ((start - minStart) / totalDuration) * 100;
-    const width = (duration / totalDuration) * 100;
+    const width = (durationMilliseconds / totalDuration) * 100;
     const right = left > 50 ? left - 3 : left + width + 1;
 
     return (
@@ -287,13 +281,13 @@ export const TraceWaterfall = ({
             width: `${width}%`,
             backgroundColor: serviceColors[serviceName],
           }}
-          title={`${formatDuration(timing?.duration)} - ${name}`}
+          title={`${formatDuration(duration)} - ${name}`}
         >
-          {width >= 5 && formatDuration(timing?.duration)}
+          {width >= 5 && formatDuration(duration)}
         </div>
         {width < 5 && (
           <div className="absolute" style={{ left: `${right}%` }}>
-            {formatDuration(timing?.duration)}
+            {formatDuration(duration)}
           </div>
         )}
       </div>

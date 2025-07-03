@@ -7,7 +7,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { formatDuration, formatTimestamp } from "@/lib/utils/formatTimeStamp";
-import { Span } from "api/js/types/v1/tracing_pb";
+import { Span } from "api/js/types/v1/otel_tracing_pb";
 import {
   Activity,
   Clock,
@@ -36,11 +36,10 @@ import { newIndexorExpr } from "@/lib/utils/queryExpressions";
 import { newStrVal } from "@/lib/utils/valueFactories";
 import { useEffect, useState } from "react";
 import { Data, Spans } from "api/js/types/v1/data_pb";
-import { newSpansTabluar } from "@/lib/utils/dataShapeFactories";
-import { newTabularData } from "@/lib/utils/dataShapeFactories";
 import { Input } from "@/components/ui/input";
 import { QueryHistoryEntry } from "api/js/types/v1/query_history_entry_pb";
 import { ShareQuery } from "@/components/log-interface/share-query";
+import { newSpansData } from "@/lib/utils/dataShapeFactories";
 
 interface SpanListProps {
   spans: Span[];
@@ -58,7 +57,7 @@ export const SpanList = ({
   const [searchTerm, setSearchTerm] = useState("");
 
   const onClickShare = () => {
-    const data = newTabularData(newSpansTabluar(new Spans({ spans })));
+    const data = newSpansData(new Spans({ spans }));
     setSharedData(data);
   };
 
@@ -164,7 +163,7 @@ export const SpanList = ({
                     className="flex items-center gap-1 border-blue-200 bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-300"
                   >
                     <Clock size={12} />
-                    {formatDuration(span.timing?.duration)}
+                    {formatDuration(span.duration)}
                   </Badge>
                   {span.events?.length > 0 && (
                     <Badge
@@ -193,7 +192,7 @@ export const SpanList = ({
                 <AccordionItem value="details" className="border-0">
                   <div className="flex items-center justify-between px-4 py-2">
                     <div className="text-sm text-gray-500">
-                      {formatTimestamp(span.timing?.start as Timestamp)}
+                      {formatTimestamp(span.time as Timestamp)}
                     </div>
                     <AccordionTrigger className="py-0">
                       <span className="sr-only">View Details</span>
@@ -249,12 +248,12 @@ export const SpanList = ({
                           Resource Attributes
                         </h4>
                         <div className="flex flex-wrap gap-1.5">
-                          {span.resourceAttributes.length === 0 && (
+                          {span.resource?.attributes.length === 0 && (
                             <div className="text-xs text-gray-500">
                               No resource attributes
                             </div>
                           )}
-                          {span.resourceAttributes.map((kv, kvIndex) => (
+                          {span.resource?.attributes.map((kv, kvIndex) => (
                             <Tooltip
                               key={`${span.traceId}-${span.spanId}-resource-${kvIndex}`}
                             >
@@ -308,12 +307,12 @@ export const SpanList = ({
                           Span Attributes
                         </h4>
                         <div className="flex flex-wrap gap-1.5">
-                          {span.spanAttributes.length === 0 && (
+                          {span.attributes.length === 0 && (
                             <div className="text-xs text-gray-500">
                               No span attributes
                             </div>
                           )}
-                          {span.spanAttributes.map((kv, kvIndex) => (
+                          {span.attributes.map((kv, kvIndex) => (
                             <Tooltip
                               key={`${span.traceId}-${span.spanId}-attr-${kvIndex}`}
                             >

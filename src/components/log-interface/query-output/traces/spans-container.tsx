@@ -2,7 +2,6 @@ import { useInfiniteQuery } from "@/lib/hooks/useInfiniteQuery";
 import { Spans } from "api/js/types/v1/data_pb";
 import { QueryHistoryEntry } from "api/js/types/v1/query_history_entry_pb";
 import { Query } from "api/js/types/v1/query_pb";
-import { Span } from "api/js/types/v1/tracing_pb";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { List, Network } from "lucide-react";
@@ -12,6 +11,7 @@ import { extractFromStreamResponses } from "@/lib/utils/dataHelpers";
 
 import { ServiceMap } from "@/components/log-interface/query-output/traces/service-map";
 import { SpanList } from "@/components/log-interface/query-output/traces/span-list";
+import { Span } from "api/js/types/v1/otel_tracing_pb";
 
 interface FreeFormContainerProps {
   query: Query | undefined;
@@ -44,8 +44,8 @@ export const SpansContainer = ({
       setNext(initialNext);
       setSpans(data.spans);
     } else {
-      fetchData(({ value: shapeValue }) => {
-        setSpans(shapeValue.spans);
+      fetchData((value) => {
+        setSpans(value.spans);
       });
     }
 
@@ -59,10 +59,10 @@ export const SpansContainer = ({
   useEffect(() => {
     next &&
       fetchNext &&
-      fetchData(({ value: shapeValue }) => {
+      fetchData((value) => {
         setSpans((prev) => {
           if (prev) {
-            return [...prev, ...shapeValue.spans];
+            return [...prev, ...value.spans];
           }
         });
       });
@@ -70,7 +70,7 @@ export const SpansContainer = ({
 
   useEffect(() => {
     if (!streamRes || streamRes.length === 0) return;
-    const _spans = extractFromStreamResponses<Span, Spans>(
+    const _spans = extractFromStreamResponses<Span>(
       streamRes,
       (value) => value.spans,
     );

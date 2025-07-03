@@ -4,7 +4,6 @@ import { useApiClients } from "@/context/api-provider";
 import { QueryRequest } from "api/js/svc/query/v1/service_pb";
 import { Cursor } from "api/js/types/v1/cursor_pb";
 import { Query } from "api/js/types/v1/query_pb";
-import { Tabular } from "api/js/types/v1/data_pb";
 import { useState } from "react";
 import { useInView } from "react-intersection-observer";
 import { getQuery } from "@/services/queryService";
@@ -32,10 +31,8 @@ export const useInfiniteQuery = (query?: Query | undefined) => {
       const queryRes = await getQuery(apiClients.query, queryReq);
 
       if (queryRes?.data) {
-        const { case: shapeCase, value } = queryRes.data.shape;
-        if (shapeCase === "tabular" && value instanceof Tabular) {
-          callback?.(value.shape);
-        }
+        const { value } = queryRes.data.shape;
+        callback?.(value);
       }
       setNext(queryRes?.next ?? null);
     } catch (error) {

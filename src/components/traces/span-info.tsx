@@ -39,8 +39,9 @@ export const SpanInfo = ({ node, serviceColors }: SpanInfo) => {
           <span>Resource Attributes</span>
         </div>
         <div>
-          {node.span.resourceAttributes.length > 0 ? (
-            node.span.resourceAttributes.map((attr, i) => (
+          {node.span.resource?.attributes &&
+          node.span.resource.attributes.length > 0 ? (
+            node.span.resource?.attributes?.map((attr, i) => (
               <div key={`${i}-${attr.key}`} className="py-1">
                 <div className="text-xs text-gray-700 dark:text-gray-300">
                   {attr.key}
@@ -66,8 +67,8 @@ export const SpanInfo = ({ node, serviceColors }: SpanInfo) => {
           <span>Span Attributes</span>
         </div>
         <div>
-          {node.span.spanAttributes.length > 0 ? (
-            node.span.spanAttributes.map((attr, i) => (
+          {node.span.attributes.length > 0 ? (
+            node.span.attributes.map((attr, i) => (
               <div key={`${i}-${attr.key}`} className="py-1">
                 <div className="text-xs text-gray-700 dark:text-gray-300">
                   {attr.key}

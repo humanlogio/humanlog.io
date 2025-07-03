@@ -1,6 +1,5 @@
 "use client";
 
-import { Data_SubQueries, Tabular } from "api/js/types/v1/data_pb";
 import { ReactNode, useEffect, useState } from "react";
 import { Query } from "api/js/types/v1/query_pb";
 import { NoLogsView } from "@/components/log-interface/views/no-logs-view";
@@ -173,81 +172,65 @@ export const DataRenderer = ({
 
   const { dataCase, value } = getShapeFromResponse(streamRes, data);
 
-  if (dataCase === "tabular" && value instanceof Tabular) {
-    const { case: shapeCase, value: shapeValue } = value.shape;
-
-    switch (shapeCase) {
-      case "logEvents":
-        return (
-          <>
-            <div className="mt-2 flex flex-col gap-1">
-              <ToggleShowPretty />
-              {(!streamRes || streamRes?.length === 0) && parsedQuery && (
-                <ToggleSplit />
-              )}
-            </div>
-            <div className="flex-1">
-              <SessionPanel
-                streamRes={streamRes}
-                data={shapeValue}
-                initialNext={next}
-                query={parsedQuery}
-                queryHistoryEntry={queryHistoryEntry}
-                {...(parsedQuery && { ids: extractQueryIds(parsedQuery) })}
-              />
-            </div>
-          </>
-        );
-      case "freeForm":
-        return (
-          <FreeFormContainer
-            streamRes={streamRes}
-            data={shapeValue}
-            initialNext={next}
-            query={parsedQuery}
-            queryHistoryEntry={queryHistoryEntry}
-          />
-        );
-      case "spans":
-        return (
-          <SpansContainer
-            streamRes={streamRes}
-            data={shapeValue}
-            initialNext={next}
-            query={parsedQuery}
-            queryHistoryEntry={queryHistoryEntry}
-          />
-        );
-      default:
-        return (
-          <div className="p-4 text-center text-gray-500">
-            <AlertCircle className="mx-auto mb-2" />
-            <p>Unsupported format</p>
+  switch (dataCase) {
+    case "logs":
+      return (
+        <>
+          <div className="mt-2 flex flex-col gap-1">
+            <ToggleShowPretty />
+            {(!streamRes || streamRes?.length === 0) && parsedQuery && (
+              <ToggleSplit />
+            )}
           </div>
-        );
-    }
-  }
-
-  if (dataCase === "subqueries" && value instanceof Data_SubQueries) {
-    const { queries } = value;
-    return (
-      <div className="flex-1">
-        <SubQueriesContainer
-          queries={queries}
+          <div className="flex-1">
+            <SessionPanel
+              streamRes={streamRes}
+              data={value}
+              initialNext={next}
+              query={parsedQuery}
+              queryHistoryEntry={queryHistoryEntry}
+              {...(parsedQuery && { ids: extractQueryIds(parsedQuery) })}
+            />
+          </div>
+        </>
+      );
+    case "freeForm":
+      return (
+        <FreeFormContainer
+          streamRes={streamRes}
+          data={value}
+          initialNext={next}
+          query={parsedQuery}
           queryHistoryEntry={queryHistoryEntry}
         />
-      </div>
-    );
+      );
+    case "spans":
+      return (
+        <SpansContainer
+          streamRes={streamRes}
+          data={value}
+          initialNext={next}
+          query={parsedQuery}
+          queryHistoryEntry={queryHistoryEntry}
+        />
+      );
+    case "subqueries":
+      return (
+        <div className="flex-1">
+          <SubQueriesContainer
+            queries={value.queries}
+            queryHistoryEntry={queryHistoryEntry}
+          />
+        </div>
+      );
+    default:
+      return (
+        <div className="p-4 text-center text-gray-500">
+          <AlertCircle className="mx-auto mb-2" />
+          <p>Unsupported format</p>
+        </div>
+      );
   }
-
-  return (
-    <div className="p-4 text-center">
-      <p className="mb-2 text-gray-600">Data type: {dataCase}</p>
-      <pre className="rounded bg-gray-100 p-4 text-left text-xs">
-        {JSON.stringify(value, null, 2)}
-      </pre>
-    </div>
-  );
 };
 
 export default QueryOutput;

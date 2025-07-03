@@ -6,7 +6,6 @@ import {
   getUnixTimestamp,
 } from "@/lib/utils/formatTimeStamp";
 import { getTrace } from "@/services/traceService";
-import { Span } from "api/js/types/v1/tracing_pb";
 import { useEffect, useMemo, useState } from "react";
 import { Copy } from "lucide-react";
 import { copyToClipboard } from "@/lib/utils/clipboard";
@@ -24,6 +23,7 @@ import { Timestamp } from "@bufbuild/protobuf";
 import { toBigInt } from "@/lib/utils/valueFactories";
 import { makeStrKV } from "@/lib/utils/kvFactories";
 import { getColorByIndex } from "@/lib/utils/colors";
+import { Span } from "api/js/types/v1/otel_tracing_pb";
 
 interface TracesProps {
   traceId: string | null;
