@@ -11,6 +11,7 @@ import {
   newStrExpr,
   newTimestampExpr,
 } from "@/lib/utils/queryExpressions";
+import { Log } from "api/js/types/v1/otel_logging_pb";
 
 export const OPERATORS = [
   {
@@ -88,54 +89,24 @@ export const KeyValueRow = ({
 };
 
 interface MetaDataTooltipProps {
-  log: IngestedLogEvent;
+  log: Log;
 }
 export const MetaDataTooltip = ({ log }: MetaDataTooltipProps) => {
   return (
     <TooltipContent align="start">
       <div>
-        {!!log.machineId && (
-          <div className="flex justify-between gap-2">
-            <KeyValueRow label="Machine Id" value={log.machineId.toString()} />
-            <FilterByKeyValue
-              symbolName={newIdentifierExpr("machine")}
-              symbolValue={newI64Expr(log.machineId)}
-            />
-          </div>
-        )}
-
         <div className="flex justify-between gap-2">
-          <KeyValueRow label="Session Id" value={log.sessionId.toString()} />
-          <FilterByKeyValue
-            symbolName={newIdentifierExpr("session")}
-            symbolValue={newI64Expr(log.sessionId)}
-          />
-        </div>
-        <div className="flex justify-between gap-2">
-          <KeyValueRow label="Event Id" value={log.eventId.toString()} />
-          <FilterByKeyValue
-            symbolName={newIdentifierExpr("event")}
-            symbolValue={newI64Expr(log.eventId)}
-          />
-        </div>
-        <div className="flex justify-between gap-2">
-          <KeyValueRow
-            label="Level"
-            value={log.structured?.lvl.toString() ?? "EMPTY"}
-          />
+          <KeyValueRow label="Level" value={log.severityText ?? "EMPTY"} />
           <FilterByKeyValue
             symbolName={newIdentifierExpr("lvl")}
-            symbolValue={newStrExpr(log.structured?.lvl)}
+            symbolValue={newStrExpr(log.severityText)}
           />
         </div>
         <div className="flex justify-between gap-2">
-          <KeyValueRow
-            label="Message"
-            value={log.structured?.msg.toString() ?? "no message"}
-          />
+          <KeyValueRow label="Message" value={log.body ?? "no message"} />
           <FilterByKeyValue
             symbolName={newIdentifierExpr("msg")}
-            symbolValue={newStrExpr(log.structured?.msg)}
+            symbolValue={newStrExpr(log.body)}
             symbolCase="str"
           />
         </div>
@@ -143,12 +114,12 @@ export const MetaDataTooltip = ({ log }: MetaDataTooltipProps) => {
           <KeyValueRow
             label="Timestamp"
             value={getUnixTimestamp(
-              (log.structured?.timestamp as Timestamp) ?? log.parsedAt,
+              (log.timestamp as Timestamp) ?? log.observedTimestamp,
             ).toString()}
           />
           <FilterByKeyValue
             symbolName={newIdentifierExpr("ts")}
-            symbolValue={newTimestampExpr(log.structured?.timestamp)}
+            symbolValue={newTimestampExpr(log.timestamp)}
             symbolCase="ts"
           />
         </div>
@@ -156,7 +127,7 @@ export const MetaDataTooltip = ({ log }: MetaDataTooltipProps) => {
         <KeyValueRow
           label="UTC"
           value={formatTimestamp(
-            (log.structured?.timestamp as Timestamp) ?? log.parsedAt,
+            (log.timestamp as Timestamp) ?? log.observedTimestamp,
             "Jan _2 15:04:05.000",
             true,
           )}
@@ -165,7 +136,7 @@ export const MetaDataTooltip = ({ log }: MetaDataTooltipProps) => {
         <KeyValueRow
           label="Local"
           value={formatTimestamp(
-            (log.structured?.timestamp as Timestamp) ?? log.parsedAt,
+            (log.timestamp as Timestamp) ?? log.observedTimestamp,
             "Jan _2 15:04:05.000",
           )}
         />

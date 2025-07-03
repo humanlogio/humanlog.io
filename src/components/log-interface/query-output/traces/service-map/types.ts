@@ -1,4 +1,4 @@
-import { Span } from "api/js/types/v1/tracing_pb";
+import { Span } from "api/js/types/v1/otel_tracing_pb";
 import * as d3 from "d3";
 
 export interface ServiceMapProps {

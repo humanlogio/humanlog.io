@@ -4,7 +4,6 @@ import SessionPanel from "@/components/log-interface/query-output/session/sessio
 import { useApiClients } from "@/context/api-provider";
 import { formatTimestamp, getTimeSince } from "@/lib/utils/formatTimeStamp";
 import { getPublicSharedResult } from "@/services/shareService";
-import { IngestedLogEvent } from "api/js/types/v1/logevent_pb";
 import { QueryHistoryEntry } from "api/js/types/v1/query_history_entry_pb";
 import { Table } from "api/js/types/v1/types_pb";
 import { PublicUser, User } from "api/js/types/v1/user_pb";
@@ -23,6 +22,7 @@ import { useRouter } from "next/navigation";
 import { FreeFormContainer } from "@/components/log-interface/query-output/freeform";
 import { Spans } from "api/js/types/v1/data_pb";
 import { SpansContainer } from "@/components/log-interface/query-output/traces/spans-container";
+import { Log } from "api/js/types/v1/otel_logging_pb";
 
 interface SharedQueryProps {
   sharedId: string;
@@ -39,7 +39,7 @@ export const SharedQuery = ({ sharedId, prefix }: SharedQueryProps) => {
   const [sharedBy, setSharedBy] = useState<PublicUser | null>(null);
   const [query, setQuery] = useState<QueryHistoryEntry | null>(null);
 
-  const [logData, setLogData] = useState<IngestedLogEvent[] | null>(null);
+  const [logData, setLogData] = useState<Log[] | null>(null);
   const [freeFormData, setFreeFormData] = useState<Table | null>();
   const [spanData, setSpanData] = useState<Spans | null>();
   const [sharedTimestamp, setSharedTimestamp] = useState<any>(null);
@@ -60,27 +60,27 @@ export const SharedQuery = ({ sharedId, prefix }: SharedQueryProps) => {
           const { sharedBy: _sharedBy, sharedResult } = res;
           setSharedBy(_sharedBy || null);
 
-          if (sharedResult) {
-            const { query: _query, result: _result, createdAt } = sharedResult;
-            setQuery(_query || null);
+          if (!sharedResult) return;
 
-            setSharedTimestamp(createdAt || null);
+          const { query: _query, result: _result, createdAt } = sharedResult;
 
-            if (_result?.shape.case === "tabular") {
-              const { case: shapeCase, value: shapeValue } =
-                _result.shape.value.shape;
+          if (!_result?.shape) return;
 
-              if (shapeCase === "logEvents") {
-                setLogData(shapeValue.events || null);
-              }
-              if (shapeCase === "freeForm") {
-                setFreeFormData(shapeValue);
-              }
+          const { case: shapeCase, value: shapeValue } = _result.shape;
 
-              if (shapeCase === "spans") {
-                setSpanData(shapeValue);
-              }
-            }
+          setQuery(_query || null);
+
+          setSharedTimestamp(createdAt || null);
+
+          switch (shapeCase) {
+            case "logs":
+              setLogData(shapeValue.logs || null);
+              break;
+            case "freeForm":
+              setFreeFormData(shapeValue);
+              break;
+            case "spans":
+              setSpanData(shapeValue);
           }
 
           setIsLoading(false);
