@@ -98,14 +98,14 @@ export const MetaDataTooltip = ({ log }: MetaDataTooltipProps) => {
         <div className="flex justify-between gap-2">
           <KeyValueRow label="Level" value={log.severityText ?? "EMPTY"} />
           <FilterByKeyValue
-            symbolName={newIdentifierExpr("lvl")}
+            symbolName={newIdentifierExpr("severityText")}
             symbolValue={newStrExpr(log.severityText)}
           />
         </div>
         <div className="flex justify-between gap-2">
           <KeyValueRow label="Message" value={log.body ?? "no message"} />
           <FilterByKeyValue
-            symbolName={newIdentifierExpr("msg")}
+            symbolName={newIdentifierExpr("body")}
             symbolValue={newStrExpr(log.body)}
             symbolCase="str"
           />
@@ -118,8 +118,12 @@ export const MetaDataTooltip = ({ log }: MetaDataTooltipProps) => {
             ).toString()}
           />
           <FilterByKeyValue
-            symbolName={newIdentifierExpr("ts")}
-            symbolValue={newTimestampExpr(log.timestamp)}
+            symbolName={newIdentifierExpr(
+              log.timestamp ? "_time" : "_indextime",
+            )}
+            symbolValue={newTimestampExpr(
+              log.timestamp ?? log.observedTimestamp,
+            )}
             symbolCase="ts"
           />
         </div>

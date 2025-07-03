@@ -1,9 +1,7 @@
 import { copyToClipboard } from "@/lib/utils/clipboard";
 import { formatDuration, formatTimestamp } from "@/lib/utils/formatTimeStamp";
-
 import { useInfiniteQuery } from "@/lib/hooks/useInfiniteQuery";
-import { IngestedLogEvent } from "api/js/types/v1/logevent_pb";
-import { BinaryOp_Operator, Expr, Query } from "api/js/types/v1/query_pb";
+import { Query } from "api/js/types/v1/query_pb";
 import {
   Ellipsis,
   Loader,
@@ -15,13 +13,9 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { DragHandle } from "@/components/sortable/sortable-item";
 import { Button } from "@/components/ui/button";
 import { Timestamp } from "@bufbuild/protobuf";
-import {
-  FormatConfig_Themes,
-  LocalhostConfig,
-} from "api/js/types/v1/localhost_config_pb";
+import { FormatConfig_Themes } from "api/js/types/v1/localhost_config_pb";
 import { useTheme } from "next-themes";
 import { useThemeColors } from "@/lib/hooks/useThemeColors";
-import { useApiClients } from "@/context/api-provider";
 import {
   Tooltip,
   TooltipContent,
