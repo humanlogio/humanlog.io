@@ -14,6 +14,19 @@ import { resourceFromAttributes } from "@opentelemetry/resources";
 import { getWebAutoInstrumentations } from "@opentelemetry/auto-instrumentations-web";
 import { B3Propagator } from "@opentelemetry/propagator-b3";
 
+// Shared OTEL configuration
+export const OTEL_CONFIG = {
+  baseUrl: "http://localhost:4318",
+  serviceName: "humanlog frontend",
+  headers: {},
+  concurrencyLimit: 10,
+};
+
+export const collectorOptions = {
+  headers: OTEL_CONFIG.headers,
+  concurrencyLimit: OTEL_CONFIG.concurrencyLimit,
+};
+
 type OTELProviderType = {
   provider: WebTracerProvider;
 };
@@ -31,32 +44,28 @@ export function OTELProvider({ children }: { children: ReactNode }) {
     );
   }
 
-  const collectorOptions = {
-    url: "http://localhost:4318/v1/traces", // url is optional and can be omitted - default is http://localhost:4318/v1/traces
-    headers: {}, // an optional object containing custom headers to be sent with each request
-    concurrencyLimit: 10, // an optional limit on pending requests
+  const collectorOptionsForTraces = {
+    url: `${OTEL_CONFIG.baseUrl}/v1/traces`,
+    ...collectorOptions,
   };
-  const exporter = new OTLPTraceExporter(collectorOptions);
+
+  const traceExporter = new OTLPTraceExporter(collectorOptionsForTraces);
   const resource = resourceFromAttributes({
     [ATTR_SERVICE_NAME]: "humanlog frontend",
   });
-  const provider = new WebTracerProvider({
+  const traceProvider = new WebTracerProvider({
     resource: resource,
     spanProcessors: [
-      new BatchSpanProcessor(exporter, {
-        // The maximum queue size. After the size is reached spans are dropped.
+      new BatchSpanProcessor(traceExporter, {
         maxQueueSize: 100,
-        // The maximum batch size of every export. It must be smaller or equal to maxQueueSize.
         maxExportBatchSize: 10,
-        // The interval between two consecutive exports
         scheduledDelayMillis: 500,
-        // How long the export can run before it is cancelled
         exportTimeoutMillis: 30000,
       }),
     ],
   });
 
-  provider.register({
+  traceProvider.register({
     // Changing default contextManager to use ZoneContextManager - supports asynchronous operations - optional
     contextManager: new ZoneContextManager(),
     propagator: new B3Propagator(),
@@ -84,7 +93,7 @@ export function OTELProvider({ children }: { children: ReactNode }) {
     ],
   });
 
-  const out = { provider: provider };
+  const out = { provider: traceProvider };
 
   return (
     <OTELClientContext.Provider value={out}>
