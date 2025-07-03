@@ -145,21 +145,11 @@ const LogInterface = ({ nav }: LogInterfaceProps) => {
     recordQueryHistory(apiClients?.user, rawQuery, query, {
       onSuccess: (res: RecordQueryHistoryResponse) => {
         setQueryHistoryEntry(res.entry), setIsQueryHistoryLoading(false);
-        logger({
-          severityNumber: 0,
-          severityText: "INFO",
-          body: "Query history entry recorded",
-          attributes: {},
-        });
+        logger.info("Query history entry recorded");
       },
       onError: () => {
         setIsQueryHistoryLoading(false);
-        logger({
-          severityNumber: 1,
-          severityText: "ERROR",
-          body: "Failed to record query history",
-          attributes: {},
-        });
+        logger.error("Failed to record query history");
       },
     });
   };
@@ -279,11 +269,8 @@ const LogInterface = ({ nav }: LogInterfaceProps) => {
             code: SpanStatusCode.ERROR,
             message: error.message,
           });
-          logger({
-            severityNumber: 1,
-            severityText: "ERROR",
-            body: "Failed to parse query",
-            attributes: {},
+          logger.error("Failed to parse query", {
+            error: error.message,
           });
           setQueryParseErrMsg(error.message);
           setQueryRes(null);
