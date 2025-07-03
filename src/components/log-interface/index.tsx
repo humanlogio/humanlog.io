@@ -50,6 +50,7 @@ import { trace, SpanStatusCode } from "@opentelemetry/api";
 import { ConnectError } from "@connectrpc/connect";
 import { Duration } from "@bufbuild/protobuf";
 import FeatureFlag from "@/components/posthog/feature-flag";
+import { logger } from "@/lib/utils/telemetry/logger";
 
 export type DataCase = "subqueries" | "freeform" | "logs" | "spans" | undefined;
 
@@ -144,9 +145,21 @@ const LogInterface = ({ nav }: LogInterfaceProps) => {
     recordQueryHistory(apiClients?.user, rawQuery, query, {
       onSuccess: (res: RecordQueryHistoryResponse) => {
         setQueryHistoryEntry(res.entry), setIsQueryHistoryLoading(false);
+        logger({
+          severityNumber: 0,
+          severityText: "INFO",
+          body: "Query history entry recorded",
+          attributes: {},
+        });
       },
       onError: () => {
         setIsQueryHistoryLoading(false);
+        logger({
+          severityNumber: 1,
+          severityText: "ERROR",
+          body: "Failed to record query history",
+          attributes: {},
+        });
       },
     });
   };
@@ -266,6 +279,12 @@ const LogInterface = ({ nav }: LogInterfaceProps) => {
             code: SpanStatusCode.ERROR,
             message: error.message,
           });
+          logger({
+            severityNumber: 1,
+            severityText: "ERROR",
+            body: "Failed to parse query",
+            attributes: {},
+          });
           setQueryParseErrMsg(error.message);
           setQueryRes(null);
           return null;
@@ -288,6 +307,7 @@ const LogInterface = ({ nav }: LogInterfaceProps) => {
         const params = new URLSearchParams(searchParams);
         params.set("query", encodeURIComponent(query));
         router.push(`?${params}`);
+
         await getQueryRes(query, splitByDefault);
         span.setStatus({ code: SpanStatusCode.OK });
       } catch (error) {
@@ -297,13 +317,14 @@ const LogInterface = ({ nav }: LogInterfaceProps) => {
             message: error.message,
           });
           span.recordException(error);
+        } else {
         }
         throw error;
       } finally {
         span.end();
       }
     },
-    [setNext, splitByDefault, searchParams, router],
+    [setNext, splitByDefault, searchParams, router, activeEnvironment, nav],
   );
 
   useEffect(() => {
