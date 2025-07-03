@@ -5,8 +5,11 @@ import {
   BatchLogRecordProcessor,
 } from "@opentelemetry/sdk-logs";
 import { getCurrentTraceContext } from "@/lib/otel-browser";
+import config from "@/features/config";
 
 export type LogLevel = "trace" | "debug" | "info" | "warn" | "error" | "fatal";
+
+const isProd = config.NEXT_PUBLIC_IS_PROD;
 
 interface LogContext {
   [key: string]: string | number | boolean | null | undefined;
@@ -44,6 +47,11 @@ class TelemetryLogger {
   }
 
   private log(level: LogLevel, message: string, context?: LogContext) {
+    // Only log in non-production environments
+    if (isProd) {
+      return;
+    }
+
     const severity = SEVERITY_MAP[level];
     const traceContext = getCurrentTraceContext();
 
