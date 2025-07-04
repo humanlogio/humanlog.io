@@ -1,9 +1,7 @@
 import { TooltipContent } from "@/components/ui/tooltip";
-import { IngestedLogEvent } from "api/js/types/v1/logevent_pb";
 import { formatTimestamp, getUnixTimestamp } from "@/lib/utils/formatTimeStamp";
 import { Timestamp } from "@bufbuild/protobuf";
 import { BinaryOp_Operator, Expr } from "api/js/types/v1/query_pb";
-import { LocalhostConfig } from "api/js/types/v1/localhost_config_pb";
 import { useAllEnvironments } from "@/context/list-environments";
 import {
   newI64Expr,
@@ -96,14 +94,14 @@ export const MetaDataTooltip = ({ log }: MetaDataTooltipProps) => {
     <TooltipContent align="start">
       <div>
         <div className="flex justify-between gap-2">
-          <KeyValueRow label="Level" value={log.severityText ?? "EMPTY"} />
+          <KeyValueRow label="Level" value={log.severityText || "EMPTY"} />
           <FilterByKeyValue
-            symbolName={newIdentifierExpr("severityText")}
+            symbolName={newIdentifierExpr("severity_text")}
             symbolValue={newStrExpr(log.severityText)}
           />
         </div>
         <div className="flex justify-between gap-2">
-          <KeyValueRow label="Message" value={log.body ?? "no message"} />
+          <KeyValueRow label="Message" value={log.body || "no message"} />
           <FilterByKeyValue
             symbolName={newIdentifierExpr("body")}
             symbolValue={newStrExpr(log.body)}
