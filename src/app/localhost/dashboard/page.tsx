@@ -31,11 +31,26 @@ import { useTheme } from "next-themes";
 
 import { mockDatasourceApi, mockDashboard } from "@/lib/mocks/sampleDashboards";
 import { DashboardControls } from "@/app/localhost/dashboard/components/DashboardControls";
+import { useMemo } from "react";
 
 export default function DashboardPage() {
   const { theme } = useTheme();
 
-  const themeMode = theme === "dark" ? "dark" : "light";
+  const themeMode = useMemo(() => {
+    switch (theme) {
+      case "dark":
+        return "dark";
+      case "light":
+        return "light";
+      case "system":
+        return window.matchMedia("(prefers-color-scheme: dark)").matches
+          ? "dark"
+          : "light";
+      default:
+        return "light";
+    }
+  }, [theme]);
+
   const muiTheme = getTheme(themeMode);
   const chartsTheme = generateChartsTheme(muiTheme, {});
 
