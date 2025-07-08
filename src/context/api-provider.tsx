@@ -29,6 +29,7 @@ import { FeatureService } from "api/js/svc/feature/v1/service_connect";
 import { QueryService } from "api/js/svc/query/v1/service_connect";
 import { TraceService } from "api/js/svc/query/v1/trace_service_connect";
 import { UpdateService } from "api/js/svc/cliupdate/v1/service_connect";
+import { DashboardService } from "api/js/svc/dashboard/v1/service_connect";
 
 import {
   PublicShareService,
@@ -65,6 +66,7 @@ type ApiClients = {
   query: Client<typeof QueryService>;
   trace: Client<typeof TraceService>;
   update: Client<typeof UpdateService>;
+  dashboard: Client<typeof DashboardService>;
   apiTransport: Transport;
   localhostTransport: Transport;
   activeTransport: Transport;
@@ -156,6 +158,7 @@ export function ApiClientsProvider({
       trace: createClient(TraceService, activeTransport),
       ingest: createClient(IngestService, activeTransport),
       update: createClient(UpdateService, apiTpt),
+      dashboard: createClient(DashboardService, apiTpt),
 
       apiTransport: apiTpt,
       localhostTransport: localhostTransport,
