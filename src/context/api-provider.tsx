@@ -1,5 +1,14 @@
 "use client";
 
+// Global BigInt serialization fix for Connect RPC and TanStack Query
+// Automatically converts BigInt to string when JSON.stringify is called
+if (typeof BigInt !== "undefined") {
+  // @ts-ignore
+  BigInt.prototype.toJSON = function () {
+    return this.toString();
+  };
+}
+
 import React, {
   createContext,
   useContext,
