@@ -83,7 +83,14 @@ type ApiClients = {
 
 const ApiClientContext = createContext<ApiProviderType | null>(null);
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      retry: 1,
+    },
+  },
+});
 
 export function ApiClientsProvider({
   children,
