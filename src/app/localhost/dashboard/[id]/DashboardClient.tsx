@@ -30,7 +30,7 @@ import * as timeseriesChartPlugin from "@perses-dev/timeseries-chart-plugin";
 import * as barchartPlugin from "@perses-dev/bar-chart-plugin";
 import { useTheme } from "next-themes";
 
-import { mockDatasourceApi, mockDashboard } from "@/lib/mocks/sampleDashboards";
+import { mockDatasourceApi } from "@/lib/mocks/sampleDashboards";
 import { DashboardControls } from "@/app/localhost/dashboard/components/DashboardControls";
 import { useMemo } from "react";
 import { getDashboard } from "api/js/svc/dashboard/v1/service-DashboardService_connectquery";
@@ -47,7 +47,6 @@ function decodePersesJson(
     const jsonString = new TextDecoder().decode(persesJsonBytes);
     return JSON.parse(jsonString) as DashboardResource;
   } catch (error) {
-    console.error("Failed to decode persesJson:", error);
     return null;
   }
 }
@@ -59,8 +58,6 @@ interface DashboardClientProps {
 export function DashboardClient({ dashboardId }: DashboardClientProps) {
   const { theme } = useTheme();
   const { isLoading, data } = useQuery(getDashboard, { id: dashboardId });
-
-  console.log("data", data);
 
   // Decode the persesJson bytes back to DashboardResource
   const decodedDashboard = useMemo(() => {
@@ -137,7 +134,14 @@ export function DashboardClient({ dashboardId }: DashboardClientProps) {
                     >
                       <div className="min-h-screen bg-white p-6 text-black dark:bg-gray-900 dark:text-white">
                         <div className="flex items-center justify-between">
-                          <h1 className="mb-6 text-2xl font-bold">Dashboard</h1>
+                          <div>
+                            <h1 className="mb-1 text-2xl font-bold">
+                              {data?.dashboard?.name}
+                            </h1>
+                            <p className="text-muted-foreground mb-6">
+                              {data?.dashboard?.description}
+                            </p>
+                          </div>
                           <DashboardControls
                             dashboardResource={decodedDashboard}
                             dashboardId={dashboardId}

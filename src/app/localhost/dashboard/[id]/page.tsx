@@ -1,4 +1,4 @@
-import { DashboardClient } from "@/app/localhost/dashboard/components/DashboardClient";
+import { DashboardClient } from "@/app/localhost/dashboard/[id]/DashboardClient";
 
 export default async function Dashboard({
   params,
