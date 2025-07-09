@@ -1,6 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
 import { useDashboardStore } from "@perses-dev/dashboards";
 import { DashboardResource } from "@perses-dev/core";
+import {
+  UpdateDashboardRequest,
+  UpdateDashboardRequest_Mutation,
+} from "api/js/svc/dashboard/v1/service_pb";
 
 // Dashboard changes tracking for backend API integration
 export interface DashboardChanges {
@@ -21,7 +25,10 @@ export interface DashboardChanges {
 }
 
 // Custom hook to track dashboard state and prepare data for backend API calls
-export function useDashboardPersistence(initialDashboard: DashboardResource) {
+export function useDashboardPersistence(
+  initialDashboard: DashboardResource,
+  dashboardId: string,
+) {
   const [dashboardChanges, setDashboardChanges] = useState<DashboardChanges>({
     dashboardResource: initialDashboard,
     hasChanges: false,
@@ -139,24 +146,42 @@ export function useDashboardPersistence(initialDashboard: DashboardResource) {
   }, [getCurrentDashboardState, dashboardChanges.dashboardResource]);
 
   const prepareDashboardForSave = useCallback(() => {
+    const currentDashboard = dashboardChanges.dashboardResource;
+
+    // Serialize the entire dashboard to JSON for setPersesJson
+    const persesJsonString = JSON.stringify(currentDashboard);
+    const persesJsonBytes = new TextEncoder().encode(persesJsonString);
+
+    // Create UpdateDashboardRequest with ID and setPersesJson mutation
+    const updateRequest = new UpdateDashboardRequest({
+      id: dashboardId,
+      mutations: [
+        new UpdateDashboardRequest_Mutation({
+          do: {
+            case: "setPersesJson",
+            value: persesJsonBytes,
+          },
+        }),
+      ],
+    });
+
     return {
-      dashboard: dashboardChanges.dashboardResource,
+      updateRequest,
+      dashboard: currentDashboard,
       changes: dashboardChanges.changeLog,
       lastModified: dashboardChanges.lastModified,
       hasChanges: dashboardChanges.hasChanges,
     };
-  }, [dashboardChanges]);
+  }, [dashboardChanges, dashboardId]);
 
   const saveDashboard = useCallback(async () => {
     const dataToSave = prepareDashboardForSave();
 
-    console.log("Dashboard data ready for backend API:", dataToSave);
-
-    // TODO: Fetch API
-
-    alert(
-      `Dashboard changes saved to console. Check browser console for details.`,
-    );
+    console.log("Dashboard update request ready for backend API:", {
+      updateRequest: dataToSave.updateRequest,
+      dashboard: dataToSave.dashboard,
+      changes: dataToSave.changes,
+    });
 
     // Reset changes after saving
     setDashboardChanges((prev) => ({

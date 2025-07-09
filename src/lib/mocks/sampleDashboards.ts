@@ -4,6 +4,9 @@ import {
   DatasourceResource,
 } from "@perses-dev/core";
 import { DatasourceApi } from "@perses-dev/dashboards";
+import { ListDashboardResponse_ListItem } from "api/js/svc/dashboard/v1/service_pb";
+import { Timestamp } from "@bufbuild/protobuf";
+import { Dashboard } from "api/js/types/v1/dashboard_pb";
 
 // Mock Prometheus datasource
 // TODO: Replace directUrl with backend API endpoint when backend infrastructure is ready
@@ -214,6 +217,89 @@ export const mockDashboard: DashboardResource = {
       },
     ],
   },
+};
+
+// Mock dashboard list
+export const createMockDashboards = (): ListDashboardResponse_ListItem[] => {
+  const now = new Date();
+  const mockDashboards = [
+    {
+      id: "1",
+      name: "System Monitoring",
+      description:
+        "Real-time system metrics and performance monitoring dashboard",
+      isReadonly: false,
+      createdAt: Timestamp.fromDate(
+        new Date(now.getTime() - 24 * 60 * 60 * 1000),
+      ),
+      updatedAt: Timestamp.fromDate(
+        new Date(now.getTime() - 2 * 60 * 60 * 1000),
+      ),
+    },
+    {
+      id: "2",
+      name: "Application Metrics",
+      description: "Application performance, error rates, and user analytics",
+      isReadonly: false,
+      createdAt: Timestamp.fromDate(
+        new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000),
+      ),
+      updatedAt: Timestamp.fromDate(new Date(now.getTime() - 30 * 60 * 1000)),
+    },
+    {
+      id: "3",
+      name: "Infrastructure Overview",
+      description:
+        "Server health, database performance, and network statistics",
+      isReadonly: true,
+      createdAt: Timestamp.fromDate(
+        new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000),
+      ),
+      updatedAt: Timestamp.fromDate(
+        new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000),
+      ),
+    },
+    {
+      id: "4",
+      name: "User Analytics",
+      description:
+        "User behavior analysis, conversion rates, and engagement metrics",
+      isReadonly: false,
+      createdAt: Timestamp.fromDate(
+        new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000),
+      ),
+      updatedAt: Timestamp.fromDate(
+        new Date(now.getTime() - 1 * 60 * 60 * 1000),
+      ),
+    },
+    {
+      id: "5",
+      name: "Security Dashboard",
+      description:
+        "Security events, threat detection, and compliance monitoring",
+      isReadonly: true,
+      createdAt: Timestamp.fromDate(
+        new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000),
+      ),
+      updatedAt: Timestamp.fromDate(
+        new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000),
+      ),
+    },
+  ];
+
+  return mockDashboards.map(
+    (mock) =>
+      new ListDashboardResponse_ListItem({
+        dashboard: new Dashboard({
+          id: mock.id,
+          name: mock.name,
+          description: mock.description,
+          isReadonly: mock.isReadonly,
+          createdAt: mock.createdAt,
+          updatedAt: mock.updatedAt,
+        }),
+      }),
+  );
 };
 
 // Mock Datasource API implementation
