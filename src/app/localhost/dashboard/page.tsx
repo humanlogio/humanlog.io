@@ -3,7 +3,6 @@
 import { useMutation, useQuery } from "@connectrpc/connect-query";
 import {
   createDashboard,
-  getDashboard,
   listDashboard,
 } from "api/js/svc/dashboard/v1/service-DashboardService_connectquery";
 import { useRouter } from "next/navigation";
@@ -36,9 +35,27 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { logger } from "@/lib/utils/telemetry/logger";
 import { toast } from "sonner";
-import { createMockDashboards } from "@/lib/mocks/sampleDashboards";
+import {
+  createMockDashboards,
+  createDefaultDashboardTemplate,
+} from "@/lib/mocks/sampleDashboards";
 import { Badge } from "@/components/ui/badge";
 import { ActiveTransportProvider } from "@/context/api-provider";
+import { DashboardResource } from "@perses-dev/core";
+
+function decodePersesJson(
+  persesJsonBytes: Uint8Array | undefined,
+): DashboardResource | null {
+  if (!persesJsonBytes) return null;
+
+  try {
+    const jsonString = new TextDecoder().decode(persesJsonBytes);
+    return JSON.parse(jsonString) as DashboardResource;
+  } catch (error) {
+    console.error("Failed to decode persesJson:", error);
+    return null;
+  }
+}
 
 const formSchema = z.object({
   name: z
@@ -54,7 +71,7 @@ const formSchema = z.object({
 
 type FormData = z.infer<typeof formSchema>;
 
-export default function DashboardList() {
+export default function DashboardListPage() {
   const router = useRouter();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
@@ -72,10 +89,21 @@ export default function DashboardList() {
   });
 
   const onSubmit = (data: FormData) => {
+    // Create default dashboard template
+    const defaultTemplate = createDefaultDashboardTemplate(
+      data.name,
+      data.description,
+    );
+
+    const persesJsonBytes = new TextEncoder().encode(
+      JSON.stringify(defaultTemplate),
+    ) as Uint8Array<ArrayBuffer>;
+
     const newDashboard = new CreateDashboardRequest({
       name: data.name,
       description: data.description || "",
       isReadonly: data.isReadonly,
+      persesJson: persesJsonBytes, // Add the default template
     });
 
     createDashboardMutation(newDashboard, {
@@ -101,12 +129,7 @@ export default function DashboardList() {
     router.push(`/localhost/dashboard/${dashboardId}`);
   };
 
-  const mockData = createMockDashboards();
   const displayData = dashboardList?.items;
-  // const displayData =
-  //   dashboardList?.items && dashboardList.items.length > 0
-  //     ? dashboardList.items
-  //     : mockData;
 
   if (isLoading) {
     return (
@@ -123,7 +146,9 @@ export default function DashboardList() {
     <div className="mx-auto px-4 py-8">
       <div className="mb-8 flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+            Dashboard
+          </h1>
         </div>
 
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -218,15 +243,14 @@ export default function DashboardList() {
               <div
                 key={dashboard.id?.toString()}
                 onClick={() => handleDashboardClick(dashboard.id)}
-                className="cursor-pointer rounded-lg border border-gray-200 bg-white shadow-md transition-shadow duration-200 hover:border-blue-300 hover:shadow-lg"
+                className="cursor-pointer rounded-lg border border-gray-200 shadow-md transition-shadow duration-200 hover:border-blue-300 hover:shadow-lg dark:border-gray-700"
               >
                 <div className="p-6">
-                  <div className="mb-4 flex items-start justify-between">
-                    <h3 className="truncate text-xl font-semibold text-gray-900">
+                  <div className="flex items-start justify-between">
+                    <h3 className="truncate text-xl font-semibold text-gray-900 dark:text-white">
                       {dashboard.name || "Untitled Dashboard"}
                     </h3>
-                    <div className="flex flex-col items-end text-sm text-gray-500">
-                      <span>ID: {dashboard.id?.toString()}</span>
+                    <div className="text-muted-foreground flex flex-col items-end text-sm">
                       {dashboard.isReadonly && (
                         <Badge variant="secondary" className="mt-1">
                           Read Only
@@ -235,13 +259,18 @@ export default function DashboardList() {
                     </div>
                   </div>
 
+                  {/* for debugging */}
+                  {/* <div className="mb-4 text-sm">
+                    ID: {dashboard.id?.toString()}
+                  </div> */}
+
                   {dashboard.description && (
-                    <p className="mb-4 line-clamp-2 text-gray-600">
+                    <p className="text-muted-foreground mb-4 line-clamp-2">
                       {dashboard.description}
                     </p>
                   )}
 
-                  <div className="flex items-center justify-between text-sm text-gray-500">
+                  <div className="text-muted-foreground flex items-center justify-between text-sm">
                     <div className="flex items-center gap-1">
                       <Calendar className="h-4 w-4" />
                       <span>

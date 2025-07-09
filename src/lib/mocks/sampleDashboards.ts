@@ -8,11 +8,7 @@ import { ListDashboardResponse_ListItem } from "api/js/svc/dashboard/v1/service_
 import { Timestamp } from "@bufbuild/protobuf";
 import { Dashboard } from "api/js/types/v1/dashboard_pb";
 
-// Mock Prometheus datasource
-// TODO: Replace directUrl with backend API endpoint when backend infrastructure is ready
-// Currently pointing to Docker Prometheus instance at localhost:9090
-
-const PROMETHEUS_URL = "http://localhost:9090";
+const directUrl = "http://localhost:32764";
 
 export const mockPrometheusDatasource: GlobalDatasourceResource = {
   kind: "GlobalDatasource",
@@ -22,11 +18,58 @@ export const mockPrometheusDatasource: GlobalDatasourceResource = {
     plugin: {
       kind: "PrometheusDatasource",
       spec: {
-        directUrl: PROMETHEUS_URL,
+        directUrl,
       },
     },
   },
 };
+
+// Create a default dashboard template for new dashboards
+export function createDefaultDashboardTemplate(
+  name: string,
+  description: string = "",
+): DashboardResource {
+  return {
+    kind: "Dashboard",
+    metadata: {
+      name: name.toLowerCase().replace(/\s+/g, "-"),
+      project: "default",
+    },
+    spec: {
+      display: {
+        name: name,
+        description: description || "Getting started with your new dashboard",
+      },
+      datasources: {
+        prometheus: {
+          default: true,
+          plugin: {
+            kind: "PrometheusDatasource",
+            spec: {
+              directUrl,
+            },
+          },
+        },
+      },
+      duration: "1h",
+      refreshInterval: "30s",
+      variables: [],
+      panels: {},
+      layouts: [
+        {
+          kind: "Grid" as const,
+          spec: {
+            display: {
+              title: "Getting Started",
+              collapse: { open: true },
+            },
+            items: [],
+          },
+        },
+      ],
+    },
+  };
+}
 
 // Mock dashboard configuration
 export const mockDashboard: DashboardResource = {
@@ -47,7 +90,7 @@ export const mockDashboard: DashboardResource = {
         plugin: {
           kind: "PrometheusDatasource",
           spec: {
-            directUrl: PROMETHEUS_URL,
+            directUrl,
           },
         },
       },
