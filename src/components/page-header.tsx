@@ -82,7 +82,8 @@ const PageHeader: React.FC = () => {
   const pathname = usePathname();
   const isProd = config.NEXT_PUBLIC_IS_PROD;
 
-  const { setActiveEnvironment, apiClients } = useApiClients();
+  const { setActiveEnvironment, apiClients, activeEnvironment } =
+    useApiClients();
   const { doLogout, allowedUsage, localhostConfig } = useAllEnvironments();
 
   const {
@@ -116,6 +117,12 @@ const PageHeader: React.FC = () => {
       router.push(_selected?.path);
     }
   };
+
+  console.log("activeEnvironment", activeEnvironment);
+
+  // useEffect(() => {
+  //   if (!selected) setActiveEnvironment(undefined);
+  // }, [pathname]);
 
   useEffect(() => {
     let _sources: { name: string; path: string; value: string }[] = [];

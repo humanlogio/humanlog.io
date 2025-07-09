@@ -118,7 +118,7 @@ const LogInterface = ({ nav }: LogInterfaceProps) => {
         let renderStmt;
         let statements = parseRes.query.query?.statements ?? [];
 
-        // TODO : add split by default
+        // TODO : add split by default (_resource_fingerprint)
         // if (splitByDefault) {
         //   renderStmt = createSplitRenderStatement();
         // }
