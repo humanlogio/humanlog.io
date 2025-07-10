@@ -39,8 +39,8 @@ import { ExecuteQuery } from "@/components/log-interface";
 
 const DEFAULT_QUERY_EXAMPLES = {
   query:
-    'logs | filter lvl == "error" | summarize error_count=count() by bin(ts, 1h)',
-  stream: 'traces | filter service_name == "your_service"',
+    'logs | filter severity_text == "error" | summarize error_count=count() by bin(_time, 1h)',
+  stream: 'spans | filter service_name == "your_service"',
 } as const;
 
 const MonacoEditor = dynamic(
