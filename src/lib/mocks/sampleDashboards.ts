@@ -10,6 +10,20 @@ import { Dashboard } from "api/js/types/v1/dashboard_pb";
 
 const directUrl = "http://localhost:32764";
 
+export const localhostHumanlogDatasource: GlobalDatasourceResource = {
+  kind: "GlobalDatasource",
+  metadata: { name: "localhost" },
+  spec: {
+    default: true,
+    plugin: {
+      kind: "HumanlogDatasource",
+      spec: {
+        directUrl: directUrl,
+      },
+    },
+  },
+};
+
 export const mockPrometheusDatasource: GlobalDatasourceResource = {
   kind: "GlobalDatasource",
   metadata: { name: "prometheus" },
@@ -352,7 +366,7 @@ class MockDatasourceApi implements DatasourceApi {
   }
 
   getGlobalDatasource(): Promise<GlobalDatasourceResource | undefined> {
-    return Promise.resolve(mockPrometheusDatasource);
+    return Promise.resolve(localhostHumanlogDatasource);
   }
 
   listDatasources(): Promise<DatasourceResource[]> {
@@ -360,7 +374,7 @@ class MockDatasourceApi implements DatasourceApi {
   }
 
   listGlobalDatasources(): Promise<GlobalDatasourceResource[]> {
-    return Promise.resolve([mockPrometheusDatasource]);
+    return Promise.resolve([localhostHumanlogDatasource]);
   }
 
   buildProxyUrl(): string {
