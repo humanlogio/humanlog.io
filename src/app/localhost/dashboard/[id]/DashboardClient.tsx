@@ -28,14 +28,15 @@ import {
 import * as prometheusPlugin from "@perses-dev/prometheus-plugin";
 import * as timeseriesChartPlugin from "@perses-dev/timeseries-chart-plugin";
 import * as barchartPlugin from "@perses-dev/bar-chart-plugin";
+import * as humanlogPlugin from "@humanlogio/perses-plugin";
 import { useTheme } from "next-themes";
 
-import { mockDatasourceApi } from "@/lib/mocks/sampleDashboards";
 import { DashboardControls } from "@/app/localhost/dashboard/components/DashboardControls";
 import { useMemo } from "react";
 import { getDashboard } from "api/js/svc/dashboard/v1/service-DashboardService_connectquery";
 import { useQuery } from "@connectrpc/connect-query";
 import { DashboardResource } from "@perses-dev/core";
+import { mockDatasourceApi } from "@/lib/mocks/sampleDashboards";
 
 // Helper function to decode persesJson bytes back to DashboardResource
 function decodePersesJson(
@@ -61,7 +62,56 @@ export function DashboardClient({ dashboardId }: DashboardClientProps) {
 
   // Decode the persesJson bytes back to DashboardResource
   const decodedDashboard = useMemo(() => {
-    return decodePersesJson(data?.dashboard?.persesJson);
+    const dashboard = decodePersesJson(data?.dashboard?.persesJson);
+
+    if (dashboard) {
+      // Initialize datasources object if it doesn't exist
+      if (!dashboard.spec.datasources) {
+        dashboard.spec.datasources = {};
+      }
+
+      // Add both local and hosted Humanlog datasources if they don't exist
+      if (!dashboard.spec.datasources["humanlog-localhost"]) {
+        dashboard.spec.datasources["humanlog-localhost"] = {
+          default: true, // Default for local development
+          plugin: {
+            kind: "HumanlogDatasource",
+            spec: {
+              directUrl: "http://localhost:32764",
+            },
+          },
+        };
+      }
+
+      if (!dashboard.spec.datasources["humanlog-hosted"]) {
+        dashboard.spec.datasources["humanlog-hosted"] = {
+          default: false,
+          plugin: {
+            kind: "HumanlogDatasource",
+            spec: {
+              directUrl:
+                process.env.NEXT_PUBLIC_HUMANLOG_API_URL ||
+                "https://api.humanlog.io",
+            },
+          },
+        };
+      }
+
+      // For backward compatibility with any existing "humanlog" datasource references
+      if (!dashboard.spec.datasources["humanlog"]) {
+        dashboard.spec.datasources["humanlog"] = {
+          default: false,
+          plugin: {
+            kind: "HumanlogDatasource",
+            spec: {
+              directUrl: "http://localhost:32764",
+            },
+          },
+        };
+      }
+    }
+
+    return dashboard;
   }, [data?.dashboard?.persesJson]);
 
   const themeMode = useMemo(() => {
@@ -83,6 +133,10 @@ export function DashboardClient({ dashboardId }: DashboardClientProps) {
   const chartsTheme = generateChartsTheme(muiTheme, {});
 
   const pluginLoader = dynamicImportPluginLoader([
+    {
+      resource: humanlogPlugin.getPluginModule(),
+      importPlugin: () => Promise.resolve(humanlogPlugin),
+    },
     {
       resource: prometheusPlugin.getPluginModule(),
       importPlugin: () => Promise.resolve(prometheusPlugin),
@@ -112,19 +166,20 @@ export function DashboardClient({ dashboardId }: DashboardClientProps) {
           <PluginRegistry
             pluginLoader={pluginLoader}
             defaultPluginKinds={{
+              Datasource: "HumanlogDatasource",
+              TimeSeriesQuery: "HumanlogTimeSeriesQuery",
               Panel: "TimeSeriesChart",
-              TimeSeriesQuery: "PrometheusTimeSeriesQuery",
             }}
           >
-            <TimeRangeProvider
-              refreshInterval="30s"
-              timeRange={{ pastDuration: "1h" }}
+            <DatasourceStoreProvider
+              dashboardResource={decodedDashboard}
+              datasourceApi={mockDatasourceApi}
             >
-              <VariableProvider>
-                <DatasourceStoreProvider
-                  dashboardResource={decodedDashboard}
-                  datasourceApi={mockDatasourceApi}
-                >
+              <TimeRangeProvider
+                refreshInterval="30s"
+                timeRange={{ pastDuration: "1h" }}
+              >
+                <VariableProvider>
                   <ValidationProvider>
                     <DashboardProvider
                       initialState={{
@@ -164,9 +219,9 @@ export function DashboardClient({ dashboardId }: DashboardClientProps) {
                       </div>
                     </DashboardProvider>
                   </ValidationProvider>
-                </DatasourceStoreProvider>
-              </VariableProvider>
-            </TimeRangeProvider>
+                </VariableProvider>
+              </TimeRangeProvider>
+            </DatasourceStoreProvider>
           </PluginRegistry>
         </SnackbarProvider>
       </ChartsProvider>
