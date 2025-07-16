@@ -26,7 +26,6 @@ export function DashboardControls({
     try {
       const { updateRequest, dashboard, changes } = prepareDashboardForSave();
 
-      console.log("updateRequest", updateRequest);
       updateDashboardMutation(updateRequest, {
         onSuccess: (response) => {
           toast.success("Dashboard saved successfully");
