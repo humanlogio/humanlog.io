@@ -5,7 +5,7 @@ import {
 } from "@perses-dev/core";
 import { DatasourceApi } from "@perses-dev/dashboards";
 
-import { getAPIURL } from "../envs";
+import { getAPIURL } from "@/lib/envs";
 
 export interface LocalhostConfig {
   // URL for the localhost API (defaults to http://localhost:32764)
