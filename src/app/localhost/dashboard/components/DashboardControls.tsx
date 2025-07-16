@@ -36,7 +36,7 @@ export function DashboardControls({
           console.log("Dashboard update response:", response);
         },
         onError: (error) => {
-          toast.error("Failed to save dashboard");
+          toast.error(`Failed to save dashboard: ${error.message}`);
           logger.error("Failed to save dashboard", {
             error: error instanceof Error ? error.message : String(error),
             dashboardId: dashboard.metadata.name,
@@ -45,7 +45,7 @@ export function DashboardControls({
         },
       });
     } catch (error) {
-      toast.error("Failed to prepare dashboard for saving");
+      toast.error(`Failed to prepare dashboard for saving: ${error}`);
       logger.error("Failed to prepare dashboard for saving", {
         error: error instanceof Error ? error.message : String(error),
       });
