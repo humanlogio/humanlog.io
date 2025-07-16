@@ -40,22 +40,6 @@ import {
   createDefaultDashboardTemplate,
 } from "@/lib/mocks/sampleDashboards";
 import { Badge } from "@/components/ui/badge";
-import { ActiveTransportProvider } from "@/context/api-provider";
-import { DashboardResource } from "@perses-dev/core";
-
-function decodePersesJson(
-  persesJsonBytes: Uint8Array | undefined,
-): DashboardResource | null {
-  if (!persesJsonBytes) return null;
-
-  try {
-    const jsonString = new TextDecoder().decode(persesJsonBytes);
-    return JSON.parse(jsonString) as DashboardResource;
-  } catch (error) {
-    console.error("Failed to decode persesJson:", error);
-    return null;
-  }
-}
 
 const formSchema = z.object({
   name: z
@@ -119,7 +103,7 @@ export default function DashboardListPage() {
         }
       },
       onError: (error) => {
-        toast.error("Failed to create dashboard");
+        toast.error(`Failed to create dashboard: ${error.message}`);
         logger.error("Failed to create dashboard");
       },
     });
