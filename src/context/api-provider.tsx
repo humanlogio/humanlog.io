@@ -1,5 +1,14 @@
 "use client";
 
+// Global BigInt serialization fix for Connect RPC and TanStack Query
+// Automatically converts BigInt to string when JSON.stringify is called
+if (typeof BigInt !== "undefined") {
+  // @ts-ignore
+  BigInt.prototype.toJSON = function () {
+    return this.toString();
+  };
+}
+
 import React, {
   createContext,
   useContext,
@@ -29,6 +38,7 @@ import { FeatureService } from "api/js/svc/feature/v1/service_connect";
 import { QueryService } from "api/js/svc/query/v1/service_connect";
 import { TraceService } from "api/js/svc/query/v1/trace_service_connect";
 import { UpdateService } from "api/js/svc/cliupdate/v1/service_connect";
+import { DashboardService } from "api/js/svc/dashboard/v1/service_connect";
 
 import {
   PublicShareService,
@@ -65,6 +75,7 @@ type ApiClients = {
   query: Client<typeof QueryService>;
   trace: Client<typeof TraceService>;
   update: Client<typeof UpdateService>;
+  dashboard: Client<typeof DashboardService>;
   apiTransport: Transport;
   localhostTransport: Transport;
   activeTransport: Transport;
@@ -72,7 +83,16 @@ type ApiClients = {
 
 const ApiClientContext = createContext<ApiProviderType | null>(null);
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      retry: 1,
+    },
+  },
+});
+
+const ActiveTransportContext = createContext<Transport | null>(null);
 
 export function ApiClientsProvider({
   children,
@@ -139,11 +159,8 @@ export function ApiClientsProvider({
 
     const activeTransport = !activeEnvironment ? localhostTransport : apiTpt;
 
-    // localhost client should always talk using the localhost transport
-    const localhost = createClient(LocalhostService, localhostTransport);
-
     return {
-      localhost,
+      localhost: createClient(LocalhostService, localhostTransport),
       auth: createClient(AuthService, apiTpt),
       product: createClient(ProductService, apiTpt),
       environment: createClient(EnvironmentService, apiTpt),
@@ -152,10 +169,11 @@ export function ApiClientsProvider({
       feature: createClient(FeatureService, apiTpt),
       publicShare: createClient(PublicShareService, apiTpt),
       userShare: createClient(UserShareService, apiTpt),
+      update: createClient(UpdateService, apiTpt),
       query: createClient(QueryService, activeTransport),
       trace: createClient(TraceService, activeTransport),
       ingest: createClient(IngestService, activeTransport),
-      update: createClient(UpdateService, apiTpt),
+      dashboard: createClient(DashboardService, activeTransport),
 
       apiTransport: apiTpt,
       localhostTransport: localhostTransport,
@@ -164,23 +182,46 @@ export function ApiClientsProvider({
   }, [activeEnvironment]);
 
   return (
-    <TransportProvider transport={apiTransport!}>
-      <QueryClientProvider client={queryClient}>
-        <ApiClientContext.Provider
-          value={{
-            apiClients,
-            activeEnvironment,
-            setActiveEnvironment,
-            authenticated,
-          }}
-        >
-          {children}
-        </ApiClientContext.Provider>
-      </QueryClientProvider>
-    </TransportProvider>
+    <QueryClientProvider client={queryClient}>
+      <ApiClientContext.Provider
+        value={{
+          apiClients,
+          activeEnvironment,
+          setActiveEnvironment,
+          authenticated,
+        }}
+      >
+        <ActiveTransportContext.Provider value={apiClients.activeTransport}>
+          {/* Default transport for Connect Query - most services use API */}
+          <TransportProvider transport={apiClients.apiTransport}>
+            {children}
+          </TransportProvider>
+        </ActiveTransportContext.Provider>
+      </ApiClientContext.Provider>
+    </QueryClientProvider>
   );
 }
 
 export function useApiClients(): ApiProviderType {
   return useContext(ApiClientContext)!;
+}
+
+export function useActiveTransport(): Transport {
+  const transport = useContext(ActiveTransportContext);
+  if (!transport)
+    throw new Error(
+      "useActiveTransport must be used within ApiClientsProvider",
+    );
+  return transport;
+}
+
+export function ActiveTransportProvider({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const transport = useActiveTransport();
+  return (
+    <TransportProvider transport={transport}>{children}</TransportProvider>
+  );
 }
