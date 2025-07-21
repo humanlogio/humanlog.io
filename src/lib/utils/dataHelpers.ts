@@ -28,9 +28,7 @@ export function extractFromStreamResponses<T>(
 
   streamRes.forEach((res) => {
     onData(res.data, (data) => {
-      console.log("data", data);
-      const extracted = extractFn(data);
-      console.log("extracted", extracted);
+      const extracted = extractFn(data).reverse();
       results.push(...extracted);
     });
   });
