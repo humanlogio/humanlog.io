@@ -25,18 +25,14 @@ import {
   TimeRangeProvider,
   ValidationProvider,
 } from "@perses-dev/plugin-system";
-import * as prometheusPlugin from "@perses-dev/prometheus-plugin";
-import * as timeseriesChartPlugin from "@perses-dev/timeseries-chart-plugin";
-import * as barchartPlugin from "@perses-dev/bar-chart-plugin";
-import * as humanlogPlugin from "@humanlogio/perses-plugin";
 import { useTheme } from "next-themes";
-
 import { DashboardControls } from "@/app/localhost/dashboard/components/DashboardControls";
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { getDashboard } from "api/js/svc/dashboard/v1/service-DashboardService_connectquery";
 import { useQuery } from "@connectrpc/connect-query";
 import { DashboardResource } from "@perses-dev/core";
 import { mockDatasourceApi } from "@/lib/mocks/sampleDashboards";
+import LoadingIndicator from "@/components/loading-indicator";
 
 // Helper function to decode persesJson bytes back to DashboardResource
 function decodePersesJson(
@@ -59,6 +55,43 @@ interface DashboardClientProps {
 export function DashboardClient({ dashboardId }: DashboardClientProps) {
   const { theme } = useTheme();
   const { isLoading, data } = useQuery(getDashboard, { id: dashboardId });
+  const [plugins, setPlugins] = useState<any>(null);
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isClient) return;
+
+    const loadPlugins = async () => {
+      try {
+        const [
+          humanlogPlugin,
+          prometheusPlugin,
+          timeseriesChartPlugin,
+          barchartPlugin,
+        ] = await Promise.all([
+          import("@humanlogio/perses-plugin"),
+          import("@perses-dev/prometheus-plugin"),
+          import("@perses-dev/timeseries-chart-plugin"),
+          import("@perses-dev/bar-chart-plugin"),
+        ]);
+
+        setPlugins({
+          humanlogPlugin,
+          prometheusPlugin,
+          timeseriesChartPlugin,
+          barchartPlugin,
+        });
+      } catch (error) {
+        console.error("Failed to load plugins:", error);
+      }
+    };
+
+    loadPlugins();
+  }, [isClient]);
 
   // Decode the persesJson bytes back to DashboardResource
   const decodedDashboard = useMemo(() => {
@@ -115,45 +148,55 @@ export function DashboardClient({ dashboardId }: DashboardClientProps) {
   }, [data?.dashboard?.persesJson]);
 
   const themeMode = useMemo(() => {
+    if (!isClient) return "light"; // Server-side fallback
+
     switch (theme) {
       case "dark":
         return "dark";
       case "light":
         return "light";
       case "system":
-        return window.matchMedia("(prefers-color-scheme: dark)").matches
+        return window?.matchMedia("(prefers-color-scheme: dark)").matches
           ? "dark"
           : "light";
       default:
         return "light";
     }
-  }, [theme]);
+  }, [theme, isClient]);
 
   const muiTheme = getTheme(themeMode);
   const chartsTheme = generateChartsTheme(muiTheme, {});
 
-  const pluginLoader = dynamicImportPluginLoader([
-    {
-      resource: humanlogPlugin.getPluginModule(),
-      importPlugin: () => Promise.resolve(humanlogPlugin),
-    },
-    {
-      resource: prometheusPlugin.getPluginModule(),
-      importPlugin: () => Promise.resolve(prometheusPlugin),
-    },
-    {
-      resource: timeseriesChartPlugin.getPluginModule(),
-      importPlugin: () => Promise.resolve(timeseriesChartPlugin),
-    },
-    {
-      resource: barchartPlugin.getPluginModule(),
-      importPlugin: () => Promise.resolve(barchartPlugin),
-    },
-  ]);
+  const pluginLoader = useMemo(() => {
+    if (!plugins) return null;
 
-  if (isLoading) return <div>Loading...</div>;
+    return dynamicImportPluginLoader([
+      {
+        resource: plugins.humanlogPlugin.getPluginModule(),
+        importPlugin: () => Promise.resolve(plugins.humanlogPlugin),
+      },
+      {
+        resource: plugins.prometheusPlugin.getPluginModule(),
+        importPlugin: () => Promise.resolve(plugins.prometheusPlugin),
+      },
+      {
+        resource: plugins.timeseriesChartPlugin.getPluginModule(),
+        importPlugin: () => Promise.resolve(plugins.timeseriesChartPlugin),
+      },
+      {
+        resource: plugins.barchartPlugin.getPluginModule(),
+        importPlugin: () => Promise.resolve(plugins.barchartPlugin),
+      },
+    ]);
+  }, [plugins]);
 
+  // Show loading states
+  if (isLoading) return <LoadingIndicator message="Loading dashboard..." />;
+  if (!isClient) return <LoadingIndicator message="Initializing..." />;
+  if (!plugins) return <LoadingIndicator message="Loading plugins..." />;
   if (!decodedDashboard) return <div>Dashboard not found</div>;
+  if (!pluginLoader)
+    return <LoadingIndicator message="Setting up plugins..." />;
 
   return (
     <ThemeProvider theme={muiTheme}>
