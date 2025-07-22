@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
-import { Span } from "api/js/types/v1/tracing_pb";
 import { Duration, Timestamp } from "@bufbuild/protobuf";
 import { buildSpanTree, SpanTreeNode } from "@/components/traces/utils";
+import { Span } from "api/js/types/v1/otel_tracing_pb";
 
 /**
  * @vitest-environment jsdom
@@ -54,10 +54,8 @@ describe("buildSpanTree", () => {
       parentSpanId: parentId,
       name,
       serviceName: service,
-      timing: {
-        start: createTimestamp(startTime),
-        duration: createDuration(duration),
-      },
+      time: createTimestamp(startTime),
+      duration: createDuration(duration),
     });
   };
 
