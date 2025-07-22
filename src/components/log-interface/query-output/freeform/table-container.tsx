@@ -1,4 +1,4 @@
-import { valueToString, varTypeToString } from "@/lib/utils/valueFormatters";
+import { valueToString, varTypeToString } from "@/lib/utils/value-formatters";
 import { Arr, TableType_Column, ScalarType } from "api/js/types/v1/types_pb";
 import { useMemo, useState, useEffect, useRef } from "react";
 import {

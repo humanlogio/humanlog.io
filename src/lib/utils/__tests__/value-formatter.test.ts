@@ -3,7 +3,7 @@ import { Duration } from "@bufbuild/protobuf";
 import {
   durationToString,
   wholeOrSingleDecimal,
-} from "@/lib/utils/valueFormatters";
+} from "@/lib/utils/value-formatters";
 
 // Mock Duration creation helper
 const createDuration = (seconds: number, nanos: number = 0): Duration => {
