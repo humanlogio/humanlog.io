@@ -116,19 +116,20 @@ export function DashboardClient({ dashboardId }: DashboardClientProps) {
         };
       }
 
-      if (!dashboard.spec.datasources["humanlog-hosted"]) {
-        dashboard.spec.datasources["humanlog-hosted"] = {
-          default: false,
-          plugin: {
-            kind: "HumanlogDatasource",
-            spec: {
-              directUrl:
-                process.env.NEXT_PUBLIC_HUMANLOG_API_URL ||
-                "https://api.humanlog.io",
-            },
-          },
-        };
-      }
+      // TODO
+      // if (!dashboard.spec.datasources["humanlog-hosted"]) {
+      //   dashboard.spec.datasources["humanlog-hosted"] = {
+      //     default: false,
+      //     plugin: {
+      //       kind: "HumanlogDatasource",
+      //       spec: {
+      //         directUrl:
+      //           process.env.NEXT_PUBLIC_HUMANLOG_API_URL ||
+      //           "https://api.humanlog.io",
+      //       },
+      //     },
+      //   };
+      // }
 
       // For backward compatibility with any existing "humanlog" datasource references
       if (!dashboard.spec.datasources["humanlog"]) {
