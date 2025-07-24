@@ -5,6 +5,7 @@ import { updateDashboard } from "api/js/svc/dashboard/v1/service-DashboardServic
 import { useMutation } from "@connectrpc/connect-query";
 import { toast } from "sonner";
 import { logger } from "@/lib/utils/telemetry/logger";
+import { useEffect } from "react";
 
 interface DashboardControlsProps {
   dashboardResource: DashboardResource;
@@ -19,12 +20,44 @@ export function DashboardControls({
   const { mutate: updateDashboardMutation, isPending: isUpdating } =
     useMutation(updateDashboard);
 
-  const { hasChanges, changeLog, prepareDashboardForSave } =
-    useDashboardPersistence(dashboardResource, dashboardId);
+  const hookResult = useDashboardPersistence(dashboardResource, dashboardId);
+
+  //add debug logs
+  useEffect(() => {
+    try {
+      console.log("useDashboardPersistence result:", hookResult);
+    } catch (error) {
+      console.error("Error logging hook result:", error);
+    }
+  }, [hookResult]);
+
+  const { hasChanges, changeLog, prepareDashboardForSave } = hookResult;
+
+  // Check component state on mount
+  useEffect(() => {
+    console.log("DashboardControls mounted with:", {
+      dashboardResource,
+      dashboardId,
+      hasChanges,
+      changeLogLength: changeLog?.length || 0,
+    });
+  }, [dashboardResource, dashboardId, hasChanges, changeLog]);
 
   const handleSave = async () => {
     try {
+      console.log("Save button clicked");
+
+      if (!prepareDashboardForSave) {
+        console.warn("prepareDashboardForSave function not available");
+        return;
+      }
+
       const { updateRequest, dashboard, changes } = prepareDashboardForSave();
+
+      if (!updateRequest) {
+        console.warn("No update request prepared");
+        return;
+      }
 
       updateDashboardMutation(updateRequest, {
         onSuccess: (response) => {
@@ -48,6 +81,7 @@ export function DashboardControls({
       logger.error("Failed to prepare dashboard for saving", {
         error: error instanceof Error ? error.message : String(error),
       });
+      console.error("Handle save error:", error);
     }
   };
 
@@ -62,7 +96,8 @@ export function DashboardControls({
       </Button>
       {/* {hasChanges && (
         <span className="text-sm text-gray-500">
-          {changeLog.length} unsaved change{changeLog.length !== 1 ? "s" : ""}
+          {changeLog?.length || 0} unsaved change
+          {(changeLog?.length || 0) !== 1 ? "s" : ""}
         </span>
       )} */}
     </div>
