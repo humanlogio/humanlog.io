@@ -37,48 +37,47 @@ export function useDashboardPersistence(
   });
 
   // Get current dashboard state
-  const getCurrentDashboardState = useDashboardStore(
-    useCallback((state) => {
-      // Reconstruct DashboardResource from current state
-      const currentDashboard: DashboardResource = {
-        kind: state.kind as "Dashboard",
-        metadata: state.metadata,
-        spec: {
-          display: state.display,
-          datasources: state.datasources || {},
-          duration: state.duration,
-          refreshInterval: state.refreshInterval,
-          variables: [], // Variables are managed separately, so set as empty array
-          panels: state.panels || {},
-          layouts: state.panelGroups
-            ? Object.values(state.panelGroups).map((group) => ({
-                kind: "Grid" as const,
-                spec: {
-                  display: {
-                    title: group.title || "Panel Group",
-                    collapse: { open: !group.isCollapsed },
-                  },
-                  items: group.itemLayouts.map((layout) => {
-                    // Find panel key corresponding to layout.i from itemPanelKeys
-                    const panelKey = group.itemPanelKeys[layout.i];
-                    return {
-                      x: layout.x,
-                      y: layout.y,
-                      width: layout.w,
-                      height: layout.h,
-                      content: {
-                        $ref: `#/spec/panels/${panelKey}`,
-                      },
-                    };
-                  }),
+  const getCurrentDashboardState = useDashboardStore((state) => {
+    console.log("state", state);
+    // Reconstruct DashboardResource from current state
+    const currentDashboard: DashboardResource = {
+      kind: state.kind as "Dashboard",
+      metadata: state.metadata,
+      spec: {
+        display: state.display,
+        datasources: state.datasources || {},
+        duration: state.duration,
+        refreshInterval: state.refreshInterval,
+        variables: [], // Variables are managed separately, so set as empty array
+        panels: state.panels || {},
+        layouts: state.panelGroups
+          ? Object.values(state.panelGroups).map((group) => ({
+              kind: "Grid" as const,
+              spec: {
+                display: {
+                  title: group.title || "Panel Group",
+                  collapse: { open: !group.isCollapsed },
                 },
-              }))
-            : [],
-        },
-      };
-      return currentDashboard;
-    }, []),
-  );
+                items: group.itemLayouts.map((layout) => {
+                  // Find panel key corresponding to layout.i from itemPanelKeys
+                  const panelKey = group.itemPanelKeys[layout.i];
+                  return {
+                    x: layout.x,
+                    y: layout.y,
+                    width: layout.w,
+                    height: layout.h,
+                    content: {
+                      $ref: `#/spec/panels/${panelKey}`,
+                    },
+                  };
+                }),
+              },
+            }))
+          : [],
+      },
+    };
+    return currentDashboard;
+  });
 
   // Detect changes and log them
   useEffect(() => {
