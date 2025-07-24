@@ -20,25 +20,16 @@ export function DashboardControls({
   const { mutate: updateDashboardMutation, isPending: isUpdating } =
     useMutation(updateDashboard);
 
-  let hookResult;
-  try {
-    hookResult = useDashboardPersistence(dashboardResource, dashboardId);
-    console.log("useDashboardPersistence result:", hookResult);
-  } catch (error) {
-    console.error("Error in useDashboardPersistence:", error);
-    // Provide default values when error occurs
-    hookResult = {
-      hasChanges: false,
-      changeLog: [],
-      prepareDashboardForSave: () => ({
-        updateRequest: null,
-        dashboard: dashboardResource,
-        changes: [],
-        lastModified: new Date().toISOString(),
-        hasChanges: false,
-      }),
-    };
-  }
+  const hookResult = useDashboardPersistence(dashboardResource, dashboardId);
+
+  //add debug logs
+  useEffect(() => {
+    try {
+      console.log("useDashboardPersistence result:", hookResult);
+    } catch (error) {
+      console.error("Error logging hook result:", error);
+    }
+  }, [hookResult]);
 
   const { hasChanges, changeLog, prepareDashboardForSave } = hookResult;
 
@@ -55,6 +46,12 @@ export function DashboardControls({
   const handleSave = async () => {
     try {
       console.log("Save button clicked");
+
+      if (!prepareDashboardForSave) {
+        console.warn("prepareDashboardForSave function not available");
+        return;
+      }
+
       const { updateRequest, dashboard, changes } = prepareDashboardForSave();
 
       if (!updateRequest) {
