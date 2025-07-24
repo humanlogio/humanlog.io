@@ -59,11 +59,6 @@ interface DashboardClientProps {
 export function DashboardClient({ dashboardId }: DashboardClientProps) {
   const { theme } = useTheme();
   const { isLoading, data } = useQuery(getDashboard, { id: dashboardId });
-  const [isClient, setIsClient] = useState(false);
-
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
 
   // Decode the persesJson bytes back to DashboardResource
   const decodedDashboard = useMemo(() => {
@@ -120,8 +115,6 @@ export function DashboardClient({ dashboardId }: DashboardClientProps) {
   }, [data?.dashboard?.persesJson]);
 
   const themeMode = useMemo(() => {
-    if (!isClient) return "light"; // default
-
     switch (theme) {
       case "dark":
         return "dark";
@@ -134,7 +127,7 @@ export function DashboardClient({ dashboardId }: DashboardClientProps) {
       default:
         return "light";
     }
-  }, [theme, isClient]);
+  }, [theme]);
 
   const muiTheme = getTheme(themeMode);
   const chartsTheme = generateChartsTheme(muiTheme, {});
@@ -158,12 +151,7 @@ export function DashboardClient({ dashboardId }: DashboardClientProps) {
     },
   ]);
 
-  if (!isClient) {
-    return <div>Loading...</div>;
-  }
-
   if (isLoading) return <div>Loading...</div>;
-
   if (!decodedDashboard) return <div>Dashboard not found</div>;
 
   try {
