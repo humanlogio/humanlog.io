@@ -37,7 +37,7 @@ export function useDashboardPersistence(
   });
 
   // Get current dashboard state
-  const getCurrentDashboardState = useDashboardStore((state) => {
+  const currentDashboardState = useDashboardStore((state) => {
     console.log("state", state);
     // Reconstruct DashboardResource from current state
     const currentDashboard: DashboardResource = {
@@ -79,9 +79,13 @@ export function useDashboardPersistence(
     return currentDashboard;
   });
 
+  const getCurrentDashboard = useCallback(() => {
+    return currentDashboardState;
+  }, [currentDashboardState]);
+
   // Detect changes and log them
   useEffect(() => {
-    const currentState = getCurrentDashboardState;
+    const currentState = currentDashboardState;
     const previousState = dashboardChanges.dashboardResource;
 
     // Check if there are any changes
@@ -142,7 +146,7 @@ export function useDashboardPersistence(
         changeLog: newChangeLog,
       });
     }
-  }, [getCurrentDashboardState, dashboardChanges.dashboardResource]);
+  }, [currentDashboardState, dashboardChanges.dashboardResource]);
 
   const prepareDashboardForSave = useCallback(() => {
     const currentDashboard = dashboardChanges.dashboardResource;
@@ -199,6 +203,6 @@ export function useDashboardPersistence(
     changeLog: dashboardChanges.changeLog,
     saveDashboard,
     prepareDashboardForSave,
-    getCurrentDashboard: getCurrentDashboardState,
+    getCurrentDashboard,
   };
 }
