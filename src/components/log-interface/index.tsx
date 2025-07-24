@@ -63,7 +63,7 @@ interface LogInterfaceProps {
 }
 
 const LogInterface = ({ nav }: LogInterfaceProps) => {
-  const limit = 100;
+  const limit = 1000;
 
   const router = useRouter();
   const { apiClients, activeEnvironment } = useApiClients();
