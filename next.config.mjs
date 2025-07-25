@@ -12,7 +12,6 @@ const nextConfig = {
   transpilePackages: ["api"],
   pageExtensions: ["js", "jsx", "mdx", "ts", "tsx"],
   reactStrictMode: false,
-  compress: false,
 
   // This is required to support PostHog trailing slash API requests
   skipTrailingSlashRedirect: true,
@@ -39,24 +38,7 @@ const nextConfig = {
     config.optimization = {
       ...config.optimization,
       minimize: false, // Most important!
-      minimizer: [],
-      sideEffects: false,
-      usedExports: false,
-      concatenateModules: false,
-      splitChunks: {
-        chunks: "all",
-        cacheGroups: {
-          default: false,
-          vendors: false,
-          // Don't split zustand into separate chunks
-          // zustand: false,
-        },
-      },
     };
-
-    // Disable tree shaking
-    config.optimization.providedExports = false;
-    config.optimization.usedExports = false;
 
     // Keep readable names for bundle analysis
     config.optimization.moduleIds = "named";
