@@ -7,6 +7,7 @@ const { withContentlayer } = require("next-contentlayer2");
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // swcMinify: false,
   output: "standalone",
   transpilePackages: ["api"],
   pageExtensions: ["js", "jsx", "mdx", "ts", "tsx"],
@@ -33,7 +34,23 @@ const nextConfig = {
   },
 
   webpack: (config, { isServer }) => {
-    // plugin setting for monaco editor webpack
+    // Disable all optimizations
+    config.optimization = {
+      ...config.optimization,
+      minimize: false, // Most important!
+    };
+
+    // Keep readable names for bundle analysis
+    config.optimization.moduleIds = "named";
+    config.optimization.chunkIds = "named";
+
+    // Zustand alias configuration
+    // config.resolve.alias = {
+    //   ...config.resolve.alias,
+    //   zustand: require.resolve("zustand"),
+    // };
+
+    // Plugin settings for Monaco Editor webpack
     if (!isServer) {
       config.resolve.fallback = {
         ...config.resolve.fallback,

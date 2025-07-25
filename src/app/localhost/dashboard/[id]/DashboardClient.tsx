@@ -32,7 +32,7 @@ import * as humanlogPlugin from "@humanlogio/perses-plugin";
 import { useTheme } from "next-themes";
 
 import { DashboardControls } from "@/app/localhost/dashboard/components/DashboardControls";
-import { useMemo, useEffect, useState } from "react";
+import { useMemo } from "react";
 import { getDashboard } from "api/js/svc/dashboard/v1/service-DashboardService_connectquery";
 import { useQuery } from "@connectrpc/connect-query";
 import { DashboardResource } from "@perses-dev/core";
@@ -152,98 +152,79 @@ export function DashboardClient({ dashboardId }: DashboardClientProps) {
   ]);
 
   if (isLoading) return <div>Loading...</div>;
+
   if (!decodedDashboard) return <div>Dashboard not found</div>;
 
-  try {
-    return (
-      <ThemeProvider theme={muiTheme}>
-        <ChartsProvider chartsTheme={chartsTheme}>
-          <SnackbarProvider
-            anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-            variant="default"
-            content=""
+  return (
+    <ThemeProvider theme={muiTheme}>
+      <ChartsProvider chartsTheme={chartsTheme}>
+        <SnackbarProvider
+          anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+          variant="default"
+          content=""
+        >
+          <PluginRegistry
+            pluginLoader={pluginLoader}
+            defaultPluginKinds={{
+              Datasource: "HumanlogDatasource",
+              TimeSeriesQuery: "HumanlogTimeSeriesQuery",
+              Panel: "TimeSeriesChart",
+            }}
           >
-            <PluginRegistry
-              pluginLoader={pluginLoader}
-              defaultPluginKinds={{
-                Datasource: "HumanlogDatasource",
-                TimeSeriesQuery: "HumanlogTimeSeriesQuery",
-                Panel: "TimeSeriesChart",
-              }}
+            <DatasourceStoreProvider
+              dashboardResource={decodedDashboard}
+              datasourceApi={mockDatasourceApi}
             >
-              <DatasourceStoreProvider
-                dashboardResource={decodedDashboard}
-                datasourceApi={mockDatasourceApi}
+              <TimeRangeProvider
+                refreshInterval="30s"
+                timeRange={{ pastDuration: "1h" }}
               >
-                <TimeRangeProvider
-                  refreshInterval="30s"
-                  timeRange={{ pastDuration: "1h" }}
-                >
-                  <VariableProvider>
-                    <ValidationProvider>
-                      <DashboardProvider
-                        initialState={{
-                          dashboardResource: decodedDashboard,
-                          isEditMode: true,
-                        }}
-                      >
-                        <div className="min-h-screen bg-white p-6 text-black dark:bg-gray-900 dark:text-white">
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <h1 className="mb-1 text-2xl font-bold">
-                                {data?.dashboard?.name}
-                              </h1>
-                              <p className="text-muted-foreground mb-6">
-                                {data?.dashboard?.description}
-                              </p>
-                            </div>
-                            <DashboardControls
-                              dashboardResource={decodedDashboard}
-                              dashboardId={dashboardId}
-                            />
+                <VariableProvider>
+                  <ValidationProvider>
+                    <DashboardProvider
+                      initialState={{
+                        dashboardResource: decodedDashboard,
+                        isEditMode: true,
+                      }}
+                    >
+                      <div className="min-h-screen bg-white p-6 text-black dark:bg-gray-900 dark:text-white">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h1 className="mb-1 text-2xl font-bold">
+                              {data?.dashboard?.name}
+                            </h1>
+                            <p className="text-muted-foreground mb-6">
+                              {data?.dashboard?.description}
+                            </p>
                           </div>
-
-                          <Dashboard
-                            panelOptions={{
-                              hideHeader: false,
-                            }}
+                          <DashboardControls
+                            dashboardResource={decodedDashboard}
+                            dashboardId={dashboardId}
                           />
-
-                          {/* Panel editing dialogs */}
-                          <PanelDrawer />
-                          <EditJsonDialog isReadonly={false} />
-                          <DeletePanelDialog />
-                          <DeletePanelGroupDialog />
-                          <SaveChangesConfirmationDialog />
-                          <PanelGroupDialog />
                         </div>
-                      </DashboardProvider>
-                    </ValidationProvider>
-                  </VariableProvider>
-                </TimeRangeProvider>
-              </DatasourceStoreProvider>
-            </PluginRegistry>
-          </SnackbarProvider>
-        </ChartsProvider>
-      </ThemeProvider>
-    );
-  } catch (error) {
-    console.error("Dashboard rendering error:", error);
-    return (
-      <div className="min-h-screen bg-white p-6 text-black dark:bg-gray-900 dark:text-white">
-        <div className="text-center">
-          <h1 className="mb-4 text-2xl font-bold text-red-600">
-            Dashboard Error
-          </h1>
-          <p className="text-gray-600">
-            Failed to render dashboard. Please check the console for more
-            details.
-          </p>
-          <pre className="mt-4 overflow-x-auto rounded bg-gray-100 p-4 text-left text-sm">
-            {error instanceof Error ? error.message : String(error)}
-          </pre>
-        </div>
-      </div>
-    );
-  }
+
+                        <Dashboard
+                          panelOptions={{
+                            hideHeader: false,
+                          }}
+                        />
+
+                        {/* Panel editing dialogs */}
+                        <PanelDrawer />
+                        <EditJsonDialog isReadonly={false} />
+                        <DeletePanelDialog />
+                        <DeletePanelGroupDialog />
+                        <SaveChangesConfirmationDialog />
+                        <PanelGroupDialog />
+                      </div>
+                    </DashboardProvider>
+                  </ValidationProvider>
+                </VariableProvider>
+              </TimeRangeProvider>
+            </DatasourceStoreProvider>
+          </PluginRegistry>
+        </SnackbarProvider>
+      </ChartsProvider>
+    </ThemeProvider>
+  );
 }
