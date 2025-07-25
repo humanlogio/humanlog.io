@@ -12,7 +12,6 @@ const nextConfig = {
   transpilePackages: ["api"],
   pageExtensions: ["js", "jsx", "mdx", "ts", "tsx"],
   reactStrictMode: false,
-  productionBrowserSourceMaps: true,
   compress: false,
 
   // This is required to support PostHog trailing slash API requests
