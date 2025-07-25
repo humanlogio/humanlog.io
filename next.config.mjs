@@ -7,10 +7,13 @@ const { withContentlayer } = require("next-contentlayer2");
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // swcMinify: false,
   output: "standalone",
   transpilePackages: ["api"],
   pageExtensions: ["js", "jsx", "mdx", "ts", "tsx"],
   reactStrictMode: false,
+  productionBrowserSourceMaps: true,
+  compress: false,
 
   // This is required to support PostHog trailing slash API requests
   skipTrailingSlashRedirect: true,
@@ -33,7 +36,40 @@ const nextConfig = {
   },
 
   webpack: (config, { isServer }) => {
-    // plugin setting for monaco editor webpack
+    // Disable all optimizations
+    config.optimization = {
+      ...config.optimization,
+      minimize: false, // Most important!
+      minimizer: [],
+      sideEffects: false,
+      usedExports: false,
+      concatenateModules: false,
+      splitChunks: {
+        chunks: "all",
+        cacheGroups: {
+          default: false,
+          vendors: false,
+          // Don't split zustand into separate chunks
+          // zustand: false,
+        },
+      },
+    };
+
+    // Disable tree shaking
+    config.optimization.providedExports = false;
+    config.optimization.usedExports = false;
+
+    // Keep readable names for bundle analysis
+    config.optimization.moduleIds = "named";
+    config.optimization.chunkIds = "named";
+
+    // Zustand alias configuration
+    // config.resolve.alias = {
+    //   ...config.resolve.alias,
+    //   zustand: require.resolve("zustand"),
+    // };
+
+    // Plugin settings for Monaco Editor webpack
     if (!isServer) {
       config.resolve.fallback = {
         ...config.resolve.fallback,
