@@ -29,7 +29,7 @@ export function sampleSpans(): SampleSpan {
     });
   };
   return {
-    query: `traces | where time > ago(10s) and duration > 50ms`,
+    query: `spans | where _time > ago(10s) and duration > 50ms`,
     data: new Spans({
       spans: [
         makeSpan(
