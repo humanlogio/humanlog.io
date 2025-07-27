@@ -13,7 +13,7 @@
          },
          {
             "name": "_time",
-            "desc": "Timestamp found in the log, if present. If not present, will be set to __indextime.",
+            "desc": "Timestamp found in the log, if present. If not present, will be set to _indextime.",
             "type": "scalar:ts"
          },
          {
