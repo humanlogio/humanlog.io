@@ -56,9 +56,9 @@ const AboveFoldHero: React.FC = () => {
   const origin = getSelfURL();
   const installCommand = `curl -sSL "${origin}/install.sh" | bash`;
   const ingestCommand = `your_app | humanlog`;
-  const exampleQuery = `summarize histogram(duration, 10) by bin(time, 1m)`;
+  const exampleQuery = `summarize histogram(duration, 10) by bin(_time, 1m)`;
   const queryCommand = `humanlog query '${exampleQuery}'`;
-  const exampleStream = `traces | filter name == "db_query"`;
+  const exampleStream = `spans | filter name == "db_query"`;
   const streamCommand = `humanlog stream '${exampleStream}'`;
 
   return (
