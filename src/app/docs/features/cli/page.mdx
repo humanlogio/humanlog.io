@@ -192,21 +192,21 @@ Humanlog parses line-oriented logs. A log entry is anything that has a `\n` at t
 You can [query any log or span](/docs/features/query) that has been ingested:
 
 ```bash
-# query for logs that have a msg longer than 10
-humanlog query 'filter len(msg) > 10'
+# query for logs that have a body longer than 10
+humanlog query 'filter len(body) > 10'
 
 # count how many logs have been ingested by level
-humanlog query 'summarize count() by lvl'
+humanlog query 'summarize count() by severity_text'
 
 # sample 10 spans where the duration was greater than 200ms
-humanlog query 'traces | where duration > 200ms | sample 10'
+humanlog query 'spans | where duration > 200ms | sample 10'
 ```
 
 Whenever `humanlog` is receiving logs, you can also watch these logs being emitted in real-time using the [streaming query feature](/docs/features/stream).
 
 ```bash
 # stream all the logs that are at level "error"
-humanlog stream 'filter lvl == "ERROR"'
+humanlog stream 'filter severity_text == "ERROR"'
 ```
 
 As long as `humanlog` hasn't received `EOF` from your application, it will keep ingesting and prettifying logs.
