@@ -195,10 +195,10 @@ This displays your logs with each key-value pair on its own line. You can return
 
 ### Spans
 
-Query spans by specifying the `traces` datatype at the start of your query.
+Query spans by specifying the `spans` dataset at the start of your query.
 
 ```kusto
-traces | take 10
+spans | take 10
 ```
 
 This command will retrieve 10 spans from your tracing data and display them in span-mode, enabling you to debug your distributed system locally without deploying to production.
