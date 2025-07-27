@@ -49,8 +49,8 @@ const LocalhostLayout = ({ children }: LocalhostLayoutProps) => {
       disabled: isProd ? true : false,
     },
     {
-      name: "Monitors",
-      path: "/localhost/monitors",
+      name: "Alerts",
+      path: "/localhost/alerts",
       icon: <Bell size={16} />,
       disabled: isProd ? true : false,
     },

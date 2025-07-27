@@ -19,9 +19,9 @@ const DashboardClient = dynamic(
 export default function Dashboard({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: Promise<{ stackName: string; id: string }>;
 }) {
-  const { id } = use(params);
+  const { stackName, id } = use(params);
 
-  return <DashboardClient dashboardId={id} />;
+  return <DashboardClient stackName={stackName} dashboardId={id} />;
 }

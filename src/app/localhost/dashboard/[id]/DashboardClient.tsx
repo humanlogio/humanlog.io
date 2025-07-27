@@ -53,12 +53,19 @@ function decodePersesJson(
 }
 
 interface DashboardClientProps {
+  stackName: string;
   dashboardId: string;
 }
 
-export function DashboardClient({ dashboardId }: DashboardClientProps) {
+export function DashboardClient({
+  stackName,
+  dashboardId,
+}: DashboardClientProps) {
   const { theme } = useTheme();
-  const { isLoading, data } = useQuery(getDashboard, { id: dashboardId });
+  const { isLoading, data } = useQuery(getDashboard, {
+    stackName: stackName,
+    id: dashboardId,
+  });
 
   // Decode the persesJson bytes back to DashboardResource
   const decodedDashboard = useMemo(() => {

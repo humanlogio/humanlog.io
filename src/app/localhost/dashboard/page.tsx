@@ -55,11 +55,21 @@ const formSchema = z.object({
 
 type FormData = z.infer<typeof formSchema>;
 
-export default function DashboardListPage() {
+interface DashboardListPageProps {
+  stackName: string;
+}
+
+export default function DashboardListPage({
+  stackName,
+}: DashboardListPageProps) {
   const router = useRouter();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  const { isLoading, data: dashboardList, refetch } = useQuery(listDashboard);
+  const {
+    isLoading,
+    data: dashboardList,
+    refetch,
+  } = useQuery(listDashboard, { stackName: stackName });
   const { mutate: createDashboardMutation, isPending: isCreating } =
     useMutation(createDashboard);
 
