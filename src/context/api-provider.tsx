@@ -36,9 +36,11 @@ import { LocalhostService } from "api/js/svc/localhost/v1/service_connect";
 import { ProductService } from "api/js/svc/product/v1/service_connect";
 import { FeatureService } from "api/js/svc/feature/v1/service_connect";
 import { QueryService } from "api/js/svc/query/v1/service_connect";
+import { StackService } from "api/js/svc/stack/v1/service_connect";
 import { TraceService } from "api/js/svc/query/v1/trace_service_connect";
 import { UpdateService } from "api/js/svc/cliupdate/v1/service_connect";
 import { DashboardService } from "api/js/svc/dashboard/v1/service_connect";
+import { AlertService } from "api/js/svc/alert/v1/service_connect";
 
 import {
   PublicShareService,
@@ -75,7 +77,9 @@ type ApiClients = {
   query: Client<typeof QueryService>;
   trace: Client<typeof TraceService>;
   update: Client<typeof UpdateService>;
+  stack: Client<typeof StackService>;
   dashboard: Client<typeof DashboardService>;
+  alert: Client<typeof AlertService>;
   apiTransport: Transport;
   localhostTransport: Transport;
   activeTransport: Transport;
@@ -173,7 +177,9 @@ export function ApiClientsProvider({
       query: createClient(QueryService, activeTransport),
       trace: createClient(TraceService, activeTransport),
       ingest: createClient(IngestService, activeTransport),
+      stack: createClient(StackService, activeTransport),
       dashboard: createClient(DashboardService, activeTransport),
+      alert: createClient(AlertService, activeTransport),
 
       apiTransport: apiTpt,
       localhostTransport: localhostTransport,
