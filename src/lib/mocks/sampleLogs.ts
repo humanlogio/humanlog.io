@@ -18,7 +18,7 @@ interface SampleLog {
 
 export function sampleLogs(): SampleLog {
   return {
-    query: `logs | filter level != "DEBUG"`,
+    query: `logs | filter severity_text != "DEBUG"`,
     data: [
       makeLog(
         new Timestamp({ seconds: toBigInt(1707632400), nanos: 0 }),
