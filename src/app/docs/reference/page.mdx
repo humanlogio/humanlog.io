@@ -111,20 +111,20 @@ Like for logs and spans, we try to detect some interesting type of data shapes a
 Filter for logs with messages:
 
 ```kusto
-logs | filter msg != ""
+logs | filter body != ""
 ```
 
 Count of spans in the last hour:
 
 ```kusto
-traces | where time > ago(1h) | summarize count()
+spans | where _time > ago(1h) | summarize count()
 ```
 
 Trace IDs where the trace container the most spans, in the last hour.
 
 ```kusto
-traces
-| filter time > ago(1h)
+spans
+| filter _time > ago(1h)
 | summarize span_count=count() by trace_id
 | sort by span_count desc
 ```
