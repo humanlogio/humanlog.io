@@ -14,11 +14,11 @@ export default function DemoContents({ gift }: DemoContentsProps) {
                 Hello KubeCon India 🇮🇳
               </h3>
               <p className="mx-auto mb-8 max-w-2xl text-lg text-gray-600 dark:text-gray-300">
-                We're the team behind Humanlog. Thanks for booking a demo with
-                us! Your help is hugely important in shaping our product and
-                crafting the best DevEx for observability!
+                We&apos;re the team behind Humanlog. Thanks for booking a demo
+                with us! Your help is hugely important in shaping our product
+                and crafting the best DevEx for observability!
                 <br />
-                As a token of our gratitude, we'll offer you a {gift} (or a
+                As a token of our gratitude, we&apos;ll offer you a {gift} (or a
                 voucher for one)!
               </p>
               <a
