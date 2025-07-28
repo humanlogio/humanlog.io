@@ -51,6 +51,7 @@ import { ConnectError } from "@connectrpc/connect";
 import { Duration } from "@bufbuild/protobuf";
 import FeatureFlag from "@/components/posthog/feature-flag";
 import { logger } from "@/lib/utils/telemetry/logger";
+import { newIdentifierExpr } from "@/lib/utils/queryExpressions";
 
 export type DataCase = "subqueries" | "freeform" | "logs" | "spans" | undefined;
 
@@ -98,9 +99,7 @@ const LogInterface = ({ nav }: LogInterfaceProps) => {
         case: "split",
         value: new SplitOperator({
           by: new SplitOperator_ByOperator({
-            scalars: [
-              //TODO : add scalars
-            ],
+            scalars: [newIdentifierExpr("_resource_fingerprint")],
           }),
         }),
       },
@@ -118,10 +117,9 @@ const LogInterface = ({ nav }: LogInterfaceProps) => {
         let renderStmt;
         let statements = parseRes.query.query?.statements ?? [];
 
-        // TODO : add split by default (_resource_fingerprint)
-        // if (splitByDefault) {
-        //   renderStmt = createSplitRenderStatement();
-        // }
+        if (splitByDefault) {
+          renderStmt = createSplitRenderStatement();
+        }
 
         if (parseRes.query.query) {
           parseRes.query.query.render = renderStmt;
