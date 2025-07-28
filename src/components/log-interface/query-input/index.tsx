@@ -36,12 +36,19 @@ import { useAllEnvironments } from "@/context/list-environments";
 import dynamic from "next/dynamic";
 import { newBinaryExpr } from "@/lib/utils/queryExpressions";
 import { ExecuteQuery } from "@/components/log-interface";
+import { useQuery } from "@connectrpc/connect-query";
+import { listQueryHistory } from "api/js/svc/user/v1/service-UserService_connectquery";
 
-const DEFAULT_QUERY_EXAMPLES = {
+interface DefaultQueryExamples {
+  query: string;
+  stream: string;
+}
+
+const DEFAULT_QUERY_EXAMPLES: DefaultQueryExamples = {
   query:
     'logs | filter severity_text == "error" | summarize error_count=count() by bin(_time, 1h)',
   stream: 'spans | filter service_name == "your_service"',
-} as const;
+};
 
 const MonacoEditor = dynamic(
   () => import("@/components/editor/monaco-editor"),
@@ -82,9 +89,12 @@ const QueryInput = ({
 
   const [isSaveValid, setIsSaveValid] = useState(false);
   const [isSaveQueryModalOpen, setIsSaveQueryModalOpen] = useState(false);
+  const [defaultQuery, setDefaultQuery] = useState<DefaultQueryExamples>();
 
   const editorRef = useRef<monacoEditor.IStandaloneCodeEditor>();
   const monacoRef = useRef<typeof monaco>();
+
+  const { data: listQuery } = useQuery(listQueryHistory, { limit: 1 });
 
   const handleEditorDidMount: OnMount = (editor, monaco) => {
     editorRef.current = editor;
@@ -224,6 +234,19 @@ const QueryInput = ({
     setIsSaveValid(editorContent.length > 0);
   }, [editorContent]);
 
+  useEffect(() => {
+    if (!listQuery || !listQuery.items[0]) {
+      setDefaultQuery(DEFAULT_QUERY_EXAMPLES);
+    } else {
+      const lastQuery = listQuery.items[0];
+
+      setDefaultQuery({
+        query: lastQuery.entry?.rawQuery ?? DEFAULT_QUERY_EXAMPLES.query,
+        stream: lastQuery.entry?.rawQuery ?? DEFAULT_QUERY_EXAMPLES.stream,
+      });
+    }
+  }, [listQuery]);
+
   return (
     <>
       <div className="col-span-2 md:col-span-1">
@@ -280,16 +303,16 @@ const QueryInput = ({
               )}
             </div>
           </TooltipProvider>
-          <MonacoEditor
-            value={editorContent}
-            defaultValue={
-              nav === "stream"
-                ? DEFAULT_QUERY_EXAMPLES.stream
-                : DEFAULT_QUERY_EXAMPLES.query
-            }
-            onChange={(value) => setEditorContent(value || "")}
-            onMount={handleEditorDidMount}
-          />
+          {defaultQuery && (
+            <MonacoEditor
+              value={editorContent}
+              defaultValue={
+                nav === "stream" ? defaultQuery.stream : defaultQuery.query
+              }
+              onChange={(value) => setEditorContent(value || "")}
+              onMount={handleEditorDidMount}
+            />
+          )}
         </div>
         <p className="mt-2 text-xs text-[red]">{errMsg}</p>
       </div>
