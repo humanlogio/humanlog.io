@@ -1,5 +1,6 @@
 import { SpanTreeNode } from "@/components/traces/utils";
 import { AlertCircle, Hash } from "lucide-react";
+import { formatTimestamp, formatDuration } from "@/lib/utils/formatTimeStamp";
 
 interface SpanInfo {
   node: SpanTreeNode;
@@ -31,6 +32,35 @@ export const SpanInfo = ({ node, serviceColors }: SpanInfo) => {
         <div className="mt-1 rounded px-2 py-1 font-mono text-sm">
           {node.span.spanId}
         </div>
+      </div>
+
+      {/* Timing Information */}
+      <div className="mb-4 space-y-3 border-b px-2 pb-4">
+        {/* Start Time */}
+        {node.span.time && (
+          <div>
+            <div className="mb-1 flex items-center font-medium">
+              <span>Start Time</span>
+            </div>
+            <div className="mt-1 space-y-1">
+              <div className="rounded bg-gray-50 px-2 py-1 font-mono text-sm dark:bg-gray-800">
+                {formatTimestamp(node.span.time)}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Duration */}
+        {node.span.duration && (
+          <div>
+            <div className="mb-1 flex items-center font-medium">
+              <span>Duration</span>
+            </div>
+            <div className="mt-1 rounded bg-gray-50 px-2 py-1 font-mono text-sm dark:bg-gray-800">
+              {formatDuration(node.span.duration)}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Resource Attributes */}
