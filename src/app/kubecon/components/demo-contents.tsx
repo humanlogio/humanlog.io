@@ -1,5 +1,5 @@
 interface DemoContentsProps {
-  gift: "coffee" | "beer" | "T-shirt";
+  gift: string;
 }
 
 export default function DemoContents({ gift }: DemoContentsProps) {
@@ -18,8 +18,7 @@ export default function DemoContents({ gift }: DemoContentsProps) {
                 with us! Your help is hugely important in shaping our product
                 and crafting the best DevEx for observability!
                 <br />
-                As a token of our gratitude, we&apos;ll offer you a {gift} (or a
-                voucher for one)!
+                As a token of our gratitude, we&apos;ll offer you a {gift}!
               </p>
               <a
                 href="https://calendly.com/antoine-webscale/kubecon-ux-research"
