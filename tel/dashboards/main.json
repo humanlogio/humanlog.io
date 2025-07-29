@@ -1,0 +1,139 @@
+{
+  "kind": "Dashboard",
+  "metadata": {
+    "name": "monitoring-dashboard",
+    "project": "default"
+  },
+  "spec": {
+    "display": {
+      "name": "Monitoring Dashboard",
+      "description": "System monitoring dashboard with memory, status, and CPU metrics"
+    },
+    "datasources": {
+      "prometheus": {
+        "default": true,
+        "plugin": {
+          "kind": "PrometheusDatasource",
+          "spec": {
+            "directUrl": "http://localhost:9090"
+          }
+        }
+      },
+      "humanlog-localhost": {
+        "default": true,
+        "plugin": {
+          "kind": "HumanlogDatasource",
+          "spec": {
+            "directUrl": "http://localhost:32764"
+          }
+        }
+      },
+      "humanlog-hosted": {
+        "default": false,
+        "plugin": {
+          "kind": "HumanlogDatasource",
+          "spec": {
+            "directUrl": "https://api.humanlog.io"
+          }
+        }
+      },
+      "humanlog": {
+        "default": false,
+        "plugin": {
+          "kind": "HumanlogDatasource",
+          "spec": {
+            "directUrl": "http://localhost:32764"
+          }
+        }
+      }
+    },
+    "duration": "1h",
+    "refreshInterval": "30s",
+    "variables": [],
+    "panels": {
+      "timeseriesquerytest": {
+        "kind": "Panel",
+        "spec": {
+          "display": {
+            "name": "time series query test"
+          },
+          "plugin": {
+            "kind": "TimeSeriesChart",
+            "spec": {}
+          },
+          "queries": [
+            {
+              "kind": "TimeSeriesQuery",
+              "spec": {
+                "plugin": {
+                  "kind": "HumanlogTimeSeriesQuery",
+                  "spec": {
+                    "query": "spans | project _time, duration"
+                  }
+                }
+              }
+            }
+          ]
+        }
+      },
+      "timeseriesquerytest-1": {
+        "kind": "Panel",
+        "spec": {
+          "display": {
+            "name": "time series query test"
+          },
+          "plugin": {
+            "kind": "TimeSeriesChart",
+            "spec": {}
+          },
+          "queries": [
+            {
+              "kind": "TimeSeriesQuery",
+              "spec": {
+                "plugin": {
+                  "kind": "HumanlogTimeSeriesQuery",
+                  "spec": {
+                    "query": "spans | project _time, duration"
+                  }
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "layouts": [
+      {
+        "kind": "Grid",
+        "spec": {
+          "display": {
+            "title": "System Metrics",
+            "collapse": {
+              "open": true
+            }
+          },
+          "items": [
+            {
+              "x": 0,
+              "y": 0,
+              "width": 12,
+              "height": 6,
+              "content": {
+                "$ref": "#/spec/panels/timeseriesquerytest"
+              }
+            },
+            {
+              "x": 12,
+              "y": 0,
+              "width": 12,
+              "height": 6,
+              "content": {
+                "$ref": "#/spec/panels/timeseriesquerytest-1"
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}
