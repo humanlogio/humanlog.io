@@ -1,9 +1,24 @@
+"use client";
+
 interface DemoContentsProps {
   gift: string;
 }
 
 export default function DemoContents({ gift }: DemoContentsProps) {
   const videoId = "WtoA4VGWgCk";
+
+  const handleBookDemoClick = () => {
+    // Twitter conversion tracking event
+    if (typeof window !== "undefined" && (window as any).twq) {
+      (window as any).twq("event", "tw-q8kbo-q8kbo", {});
+    }
+    // Navigate to Calendly
+    window.open(
+      "https://calendly.com/antoine-webscale/kubecon-ux-research",
+      "_blank",
+    );
+  };
+
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900">
       <div className="container mx-auto px-4 py-8 sm:py-16">
@@ -20,10 +35,8 @@ export default function DemoContents({ gift }: DemoContentsProps) {
                 <br />
                 As a token of our gratitude, we&apos;ll offer you a {gift}!
               </p>
-              <a
-                href="https://calendly.com/antoine-webscale/kubecon-ux-research"
-                target="_blank"
-                rel="noopener noreferrer"
+              <button
+                onClick={handleBookDemoClick}
                 className="inline-flex transform items-center rounded-lg bg-gray-600 px-8 py-4 text-lg font-semibold text-white shadow-lg transition-all duration-200 hover:scale-105 hover:bg-gray-700 hover:shadow-xl focus:ring-4 focus:ring-gray-300 focus:outline-none dark:bg-gray-500 dark:hover:bg-gray-600 dark:focus:ring-gray-800"
               >
                 Book a Demo
@@ -40,7 +53,7 @@ export default function DemoContents({ gift }: DemoContentsProps) {
                     d="M17 8l4 4m0 0l-4 4m4-4H3"
                   />
                 </svg>
-              </a>
+              </button>
             </div>
           </div>
           {/* Video Section */}
