@@ -63,7 +63,7 @@ export function DismissibleBanner({
             onClick={handlePermanentDismiss}
             className="text-xs hover:bg-white/20"
           >
-            Don't show again
+            Don&apos;t show again
           </Button>
           <Button
             variant="ghost"
