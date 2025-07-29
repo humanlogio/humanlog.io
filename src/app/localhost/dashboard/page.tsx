@@ -5,6 +5,10 @@ import {
   createDashboard,
   listDashboard,
 } from "api/js/svc/dashboard/v1/service-DashboardService_connectquery";
+import {
+  createStack,
+  listStack,
+} from "api/js/svc/stack/v1/service-StackService_connectquery";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Plus, Calendar, User } from "lucide-react";
@@ -40,6 +44,9 @@ import {
   createDefaultDashboardTemplate,
 } from "@/lib/mocks/sampleDashboards";
 import { Badge } from "@/components/ui/badge";
+import { useApiClients } from "@/context/api-provider";
+import { CreateStackRequest } from "api/js/svc/stack/v1/service_pb";
+import { StackPointer } from "api/js/types/v1/stack_pb";
 
 const formSchema = z.object({
   name: z
@@ -53,14 +60,38 @@ const formSchema = z.object({
   isReadonly: z.boolean().default(false),
 });
 
+const stackFormSchema = z.object({
+  name: z.string().min(1, "Stack name is required"),
+  path: z.string().min(1, "Pointer path is required"),
+  dashboardDir: z.string().min(1, "Dashboard directory is required"),
+  alertDir: z.string().min(1, "Alert directory is required"),
+});
+
 type FormData = z.infer<typeof formSchema>;
+type StackFormData = z.infer<typeof stackFormSchema>;
 
 export default function DashboardListPage() {
   const router = useRouter();
+  const { activeEnvironment } = useApiClients();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isStackDialogOpen, setIsStackDialogOpen] = useState(false);
 
-  const { isLoading, data: dashboardList, refetch } = useQuery(listDashboard);
-  const { mutate: createDashboardMutation, isPending: isCreating } =
+  const { isLoading: isLoadingListStack, data: stackList } = useQuery(
+    listStack,
+    { environmentId: activeEnvironment?.id },
+  );
+  const {
+    isLoading,
+    data: dashboardList,
+    refetch,
+  } = useQuery(listDashboard, {
+    environmentId: activeEnvironment?.id,
+  });
+
+  const { mutate: createStackMutation, isPending: isCreatingStack } =
+    useMutation(createStack);
+
+  const { mutate: createDashboardMutation, isPending: isCreatingDashboard } =
     useMutation(createDashboard);
 
   const form = useForm<FormData>({
@@ -93,7 +124,7 @@ export default function DashboardListPage() {
     createDashboardMutation(newDashboard, {
       onSuccess: (response) => {
         console.log("Dashboard created successfully:", response);
-        logger.info("Dashboard created successfully");
+        logger.info(`Dashboard created successfully: ${response}`);
         toast.info("Dashboard created successfully");
         refetch(); // Refresh the dashboard list
         setIsDialogOpen(false);
@@ -104,7 +135,37 @@ export default function DashboardListPage() {
       },
       onError: (error) => {
         toast.error(`Failed to create dashboard: ${error.message}`);
-        logger.error("Failed to create dashboard");
+        logger.error(`Failed to create dashboard: ${error.message}`);
+      },
+    });
+  };
+
+  const onStackSubmit = (data: StackFormData) => {
+    const { name, path, dashboardDir, alertDir } = data;
+    const newStack = new CreateStackRequest({
+      environmentId: activeEnvironment?.id,
+      name,
+      pointer: new StackPointer({
+        scheme: {
+          case: "localhost",
+          value: {
+            path,
+            dashboardDir,
+            alertDir,
+          },
+        },
+      }),
+    });
+
+    createStackMutation(newStack, {
+      onSuccess: (response) => {
+        console.log("Stack created successfully:", response);
+        logger.info("Stack created successfully");
+        toast.info("Stack created successfully");
+      },
+      onError: (error) => {
+        toast.error(`Failed to create dashboard: ${error.message}`);
+        logger.error(`Failed to create dashboard: ${error.message}`);
       },
     });
   };
@@ -134,8 +195,7 @@ export default function DashboardListPage() {
             Dashboard
           </h1>
         </div>
-
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        {/* <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button className="flex items-center gap-2">
               <Plus className="h-4 w-4" />
@@ -165,7 +225,7 @@ export default function DashboardListPage() {
                         <Input
                           placeholder="Enter dashboard name"
                           {...field}
-                          disabled={isCreating}
+                          disabled={isCreatingDashboard}
                         />
                       </FormControl>
                       <FormDescription>
@@ -187,7 +247,7 @@ export default function DashboardListPage() {
                           placeholder="Enter dashboard description"
                           className="min-h-[80px]"
                           {...field}
-                          disabled={isCreating}
+                          disabled={isCreatingDashboard}
                         />
                       </FormControl>
                       <FormDescription>
@@ -209,6 +269,65 @@ export default function DashboardListPage() {
                   </Button>
                   <Button type="submit" disabled={isCreating}>
                     {isCreating ? "Creating..." : "Create Dashboard"}
+                  </Button>
+                </DialogFooter>
+              </form>
+            </Form>
+          </DialogContent>
+        </Dialog> */}
+
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogTrigger asChild>
+            <Button className="flex items-center gap-2">
+              <Plus className="h-4 w-4" />
+              Create Stack
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>Create New Stack</DialogTitle>
+              <DialogDescription>
+                Create a new stack to organize your data visualizations.
+              </DialogDescription>
+            </DialogHeader>
+
+            <Form {...form}>
+              <form
+                onSubmit={form.handleSubmit(onSubmit)}
+                className="space-y-4"
+              >
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Stack Name</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Enter stack name"
+                          {...field}
+                          disabled={isCreatingStack}
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        Give your stack a descriptive name.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <DialogFooter>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setIsDialogOpen(false)}
+                    disabled={isCreatingStack}
+                  >
+                    Cancel
+                  </Button>
+                  <Button type="submit" disabled={isCreatingStack}>
+                    {isCreatingStack ? "Creating..." : "Create Stack"}
                   </Button>
                 </DialogFooter>
               </form>
