@@ -44,7 +44,6 @@ import { getEnvUrl, getUserSettingsUrl } from "@/lib/utils/navigation";
 import { useAllEnvironments, UserState } from "@/context/list-environments";
 import { Button } from "@/components/ui/button";
 import config from "@/features/config";
-import { getNextUpdate } from "@/services/updateService";
 import { GetNextUpdateRequest } from "api/js/svc/cliupdate/v1/service_pb";
 import { versionCompare, versionToString } from "@/lib/utils/version";
 import { Version } from "api/js/types/v1/version_pb";
@@ -55,6 +54,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@radix-ui/react-tooltip";
+import { useQuery } from "@connectrpc/connect-query";
+import { getNextUpdate } from "api/js/svc/cliupdate/v1/service-UpdateService_connectquery";
 
 interface Source {
   name: string;
@@ -103,6 +104,20 @@ const PageHeader: React.FC = () => {
 
   const router = useRouter();
 
+  const { data: updateData } = useQuery(getNextUpdate);
+
+  // getNextUpdate(apiClients?.update, req, {
+  //   onSuccess: (res) => {
+  //     const result = versionCompare(
+  //       localhostInfo.clientVersion as Version,
+  //       res.nextVersion as Version,
+  //     );
+  //     setNextVersion(res.nextVersion as Version);
+
+  //     if (result < 0) setIsUpdateAvailable(true);
+  //   },
+  // });
+
   const updateSelection = (value: string) => {
     const _selected = sources?.find((source) => source.value === value);
     if (_selected) {
@@ -117,12 +132,6 @@ const PageHeader: React.FC = () => {
       router.push(_selected?.path);
     }
   };
-
-  console.log("activeEnvironment", activeEnvironment);
-
-  // useEffect(() => {
-  //   if (!selected) setActiveEnvironment(undefined);
-  // }, [pathname]);
 
   useEffect(() => {
     let _sources: { name: string; path: string; value: string }[] = [];
@@ -187,17 +196,15 @@ const PageHeader: React.FC = () => {
         localhostConfig?.runtime?.experimentalFeatures?.releaseChannel || "",
     });
 
-    getNextUpdate(apiClients?.update, req, {
-      onSuccess: (res) => {
-        const result = versionCompare(
-          localhostInfo.clientVersion as Version,
-          res.nextVersion as Version,
-        );
-        setNextVersion(res.nextVersion as Version);
+    if (updateData) {
+      const result = versionCompare(
+        localhostInfo.clientVersion as Version,
+        updateData.nextVersion as Version,
+      );
+      setNextVersion(updateData.nextVersion as Version);
 
-        if (result < 0) setIsUpdateAvailable(true);
-      },
-    });
+      if (result < 0) setIsUpdateAvailable(true);
+    }
   }, [localhostInfo, localhostConfig]);
 
   const handleCopyCommand = async () => {
