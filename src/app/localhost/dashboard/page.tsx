@@ -15,9 +15,9 @@ import {
 } from "@/components/ui/dialog";
 import { Accordion } from "@/components/ui/accordion";
 import { useApiClients } from "@/context/api-provider";
-import { StackContainer } from "./components/stack-container";
+import { StackContainer } from "@/app/localhost/dashboard/components/stack-container";
 import LoadingIndicator from "@/components/loading-indicator";
-import { StackForm } from "./components/stack-form";
+import { StackForm } from "@/app/localhost/dashboard/components/stack-form";
 
 export default function DashboardListPage() {
   const { activeEnvironment } = useApiClients();
