@@ -34,12 +34,13 @@ import * as humanlogPlugin from "@humanlogio/perses-plugin";
 import { useTheme } from "next-themes";
 
 import { DashboardControls } from "@/app/localhost/dashboard/components/DashboardControls";
-import { useMemo } from "react";
+import { Suspense, useMemo } from "react";
 import { getDashboard } from "api/js/svc/dashboard/v1/service-DashboardService_connectquery";
 import { useQuery } from "@connectrpc/connect-query";
 import { DashboardResource } from "@perses-dev/core";
 import { mockDatasourceApi } from "@/lib/mocks/sampleDashboards";
 import { useSearchParams } from "next/navigation";
+import { BrowserRouter } from "react-router-dom";
 
 // Helper function to decode persesJson bytes back to DashboardResource
 function decodePersesJson(
@@ -59,7 +60,7 @@ interface DashboardClientProps {
   dashboardId: string;
 }
 
-export function DashboardClient({ dashboardId }: DashboardClientProps) {
+function DashboardClientContent({ dashboardId }: DashboardClientProps) {
   const { theme } = useTheme();
   const searchParams = useSearchParams();
   const stackName = searchParams.get("stackName") || undefined;
@@ -168,76 +169,86 @@ export function DashboardClient({ dashboardId }: DashboardClientProps) {
   if (!decodedDashboard) return <div>Dashboard not found</div>;
 
   return (
-    <ThemeProvider theme={muiTheme}>
-      <ChartsProvider chartsTheme={chartsTheme}>
-        <SnackbarProvider
-          anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-          variant="default"
-          content=""
-        >
-          <PluginRegistry
-            pluginLoader={pluginLoader}
-            defaultPluginKinds={{
-              Datasource: "HumanlogDatasource",
-              TimeSeriesQuery: "HumanlogTimeSeriesQuery",
-              TraceQuery: "HumanlogTraceQuery",
-              Panel: "TimeSeriesChart",
-            }}
+    <BrowserRouter>
+      <ThemeProvider theme={muiTheme}>
+        <ChartsProvider chartsTheme={chartsTheme}>
+          <SnackbarProvider
+            anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+            variant="default"
+            content=""
           >
-            <DatasourceStoreProvider
-              dashboardResource={decodedDashboard}
-              datasourceApi={mockDatasourceApi}
+            <PluginRegistry
+              pluginLoader={pluginLoader}
+              defaultPluginKinds={{
+                Datasource: "HumanlogDatasource",
+                TimeSeriesQuery: "HumanlogTimeSeriesQuery",
+                TraceQuery: "HumanlogTraceQuery",
+                Panel: "TimeSeriesChart",
+              }}
             >
-              <TimeRangeProvider
-                refreshInterval="30s"
-                timeRange={{ pastDuration: "1h" }}
+              <DatasourceStoreProvider
+                dashboardResource={decodedDashboard}
+                datasourceApi={mockDatasourceApi}
               >
-                <VariableProvider>
-                  <ValidationProvider>
-                    <DashboardProvider
-                      initialState={{
-                        dashboardResource: decodedDashboard,
-                        isEditMode: true,
-                      }}
-                    >
-                      <div className="min-h-screen bg-white p-6 text-black dark:bg-gray-900 dark:text-white">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <h1 className="mb-1 text-2xl font-bold">
-                              {data?.dashboard?.name}
-                            </h1>
-                            <p className="text-muted-foreground mb-6">
-                              {data?.dashboard?.description}
-                            </p>
+                <TimeRangeProvider
+                  refreshInterval="30s"
+                  timeRange={{ pastDuration: "1h" }}
+                >
+                  <VariableProvider>
+                    <ValidationProvider>
+                      <DashboardProvider
+                        initialState={{
+                          dashboardResource: decodedDashboard,
+                          isEditMode: true,
+                        }}
+                      >
+                        <div className="min-h-screen bg-white p-6 text-black dark:bg-gray-900 dark:text-white">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <h1 className="mb-1 text-2xl font-bold">
+                                {data?.dashboard?.name}
+                              </h1>
+                              <p className="text-muted-foreground mb-6">
+                                {data?.dashboard?.description}
+                              </p>
+                            </div>
+                            <DashboardControls
+                              dashboardResource={decodedDashboard}
+                              dashboardId={dashboardId}
+                            />
                           </div>
-                          <DashboardControls
-                            dashboardResource={decodedDashboard}
-                            dashboardId={dashboardId}
+
+                          <Dashboard
+                            panelOptions={{
+                              hideHeader: false,
+                            }}
                           />
+
+                          {/* Panel editing dialogs */}
+                          <PanelDrawer />
+                          <EditJsonDialog isReadonly={false} />
+                          <DeletePanelDialog />
+                          <DeletePanelGroupDialog />
+                          <SaveChangesConfirmationDialog />
+                          <PanelGroupDialog />
                         </div>
+                      </DashboardProvider>
+                    </ValidationProvider>
+                  </VariableProvider>
+                </TimeRangeProvider>
+              </DatasourceStoreProvider>
+            </PluginRegistry>
+          </SnackbarProvider>
+        </ChartsProvider>
+      </ThemeProvider>
+    </BrowserRouter>
+  );
+}
 
-                        <Dashboard
-                          panelOptions={{
-                            hideHeader: false,
-                          }}
-                        />
-
-                        {/* Panel editing dialogs */}
-                        <PanelDrawer />
-                        <EditJsonDialog isReadonly={false} />
-                        <DeletePanelDialog />
-                        <DeletePanelGroupDialog />
-                        <SaveChangesConfirmationDialog />
-                        <PanelGroupDialog />
-                      </div>
-                    </DashboardProvider>
-                  </ValidationProvider>
-                </VariableProvider>
-              </TimeRangeProvider>
-            </DatasourceStoreProvider>
-          </PluginRegistry>
-        </SnackbarProvider>
-      </ChartsProvider>
-    </ThemeProvider>
+export function DashboardClient({ dashboardId }: DashboardClientProps) {
+  return (
+    <Suspense fallback={<div>Loading dashboard...</div>}>
+      <DashboardClientContent dashboardId={dashboardId} />
+    </Suspense>
   );
 }
