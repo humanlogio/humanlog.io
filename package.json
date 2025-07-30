@@ -46,6 +46,7 @@
     "@perses-dev/table-plugin": "^0.7.1",
     "@perses-dev/timeseries-chart-plugin": "^0.9.1",
     "@perses-dev/trace-table-plugin": "^0.7.0",
+    "@perses-dev/tracing-gantt-chart-plugin": "^0.8.0",
     "@radix-ui/react-accordion": "^1.2.10",
     "@radix-ui/react-alert-dialog": "^1.1.10",
     "@radix-ui/react-avatar": "^1.1.3",
