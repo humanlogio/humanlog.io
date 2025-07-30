@@ -27,6 +27,8 @@ import {
 } from "@perses-dev/plugin-system";
 import * as prometheusPlugin from "@perses-dev/prometheus-plugin";
 import * as timeseriesChartPlugin from "@perses-dev/timeseries-chart-plugin";
+import * as traceTablePlugin from "@perses-dev/trace-table-plugin";
+
 import * as barchartPlugin from "@perses-dev/bar-chart-plugin";
 import * as humanlogPlugin from "@humanlogio/perses-plugin";
 import { useTheme } from "next-themes";
@@ -37,6 +39,7 @@ import { getDashboard } from "api/js/svc/dashboard/v1/service-DashboardService_c
 import { useQuery } from "@connectrpc/connect-query";
 import { DashboardResource } from "@perses-dev/core";
 import { mockDatasourceApi } from "@/lib/mocks/sampleDashboards";
+import { useSearchParams } from "next/navigation";
 
 // Helper function to decode persesJson bytes back to DashboardResource
 function decodePersesJson(
@@ -58,7 +61,12 @@ interface DashboardClientProps {
 
 export function DashboardClient({ dashboardId }: DashboardClientProps) {
   const { theme } = useTheme();
-  const { isLoading, data } = useQuery(getDashboard, { id: dashboardId });
+  const searchParams = useSearchParams();
+  const stackName = searchParams.get("stackName") || undefined;
+  const { isLoading, data } = useQuery(getDashboard, {
+    id: dashboardId,
+    stackName,
+  });
 
   // Decode the persesJson bytes back to DashboardResource
   const decodedDashboard = useMemo(() => {
@@ -149,6 +157,10 @@ export function DashboardClient({ dashboardId }: DashboardClientProps) {
       resource: barchartPlugin.getPluginModule(),
       importPlugin: () => Promise.resolve(barchartPlugin),
     },
+    {
+      resource: traceTablePlugin.getPluginModule(),
+      importPlugin: () => Promise.resolve(traceTablePlugin),
+    },
   ]);
 
   if (isLoading) return <div>Loading...</div>;
@@ -168,6 +180,7 @@ export function DashboardClient({ dashboardId }: DashboardClientProps) {
             defaultPluginKinds={{
               Datasource: "HumanlogDatasource",
               TimeSeriesQuery: "HumanlogTimeSeriesQuery",
+              TraceQuery: "HumanlogTraceQuery",
               Panel: "TimeSeriesChart",
             }}
           >
