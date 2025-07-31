@@ -58,17 +58,19 @@ export default function DashboardListPage() {
               Create Stack
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[425px]">
-            <DialogHeader>
+          <DialogContent className="flex max-h-[85vh] flex-col sm:max-w-[500px]">
+            <DialogHeader className="flex-shrink-0">
               <DialogTitle>Create New Stack</DialogTitle>
               <DialogDescription>
                 Create a new stack to organize your data visualizations.
               </DialogDescription>
+            </DialogHeader>
+            <div className="flex-1 overflow-y-auto px-1">
               <StackForm
                 setIsStackDialogOpen={setIsStackDialogOpen}
                 refetchStackList={refetchStackList}
               />
-            </DialogHeader>
+            </div>
           </DialogContent>
         </Dialog>
       </div>
