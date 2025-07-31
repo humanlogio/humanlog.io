@@ -55,7 +55,7 @@ export const ReadOnlyField = ({
         <Warning title="File Overwrite Warning">
           <p>
             Disabling read-only mode allows UI edits but{" "}
-            <strong>will overwrite your local JSON files</strong> at the
+            <strong>will overwrite your local files</strong> at the
             specified path. Any changes made directly to the files will be lost
             when you save changes through the UI.
           </p>
