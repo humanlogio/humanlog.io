@@ -236,16 +236,31 @@ const QueryInput = ({
 
   useEffect(() => {
     if (!listQuery || !listQuery.items[0]) {
-      setDefaultQuery(DEFAULT_QUERY_EXAMPLES);
+      const newDefaultQuery = DEFAULT_QUERY_EXAMPLES;
+      setDefaultQuery(newDefaultQuery);
+
+      if (!editorContent) {
+        setEditorContent(
+          nav === "stream" ? newDefaultQuery.stream : newDefaultQuery.query,
+        );
+      }
     } else {
       const lastQuery = listQuery.items[0];
 
-      setDefaultQuery({
+      const newDefaultQuery = {
         query: lastQuery.entry?.rawQuery ?? DEFAULT_QUERY_EXAMPLES.query,
         stream: lastQuery.entry?.rawQuery ?? DEFAULT_QUERY_EXAMPLES.stream,
-      });
+      };
+
+      setDefaultQuery(newDefaultQuery);
+
+      if (!editorContent) {
+        setEditorContent(
+          nav === "stream" ? newDefaultQuery.stream : newDefaultQuery.query,
+        );
+      }
     }
-  }, [listQuery]);
+  }, [listQuery, nav]);
 
   return (
     <>
