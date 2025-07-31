@@ -29,7 +29,7 @@ import * as prometheusPlugin from "@perses-dev/prometheus-plugin";
 import * as timeseriesChartPlugin from "@perses-dev/timeseries-chart-plugin";
 import * as traceTablePlugin from "@perses-dev/trace-table-plugin";
 import * as tracingGanttChartPlugin from "@perses-dev/tracing-gantt-chart-plugin";
-
+import * as tablePlugin from "@perses-dev/table-plugin";
 import * as barchartPlugin from "@perses-dev/bar-chart-plugin";
 import * as humanlogPlugin from "@humanlogio/perses-plugin";
 import { useTheme } from "next-themes";
@@ -166,6 +166,10 @@ function DashboardClientContent({ dashboardId }: DashboardClientProps) {
     {
       resource: tracingGanttChartPlugin.getPluginModule(),
       importPlugin: () => Promise.resolve(tracingGanttChartPlugin),
+    },
+    {
+      resource: tablePlugin.getPluginModule(),
+      importPlugin: () => Promise.resolve(tablePlugin),
     },
   ]);
 
