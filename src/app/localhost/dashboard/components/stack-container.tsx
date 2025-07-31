@@ -5,7 +5,7 @@ import { createDashboard } from "api/js/svc/dashboard/v1/service-DashboardServic
 import { getStack } from "api/js/svc/stack/v1/service-StackService_connectquery";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Plus, Calendar, User } from "lucide-react";
+import { Plus, Calendar } from "lucide-react";
 import { CreateDashboardRequest } from "api/js/svc/dashboard/v1/service_pb";
 import { useState } from "react";
 import {
@@ -40,8 +40,11 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+
 import { useApiClients } from "@/context/api-provider";
 import { Stack } from "api/js/types/v1/stack_pb";
+import { PointerInfo } from "@/app/localhost/dashboard/components/pointer-info";
+import { ReadOnlyField } from "@/app/localhost/dashboard/components/read-only-field";
 
 const formSchema = z.object({
   name: z
@@ -52,7 +55,7 @@ const formSchema = z.object({
     .string()
     .max(500, "Description must be less than 500 characters")
     .optional(),
-  isReadonly: z.boolean().default(false),
+  isReadonly: z.boolean().default(true),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -72,6 +75,24 @@ export const StackContainer = ({
   const { activeEnvironment } = useApiClients();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [stackContents, setStackContents] = useState<Record<string, any>>({});
+
+  const isStackReadonly = (stack: Stack): boolean => {
+    const { pointer } = stack;
+    if (!pointer?.scheme) return false;
+
+    const { case: pointerType, value } = pointer.scheme;
+
+    if (pointerType === "localhost") {
+      const localPointer = value as any;
+      return localPointer.readOnly === true;
+    }
+
+    if (pointerType === "remote") {
+      return true;
+    }
+
+    return false;
+  };
 
   const isExpanded = expandedStacks.has(stack.name);
 
@@ -94,7 +115,7 @@ export const StackContainer = ({
     defaultValues: {
       name: "",
       description: "",
-      isReadonly: false,
+      isReadonly: true,
     },
   });
 
@@ -119,7 +140,6 @@ export const StackContainer = ({
 
     createDashboardMutation(newDashboard, {
       onSuccess: (response) => {
-        console.log("Dashboard created successfully:", response);
         logger.info(`Dashboard created successfully: ${response}`);
         toast.info("Dashboard created successfully");
 
@@ -167,7 +187,9 @@ export const StackContainer = ({
           <div className="flex items-center gap-3">
             <h3 className="text-lg font-semibold">{stack.name}</h3>
             {(() => {
-              const pointerType = stack.pointer?.scheme?.case;
+              const { pointer } = stack;
+              if (!pointer) return;
+              const { case: pointerType } = pointer.scheme;
               const getPointerBadgeClassName = (type: string | undefined) => {
                 switch (type) {
                   case "localhost":
@@ -189,101 +211,122 @@ export const StackContainer = ({
                 </Badge>
               );
             })()}
+
+            {isStackReadonly(stack) && (
+              <Badge variant="secondary" className="ml-2 text-xs">
+                Read Only
+              </Badge>
+            )}
           </div>
         </div>
       </AccordionTrigger>
+
       <AccordionContent>
         {isLoadingStack ? (
           <div className="flex items-center justify-center py-8">
             <div className="h-6 w-6 animate-spin rounded-full border-b-2 border-black dark:border-white" />
           </div>
         ) : (
-          <div className="space-y-6 p-4">
+          <div className="space-y-6">
+            <PointerInfo stack={stack} />
+
             <div>
               <div className="mb-3 flex items-center justify-between">
                 <h4 className="text-md font-medium">Dashboards</h4>
-                <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                  <DialogTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className="flex items-center gap-2"
-                    >
-                      <Plus className="h-4 w-4" />
-                      Create Dashboard
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="sm:max-w-[425px]">
-                    <DialogHeader>
-                      <DialogTitle>Create New Dashboard</DialogTitle>
-                      <DialogDescription>
-                        Create a new dashboard to organize your data
-                        visualizations.
-                      </DialogDescription>
-                    </DialogHeader>
-
-                    <Form {...form}>
-                      <form
-                        onSubmit={form.handleSubmit(onSubmit)}
-                        className="space-y-4"
+                {!isStackReadonly(stack) && (
+                  <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="flex items-center gap-2"
                       >
-                        <FormField
-                          control={form.control}
-                          name="name"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Dashboard Name</FormLabel>
-                              <FormControl>
-                                <Input
-                                  placeholder="Enter dashboard name"
-                                  {...field}
-                                  disabled={isCreatingDashboard}
-                                />
-                              </FormControl>
+                        <Plus className="h-4 w-4" />
+                        Create Dashboard
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-[425px]">
+                      <DialogHeader>
+                        <DialogTitle>Create New Dashboard</DialogTitle>
+                        <DialogDescription>
+                          Create a new dashboard to organize your data
+                          visualizations.
+                        </DialogDescription>
+                      </DialogHeader>
 
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
+                      <Form {...form}>
+                        <form
+                          onSubmit={form.handleSubmit(onSubmit)}
+                          className="space-y-4"
+                        >
+                          <FormField
+                            control={form.control}
+                            name="name"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Dashboard Name</FormLabel>
+                                <FormControl>
+                                  <Input
+                                    placeholder="Enter dashboard name"
+                                    {...field}
+                                    disabled={isCreatingDashboard}
+                                  />
+                                </FormControl>
 
-                        <FormField
-                          control={form.control}
-                          name="description"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Description (Optional)</FormLabel>
-                              <FormControl>
-                                <AutosizeTextarea
-                                  placeholder="Enter dashboard description"
-                                  className="min-h-[80px]"
-                                  {...field}
-                                  disabled={isCreatingDashboard}
-                                />
-                              </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
 
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
+                          <FormField
+                            control={form.control}
+                            name="description"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Description (Optional)</FormLabel>
+                                <FormControl>
+                                  <AutosizeTextarea
+                                    placeholder="Enter dashboard description"
+                                    className="min-h-[80px]"
+                                    {...field}
+                                    disabled={isCreatingDashboard}
+                                  />
+                                </FormControl>
 
-                        <DialogFooter>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            onClick={() => setIsDialogOpen(false)}
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          <ReadOnlyField
+                            control={form.control}
+                            readOnly={form.watch("isReadonly")}
                             disabled={isCreatingDashboard}
-                          >
-                            Cancel
-                          </Button>
-                          <Button type="submit" disabled={isCreatingDashboard}>
-                            {isCreatingDashboard
-                              ? "Creating..."
-                              : "Create Dashboard"}
-                          </Button>
-                        </DialogFooter>
-                      </form>
-                    </Form>
-                  </DialogContent>
-                </Dialog>
+                            fieldName="isReadonly"
+                          />
+
+                          <DialogFooter>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              onClick={() => setIsDialogOpen(false)}
+                              disabled={isCreatingDashboard}
+                            >
+                              Cancel
+                            </Button>
+                            <Button
+                              type="submit"
+                              disabled={isCreatingDashboard}
+                            >
+                              {isCreatingDashboard
+                                ? "Creating..."
+                                : "Create Dashboard"}
+                            </Button>
+                          </DialogFooter>
+                        </form>
+                      </Form>
+                    </DialogContent>
+                  </Dialog>
+                )}
               </div>
               {stackData?.dashboards && stackData?.dashboards.length > 0 ? (
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -332,46 +375,45 @@ export const StackContainer = ({
 
             {/* TODO: Alerts Section */}
             {/* <div>
-          <div className="mb-3 flex items-center justify-between">
-            <h4 className="text-md font-medium">Alert Groups</h4>
-            <Button
-              size="sm"
-              variant="outline"
-              className="flex items-center gap-2"
-            >
-              <Plus className="h-4 w-4" />
-              Create Alert
-            </Button>
-          </div>
-          {stackContent.alertGroups &&
-          stackContent.alertGroups.length > 0 ? (
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              {stackContent.alertGroups.map(
-                (alertGroup: any, index: number) => (
-                  <div
-                    key={alertGroup.id?.toString() || index}
-                    className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800"
-                  >
-                    <h5 className="font-medium text-gray-900 dark:text-white">
-                      {alertGroup.name || "Untitled Alert Group"}
-                    </h5>
-                    {alertGroup.description && (
-                      <p className="text-muted-foreground mt-1 text-sm">
-                        {alertGroup.description}
-                      </p>
-                    )}
-                  </div>
-                ),
+              <div className="mb-3 flex items-center justify-between">
+                <h4 className="text-md font-medium">Alert Groups</h4>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="flex items-center gap-2"
+                >
+                  <Plus className="h-4 w-4" />
+                  Create Alert
+                </Button>
+              </div>
+              {stackData.alertGroups && stackData.alertGroups.length > 0 ? (
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  {stackData.alertGroups.map(
+                    (alertGroup: any, index: number) => (
+                      <div
+                        key={alertGroup.id?.toString() || index}
+                        className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800"
+                      >
+                        <h5 className="font-medium text-gray-900 dark:text-white">
+                          {alertGroup.name || "Untitled Alert Group"}
+                        </h5>
+                        {alertGroup.description && (
+                          <p className="text-muted-foreground mt-1 text-sm">
+                            {alertGroup.description}
+                          </p>
+                        )}
+                      </div>
+                    ),
+                  )}
+                </div>
+              ) : (
+                <div className="rounded-lg border border-dashed border-gray-300 p-6 text-center dark:border-gray-600">
+                  <p className="text-muted-foreground text-sm">
+                    No alert groups in this stack
+                  </p>
+                </div>
               )}
-            </div>
-          ) : (
-            <div className="rounded-lg border border-dashed border-gray-300 p-6 text-center dark:border-gray-600">
-              <p className="text-muted-foreground text-sm">
-                No alert groups in this stack
-              </p>
-            </div>
-          )}
-        </div> */}
+            </div> */}
           </div>
         )}
       </AccordionContent>

@@ -33,14 +33,16 @@ import { z } from "zod";
 import { DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Info } from "lucide-react";
+import { ReadOnlyField } from "@/app/localhost/dashboard/components/read-only-field";
 
 // Stack pointer type schemas
-const localhostStackSchema = z.object({
+export const localhostStackSchema = z.object({
   name: z.string().min(1, "Stack name is required"),
   pointerType: z.literal("localhost"),
   path: z.string().min(1, "Path is required"),
   dashboardDir: z.string().min(1, "Dashboard directory is required"),
   alertDir: z.string().min(1, "Alert directory is required"),
+  readOnly: z.boolean().default(true),
 });
 
 const remoteStackSchema = z.object({
@@ -89,6 +91,7 @@ export const StackForm = ({
       path: "",
       dashboardDir: "",
       alertDir: "",
+      readOnly: true,
     },
   });
 
@@ -99,7 +102,7 @@ export const StackForm = ({
 
     switch (pointerType) {
       case "localhost": {
-        const { path, dashboardDir, alertDir } = data;
+        const { path, dashboardDir, alertDir, readOnly } = data;
         pointer = new StackPointer({
           scheme: {
             case: "localhost",
@@ -107,6 +110,7 @@ export const StackForm = ({
               path,
               dashboardDir,
               alertDir,
+              readOnly,
             }),
           },
         });
@@ -151,7 +155,6 @@ export const StackForm = ({
 
     createStackMutation(newStack, {
       onSuccess: (response) => {
-        console.log("Stack created successfully:", response);
         logger.info("Stack created successfully");
         toast.info("Stack created successfully");
         setIsStackDialogOpen(false);
@@ -362,6 +365,15 @@ const StackPointerField = ({
           )}
         />
       ))}
+
+      {currentType === "localhost" && (
+        <ReadOnlyField
+          control={stackForm.control}
+          readOnly={stackForm.watch("readOnly")}
+          disabled={isCreatingStack}
+          fieldName="readOnly"
+        />
+      )}
     </>
   );
 };
