@@ -60,7 +60,7 @@ export const ReadOnlyField = ({
             when you save changes through the UI.
           </p>
           <p className="mt-2">
-            Consider using a version control system to backup your files before
+            Consider using a Git to backup your files before
             proceeding.
           </p>
         </Warning>
