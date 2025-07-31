@@ -55,13 +55,12 @@ export const ReadOnlyField = ({
         <Warning title="File Overwrite Warning">
           <p>
             Disabling read-only mode allows UI edits but{" "}
-            <strong>will overwrite your local files</strong> at the
-            specified path. Any changes made directly to the files will be lost
-            when you save changes through the UI.
+            <strong>will overwrite your local files</strong> at the specified
+            path. Any changes made directly to the files will be lost when you
+            save changes through the UI.
           </p>
           <p className="mt-2">
-            Consider using a Git to backup your files before
-            proceeding.
+            Consider using a Git to backup your files before proceeding.
           </p>
         </Warning>
       )}
