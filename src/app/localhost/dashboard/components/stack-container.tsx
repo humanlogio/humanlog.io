@@ -5,7 +5,7 @@ import { createDashboard } from "api/js/svc/dashboard/v1/service-DashboardServic
 import { getStack } from "api/js/svc/stack/v1/service-StackService_connectquery";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Plus, Calendar, User } from "lucide-react";
+import { Plus, Calendar } from "lucide-react";
 import { CreateDashboardRequest } from "api/js/svc/dashboard/v1/service_pb";
 import { useState } from "react";
 import {
@@ -40,8 +40,10 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+
 import { useApiClients } from "@/context/api-provider";
 import { Stack } from "api/js/types/v1/stack_pb";
+import { PointerInfo } from "@/app/localhost/dashboard/components/pointer-info";
 
 const formSchema = z.object({
   name: z
@@ -167,7 +169,9 @@ export const StackContainer = ({
           <div className="flex items-center gap-3">
             <h3 className="text-lg font-semibold">{stack.name}</h3>
             {(() => {
-              const pointerType = stack.pointer?.scheme?.case;
+              const { pointer } = stack;
+              if (!pointer) return;
+              const { case: pointerType } = pointer.scheme;
               const getPointerBadgeClassName = (type: string | undefined) => {
                 switch (type) {
                   case "localhost":
@@ -188,17 +192,20 @@ export const StackContainer = ({
                   {pointerType || "unknown"}
                 </Badge>
               );
-            })()}
+            })()}{" "}
           </div>
         </div>
       </AccordionTrigger>
+
       <AccordionContent>
         {isLoadingStack ? (
           <div className="flex items-center justify-center py-8">
             <div className="h-6 w-6 animate-spin rounded-full border-b-2 border-black dark:border-white" />
           </div>
         ) : (
-          <div className="space-y-6 p-4">
+          <div className="space-y-6">
+            <PointerInfo stack={stack} />
+
             <div>
               <div className="mb-3 flex items-center justify-between">
                 <h4 className="text-md font-medium">Dashboards</h4>
@@ -332,46 +339,45 @@ export const StackContainer = ({
 
             {/* TODO: Alerts Section */}
             {/* <div>
-          <div className="mb-3 flex items-center justify-between">
-            <h4 className="text-md font-medium">Alert Groups</h4>
-            <Button
-              size="sm"
-              variant="outline"
-              className="flex items-center gap-2"
-            >
-              <Plus className="h-4 w-4" />
-              Create Alert
-            </Button>
-          </div>
-          {stackContent.alertGroups &&
-          stackContent.alertGroups.length > 0 ? (
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              {stackContent.alertGroups.map(
-                (alertGroup: any, index: number) => (
-                  <div
-                    key={alertGroup.id?.toString() || index}
-                    className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800"
-                  >
-                    <h5 className="font-medium text-gray-900 dark:text-white">
-                      {alertGroup.name || "Untitled Alert Group"}
-                    </h5>
-                    {alertGroup.description && (
-                      <p className="text-muted-foreground mt-1 text-sm">
-                        {alertGroup.description}
-                      </p>
-                    )}
-                  </div>
-                ),
+              <div className="mb-3 flex items-center justify-between">
+                <h4 className="text-md font-medium">Alert Groups</h4>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="flex items-center gap-2"
+                >
+                  <Plus className="h-4 w-4" />
+                  Create Alert
+                </Button>
+              </div>
+              {stackData.alertGroups && stackData.alertGroups.length > 0 ? (
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  {stackData.alertGroups.map(
+                    (alertGroup: any, index: number) => (
+                      <div
+                        key={alertGroup.id?.toString() || index}
+                        className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800"
+                      >
+                        <h5 className="font-medium text-gray-900 dark:text-white">
+                          {alertGroup.name || "Untitled Alert Group"}
+                        </h5>
+                        {alertGroup.description && (
+                          <p className="text-muted-foreground mt-1 text-sm">
+                            {alertGroup.description}
+                          </p>
+                        )}
+                      </div>
+                    ),
+                  )}
+                </div>
+              ) : (
+                <div className="rounded-lg border border-dashed border-gray-300 p-6 text-center dark:border-gray-600">
+                  <p className="text-muted-foreground text-sm">
+                    No alert groups in this stack
+                  </p>
+                </div>
               )}
-            </div>
-          ) : (
-            <div className="rounded-lg border border-dashed border-gray-300 p-6 text-center dark:border-gray-600">
-              <p className="text-muted-foreground text-sm">
-                No alert groups in this stack
-              </p>
-            </div>
-          )}
-        </div> */}
+            </div> */}
           </div>
         )}
       </AccordionContent>
