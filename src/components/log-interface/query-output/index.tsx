@@ -178,9 +178,10 @@ export const DataRenderer = ({
         <>
           <div className="mt-2 flex flex-col gap-1">
             <ToggleShowPretty />
-            {(!streamRes || streamRes?.length === 0) && parsedQuery && (
+            {/* TODO: the feature is broken, need to be fixed */}
+            {/* {(!streamRes || streamRes?.length === 0) && parsedQuery && (
               <ToggleSplit />
-            )}
+            )} */}
           </div>
           <div className="flex-1">
             <SessionPanel
