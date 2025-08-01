@@ -64,7 +64,8 @@ interface LogInterfaceProps {
 }
 
 const LogInterface = ({ nav }: LogInterfaceProps) => {
-  const limit = 1000;
+  // TODO: should be 1000 when the rendering issue is solved
+  const limit = 500;
 
   const router = useRouter();
   const { apiClients, activeEnvironment } = useApiClients();
