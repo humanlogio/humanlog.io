@@ -64,7 +64,8 @@ interface LogInterfaceProps {
 }
 
 const LogInterface = ({ nav }: LogInterfaceProps) => {
-  const limit = 1000;
+  // TODO: should be 1000 when the rendering issue is solved
+  const limit = 500;
 
   const router = useRouter();
   const { apiClients, activeEnvironment } = useApiClients();
@@ -99,7 +100,10 @@ const LogInterface = ({ nav }: LogInterfaceProps) => {
         case: "split",
         value: new SplitOperator({
           by: new SplitOperator_ByOperator({
-            scalars: [newIdentifierExpr("_resource_fingerprint")],
+            scalars: [
+              // TODO: the feature is broken, need to be fixed
+              // newIdentifierExpr("_resource_fingerprint")
+            ],
           }),
         }),
       },
@@ -117,9 +121,10 @@ const LogInterface = ({ nav }: LogInterfaceProps) => {
         let renderStmt;
         let statements = parseRes.query.query?.statements ?? [];
 
-        if (splitByDefault) {
-          renderStmt = createSplitRenderStatement();
-        }
+        // TODO: the feature is broken, need to be fixed
+        // if (splitByDefault) {
+        //   renderStmt = createSplitRenderStatement();
+        // }
 
         if (parseRes.query.query) {
           parseRes.query.query.render = renderStmt;
