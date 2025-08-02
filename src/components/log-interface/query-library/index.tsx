@@ -12,7 +12,7 @@ import { useInfiniteScroll } from "@/lib/hooks/useInfiniteScroll";
 import {
   ListFavoriteQueryResponse_ListItem,
   ListQueryHistoryResponse_ListItem,
-} from "api/js/svc/user/v1/service_pb";
+} from "api/js/svc/user/v1/service_private_pb";
 import { SymbolList } from "@/components/log-interface/query-library/symbol-list";
 import { SavedQuery } from "@/components/log-interface/query-library/saved-query";
 import { RecentQuery } from "@/components/log-interface/query-library/recent-query";

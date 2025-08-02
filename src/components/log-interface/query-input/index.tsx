@@ -37,7 +37,7 @@ import dynamic from "next/dynamic";
 import { newBinaryExpr } from "@/lib/utils/queryExpressions";
 import { ExecuteQuery } from "@/components/log-interface";
 import { useQuery } from "@connectrpc/connect-query";
-import { listQueryHistory } from "api/js/svc/user/v1/service-UserService_connectquery";
+import { listQueryHistory } from "api/js/svc/user/v1/service_private-UserService_connectquery";
 
 interface DefaultQueryExamples {
   query: string;

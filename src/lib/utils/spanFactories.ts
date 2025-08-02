@@ -1,8 +1,6 @@
 import { Duration, Timestamp } from "@bufbuild/protobuf";
-import { Span_Timing } from "api/js/types/v1/tracing_pb";
 import { KV } from "api/js/types/v1/types_pb";
 // Import KV helpers
-import { makeStrKV, makeI64KV, makeF64KV } from "@/lib/utils/kvFactories";
 import { Span } from "api/js/types/v1/otel_tracing_pb";
 
 /**
