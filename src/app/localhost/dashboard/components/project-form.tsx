@@ -19,14 +19,14 @@ import { useApiClients } from "@/context/api-provider";
 import { logger } from "@/lib/utils/telemetry/logger";
 import { useMutation } from "@connectrpc/connect-query";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { createStack } from "api/js/svc/stack/v1/service-StackService_connectquery";
-import { CreateStackRequest } from "api/js/svc/stack/v1/service_pb";
+import { createProject } from "api/js/svc/project/v1/service-ProjectService_connectquery";
+import { CreateProjectRequest } from "api/js/svc/project/v1/service_pb";
 import {
-  StackPointer,
-  StackPointer_LocalGit,
-  StackPointer_RemoteGit,
-  StackPointer_Virtual,
-} from "api/js/types/v1/stack_pb";
+  ProjectPointer,
+  ProjectPointer_LocalGit,
+  ProjectPointer_RemoteGit,
+  ProjectPointer_Virtual,
+} from "api/js/types/v1/project_pb";
 import { useForm, UseFormReturn } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -35,9 +35,9 @@ import { Button } from "@/components/ui/button";
 import { Info } from "lucide-react";
 import { ReadOnlyField } from "@/app/localhost/dashboard/components/read-only-field";
 
-// Stack pointer type schemas
-export const localhostStackSchema = z.object({
-  name: z.string().min(1, "Stack name is required"),
+// Project pointer type schemas
+export const localhostProjectSchema = z.object({
+  name: z.string().min(1, "Project name is required"),
   pointerType: z.literal("localhost"),
   path: z.string().min(1, "Path is required"),
   dashboardDir: z.string().min(1, "Dashboard directory is required"),
@@ -45,8 +45,8 @@ export const localhostStackSchema = z.object({
   readOnly: z.boolean().default(true),
 });
 
-const remoteStackSchema = z.object({
-  name: z.string().min(1, "Stack name is required"),
+const remoteProjectSchema = z.object({
+  name: z.string().min(1, "Project name is required"),
   pointerType: z.literal("remote"),
   remoteUrl: z.string().url("Must be a valid URL"),
   ref: z.string().min(1, "Git ref is required"),
@@ -54,36 +54,36 @@ const remoteStackSchema = z.object({
   alertDir: z.string().min(1, "Alert directory is required"),
 });
 
-const dbStackSchema = z.object({
-  name: z.string().min(1, "Stack name is required"),
+const dbProjectSchema = z.object({
+  name: z.string().min(1, "Project name is required"),
   pointerType: z.literal("db"),
   uri: z.string().min(1, "URI is required"),
 });
 
 // Union schema for stack creation
 const stackFormSchema = z.discriminatedUnion("pointerType", [
-  localhostStackSchema,
-  remoteStackSchema,
-  dbStackSchema,
+  localhostProjectSchema,
+  remoteProjectSchema,
+  dbProjectSchema,
 ]);
 
-type StackFormData = z.infer<typeof stackFormSchema>;
+type ProjectFormData = z.infer<typeof stackFormSchema>;
 
-interface StackFormProps {
-  setIsStackDialogOpen: (isOpen: boolean) => void;
-  refetchStackList: () => void;
+interface ProjectFormProps {
+  setIsProjectDialogOpen: (isOpen: boolean) => void;
+  refetchProjectList: () => void;
 }
 
-export const StackForm = ({
-  setIsStackDialogOpen,
-  refetchStackList,
-}: StackFormProps) => {
+export const ProjectForm = ({
+  setIsProjectDialogOpen,
+  refetchProjectList,
+}: ProjectFormProps) => {
   const { activeEnvironment } = useApiClients();
 
-  const { mutate: createStackMutation, isPending: isCreatingStack } =
-    useMutation(createStack);
+  const { mutate: createProjectMutation, isPending: isCreatingProject } =
+    useMutation(createProject);
 
-  const stackForm = useForm<StackFormData>({
+  const stackForm = useForm<ProjectFormData>({
     resolver: zodResolver(stackFormSchema),
     defaultValues: {
       name: "",
@@ -95,18 +95,18 @@ export const StackForm = ({
     },
   });
 
-  const onStackSubmit = (data: StackFormData) => {
+  const onProjectSubmit = (data: ProjectFormData) => {
     const { name, pointerType } = data;
 
-    let pointer: StackPointer;
+    let pointer: ProjectPointer;
 
     switch (pointerType) {
       case "localhost": {
         const { path, dashboardDir, alertDir, readOnly } = data;
-        pointer = new StackPointer({
+        pointer = new ProjectPointer({
           scheme: {
             case: "localhost",
-            value: new StackPointer_LocalGit({
+            value: new ProjectPointer_LocalGit({
               path,
               dashboardDir,
               alertDir,
@@ -118,10 +118,10 @@ export const StackForm = ({
       }
       case "remote": {
         const { remoteUrl, ref, dashboardDir, alertDir } = data;
-        pointer = new StackPointer({
+        pointer = new ProjectPointer({
           scheme: {
             case: "remote",
-            value: new StackPointer_RemoteGit({
+            value: new ProjectPointer_RemoteGit({
               remoteUrl,
               ref,
               dashboardDir,
@@ -133,10 +133,10 @@ export const StackForm = ({
       }
       case "db": {
         const { uri } = data;
-        pointer = new StackPointer({
+        pointer = new ProjectPointer({
           scheme: {
             case: "db",
-            value: new StackPointer_Virtual({
+            value: new ProjectPointer_Virtual({
               uri,
             }),
           },
@@ -147,19 +147,19 @@ export const StackForm = ({
         throw new Error("Invalid pointer type");
     }
 
-    const newStack = new CreateStackRequest({
+    const newProject = new CreateProjectRequest({
       environmentId: activeEnvironment?.id,
       name,
       pointer,
     });
 
-    createStackMutation(newStack, {
+    createProjectMutation(newProject, {
       onSuccess: (response) => {
-        logger.info("Stack created successfully");
-        toast.info("Stack created successfully");
-        setIsStackDialogOpen(false);
+        logger.info("Project created successfully");
+        toast.info("Project created successfully");
+        setIsProjectDialogOpen(false);
         stackForm.reset();
-        refetchStackList();
+        refetchProjectList();
       },
       onError: (error) => {
         toast.error(`Failed to create stack: ${error.message}`);
@@ -170,7 +170,7 @@ export const StackForm = ({
   return (
     <Form {...stackForm}>
       <form
-        onSubmit={stackForm.handleSubmit(onStackSubmit)}
+        onSubmit={stackForm.handleSubmit(onProjectSubmit)}
         className="space-y-4"
       >
         <FormField
@@ -178,12 +178,12 @@ export const StackForm = ({
           name="name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Stack Name</FormLabel>
+              <FormLabel>Project Name</FormLabel>
               <FormControl>
                 <Input
                   placeholder="Enter stack name"
                   {...field}
-                  disabled={isCreatingStack}
+                  disabled={isCreatingProject}
                 />
               </FormControl>
               <FormDescription>
@@ -199,7 +199,7 @@ export const StackForm = ({
           name="pointerType"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Stack Pointer Type</FormLabel>
+              <FormLabel>Project Pointer Type</FormLabel>
               <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
                   <SelectTrigger>
@@ -217,22 +217,22 @@ export const StackForm = ({
           )}
         />
 
-        <StackPointerField
+        <ProjectPointerField
           stackForm={stackForm}
-          isCreatingStack={isCreatingStack}
+          isCreatingProject={isCreatingProject}
         />
 
         <DialogFooter>
           <Button
             type="button"
             variant="outline"
-            onClick={() => setIsStackDialogOpen(false)}
-            disabled={isCreatingStack}
+            onClick={() => setIsProjectDialogOpen(false)}
+            disabled={isCreatingProject}
           >
             Cancel
           </Button>
-          <Button type="submit" disabled={isCreatingStack}>
-            {isCreatingStack ? "Creating..." : "Create Stack"}
+          <Button type="submit" disabled={isCreatingProject}>
+            {isCreatingProject ? "Creating..." : "Create Project"}
           </Button>
         </DialogFooter>
       </form>
@@ -240,15 +240,15 @@ export const StackForm = ({
   );
 };
 
-interface StackPointerFieldProps {
-  stackForm: UseFormReturn<StackFormData>;
-  isCreatingStack: boolean;
+interface ProjectPointerFieldProps {
+  stackForm: UseFormReturn<ProjectFormData>;
+  isCreatingProject: boolean;
 }
 
-const StackPointerField = ({
+const ProjectPointerField = ({
   stackForm,
-  isCreatingStack,
-}: StackPointerFieldProps) => {
+  isCreatingProject,
+}: ProjectPointerFieldProps) => {
   const POINTER_TYPE_CONFIGS = {
     localhost: {
       colorScheme: {
@@ -357,7 +357,7 @@ const StackPointerField = ({
                 <Input
                   placeholder={fieldConfig.placeholder}
                   {...field}
-                  disabled={isCreatingStack}
+                  disabled={isCreatingProject}
                 />
               </FormControl>
               <FormMessage />
@@ -370,7 +370,7 @@ const StackPointerField = ({
         <ReadOnlyField
           control={stackForm.control}
           readOnly={stackForm.watch("readOnly")}
-          disabled={isCreatingStack}
+          disabled={isCreatingProject}
           fieldName="readOnly"
         />
       )}

@@ -9,7 +9,7 @@ import * as z from "zod";
 import { Building, Check, Loader } from "lucide-react";
 import { useMutation, useQuery } from "@connectrpc/connect-query";
 import { listProduct } from "api/js/svc/product/v1/service-ProductService_connectquery";
-import { listOrganization } from "api/js/svc/user/v1/service-UserService_connectquery";
+import { listOrganization } from "api/js/svc/user/v1/service_private-UserService_connectquery";
 import {
   getStripePublishableKey,
   createStripeCustomerSession,

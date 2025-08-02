@@ -1,4 +1,4 @@
-import { Span } from "api/js/types/v1/tracing_pb";
+import { Span } from "api/js/types/v1/otel_tracing_pb";
 import { Timestamp, Duration } from "@bufbuild/protobuf";
 import type { SampleDataScenario } from "@/components/log-interface/query-output/traces/service-map/types";
 import { makeSpan } from "@/lib/utils/spanFactories";

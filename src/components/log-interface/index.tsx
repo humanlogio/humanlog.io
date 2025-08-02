@@ -38,7 +38,7 @@ import {
   QueryClientType,
 } from "@/services/queryService";
 import { recordQueryHistory } from "@/services/userService";
-import { RecordQueryHistoryResponse } from "api/js/svc/user/v1/service_pb";
+import { RecordQueryHistoryResponse } from "api/js/svc/user/v1/service_private_pb";
 import QueryInput from "@/components/log-interface/query-input";
 import QueryOutput from "@/components/log-interface/query-output";
 import { QueryLibrary } from "@/components/log-interface/query-library";
