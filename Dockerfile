@@ -19,6 +19,7 @@ ARG default_release_channel
 ARG posthog_key
 ARG posthog_host
 ARG is_prod
+ARG build_heap_size=4096
 ENV GIT_HASH=$git_hash
 ENV NEXT_PUBLIC_API_BASE_URL=$api_url
 ENV NEXT_PUBLIC_SELF_BASE_URL=$self_url
@@ -26,6 +27,8 @@ ENV NEXT_PUBLIC_DEFAULT_RELEASE_CHANNEL=$default_release_channel
 ENV NEXT_PUBLIC_IS_PROD=$is_prod
 ENV NEXT_PUBLIC_POSTHOG_KEY=$posthog_key
 ENV NEXT_PUBLIC_POSTHOG_HOST=$posthog_host
+ENV NODE_OPTIONS="--max_old_space_size=$build_heap_size"
+ENV GENERATE_SOURCEMAP=false
 RUN npm run build
 
 # server
