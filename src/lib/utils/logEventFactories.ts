@@ -1,9 +1,5 @@
 import { Timestamp } from "@bufbuild/protobuf";
 import { KV } from "api/js/types/v1/types_pb";
-import {
-  IngestedLogEvent,
-  StructuredLogEvent,
-} from "api/js/types/v1/logevent_pb";
 import { Log } from "api/js/types/v1/otel_logging_pb";
 import { Resource } from "api/js/types/v1/otel_resource_pb";
 import { Scope } from "api/js/types/v1/otel_scope_pb";

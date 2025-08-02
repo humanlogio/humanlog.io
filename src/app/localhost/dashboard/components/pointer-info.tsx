@@ -1,6 +1,6 @@
 // Component to display pointer information
 
-import { Stack } from "api/js/types/v1/stack_pb";
+import { Project } from "api/js/types/v1/project_pb";
 import { Copy, Folder, GitBranch, Database } from "lucide-react";
 import {
   Tooltip,
@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { copyToClipboard } from "@/lib/utils/clipboard";
 
 interface PointerInfoProps {
-  stack: Stack;
+  project: Project;
 }
 
 const POINTER_INFO_CONFIGS = {
@@ -79,8 +79,8 @@ const POINTER_INFO_CONFIGS = {
   },
 };
 
-export const PointerInfo = ({ stack }: PointerInfoProps) => {
-  const { pointer } = stack;
+export const PointerInfo = ({ project }: PointerInfoProps) => {
+  const { pointer } = project;
   if (!pointer) return null;
 
   const { scheme } = pointer;

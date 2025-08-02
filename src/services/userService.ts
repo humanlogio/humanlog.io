@@ -1,11 +1,11 @@
 import { CallbacksType, handleError } from "@/lib/utils/errorHandler";
 import { Client } from "@connectrpc/connect";
-import { UserService } from "api/js/svc/user/v1/service_connect";
+import { UserService } from "api/js/svc/user/v1/service_private_connect";
 import {
   GetQueryHistoryResponse,
   UpdateUserResponse,
   WhoamiResponse,
-} from "api/js/svc/user/v1/service_pb";
+} from "api/js/svc/user/v1/service_private_pb";
 import { Query } from "api/js/types/v1/query_pb";
 
 type UserClientType = Client<typeof UserService>;

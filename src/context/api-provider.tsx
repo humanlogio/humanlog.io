@@ -31,12 +31,12 @@ import { AuthService } from "api/js/svc/auth/v1/service_connect";
 import { EnvironmentService } from "api/js/svc/environment/v1/service_connect";
 import { OrganizationService } from "api/js/svc/organization/v1/service_connect";
 import { IngestService } from "api/js/svc/ingest/v1/service_connect";
-import { UserService } from "api/js/svc/user/v1/service_connect";
+import { UserService } from "api/js/svc/user/v1/service_private_connect";
 import { LocalhostService } from "api/js/svc/localhost/v1/service_connect";
 import { ProductService } from "api/js/svc/product/v1/service_connect";
 import { FeatureService } from "api/js/svc/feature/v1/service_connect";
 import { QueryService } from "api/js/svc/query/v1/service_connect";
-import { StackService } from "api/js/svc/stack/v1/service_connect";
+import { ProjectService } from "api/js/svc/project/v1/service_connect";
 import { TraceService } from "api/js/svc/query/v1/trace_service_connect";
 import { UpdateService } from "api/js/svc/cliupdate/v1/service_connect";
 import { DashboardService } from "api/js/svc/dashboard/v1/service_connect";
@@ -77,7 +77,7 @@ type ApiClients = {
   query: Client<typeof QueryService>;
   trace: Client<typeof TraceService>;
   update: Client<typeof UpdateService>;
-  stack: Client<typeof StackService>;
+  project: Client<typeof ProjectService>;
   dashboard: Client<typeof DashboardService>;
   alert: Client<typeof AlertService>;
   apiTransport: Transport;
@@ -177,7 +177,7 @@ export function ApiClientsProvider({
       query: createClient(QueryService, activeTransport),
       trace: createClient(TraceService, activeTransport),
       ingest: createClient(IngestService, activeTransport),
-      stack: createClient(StackService, activeTransport),
+      project: createClient(ProjectService, activeTransport),
       dashboard: createClient(DashboardService, activeTransport),
       alert: createClient(AlertService, activeTransport),
 

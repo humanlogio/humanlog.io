@@ -64,10 +64,10 @@ interface DashboardClientProps {
 function DashboardClientContent({ dashboardId }: DashboardClientProps) {
   const { theme } = useTheme();
   const searchParams = useSearchParams();
-  const stackName = searchParams.get("stackName") || undefined;
+  const projectName = searchParams.get("projectName") || undefined;
   const { isLoading, data } = useQuery(getDashboard, {
     id: dashboardId,
-    stackName,
+    projectName,
   });
 
   // Decode the persesJson bytes back to DashboardResource

@@ -2,7 +2,7 @@
 
 import { useMutation, useQuery } from "@connectrpc/connect-query";
 import { createDashboard } from "api/js/svc/dashboard/v1/service-DashboardService_connectquery";
-import { getStack } from "api/js/svc/stack/v1/service-StackService_connectquery";
+import { getProject } from "api/js/svc/project/v1/service-ProjectService_connectquery";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Plus, Calendar } from "lucide-react";
@@ -42,7 +42,7 @@ import {
 } from "@/components/ui/accordion";
 
 import { useApiClients } from "@/context/api-provider";
-import { Stack } from "api/js/types/v1/stack_pb";
+import { Project } from "api/js/types/v1/project_pb";
 import { PointerInfo } from "@/app/localhost/dashboard/components/pointer-info";
 import { ReadOnlyField } from "@/app/localhost/dashboard/components/read-only-field";
 
@@ -60,24 +60,26 @@ const formSchema = z.object({
 
 type FormData = z.infer<typeof formSchema>;
 
-interface StackContainerProps {
-  stack: Stack;
-  expandedStacks: Set<string>;
-  setExpandedStacks: (expandedStacks: Set<string>) => void;
+interface ProjectContainerProps {
+  project: Project;
+  expandedProjects: Set<string>;
+  setExpandedProjects: (expandedProjects: Set<string>) => void;
 }
 
-export const StackContainer = ({
-  stack,
-  expandedStacks,
-  setExpandedStacks,
-}: StackContainerProps) => {
+export const ProjectContainer = ({
+  project,
+  expandedProjects,
+  setExpandedProjects,
+}: ProjectContainerProps) => {
   const router = useRouter();
   const { activeEnvironment } = useApiClients();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [stackContents, setStackContents] = useState<Record<string, any>>({});
+  const [projectContents, setProjectContents] = useState<Record<string, any>>(
+    {},
+  );
 
-  const isStackReadonly = (stack: Stack): boolean => {
-    const { pointer } = stack;
+  const isProjectReadonly = (project: Project): boolean => {
+    const { pointer } = project;
     if (!pointer?.scheme) return false;
 
     const { case: pointerType, value } = pointer.scheme;
@@ -94,13 +96,13 @@ export const StackContainer = ({
     return false;
   };
 
-  const isExpanded = expandedStacks.has(stack.name);
+  const isExpanded = expandedProjects.has(project.name);
 
-  const { data: stackData, isLoading: isLoadingStack } = useQuery(
-    getStack,
+  const { data: projectData, isLoading: isLoadingProject } = useQuery(
+    getProject,
     {
       environmentId: activeEnvironment?.id,
-      name: stack.name,
+      name: project.name,
     },
     {
       enabled: isExpanded,
@@ -132,7 +134,7 @@ export const StackContainer = ({
 
     const newDashboard = new CreateDashboardRequest({
       name: data.name,
-      stackName: stack.name,
+      projectName: project.name,
       description: data.description || "",
       isReadonly: data.isReadonly,
       persesJson: persesJsonBytes, // Add the default template
@@ -154,40 +156,42 @@ export const StackContainer = ({
   };
 
   const handleDashboardClick = (dashboardId: string) => {
-    router.push(`/localhost/dashboard/${dashboardId}?stackName=${stack.name}`);
+    router.push(
+      `/localhost/dashboard/${dashboardId}?projectName=${project.name}`,
+    );
   };
 
-  const handleStackExpand = (stackName: string) => {
-    if (expandedStacks.has(stackName)) {
+  const handleProjectExpand = (projectName: string) => {
+    if (expandedProjects.has(projectName)) {
       // Collapsing - remove from expanded set
-      const newExpanded = new Set(expandedStacks);
-      newExpanded.delete(stackName);
-      setExpandedStacks(newExpanded);
+      const newExpanded = new Set(expandedProjects);
+      newExpanded.delete(projectName);
+      setExpandedProjects(newExpanded);
     } else {
       // Expanding - add to expanded set and fetch data if not already loaded
-      const newExpanded = new Set(expandedStacks);
-      newExpanded.add(stackName);
-      setExpandedStacks(newExpanded);
+      const newExpanded = new Set(expandedProjects);
+      newExpanded.add(projectName);
+      setExpandedProjects(newExpanded);
 
-      if (!stackContents[stackName]) {
-        setStackContents((prev) => ({
+      if (!projectContents[projectName]) {
+        setProjectContents((prev) => ({
           ...prev,
-          [stackName]: stackData,
+          [projectName]: projectData,
         }));
       }
     }
   };
   return (
-    <AccordionItem key={stack.name} value={stack.name}>
+    <AccordionItem key={project.name} value={project.name}>
       <AccordionTrigger
         className="hover:no-underline"
-        onClick={() => handleStackExpand(stack.name)}
+        onClick={() => handleProjectExpand(project.name)}
       >
         <div className="mr-2 flex w-full items-center justify-between">
           <div className="flex items-center gap-3">
-            <h3 className="text-lg font-semibold">{stack.name}</h3>
+            <h3 className="text-lg font-semibold">{project.name}</h3>
             {(() => {
-              const { pointer } = stack;
+              const { pointer } = project;
               if (!pointer) return;
               const { case: pointerType } = pointer.scheme;
               const getPointerBadgeClassName = (type: string | undefined) => {
@@ -212,7 +216,7 @@ export const StackContainer = ({
               );
             })()}
 
-            {isStackReadonly(stack) && (
+            {isProjectReadonly(project) && (
               <Badge variant="secondary" className="ml-2 text-xs">
                 Read Only
               </Badge>
@@ -222,18 +226,18 @@ export const StackContainer = ({
       </AccordionTrigger>
 
       <AccordionContent>
-        {isLoadingStack ? (
+        {isLoadingProject ? (
           <div className="flex items-center justify-center py-8">
             <div className="h-6 w-6 animate-spin rounded-full border-b-2 border-black dark:border-white" />
           </div>
         ) : (
           <div className="space-y-6">
-            <PointerInfo stack={stack} />
+            <PointerInfo project={project} />
 
             <div>
               <div className="mb-3 flex items-center justify-between">
                 <h4 className="text-md font-medium">Dashboards</h4>
-                {!isStackReadonly(stack) && (
+                {!isProjectReadonly(project) && (
                   <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                     <DialogTrigger asChild>
                       <Button
@@ -328,9 +332,9 @@ export const StackContainer = ({
                   </Dialog>
                 )}
               </div>
-              {stackData?.dashboards && stackData?.dashboards.length > 0 ? (
+              {projectData?.dashboards && projectData?.dashboards.length > 0 ? (
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-                  {stackData?.dashboards.map((dashboard: any) => (
+                  {projectData?.dashboards.map((dashboard: any) => (
                     <div
                       key={dashboard.id?.toString()}
                       onClick={() => handleDashboardClick(dashboard.id)}
@@ -367,7 +371,7 @@ export const StackContainer = ({
               ) : (
                 <div className="rounded-lg border border-dashed border-gray-300 p-6 text-center dark:border-gray-600">
                   <p className="text-muted-foreground text-sm">
-                    No dashboards in this stack
+                    No dashboards in this project
                   </p>
                 </div>
               )}
@@ -386,9 +390,9 @@ export const StackContainer = ({
                   Create Alert
                 </Button>
               </div>
-              {stackData.alertGroups && stackData.alertGroups.length > 0 ? (
+              {projectData.alertGroups && projectData.alertGroups.length > 0 ? (
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                  {stackData.alertGroups.map(
+                  {projectData.alertGroups.map(
                     (alertGroup: any, index: number) => (
                       <div
                         key={alertGroup.id?.toString() || index}
@@ -409,7 +413,7 @@ export const StackContainer = ({
               ) : (
                 <div className="rounded-lg border border-dashed border-gray-300 p-6 text-center dark:border-gray-600">
                   <p className="text-muted-foreground text-sm">
-                    No alert groups in this stack
+                    No alert groups in this project
                   </p>
                 </div>
               )}
