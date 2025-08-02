@@ -11,5 +11,5 @@ export default function Page() {
 }
 
 const func: ScalarFuncType = JSON.parse(
-  '{"name":"pi","implemented":false,"desc":"Returns the mathematical constant π (pi) as a 64-bit floating-point value (approximately 3.14159265358979323846).","usage":"Returns the mathematical constant π (pi).","category":"math","signatures":[{"return_type":"scalar:f64"}],"examples":null}',
+  '{"name":"pi","implemented":false,"desc":"Returns the mathematical constant π (pi) as a 64-bit floating-point value (approximately 3.14159265358979323846).","usage":"Returns the mathematical constant π (pi).","category":"math","signatures":[{"return_type":"f64"}],"examples":null}',
 ) as ScalarFuncType;

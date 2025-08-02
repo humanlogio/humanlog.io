@@ -11,5 +11,5 @@ export default function Page() {
 }
 
 const func: ScalarFuncType = JSON.parse(
-  '{"name":"datetime_diff","implemented":false,"desc":"Calculates calendarian difference between two datetime values.","usage":"Calculates calendarian difference between two datetime values.","category":"time","signatures":[{"return_type":"scalar:i64","arg_types":["scalar:str","scalar:ts","scalar:ts"]}],"examples":null}',
+  '{"name":"datetime_diff","implemented":false,"desc":"Calculates calendarian difference between two datetime values.","usage":"Calculates calendarian difference between two datetime values.","category":"time","signatures":[{"return_type":"i64","arg_types":["string","timestamp","timestamp"]}],"examples":null}',
 ) as ScalarFuncType;
