@@ -10,7 +10,7 @@ tag=$(echo "${GITHUB_SHA:-$(git rev-parse HEAD)}" | head -c7)
 set -u
 
 function build_container_image() {
-    docker build -t ${repo}/${tag} .
+    docker build --build-arg build_heap_size=4096 -t ${repo}/${tag} .
 }
 
 function main() {
