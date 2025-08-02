@@ -33,6 +33,38 @@ const nextConfig = {
     ];
   },
 
+  async headers() {
+    return [
+      {
+        source: "/docs/:path*",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=0, s-maxage=1200, stale-while-revalidate=3600",
+          },
+        ],
+      },
+      {
+        source: "/blog/:path*",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=0, s-maxage=1200, stale-while-revalidate=3600",
+          },
+        ],
+      },
+      {
+        source: "/share/:path*",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=0, s-maxage=1200, stale-while-revalidate=3600",
+          },
+        ],
+      },
+    ];
+  },
+
   webpack: (config, { isServer }) => {
     // Disable all optimizations
     config.optimization = {
