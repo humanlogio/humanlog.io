@@ -28,39 +28,16 @@ const DemoSection: React.FC = () => {
 
       <div className="mx-auto w-full sm:w-11/12 md:w-3/4 lg:w-2/3">
         {/* Always visible content */}
-        <div className="mb-4">
-          <h3 className="mb-2 text-center text-lg font-medium">
-            Run the Demo Wizard
-          </h3>
-          <p className="text-muted-foreground mb-4 text-center">
-            Experience Humanlog with sample data and guided example queries.
-          </p>
 
-          <div className="mx-auto w-full">
-            <Terminal
-              commands={[
-                {
-                  text: demoCommand,
-                  tooltip: "Run the demo wizard",
-                  output: (
-                    <>
-                      <div className="mb-0.5">
-                        <span className="text-emerald-600">humanlog:</span>{" "}
-                        Starting demo mode...
-                      </div>
-                      <div className="mb-0.5">
-                        <span className="text-emerald-600">humanlog:</span>{" "}
-                        Loading sample data...
-                      </div>
-                      <div>
-                        <span className="text-emerald-600">humanlog:</span>{" "}
-                        Opening browser to {origin}/localhost/query?q=?
-                      </div>
-                    </>
-                  ),
-                },
-              ]}
-              className="mx-auto block overflow-hidden rounded-lg shadow-md"
+        {/* YouTube embed */}
+        <div className="mb-4 flex justify-center">
+          <div className="aspect-video w-full max-w-2xl">
+            <iframe
+              className="h-full w-full rounded-lg shadow-md"
+              src="https://www.youtube.com/embed/WtoA4VGWgCk"
+              title="Humanlog Demo"
+              allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
+              allowFullScreen
             />
           </div>
         </div>
