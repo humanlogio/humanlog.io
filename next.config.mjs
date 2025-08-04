@@ -12,6 +12,9 @@ const nextConfig = {
   transpilePackages: ["api", "@humanlogio/perses-plugin"],
   pageExtensions: ["js", "jsx", "mdx", "ts", "tsx"],
   reactStrictMode: false,
+  experimental: {
+    mdxRs: true,
+  },
 
   // This is required to support PostHog trailing slash API requests
   skipTrailingSlashRedirect: true,
