@@ -232,6 +232,12 @@ function is_usable_path_dir() {
 }
 
 function detect_user_install_dir() {
+	if [[ "$(get_os)" == "windows" ]]; then
+		# Git-bash (or any Bash) on Windows will know LOCALAPPDATA
+		printf "%s\n" "\${LOCALAPPDATA}\\humanlog\\bin"
+		return 0
+	fi
+
 	local existing_path
 	existing_path=$(command -v humanlog 2>/dev/null || true)
 
@@ -256,17 +262,26 @@ function install_project_binary_atomically() {
 	local install_dir="$1"
 	local binary_name="$2"
 	local tarball_url="$3"
+	local os="$4"
 
 	local tmp_root="\${TMPDIR:-/tmp}"
 	local tmpdir="\${tmp_root}/humanlog-install.$$"
 	local tarball="\${tmpdir}/\${binary_name}.tar.gz"
-	local staged_binary="\${tmpdir}/\${binary_name}"
-	local final_binary="\${install_dir}/\${binary_name}"
 
 	mkdir -p "\${tmpdir}" || abort "Failed to create staging directory: \${tmpdir}"
 
 	curl -q --fail --show-error --location --progress-bar --output "\${tarball}" "\${tarball_url}" || abort "Download failed"
-	tar -xzf "\${tarball}" -C "\${tmpdir}" || abort "Extraction failed"
+
+	if [[ "\${os}" == "windows" ]]; then
+		unzip -q "\${tarball}" -d "\${tmpdir}" || abort "Extraction failed"
+		binary_name=\${binary_name}.exe
+	else
+		tar -xzf "\${tarball}" -C "\${tmpdir}" || abort "Extraction failed"
+	fi
+
+	local staged_binary="\${tmpdir}/\${binary_name}"
+	local final_binary="\${install_dir}/\${binary_name}"
+
 	chmod +x "\${staged_binary}" || abort "Failed to make binary executable"
 
 	# Ensure install dir exists
@@ -305,7 +320,7 @@ if [ ! -d "\${project_install}" ]; then
  	mkdir -p "\${project_install}"
 fi
 
-install_project_binary_atomically "\${project_install}" "\${project}" "\${project_uri}"
+install_project_binary_atomically "\${project_install}" "\${project}" "\${project_uri}" "\${os}"
 
 ${onboardingBlock}
 
