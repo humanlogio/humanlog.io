@@ -235,6 +235,14 @@ const QueryInput = ({
   }, [editorContent]);
 
   useEffect(() => {
+    if (queryString) {
+      setDefaultQuery({
+        stream: decodeURIComponent(queryString),
+        query: decodeURIComponent(queryString),
+      });
+      return;
+    }
+
     if (!listQuery || !listQuery.items[0]) {
       const newDefaultQuery = DEFAULT_QUERY_EXAMPLES;
       setDefaultQuery(newDefaultQuery);
