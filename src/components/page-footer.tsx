@@ -40,7 +40,7 @@ const footerLinks = [
   },
 ];
 
-const pagesWithoutFooter = ["/docs"];
+const pagesWithoutFooter = ["/docs", "/localhost"];
 
 const PageFooter = () => {
   const pathname = usePathname();
