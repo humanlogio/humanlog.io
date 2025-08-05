@@ -277,7 +277,17 @@ function install_project_binary_atomically() {
 	mv "\${staged_binary}" "\${final_binary}" || abort "Failed to move binary into place"
 }
 
-os=$(uname -s)
+function get_os() {
+  local kernel=$(uname -s)
+  case "$kernel" in
+    Linux*)                echo linux   ;;
+    Darwin*)               echo darwin  ;;
+    CYGWIN*|MINGW*|MSYS*)  echo windows ;;
+    *)        echo "unknown:$kernel" ;;
+  esac
+}
+
+os=$(get_os)
 arch=$(uname -m)
 channel="\${HUMANLOG_CHANNEL:-${channel}}"
 project="${project}"
