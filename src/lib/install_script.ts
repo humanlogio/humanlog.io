@@ -273,8 +273,10 @@ function install_project_binary_atomically() {
 	curl -q --fail --show-error --location --progress-bar --output "\${tarball}" "\${tarball_url}" || abort "Download failed"
 
 	if [[ "\${os}" == "windows" ]]; then
-		unzip -q "\${tarball}" -d "\${tmpdir}" || abort "Extraction failed"
 		binary_name=\${binary_name}.exe
+	fi
+	if [[ "\${tarball_url}" == *.zip ]]; then
+		unzip -q "\${tarball}" -d "\${tmpdir}" || abort "Extraction failed"
 	else
 		tar -xzf "\${tarball}" -C "\${tmpdir}" || abort "Extraction failed"
 	fi
