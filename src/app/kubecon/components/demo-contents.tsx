@@ -35,6 +35,11 @@ export default function DemoContents({ gift }: DemoContentsProps) {
                 <br />
                 As a token of our gratitude, we&apos;ll offer you a {gift}!
               </p>
+
+              <p className="mx-auto mb-8 max-w-2xl text-center text-lg text-gray-600 dark:text-gray-300">
+                Please bring a laptop 💻 with you for the demo
+              </p>
+
               <button
                 onClick={handleBookDemoClick}
                 className="inline-flex transform items-center rounded-lg bg-gray-600 px-8 py-4 text-lg font-semibold text-white shadow-lg transition-all duration-200 hover:scale-105 hover:bg-gray-700 hover:shadow-xl focus:ring-4 focus:ring-gray-300 focus:outline-none dark:bg-gray-500 dark:hover:bg-gray-600 dark:focus:ring-gray-800"
