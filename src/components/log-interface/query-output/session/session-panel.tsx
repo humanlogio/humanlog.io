@@ -191,6 +191,19 @@ const SessionPanel = ({
     selected.func(text);
   };
 
+  const shouldShowRaw = (log: Log): boolean => {
+    if (log.body && log.body !== "") {
+      return false;
+    }
+    if (log.attributes.length > 0) {
+      return false;
+    }
+    if (log.severityText && log.severityText !== "") {
+      return false;
+    }
+    return !!log.raw.length;
+  };
+
   useEffect(() => {
     const darkMode = mode
       ? mode === "dark"
@@ -369,7 +382,7 @@ const SessionPanel = ({
                       </SelectContent>
                     </Select>
 
-                    {!pretty ? (
+                    {!pretty || shouldShowRaw(log) ? (
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <code
