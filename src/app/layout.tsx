@@ -14,7 +14,6 @@ import config from "@/features/config";
 import { AuthProvider } from "@/context/auth-context";
 import { OTELProvider } from "@/context/otel-provider";
 import { PostHogProvider } from "@/context/posthog-provider";
-import KubeconBanner from "@/app/kubecon/components/kubecon-banner";
 
 export const metadata: Metadata = {
   title: "humanlog.io",
@@ -49,7 +48,6 @@ export default function RootLayout({
                   <ListEnvironmentsProvider>
                     <AuthProvider>
                       <div className="flex min-h-screen flex-col">
-                        <KubeconBanner />
                         <PageHeader />
                         <div className="flex flex-1 flex-col">{children}</div>
                         <PageFooter />
