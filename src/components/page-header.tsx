@@ -101,6 +101,7 @@ const PageHeader: React.FC = () => {
   const [isUpdateAvailable, setIsUpdateAvailable] = useState<boolean>(false);
   const [nextVersion, setNextVersion] = useState<Version>();
   const [isCopied, setIsCopied] = useState<boolean>(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
 
   const router = useRouter();
 
@@ -183,6 +184,10 @@ const PageHeader: React.FC = () => {
     const _selected = sources?.find((source) => pathname.includes(source.path));
     setSelected(_selected);
   }, [pathname, sources]);
+
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [pathname]);
 
   useEffect(() => {
     if (!apiClients || !localhostInfo || !localhostConfig) return;
@@ -402,7 +407,7 @@ const PageHeader: React.FC = () => {
         <div className="md:hidden">
           <Logo />
         </div>
-        <Sheet>
+        <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
           <SheetTrigger asChild>
             <Button size="icon" className="md:hidden">
               <Menu />
