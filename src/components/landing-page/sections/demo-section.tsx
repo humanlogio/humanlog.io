@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 const DemoSection: React.FC = () => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [origin, setOrigin] = useState("");
+  const videoId = "WtoA4VGWgCk";
   const demoCommand = "humanlog demo";
   const stdinCommand = "cat app.log | humanlog";
   const otelCommand =
@@ -34,7 +35,7 @@ const DemoSection: React.FC = () => {
           <div className="aspect-video w-full max-w-2xl">
             <iframe
               className="h-full w-full rounded-lg shadow-md"
-              src="https://www.youtube.com/embed/WtoA4VGWgCk"
+              src={`https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&loop=1&playlist=${videoId}`}
               title="Humanlog Demo"
               allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
               allowFullScreen
