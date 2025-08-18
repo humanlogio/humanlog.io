@@ -57,7 +57,7 @@ import {
 import { Log } from "api/js/types/v1/otel_logging_pb";
 
 interface SessionPanelProps {
-  ids?: { machineId?: string; sessionId?: string };
+  resourceFingerprint?: string;
   query: Query | undefined;
   data?: Logs;
   initialNext?: Cursor | null;
@@ -69,7 +69,7 @@ interface SessionPanelProps {
 }
 
 const SessionPanel = ({
-  ids,
+  resourceFingerprint,
   query,
   data,
   initialNext,
@@ -276,10 +276,7 @@ const SessionPanel = ({
                   <span className="sr-only">Loading...</span>
                 </div>
               ) : (
-                <div className="text-sm">
-                  {ids?.machineId && <p>M-{ids?.machineId}</p>}
-                  {ids?.sessionId && <p>S-{ids?.sessionId}</p>}
-                </div>
+                <div className="text-sm">{resourceFingerprint}</div>
               )}
             </h4>
           </div>
