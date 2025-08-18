@@ -27,8 +27,7 @@ interface SubQueriesContainerProps {
 
 interface SelectedSessionsType {
   value: string;
-  sessionId: any;
-  machineId: any;
+  resourceFingerprint: string | undefined;
   query: Query;
 }
 
@@ -49,12 +48,12 @@ export const SubQueriesContainer = ({
     const _selectList: SelectedSessionsType[] = [];
 
     queries.forEach((query, i) => {
-      const { sessionId, machineId } = extractQueryIds(query);
+      const resourceFingerprint = extractQueryIds(query);
 
       _selectList.push({
-        value: `${i}-${machineId}-${sessionId}`,
-        machineId,
-        sessionId,
+        value: `${i}-${resourceFingerprint}`,
+        resourceFingerprint,
+
         query,
       });
     });
@@ -114,9 +113,8 @@ export const SubQueriesContainer = ({
                       return (
                         <SelectItem key={list.value} value={list.value}>
                           <span className="mr-1">
-                            machineId: {list.machineId}
+                            resourceFingerprint: {list.resourceFingerprint}
                           </span>
-                          <span>sessonId: {list.sessionId}</span>
                         </SelectItem>
                       );
                     })}
@@ -145,7 +143,7 @@ export const SubQueriesContainer = ({
                         </button>
                       )}
                       <SessionPanel
-                        ids={extractQueryIds(list.query)}
+                        resourceFingerprint={extractQueryIds(list.query)}
                         query={list.query}
                         queryHistoryEntry={queryHistoryEntry}
                       />
