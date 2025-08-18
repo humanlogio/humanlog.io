@@ -13,7 +13,7 @@ const nextConfig = {
   pageExtensions: ["js", "jsx", "mdx", "ts", "tsx"],
   reactStrictMode: false,
   experimental: {
-    mdxRs: true,
+    mdxRs: false,
   },
 
   // This is required to support PostHog trailing slash API requests
@@ -43,7 +43,8 @@ const nextConfig = {
         headers: [
           {
             key: "Cache-Control",
-            value: "public, max-age=0, s-maxage=1200, stale-while-revalidate=3600",
+            value:
+              "public, max-age=0, s-maxage=1200, stale-while-revalidate=3600",
           },
         ],
       },
@@ -52,7 +53,8 @@ const nextConfig = {
         headers: [
           {
             key: "Cache-Control",
-            value: "public, max-age=0, s-maxage=1200, stale-while-revalidate=3600",
+            value:
+              "public, max-age=0, s-maxage=1200, stale-while-revalidate=3600",
           },
         ],
       },
@@ -61,7 +63,8 @@ const nextConfig = {
         headers: [
           {
             key: "Cache-Control",
-            value: "public, max-age=0, s-maxage=1200, stale-while-revalidate=3600",
+            value:
+              "public, max-age=0, s-maxage=1200, stale-while-revalidate=3600",
           },
         ],
       },
