@@ -139,9 +139,6 @@ export interface ExampleOutput {
 }
 
 export interface LogEntry {
-  machineId: number;
-  sessionId: number;
-  eventId: number;
   parsedAt: string;
   log: string;
 }
