@@ -11,7 +11,7 @@ import React, {
 import { getSelfURL } from "@/lib/envs";
 import { usePathname, useRouter } from "next/navigation";
 import { useAllEnvironments } from "@/context/list-environments";
-import { Loader } from "lucide-react";
+import { Loader, Loader2 } from "lucide-react";
 import { useApiClients } from "@/context/api-provider";
 
 type AuthContextType = {
@@ -105,11 +105,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   if (isLoginRequired(pathname) && user === "loading") {
     return (
-      <div className="container flex h-full flex-grow flex-col items-center justify-center gap-8">
-        <h1 className="text-center text-4xl font-bold">
-          Verifying your identity...
-        </h1>
-        <Loader className="animate-spin"></Loader>
+      <div className="container flex h-[calc(100vh-260px)] flex-grow flex-col items-center justify-center gap-8">
+        <Loader2 className="animate-spin" size={30}></Loader2>
       </div>
     );
   }
