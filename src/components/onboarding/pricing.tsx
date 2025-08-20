@@ -53,8 +53,8 @@ export default function OnboardingPricing() {
         },
       });
       handleAllowedUsage();
-      toast.success("Welcome to HumanLog! You're all set with the free plan.");
-      router.push("/localhost");
+      toast.success("You're all set with the free plan.");
+      router.push("/localhost/query?tutorial=step1");
     } catch (error) {
       console.error("Error subscribing to free plan:", error);
       if (error instanceof ConnectError) {
