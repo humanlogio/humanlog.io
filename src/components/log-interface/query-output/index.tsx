@@ -21,7 +21,7 @@ import { getShapeFromResponse } from "@/lib/utils/dataHelpers";
 import { Button } from "@/components/ui/button";
 import { useSearchParams } from "next/navigation";
 import { InfiniteData } from "@tanstack/react-query";
-import { DataCase, DataValue } from "..";
+import { DataCase, DataValue } from "@/components/log-interface";
 import { Log } from "api/js/types/v1/otel_logging_pb";
 import { Table } from "api/js/types/v1/types_pb";
 import { Span } from "api/js/types/v1/otel_tracing_pb";
@@ -158,11 +158,42 @@ const QueryOutput = ({
   return output;
 };
 
+export const normalizeStreamData = (streamRes: StreamResponse[]): DataValue => {
+  const logs: Log[] = [];
+  const freeForm: Table[] = [];
+  const spans: Span[] = [];
+  let shapeTypes: DataCase | undefined;
+
+  streamRes.forEach((response) => {
+    const shape = response.data?.shape;
+
+    if (shape?.case === "logs") {
+      logs.push(...shape.value.logs);
+      if (!shapeTypes) shapeTypes = "logs";
+    } else if (shape?.case === "freeForm") {
+      freeForm.push(shape.value);
+      if (!shapeTypes) shapeTypes = "freeForm";
+    } else if (shape?.case === "spans") {
+      spans.push(...shape.value.spans);
+      if (!shapeTypes) shapeTypes = "spans";
+    }
+  });
+
+  return {
+    pages: [],
+    pageParams: [],
+    logs,
+    freeForm,
+    spans,
+    shapeTypes: shapeTypes || "logs",
+  };
+};
+
 interface DataRendererProps {
   data?: DataValue;
-  hasNextPage: boolean;
-  isFetching: boolean;
-  fetchNextPage: () => void;
+  hasNextPage?: boolean;
+  isFetching?: boolean;
+  fetchNextPage?: () => void;
   parsedQuery?: Query;
   queryHistoryEntry?: QueryHistoryEntry;
   streamRes?: StreamResponse[];
@@ -179,36 +210,6 @@ export const DataRenderer = ({
   streamRes,
   isStream = false,
 }: DataRendererProps) => {
-  const normalizeStreamData = (streamRes: StreamResponse[]): DataValue => {
-    const logs: Log[] = [];
-    const freeForm: Table[] = [];
-    const spans: Span[] = [];
-    let shapeTypes: DataCase | undefined;
-
-    streamRes.forEach((response) => {
-      const shape = response.data?.shape;
-
-      if (shape?.case === "logs") {
-        logs.push(...shape.value.logs);
-        if (!shapeTypes) shapeTypes = "logs";
-      } else if (shape?.case === "freeForm") {
-        freeForm.push(shape.value);
-        if (!shapeTypes) shapeTypes = "freeForm";
-      } else if (shape?.case === "spans") {
-        spans.push(...shape.value.spans);
-        if (!shapeTypes) shapeTypes = "spans";
-      }
-    });
-
-    return {
-      pages: [],
-      pageParams: [],
-      logs,
-      freeForm,
-      spans,
-      shapeTypes: shapeTypes || "logs",
-    };
-  };
   const normalizedData = useMemo(() => {
     if (streamRes && streamRes.length > 0) {
       return normalizeStreamData(streamRes);
@@ -216,9 +217,9 @@ export const DataRenderer = ({
     return data;
   }, [streamRes, data]);
 
-  const { pages, logs, freeForm, spans, shapeTypes } = normalizedData ?? {};
+  const { logs, freeForm, spans, shapeTypes } = normalizedData ?? {};
 
-  if (!pages?.length && !streamRes) {
+  if (!logs?.length && !freeForm?.length && !spans?.length && !streamRes) {
     return (
       <div className="flex flex-1 items-center justify-center">
         <NoLogsView />
