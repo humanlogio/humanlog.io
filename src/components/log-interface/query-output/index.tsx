@@ -1,6 +1,6 @@
 "use client";
 
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode, useEffect, useMemo, useState } from "react";
 import { Query } from "api/js/types/v1/query_pb";
 import { NoLogsView } from "@/components/log-interface/views/no-logs-view";
 import { SubQueriesContainer } from "@/components/log-interface/query-output/session/subqueries-container";
@@ -22,6 +22,9 @@ import { Button } from "@/components/ui/button";
 import { useSearchParams } from "next/navigation";
 import { InfiniteData } from "@tanstack/react-query";
 import { DataCase, DataValue } from "..";
+import { Log } from "api/js/types/v1/otel_logging_pb";
+import { Table } from "api/js/types/v1/types_pb";
+import { Span } from "api/js/types/v1/otel_tracing_pb";
 
 interface QueryOutputProps {
   data: DataValue;
@@ -133,7 +136,6 @@ const QueryOutput = ({
             hasNextPage={hasNextPage}
             isFetching={isFetching}
             fetchNextPage={fetchNextPage}
-            // next={queryRes?.next}
             streamRes={streamRes}
             parsedQuery={parsedQuery}
             queryHistoryEntry={queryHistoryEntry}
@@ -144,7 +146,6 @@ const QueryOutput = ({
 
     setOutput(renderOutput());
   }, [
-    // queryRes,
     data,
     streamRes,
     isLoading,
@@ -178,7 +179,44 @@ export const DataRenderer = ({
   streamRes,
   isStream = false,
 }: DataRendererProps) => {
-  const { pages, logs, freeForm, spans, shapeTypes } = data ?? {};
+  const normalizeStreamData = (streamRes: StreamResponse[]): DataValue => {
+    const logs: Log[] = [];
+    const freeForm: Table[] = [];
+    const spans: Span[] = [];
+    let shapeTypes: DataCase | undefined;
+
+    streamRes.forEach((response) => {
+      const shape = response.data?.shape;
+
+      if (shape?.case === "logs") {
+        logs.push(...shape.value.logs);
+        if (!shapeTypes) shapeTypes = "logs";
+      } else if (shape?.case === "freeForm") {
+        freeForm.push(shape.value);
+        if (!shapeTypes) shapeTypes = "freeForm";
+      } else if (shape?.case === "spans") {
+        spans.push(...shape.value.spans);
+        if (!shapeTypes) shapeTypes = "spans";
+      }
+    });
+
+    return {
+      pages: [],
+      pageParams: [],
+      logs,
+      freeForm,
+      spans,
+      shapeTypes: shapeTypes || "logs",
+    };
+  };
+  const normalizedData = useMemo(() => {
+    if (streamRes && streamRes.length > 0) {
+      return normalizeStreamData(streamRes);
+    }
+    return data;
+  }, [streamRes, data]);
+
+  const { pages, logs, freeForm, spans, shapeTypes } = normalizedData ?? {};
 
   if (!pages?.length && !streamRes) {
     return (

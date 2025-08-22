@@ -81,14 +81,13 @@ interface LogInterfaceProps {
 }
 
 const LogInterface = ({ nav }: LogInterfaceProps) => {
-  const limit = 100;
+  const limit = 1000;
 
   const router = useRouter();
   const { apiClients, activeEnvironment } = useApiClients();
   const abortControllerRef = useRef<AbortController>();
 
   const { localhostInfo } = useAllEnvironments();
-  // const { setNext } = useInfiniteQuery();
 
   const searchParams = useSearchParams();
   const queryString = searchParams.get("query");
@@ -173,13 +172,21 @@ const LogInterface = ({ nav }: LogInterfaceProps) => {
     });
   };
 
-  const handleStreamData = (
-    queryClient: QueryClientType,
-    streamReq: StreamRequest,
-  ) => {
+  const handleStreamData = () => {
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
     }
+
+    if (!apiClients?.query) return;
+
+    const streamReq = new StreamRequest({
+      environmentId: activeEnvironment?.id,
+      query: query ?? new Query(),
+      maxBatchSize: BigInt(batchSize),
+      maxBatchingFor: new Duration({
+        nanos: batchInterval * 1_000_000,
+      }),
+    });
 
     const controller = new AbortController();
     abortControllerRef.current = controller;
@@ -189,7 +196,7 @@ const LogInterface = ({ nav }: LogInterfaceProps) => {
     setStreamRes([]);
     setIsLoading(true);
 
-    getStream(queryClient, streamReq, {
+    getStream(apiClients.query, streamReq, {
       onSuccess: (res: StreamResponse) => {
         if (signal.aborted) return;
 
@@ -277,9 +284,7 @@ const LogInterface = ({ nav }: LogInterfaceProps) => {
       initialPageParam: undefined,
       transport: useActiveTransport(),
       queryKey: ["logs", queryString, query],
-      enabled: !!query,
-      staleTime: 0,
-      cacheTime: 0,
+      enabled: !!query && nav === "query",
     },
   );
 
@@ -290,21 +295,12 @@ const LogInterface = ({ nav }: LogInterfaceProps) => {
 
       handleRecordQueryHistory(editorContent, res.query);
       res.query = processQueryModifiers(res, splitByDefault);
+      setQuery(res.query);
 
       if (nav === "stream") {
-        const streamReq = new StreamRequest({
-          environmentId: activeEnvironment?.id,
-          query: res.query,
-          maxBatchSize: BigInt(batchSize),
-          maxBatchingFor: new Duration({
-            nanos: batchInterval * 1_000_000,
-          }),
-        });
-        // handleStreamData(queryClient, streamReq);
+        handleStreamData();
         return;
       }
-
-      setQuery(res.query);
     },
     onError: (error) => {
       span.setStatus({
