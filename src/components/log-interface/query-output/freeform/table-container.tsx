@@ -28,10 +28,17 @@ interface TableProps {
   tableColumns?: TableType_Column[];
   tableRows?: Arr[];
   targetRef: (node?: Element | null) => void;
+  hasNextPage?: boolean;
 }
 
-const TableContainer = ({ tableColumns, tableRows, targetRef }: TableProps) => {
+const TableContainer = ({
+  tableColumns,
+  tableRows,
+  targetRef,
+  hasNextPage,
+}: TableProps) => {
   const isProd = config.NEXT_PUBLIC_IS_PROD;
+
   const [columnSizing, setColumnSizing] = useState({});
   const [columnSizingInfo, setColumnSizingInfo] =
     useState<ColumnSizingInfoState>({
@@ -314,12 +321,14 @@ const TableContainer = ({ tableColumns, tableRows, targetRef }: TableProps) => {
                           ))}
                         </tr>
                       ))}
-                      <tr ref={targetRef}>
-                        <td
-                          colSpan={tableColumns?.length || 1}
-                          className="h-4"
-                        />
-                      </tr>
+                      {hasNextPage && (
+                        <tr ref={targetRef}>
+                          <td
+                            colSpan={tableColumns?.length || 1}
+                            className="h-4"
+                          />
+                        </tr>
+                      )}
                     </tbody>
                   </table>
                 </div>

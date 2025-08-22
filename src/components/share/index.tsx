@@ -175,7 +175,7 @@ export const SharedQuery = ({ sharedId, prefix }: SharedQueryProps) => {
           <div className="overflow-hidden rounded-lg border border-gray-200">
             {logData && (
               <div className="p-4">
-                <SessionPanel providedData={logData} query={undefined} />
+                <SessionPanel logs={logData} query={undefined} />
               </div>
             )}
 
@@ -183,14 +183,14 @@ export const SharedQuery = ({ sharedId, prefix }: SharedQueryProps) => {
               <div className="p-4">
                 <FreeFormContainer
                   query={undefined}
-                  providedData={freeFormData}
+                  freeForm={[freeFormData]}
                 />
               </div>
             )}
 
             {spanData && (
               <div className="p-4">
-                <SpansContainer query={undefined} providedData={spanData} />
+                <SpansContainer query={undefined} spans={spanData.spans} />
               </div>
             )}
 

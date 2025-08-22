@@ -20,9 +20,14 @@ import { Cursor } from "api/js/types/v1/cursor_pb";
 import { getShapeFromResponse } from "@/lib/utils/dataHelpers";
 import { Button } from "@/components/ui/button";
 import { useSearchParams } from "next/navigation";
+import { InfiniteData } from "@tanstack/react-query";
+import { DataCase, DataValue } from "..";
 
 interface QueryOutputProps {
-  queryRes: QueryResponse | null;
+  data: DataValue;
+  hasNextPage: boolean;
+  isFetching: boolean;
+  fetchNextPage: () => void;
   streamRes?: StreamResponse[];
   isLoading: boolean;
   parsedQuery?: Query;
@@ -33,7 +38,10 @@ interface QueryOutputProps {
 }
 
 const QueryOutput = ({
-  queryRes,
+  data,
+  hasNextPage,
+  isFetching,
+  fetchNextPage,
   streamRes = [],
   isLoading,
   parsedQuery,
@@ -84,7 +92,7 @@ const QueryOutput = ({
         );
       }
 
-      if (!isStreamMode && !queryRes) {
+      if (!isStreamMode && !data) {
         return (
           <div className="flex flex-1 items-center justify-center">
             <NoLogsView />
@@ -121,8 +129,11 @@ const QueryOutput = ({
             </div>
           )}
           <DataRenderer
-            data={queryRes?.data}
-            next={queryRes?.next}
+            data={data}
+            hasNextPage={hasNextPage}
+            isFetching={isFetching}
+            fetchNextPage={fetchNextPage}
+            // next={queryRes?.next}
             streamRes={streamRes}
             parsedQuery={parsedQuery}
             queryHistoryEntry={queryHistoryEntry}
@@ -133,7 +144,8 @@ const QueryOutput = ({
 
     setOutput(renderOutput());
   }, [
-    queryRes,
+    // queryRes,
+    data,
     streamRes,
     isLoading,
     parsedQuery,
@@ -146,8 +158,10 @@ const QueryOutput = ({
 };
 
 interface DataRendererProps {
-  data?: Data;
-  next?: Cursor;
+  data?: DataValue;
+  hasNextPage: boolean;
+  isFetching: boolean;
+  fetchNextPage: () => void;
   parsedQuery?: Query;
   queryHistoryEntry?: QueryHistoryEntry;
   streamRes?: StreamResponse[];
@@ -156,13 +170,17 @@ interface DataRendererProps {
 
 export const DataRenderer = ({
   data,
-  next,
+  hasNextPage,
+  isFetching,
+  fetchNextPage,
   parsedQuery,
   queryHistoryEntry,
   streamRes,
   isStream = false,
 }: DataRendererProps) => {
-  if (!data?.shape && !streamRes) {
+  const { pages, logs, freeForm, spans, shapeTypes } = data ?? {};
+
+  if (!pages?.length && !streamRes) {
     return (
       <div className="flex flex-1 items-center justify-center">
         <NoLogsView />
@@ -170,9 +188,7 @@ export const DataRenderer = ({
     );
   }
 
-  const { dataCase, value } = getShapeFromResponse(streamRes, data);
-
-  switch (dataCase) {
+  switch (shapeTypes) {
     case "logs":
       return (
         <>
@@ -185,8 +201,10 @@ export const DataRenderer = ({
           <div className="flex-1">
             <SessionPanel
               streamRes={streamRes}
-              data={value}
-              initialNext={next}
+              logs={logs}
+              hasNextPage={hasNextPage}
+              isFetching={isFetching}
+              fetchNextPage={fetchNextPage}
               query={parsedQuery}
               queryHistoryEntry={queryHistoryEntry}
               {...(parsedQuery && { ids: extractQueryIds(parsedQuery) })}
@@ -198,8 +216,10 @@ export const DataRenderer = ({
       return (
         <FreeFormContainer
           streamRes={streamRes}
-          data={value}
-          initialNext={next}
+          freeForm={freeForm}
+          hasNextPage={hasNextPage}
+          isFetching={isFetching}
+          fetchNextPage={fetchNextPage}
           query={parsedQuery}
           queryHistoryEntry={queryHistoryEntry}
         />
@@ -208,21 +228,23 @@ export const DataRenderer = ({
       return (
         <SpansContainer
           streamRes={streamRes}
-          data={value}
-          initialNext={next}
+          spans={spans}
+          hasNextPage={hasNextPage}
+          isFetching={isFetching}
+          fetchNextPage={fetchNextPage}
           query={parsedQuery}
           queryHistoryEntry={queryHistoryEntry}
         />
       );
-    case "subqueries":
-      return (
-        <div className="flex-1">
-          <SubQueriesContainer
-            queries={value.queries}
-            queryHistoryEntry={queryHistoryEntry}
-          />
-        </div>
-      );
+    // case "subqueries":
+    //   return (
+    //     <div className="flex-1">
+    //       <SubQueriesContainer
+    //         queries={value.queries}
+    //         queryHistoryEntry={queryHistoryEntry}
+    //       />
+    //     </div>
+    //   );
     default:
       return (
         <div className="p-4 text-center text-gray-500">
