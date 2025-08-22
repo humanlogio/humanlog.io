@@ -19,6 +19,10 @@ import {
 } from "@/components/ui/accordion";
 import { Data } from "api/js/types/v1/data_pb";
 import { DataRenderer } from "@/components/log-interface/query-output";
+import { Log } from "api/js/types/v1/otel_logging_pb";
+import { Span } from "api/js/types/v1/otel_tracing_pb";
+import { Table, Val } from "api/js/types/v1/types_pb";
+import { DataCase, DataValue } from "@/components/log-interface";
 
 interface OperatorsProps {
   operators: ScalarOperator[] | TabularOperator[];
@@ -98,14 +102,37 @@ interface OperatorProps {
 export function Operator({ operator }: OperatorProps) {
   const isTabular = "syntax" in operator;
 
-  const convertOutputToData = (output: any): Data | null => {
+  const convertOutputToData = (output: any): DataValue | undefined => {
     try {
-      // Convert JSON output to protobuf Data type
+      const logs: Log[] = [];
+      const freeForm: Table[] = [];
+      const spans: Span[] = [];
+      let shapeTypes: DataCase | undefined;
+
       const data = Data.fromJson(output);
-      return data;
+      const { case: shapeCase, value } = data.shape;
+
+      if (shapeCase === "logs") {
+        logs.push(...value.logs);
+        shapeTypes = "logs";
+      } else if (shapeCase === "freeForm") {
+        freeForm.push(value);
+        shapeTypes = "freeForm";
+      } else if (shapeCase === "spans") {
+        spans.push(...value.spans);
+        shapeTypes = "spans";
+      }
+
+      return {
+        pages: [],
+        pageParams: [],
+        logs,
+        freeForm,
+        spans,
+        shapeTypes: shapeTypes || "logs",
+      };
     } catch (error) {
       console.error("Failed to convert output to Data:", error);
-      return null;
     }
   };
 

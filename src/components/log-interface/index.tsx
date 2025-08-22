@@ -66,8 +66,8 @@ export type DataCase = "subqueries" | "freeForm" | "logs" | "spans" | undefined;
 // export type DataValue = Subqueries | Logs | Spans | Table | undefined;
 
 export interface DataValue {
-  pages: QueryResponse[];
-  pageParams: unknown[];
+  pages?: QueryResponse[];
+  pageParams?: unknown[];
   logs: Log[];
   freeForm: Table[];
   spans: Span[];
@@ -385,6 +385,7 @@ const LogInterface = ({ nav }: LogInterfaceProps) => {
             </div>
             {!isQueryHistoryLoading && (
               <QueryOutput
+                //@ts-ignore
                 data={data}
                 hasNextPage={hasNextPage}
                 isFetching={isFetching}
