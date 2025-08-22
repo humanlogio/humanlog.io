@@ -6,76 +6,50 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { List, Network } from "lucide-react";
 import { Cursor } from "api/js/types/v1/cursor_pb";
-import { StreamResponse } from "api/js/svc/query/v1/service_pb";
+import { QueryResponse, StreamResponse } from "api/js/svc/query/v1/service_pb";
 import { extractFromStreamResponses } from "@/lib/utils/dataHelpers";
 
 import { ServiceMap } from "@/components/log-interface/query-output/traces/service-map";
 import { SpanList } from "@/components/log-interface/query-output/traces/span-list";
 import { Span } from "api/js/types/v1/otel_tracing_pb";
+import { InfiniteData } from "@tanstack/react-query";
+import { useInView } from "react-intersection-observer";
 
 interface FreeFormContainerProps {
   query: Query | undefined;
-  data?: Spans;
-  initialNext?: Cursor | null;
-  providedData?: Spans;
+  spans?: Span[] | undefined;
+  hasNextPage?: boolean;
+  isFetching?: boolean;
+  fetchNextPage?: () => void;
   queryHistoryEntry?: QueryHistoryEntry;
   streamRes?: StreamResponse[];
 }
 
 export const SpansContainer = ({
   query,
-  data,
-  initialNext,
-  providedData,
+  spans,
+  hasNextPage,
+  isFetching,
+  fetchNextPage,
   queryHistoryEntry,
   streamRes,
 }: FreeFormContainerProps) => {
-  const { targetRef, fetchNext, fetchData, next, setNext } =
-    useInfiniteQuery(query);
-  const [spans, setSpans] = useState<Span[]>();
+  const { ref: targetRef, inView } = useInView();
 
   const [viewMode, setViewMode] = useState<"list" | "map">("list");
 
   useEffect(() => {
-    if (providedData) {
-      setSpans(providedData.spans);
-      return;
-    } else if (data) {
-      setNext(initialNext);
-      setSpans(data.spans);
-    } else {
-      fetchData((value) => {
-        setSpans(value.spans);
-      });
-    }
+    if (inView && fetchNextPage) fetchNextPage();
+  }, [inView]);
 
-    // fake data
-    // const sampleScenario = getSampleScenarioByName("E-Commerce Checkout");
-    // if (sampleScenario) {
-    //   setSpans(sampleScenario.spans);
-    // }
-  }, []);
-
-  useEffect(() => {
-    next &&
-      fetchNext &&
-      fetchData((value) => {
-        setSpans((prev) => {
-          if (prev) {
-            return [...prev, ...value.spans];
-          }
-        });
-      });
-  }, [fetchNext]);
-
-  useEffect(() => {
-    if (!streamRes || streamRes.length === 0) return;
-    const _spans = extractFromStreamResponses<Span>(
-      streamRes,
-      (value) => value.spans,
-    );
-    setSpans(_spans);
-  }, [streamRes]);
+  // useEffect(() => {
+  //   if (!streamRes || streamRes.length === 0) return;
+  //   const _spans = extractFromStreamResponses<Span>(
+  //     streamRes,
+  //     (value) => value.spans,
+  //   );
+  //   setSpans(_spans);
+  // }, [streamRes]);
 
   if (!spans) {
     return (
@@ -116,6 +90,7 @@ export const SpansContainer = ({
         <SpanList
           spans={spans}
           queryHistoryEntry={queryHistoryEntry}
+          hasNextPage={hasNextPage}
           targetRef={targetRef}
         />
       )}

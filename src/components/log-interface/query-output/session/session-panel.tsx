@@ -47,7 +47,7 @@ import { QueryHistoryEntry } from "api/js/types/v1/query_history_entry_pb";
 import { defaultConfig, getConfig } from "@/services/localhostService";
 import { useAllEnvironments } from "@/context/list-environments";
 import { Cursor } from "api/js/types/v1/cursor_pb";
-import { StreamResponse } from "api/js/svc/query/v1/service_pb";
+import { QueryResponse, StreamResponse } from "api/js/svc/query/v1/service_pb";
 import { extractFromStreamResponses } from "@/lib/utils/dataHelpers";
 import { newLogsData } from "@/lib/utils/dataShapeFactories";
 import {
@@ -55,13 +55,16 @@ import {
   newLiteralExpr,
 } from "@/lib/utils/queryExpressions";
 import { Log } from "api/js/types/v1/otel_logging_pb";
+import { InfiniteData } from "@tanstack/react-query";
+import { useInView } from "react-intersection-observer";
 
 interface SessionPanelProps {
   resourceFingerprint?: string;
   query: Query | undefined;
-  data?: Logs;
-  initialNext?: Cursor | null;
-  providedData?: Log[];
+  logs: Log[] | undefined;
+  hasNextPage?: boolean;
+  isFetching?: boolean;
+  fetchNextPage?: () => void;
   mode?: "dark" | "light";
   themes?: FormatConfig_Themes;
   queryHistoryEntry?: QueryHistoryEntry;
@@ -71,9 +74,10 @@ interface SessionPanelProps {
 const SessionPanel = ({
   resourceFingerprint,
   query,
-  data,
-  initialNext,
-  providedData,
+  logs,
+  hasNextPage,
+  isFetching,
+  fetchNextPage,
   mode,
   themes,
   queryHistoryEntry,
@@ -84,14 +88,14 @@ const SessionPanel = ({
   const queryString = searchParams.get("query");
   const pathname = usePathname();
   const containerRef = useRef<HTMLDivElement>(null);
+
+  const { localhostConfig } = useAllEnvironments();
+  const { ref: targetRef, inView } = useInView();
   const { theme } = useTheme();
 
   const pretty = searchParams.get("pretty") !== "false";
 
-  const { localhostConfig } = useAllEnvironments();
-
-  const { targetRef, isFetching, fetchNext, fetchData, next, setNext } =
-    useInfiniteQuery(query);
+  console.log("logs", logs);
 
   /** Can be extended with additional options as needed */
   const dropDownMenu = [
@@ -101,9 +105,6 @@ const SessionPanel = ({
       func: (text: string) => copyToClipboard(text),
     },
   ];
-
-  // state
-  const [logs, setLogs] = useState<Log[]>();
 
   const [sectionBreak, setSectionBreak] = useState(false);
   const [isDark, setIsDark] = useState(false);
@@ -116,8 +117,6 @@ const SessionPanel = ({
   const [sharedData, setSharedData] = useState<Data | null>(null);
 
   const handleClickLine = (line: string) => {
-    if (providedData) return;
-
     const params = new URLSearchParams(searchParams);
 
     if (selectedLines === line) {
@@ -215,38 +214,17 @@ const SessionPanel = ({
   }, [mode, theme]);
 
   useEffect(() => {
-    if (providedData) {
-      setLogs(providedData);
-    } else if (data) {
-      setNext(initialNext);
-      setLogs(data.logs);
-    } else {
-      fetchData((value) => {
-        setLogs(value.logs);
-      });
-    }
-  }, [query]);
+    if (inView && fetchNextPage) fetchNextPage();
+  }, [inView]);
 
-  useEffect(() => {
-    next &&
-      fetchNext &&
-      fetchData((value) => {
-        setLogs((prev) => {
-          if (prev) {
-            return [...prev, ...value.logs];
-          }
-        });
-      });
-  }, [fetchNext]);
-
-  useEffect(() => {
-    if (!streamRes || streamRes.length === 0) return;
-    const _logs = extractFromStreamResponses<Log>(
-      streamRes,
-      (value) => value.logs,
-    );
-    setLogs(_logs);
-  }, [streamRes]);
+  // useEffect(() => {
+  //   if (!streamRes || streamRes.length === 0) return;
+  //   const _logs = extractFromStreamResponses<Log>(
+  //     streamRes,
+  //     (value) => value.logs,
+  //   );
+  //   setLogs(_logs);
+  // }, [streamRes]);
 
   const onClickShare = () => {
     const data = newLogsData(new Logs({ logs }));
@@ -331,7 +309,10 @@ const SessionPanel = ({
 
         <div
           ref={containerRef}
-          className={twJoin("flex flex-grow text-sm", isDark && "bg-black")}
+          className={twJoin(
+            "flex h-[200px] flex-grow overflow-y-auto text-sm",
+            isDark && "bg-black",
+          )}
         >
           <div className="flex-1 border-separate overflow-x-auto py-2">
             {logs && logs.length > 0 ? (
@@ -485,7 +466,7 @@ const SessionPanel = ({
             ) : (
               <NoLogsView />
             )}
-            <div>{next && <div ref={targetRef} className="h-4" />}</div>
+            <div>{hasNextPage && <div ref={targetRef} className="h-4" />}</div>
           </div>
         </div>
       </TooltipProvider>

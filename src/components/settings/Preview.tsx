@@ -11,7 +11,7 @@ interface PreviewProps {
 export const Preview = ({ themes, mode, timeformat }: PreviewProps) => {
   return (
     <SessionPanel
-      providedData={sampleLogs().data}
+      logs={sampleLogs().data}
       query={undefined}
       mode={mode}
       themes={themes}

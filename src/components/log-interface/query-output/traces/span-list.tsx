@@ -45,12 +45,14 @@ interface SpanListProps {
   spans: Span[];
   queryHistoryEntry?: QueryHistoryEntry;
   targetRef: (node?: Element | null) => void;
+  hasNextPage?: boolean;
 }
 
 export const SpanList = ({
   spans,
   queryHistoryEntry,
   targetRef,
+  hasNextPage,
 }: SpanListProps) => {
   const [filteredSpans, setFilteredSpans] = useState<Span[]>();
   const [sharedData, setSharedData] = useState<Data | null>(null);
@@ -74,8 +76,14 @@ export const SpanList = ({
       (span) =>
         span.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         span.serviceName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        span.traceId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        span.spanId.toLowerCase().includes(searchTerm.toLowerCase()),
+        span.traceId
+          ?.toString()
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase()) ||
+        span.spanId
+          ?.toString()
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase()),
     );
 
     setFilteredSpans(filtered);
@@ -141,7 +149,7 @@ export const SpanList = ({
           >
             <CardHeader className="bg-gray-50 p-4 dark:bg-gray-800/60">
               <Link
-                href={`/localhost/traces?traceId=${encodeURIComponent(span.traceId)}`}
+                href={`/localhost/traces?traceId=${encodeURIComponent(span.traceId?.toString() ?? "")}`}
                 className="flex flex-col justify-between gap-2 sm:flex-row sm:items-center"
               >
                 <div className="flex items-center gap-2">
@@ -210,12 +218,14 @@ export const SpanList = ({
                             Trace ID:
                           </div>
                           <div className="flex items-center gap-1 truncate text-xs text-gray-600 dark:text-gray-400">
-                            {span.traceId}
+                            {span.traceId?.toString()}
                             <Button
                               variant="ghost"
                               size="xs"
                               className="h-5 w-5 p-0"
-                              onClick={() => copyToClipboard(span.traceId)}
+                              onClick={() =>
+                                copyToClipboard(span.traceId?.toString() ?? "")
+                              }
                             >
                               <Copy size={12} />
                             </Button>
@@ -229,12 +239,14 @@ export const SpanList = ({
                             Span ID:
                           </div>
                           <div className="flex items-center gap-1 truncate text-xs text-gray-600 dark:text-gray-400">
-                            {span.spanId}
+                            {span.spanId?.toString()}
                             <Button
                               variant="ghost"
                               size="xs"
                               className="h-5 w-5 p-0"
-                              onClick={() => copyToClipboard(span.spanId)}
+                              onClick={() =>
+                                copyToClipboard(span.spanId?.toString() ?? "")
+                              }
                             >
                               <Copy size={12} />
                             </Button>
@@ -367,7 +379,7 @@ export const SpanList = ({
           </Card>
         ))}
         {/* InfiniteScroll observer element */}
-        <div ref={targetRef} className="h-1" />
+        {hasNextPage && <div ref={targetRef} className="h-1" />}
       </div>
 
       {/* No results state */}

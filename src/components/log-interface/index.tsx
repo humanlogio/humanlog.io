@@ -11,9 +11,13 @@ import {
 import { useRouter, useSearchParams } from "next/navigation";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import { NoLocalhostView } from "@/components/log-interface/views/no-localhost-view";
-import { useApiClients } from "@/context/api-provider";
+import { useActiveTransport, useApiClients } from "@/context/api-provider";
 import { useAllEnvironments } from "@/context/list-environments";
-import { useInfiniteQuery } from "@/lib/hooks/useInfiniteQuery";
+import { useInfiniteQuery, useMutation } from "@connectrpc/connect-query";
+import {
+  query as queryMethod,
+  parse,
+} from "api/js/svc/query/v1/service-QueryService_connectquery";
 
 import {
   ParseResponse,
@@ -43,7 +47,7 @@ import QueryInput from "@/components/log-interface/query-input";
 import QueryOutput from "@/components/log-interface/query-output";
 import { QueryLibrary } from "@/components/log-interface/query-library";
 import { QueryHistoryEntry } from "api/js/types/v1/query_history_entry_pb";
-import { Subqueries, Logs, Spans } from "api/js/types/v1/data_pb";
+import { Subqueries, Logs, Spans, Data } from "api/js/types/v1/data_pb";
 import { twMerge } from "tailwind-merge";
 import Graph from "@/components/ui/graph/graph";
 import { trace, SpanStatusCode } from "@opentelemetry/api";
@@ -52,10 +56,23 @@ import { Duration } from "@bufbuild/protobuf";
 import FeatureFlag from "@/components/posthog/feature-flag";
 import { logger } from "@/lib/utils/telemetry/logger";
 import { newIdentifierExpr } from "@/lib/utils/queryExpressions";
+import { Cursor } from "api/js/types/v1/cursor_pb";
+import { InfiniteData } from "@tanstack/react-query";
+import { Log } from "api/js/types/v1/otel_logging_pb";
+import { Span } from "api/js/types/v1/otel_tracing_pb";
 
-export type DataCase = "subqueries" | "freeform" | "logs" | "spans" | undefined;
+export type DataCase = "subqueries" | "freeForm" | "logs" | "spans" | undefined;
 
-export type DataValue = Subqueries | Logs | Spans | Table | undefined;
+// export type DataValue = Subqueries | Logs | Spans | Table | undefined;
+
+export interface DataValue {
+  pages: QueryResponse[];
+  pageParams: unknown[];
+  logs: Log[];
+  freeForm: Table[];
+  spans: Span[];
+  shapeTypes: DataCase;
+}
 
 export type ExecuteQuery = (query: string) => void;
 
@@ -64,21 +81,21 @@ interface LogInterfaceProps {
 }
 
 const LogInterface = ({ nav }: LogInterfaceProps) => {
-  const limit = 500;
+  const limit = 100;
 
   const router = useRouter();
   const { apiClients, activeEnvironment } = useApiClients();
   const abortControllerRef = useRef<AbortController>();
 
   const { localhostInfo } = useAllEnvironments();
-  const { setNext } = useInfiniteQuery();
+  // const { setNext } = useInfiniteQuery();
 
   const searchParams = useSearchParams();
   const queryString = searchParams.get("query");
   const splitByDefault = searchParams.get("splitByDefault") !== "false";
 
   const [queryParseErrMsg, setQueryParseErrMsg] = useState("");
-  const [parsedQuery, setParsedQuery] = useState<Query>();
+
   const [queryRes, setQueryRes] = useState<QueryResponse | null>(null);
   const [streamRes, setStreamRes] = useState<StreamResponse[]>([]);
   const [isStreamPaused, setIsStreamPaused] = useState(false);
@@ -92,6 +109,10 @@ const LogInterface = ({ nav }: LogInterfaceProps) => {
   const [isQueryHistoryLoading, setIsQueryHistoryLoading] = useState(false);
   const [batchSize, setBatchSize] = useState<number>(100);
   const [batchInterval, setBatchInterval] = useState<number>(500);
+  const [query, setQuery] = useState<Query>();
+
+  const tracer = trace.getTracer("query-tracer");
+  const span = tracer.startSpan("query-span");
 
   const createSplitRenderStatement = () => {
     return new RenderStatement({
@@ -117,9 +138,9 @@ const LogInterface = ({ nav }: LogInterfaceProps) => {
         let renderStmt;
         let statements = parseRes.query.query?.statements ?? [];
 
-        if (splitByDefault) {
-          renderStmt = createSplitRenderStatement();
-        }
+        // if (splitByDefault) {
+        //   renderStmt = createSplitRenderStatement();
+        // }
 
         if (parseRes.query.query) {
           parseRes.query.query.render = renderStmt;
@@ -197,103 +218,119 @@ const LogInterface = ({ nav }: LogInterfaceProps) => {
     }
   };
 
-  const handleQueryData = (
-    queryClient: QueryClientType,
-    queryReq: QueryRequest,
-  ) => {
-    setIsLoading(true);
-    getQuery(queryClient, queryReq, {
-      onSuccess: (res: QueryResponse) => {
-        if (res) {
-          setQueryRes(res);
-        }
-        setIsLoading(false);
+  const {
+    data,
+    refetch,
+    isFetching,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    error,
+    status,
+    isLoading: isQueryLoading,
+  } = useInfiniteQuery(
+    queryMethod,
+    {
+      environmentId: activeEnvironment?.id ?? BigInt(0),
+      query: query ?? new Query(),
+      limit,
+    },
+    {
+      pageParamKey: "cursor" as const,
+      getNextPageParam: (
+        lastPageParam: Cursor | undefined,
+        lastPage: QueryResponse,
+      ) => {
+        const response = lastPageParam as unknown as QueryResponse;
+        return response?.next || undefined;
       },
-      onError: () => {
-        setQueryRes(null);
-        setIsLoading(false);
-      },
-    });
-  };
+      select: (data: InfiniteData<QueryResponse, unknown>): DataValue => {
+        const logs: Log[] = [];
+        const freeForm: Table[] = [];
+        const spans: Span[] = [];
+        let shapeTypes: DataCase;
 
-  const getQueryRes = useCallback(
-    async (editorContent: string, splitByDefault: boolean) => {
-      const tracer = trace.getTracer("query-tracer");
-      const span = tracer.startSpan("getQueryRes");
+        data.pages.forEach((page) => {
+          const shape = page.data?.shape;
 
-      const queryClient = apiClients?.query;
-      if (!queryClient) {
-        console.log("Invalid content or missing API client:", {
-          editorContent,
-          hasApiClient: !!apiClients?.query,
+          if (shape?.case === "logs") {
+            logs.push(...shape.value.logs);
+            shapeTypes = "logs";
+          } else if (shape?.case === "freeForm") {
+            freeForm.push(shape.value);
+            shapeTypes = "freeForm";
+          } else if (shape?.case === "spans") {
+            spans.push(...shape.value.spans);
+            shapeTypes = "spans";
+          }
         });
-        return null;
+
+        return {
+          ...data,
+          logs,
+          freeForm,
+          spans,
+          shapeTypes,
+          pageParams: data.pageParams,
+        };
+      },
+      initialPageParam: undefined,
+      transport: useActiveTransport(),
+      queryKey: ["logs", queryString, query],
+      enabled: !!query,
+      staleTime: 0,
+      cacheTime: 0,
+    },
+  );
+
+  const { mutate: parseMutation } = useMutation(parse, {
+    onSuccess: (res: ParseResponse) => {
+      if (!res.query) return;
+      setQueryParseErrMsg("");
+
+      handleRecordQueryHistory(editorContent, res.query);
+      res.query = processQueryModifiers(res, splitByDefault);
+
+      if (nav === "stream") {
+        const streamReq = new StreamRequest({
+          environmentId: activeEnvironment?.id,
+          query: res.query,
+          maxBatchSize: BigInt(batchSize),
+          maxBatchingFor: new Duration({
+            nanos: batchInterval * 1_000_000,
+          }),
+        });
+        // handleStreamData(queryClient, streamReq);
+        return;
       }
 
-      const parseReq = { query: editorContent };
-
-      await parseQuery(queryClient, parseReq, {
-        onSuccess: (res: ParseResponse) => {
-          if (!res.query) return;
-          setQueryParseErrMsg("");
-
-          handleRecordQueryHistory(editorContent, res.query);
-          res.query = processQueryModifiers(res, splitByDefault);
-          setParsedQuery(res.query);
-
-          if (nav === "stream") {
-            const streamReq = new StreamRequest({
-              environmentId: activeEnvironment?.id,
-              query: res.query,
-              maxBatchSize: BigInt(batchSize),
-              maxBatchingFor: new Duration({
-                nanos: batchInterval * 1_000_000,
-              }),
-            });
-            handleStreamData(queryClient, streamReq);
-            return;
-          }
-
-          const queryReq = new QueryRequest({
-            environmentId: activeEnvironment?.id,
-            query: res.query,
-            limit,
-          });
-
-          handleQueryData(queryClient, queryReq);
-        },
-        onError: (error) => {
-          span.setStatus({
-            code: SpanStatusCode.ERROR,
-            message: error.message,
-          });
-          logger.error("Failed to parse query", {
-            error: error.message,
-          });
-          setQueryParseErrMsg(error.message);
-          setQueryRes(null);
-          return null;
-        },
-      });
-      span.end();
+      setQuery(res.query);
     },
-    [apiClients, activeEnvironment, limit],
-  );
+    onError: (error) => {
+      span.setStatus({
+        code: SpanStatusCode.ERROR,
+        message: error.message,
+      });
+      logger.error("Failed to parse query", {
+        error: error.message,
+      });
+      setQueryParseErrMsg(error.message);
+      setQueryRes(null);
+      return null;
+    },
+    transport: useActiveTransport(),
+  });
 
   const executeQuery: ExecuteQuery = useCallback(
     async (query: string) => {
-      const tracer = trace.getTracer("query-tracer");
-      const span = tracer.startSpan("query-span");
-
       try {
-        setNext(null);
         span.setAttribute("query.string", query);
 
         const params = new URLSearchParams(searchParams);
         params.set("query", encodeURIComponent(query));
         router.push(`?${params}`);
+        parseMutation({ query });
 
-        await getQueryRes(query, splitByDefault);
         span.setStatus({ code: SpanStatusCode.OK });
       } catch (error) {
         if (error instanceof ConnectError) {
@@ -309,7 +346,7 @@ const LogInterface = ({ nav }: LogInterfaceProps) => {
         span.end();
       }
     },
-    [setNext, splitByDefault, searchParams, router, activeEnvironment, nav],
+    [splitByDefault, searchParams, router, activeEnvironment, nav],
   );
 
   useEffect(() => {
@@ -340,7 +377,7 @@ const LogInterface = ({ nav }: LogInterfaceProps) => {
                 symbol={symbol}
                 editorContent={editorContent}
                 setEditorContent={setEditorContent}
-                parsedQuery={parsedQuery}
+                parsedQuery={query}
                 setSavedQueryId={setSavedQueryId}
                 setIsLibraryOpen={setIsLibraryOpen}
                 nav={nav}
@@ -352,10 +389,13 @@ const LogInterface = ({ nav }: LogInterfaceProps) => {
             </div>
             {!isQueryHistoryLoading && (
               <QueryOutput
-                queryRes={queryRes}
+                data={data}
+                hasNextPage={hasNextPage}
+                isFetching={isFetching}
+                fetchNextPage={fetchNextPage}
                 streamRes={streamRes}
                 isLoading={isLoading}
-                parsedQuery={parsedQuery}
+                parsedQuery={query}
                 queryHistoryEntry={queryHistoryEntry}
                 onStopStream={stopStream}
                 isStreamPaused={isStreamPaused}
