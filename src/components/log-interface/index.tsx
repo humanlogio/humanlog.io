@@ -63,14 +63,12 @@ import { Span } from "api/js/types/v1/otel_tracing_pb";
 
 export type DataCase = "subqueries" | "freeForm" | "logs" | "spans" | undefined;
 
-// export type DataValue = Subqueries | Logs | Spans | Table | undefined;
-
 export interface DataValue {
   pages?: QueryResponse[];
-  pageParams?: unknown[];
   logs: Log[];
   freeForm: Table[];
   spans: Span[];
+  queries?: Query[];
   shapeTypes: DataCase;
 }
 
@@ -81,7 +79,7 @@ interface LogInterfaceProps {
 }
 
 const LogInterface = ({ nav }: LogInterfaceProps) => {
-  const limit = 1000;
+  const limit = 100;
 
   const router = useRouter();
   const { apiClients, activeEnvironment } = useApiClients();
@@ -137,9 +135,9 @@ const LogInterface = ({ nav }: LogInterfaceProps) => {
         let renderStmt;
         let statements = parseRes.query.query?.statements ?? [];
 
-        // if (splitByDefault) {
-        //   renderStmt = createSplitRenderStatement();
-        // }
+        if (splitByDefault) {
+          renderStmt = createSplitRenderStatement();
+        }
 
         if (parseRes.query.query) {
           parseRes.query.query.render = renderStmt;
@@ -244,10 +242,7 @@ const LogInterface = ({ nav }: LogInterfaceProps) => {
     },
     {
       pageParamKey: "cursor" as const,
-      getNextPageParam: (
-        lastPageParam: Cursor | undefined,
-        lastPage: QueryResponse,
-      ) => {
+      getNextPageParam: (lastPageParam: Cursor | undefined) => {
         const response = lastPageParam as unknown as QueryResponse;
         return response?.next || undefined;
       },
@@ -255,6 +250,7 @@ const LogInterface = ({ nav }: LogInterfaceProps) => {
         const logs: Log[] = [];
         const freeForm: Table[] = [];
         const spans: Span[] = [];
+        const queries: Query[] = [];
         let shapeTypes: DataCase;
 
         data.pages.forEach((page) => {
@@ -269,6 +265,9 @@ const LogInterface = ({ nav }: LogInterfaceProps) => {
           } else if (shape?.case === "spans") {
             spans.push(...shape.value.spans);
             shapeTypes = "spans";
+          } else if (shape?.case === "subqueries") {
+            queries.push(...shape.value.queries);
+            shapeTypes = "subqueries";
           }
         });
 
@@ -277,13 +276,13 @@ const LogInterface = ({ nav }: LogInterfaceProps) => {
           logs,
           freeForm,
           spans,
+          queries,
           shapeTypes,
-          pageParams: data.pageParams,
         };
       },
       initialPageParam: undefined,
       transport: useActiveTransport(),
-      queryKey: ["logs", queryString, query],
+      queryKey: ["queryData", queryString, query],
       enabled: !!query && nav === "query",
     },
   );
