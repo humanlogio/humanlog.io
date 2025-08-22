@@ -60,7 +60,7 @@ import { useInView } from "react-intersection-observer";
 
 interface SessionPanelProps {
   resourceFingerprint?: string;
-  query: Query | undefined;
+
   logs: Log[] | undefined;
   hasNextPage?: boolean;
   isFetching?: boolean;
@@ -73,7 +73,7 @@ interface SessionPanelProps {
 
 const SessionPanel = ({
   resourceFingerprint,
-  query,
+
   logs,
   hasNextPage,
   isFetching,
@@ -94,8 +94,6 @@ const SessionPanel = ({
   const { theme } = useTheme();
 
   const pretty = searchParams.get("pretty") !== "false";
-
-  console.log("logs", logs);
 
   /** Can be extended with additional options as needed */
   const dropDownMenu = [
@@ -309,10 +307,7 @@ const SessionPanel = ({
 
         <div
           ref={containerRef}
-          className={twJoin(
-            "flex h-[200px] flex-grow overflow-y-auto text-sm",
-            isDark && "bg-black",
-          )}
+          className={twJoin("flex flex-grow text-sm", isDark && "bg-black")}
         >
           <div className="flex-1 border-separate overflow-x-auto py-2">
             {logs && logs.length > 0 ? (

@@ -180,8 +180,6 @@ export const normalizeStreamData = (streamRes: StreamResponse[]): DataValue => {
   });
 
   return {
-    pages: [],
-    pageParams: [],
     logs,
     freeForm,
     spans,
@@ -217,7 +215,7 @@ export const DataRenderer = ({
     return data;
   }, [streamRes, data]);
 
-  const { logs, freeForm, spans, shapeTypes } = normalizedData ?? {};
+  const { logs, freeForm, spans, shapeTypes, queries } = normalizedData ?? {};
 
   if (!logs?.length && !freeForm?.length && !spans?.length && !streamRes) {
     return (
@@ -244,7 +242,6 @@ export const DataRenderer = ({
               hasNextPage={hasNextPage}
               isFetching={isFetching}
               fetchNextPage={fetchNextPage}
-              query={parsedQuery}
               queryHistoryEntry={queryHistoryEntry}
               {...(parsedQuery && { ids: extractQueryIds(parsedQuery) })}
             />
@@ -275,15 +272,15 @@ export const DataRenderer = ({
           queryHistoryEntry={queryHistoryEntry}
         />
       );
-    // case "subqueries":
-    //   return (
-    //     <div className="flex-1">
-    //       <SubQueriesContainer
-    //         queries={value.queries}
-    //         queryHistoryEntry={queryHistoryEntry}
-    //       />
-    //     </div>
-    //   );
+    case "subqueries":
+      return (
+        <div className="flex-1">
+          <SubQueriesContainer
+            queries={queries ?? []}
+            queryHistoryEntry={queryHistoryEntry}
+          />
+        </div>
+      );
     default:
       return (
         <div className="p-4 text-center text-gray-500">

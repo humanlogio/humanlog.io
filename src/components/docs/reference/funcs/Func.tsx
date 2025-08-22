@@ -48,8 +48,6 @@ export function Func({ func }: { func: ScalarFuncType }) {
       }
 
       return {
-        pages: [],
-        pageParams: [],
         logs,
         freeForm,
         spans,

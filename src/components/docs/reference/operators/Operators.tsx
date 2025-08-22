@@ -124,8 +124,6 @@ export function Operator({ operator }: OperatorProps) {
       }
 
       return {
-        pages: [],
-        pageParams: [],
         logs,
         freeForm,
         spans,
