@@ -55,16 +55,14 @@ const CloudBetaSignup: React.FC<CloudBetaSignupProps> = ({
             </Button>
           </div>
           <p className="mt-2 text-xs text-gray-500">
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <span>Handwritten 💌 from us!</span>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>no spam!</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span>Handwritten 💌 from us!</span>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>no spam!</p>
+              </TooltipContent>
+            </Tooltip>
           </p>
         </form>
       </div>

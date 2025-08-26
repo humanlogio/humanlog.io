@@ -206,85 +206,76 @@ const AboveFoldHero: React.FC = () => {
         {/* Feature badges - flex wrap layout */}
         <div className="mb-4 px-2 py-2">
           <div className="flex flex-wrap justify-center gap-2">
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Badge
-                    variant="outline"
-                    className="inline-flex flex-shrink-0 rounded-full bg-zinc-100 px-3 py-1 text-xs whitespace-nowrap md:text-sm dark:bg-zinc-800"
-                  >
-                    <Activity className="mr-2 h-4 w-4 flex-shrink-0" />
-                    Real-Time Streaming
-                  </Badge>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>
-                    Monitor your logs and traces as they happen in real-time
-                  </p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Badge
-                    variant="outline"
-                    className="inline-flex flex-shrink-0 rounded-full bg-zinc-100 px-3 py-1 text-xs whitespace-nowrap md:text-sm dark:bg-zinc-800"
-                  >
-                    <TerminalIcon className="mr-2 h-4 w-4 flex-shrink-0" />
-                    OTLP Collector
-                  </Badge>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>
-                    Finally see what your app is doing. Right away. Not after
-                    days of setup.
-                  </p>
-                  <b>
-                    <code>
-                      OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4317
-                    </code>
-                  </b>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Badge
-                    variant="outline"
-                    className="inline-flex flex-shrink-0 rounded-full bg-zinc-100 px-3 py-1 text-xs whitespace-nowrap md:text-sm dark:bg-zinc-800"
-                  >
-                    <Laptop className="mr-2 h-4 w-4 flex-shrink-0" />
-                    Logs & Traces Local-First
-                  </Badge>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>
-                    Keep your data private. Leverage local processing for snappy
-                    results.
-                  </p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Badge
-                    variant="outline"
-                    className="inline-flex flex-shrink-0 rounded-full bg-zinc-100 px-3 py-1 text-xs whitespace-nowrap md:text-sm dark:bg-zinc-800"
-                  >
-                    <Share className="mr-2 h-4 w-4 flex-shrink-0" />
-                    Shareable Results
-                  </Badge>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>
-                    Export and share your findings with your team and friends.
-                  </p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Badge
+                  variant="outline"
+                  className="inline-flex flex-shrink-0 rounded-full bg-zinc-100 px-3 py-1 text-xs whitespace-nowrap md:text-sm dark:bg-zinc-800"
+                >
+                  <Activity className="mr-2 h-4 w-4 flex-shrink-0" />
+                  Real-Time Streaming
+                </Badge>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Monitor your logs and traces as they happen in real-time</p>
+              </TooltipContent>
+            </Tooltip>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Badge
+                  variant="outline"
+                  className="inline-flex flex-shrink-0 rounded-full bg-zinc-100 px-3 py-1 text-xs whitespace-nowrap md:text-sm dark:bg-zinc-800"
+                >
+                  <TerminalIcon className="mr-2 h-4 w-4 flex-shrink-0" />
+                  OTLP Collector
+                </Badge>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>
+                  Finally see what your app is doing. Right away. Not after days
+                  of setup.
+                </p>
+                <b>
+                  <code>OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4317</code>
+                </b>
+              </TooltipContent>
+            </Tooltip>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Badge
+                  variant="outline"
+                  className="inline-flex flex-shrink-0 rounded-full bg-zinc-100 px-3 py-1 text-xs whitespace-nowrap md:text-sm dark:bg-zinc-800"
+                >
+                  <Laptop className="mr-2 h-4 w-4 flex-shrink-0" />
+                  Logs & Traces Local-First
+                </Badge>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>
+                  Keep your data private. Leverage local processing for snappy
+                  results.
+                </p>
+              </TooltipContent>
+            </Tooltip>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Badge
+                  variant="outline"
+                  className="inline-flex flex-shrink-0 rounded-full bg-zinc-100 px-3 py-1 text-xs whitespace-nowrap md:text-sm dark:bg-zinc-800"
+                >
+                  <Share className="mr-2 h-4 w-4 flex-shrink-0" />
+                  Shareable Results
+                </Badge>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>
+                  Export and share your findings with your team and friends.
+                </p>
+              </TooltipContent>
+            </Tooltip>
           </div>
         </div>
 

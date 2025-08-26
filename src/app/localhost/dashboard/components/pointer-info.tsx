@@ -120,18 +120,17 @@ export const PointerInfo = ({ project }: PointerInfoProps) => {
                 {field.label}
               </label>
               <div className="flex items-center gap-2">
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <code className="bg-muted flex-1 cursor-help rounded px-2 py-1 font-mono text-sm">
-                        {fieldValue}
-                      </code>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p className="font-mono text-xs">{fieldValue}</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <code className="bg-muted flex-1 cursor-help rounded px-2 py-1 font-mono text-sm">
+                      {fieldValue}
+                    </code>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="font-mono text-xs">{fieldValue}</p>
+                  </TooltipContent>
+                </Tooltip>
+
                 <Button
                   variant="ghost"
                   size="sm"

@@ -15,7 +15,6 @@ import config from "@/features/config";
 import {
   Tooltip,
   TooltipContent,
-  TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
@@ -78,21 +77,19 @@ const LocalhostLayout = ({ children }: LocalhostLayoutProps) => {
                 return (
                   <li key={item.path}>
                     {item.disabled ? (
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger>
-                            <div
-                              className={`hover:bg-muted group flex cursor-not-allowed items-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium opacity-60 transition-colors`}
-                            >
-                              {item.icon}
-                              {item.name}
-                            </div>
-                          </TooltipTrigger>
-                          <TooltipContent side="bottom">
-                            Coming soon!
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger>
+                          <div
+                            className={`hover:bg-muted group flex cursor-not-allowed items-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium opacity-60 transition-colors`}
+                          >
+                            {item.icon}
+                            {item.name}
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent side="bottom">
+                          Coming soon!
+                        </TooltipContent>
+                      </Tooltip>
                     ) : (
                       <Link
                         href={item.path}
@@ -110,18 +107,17 @@ const LocalhostLayout = ({ children }: LocalhostLayoutProps) => {
                 );
               })}
             </ul>
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger className="flex items-center rounded-full border border-emerald-200 bg-white px-3 py-1 text-xs text-emerald-700 dark:border-emerald-700 dark:bg-emerald-900/60 dark:text-emerald-300">
-                  <HardDrive size={12} className="mr-1" />
-                  Local Storage Only
-                </TooltipTrigger>
-                <TooltipContent side="bottom">
-                  100% Local Data - Your logs are stored locally and will not be
-                  deleted
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+
+            <Tooltip>
+              <TooltipTrigger className="flex items-center rounded-full border border-emerald-200 bg-white px-3 py-1 text-xs text-emerald-700 dark:border-emerald-700 dark:bg-emerald-900/60 dark:text-emerald-300">
+                <HardDrive size={12} className="mr-1" />
+                Local Storage Only
+              </TooltipTrigger>
+              <TooltipContent side="bottom">
+                100% Local Data - Your logs are stored locally and will not be
+                deleted
+              </TooltipContent>
+            </Tooltip>
           </div>
         </nav>
       </div>

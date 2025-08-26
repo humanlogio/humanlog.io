@@ -56,23 +56,22 @@ const InstallCTA: React.FC<InstallCTAProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              size={buttonSize}
-              variant={buttonVariant}
-              className={className}
-              onClick={handleOpenDialog}
-            >
-              {buttonText}
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>Free for personal use!</p>
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            size={buttonSize}
+            variant={buttonVariant}
+            className={className}
+            onClick={handleOpenDialog}
+          >
+            {buttonText}
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>
+          <p>Free for personal use!</p>
+        </TooltipContent>
+      </Tooltip>
+
       <DialogContent
         className={cn(
           "w-auto max-w-[80vw] min-w-[500px]",

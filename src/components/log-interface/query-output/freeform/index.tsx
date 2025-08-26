@@ -82,30 +82,28 @@ export const FreeFormContainer = ({
     <div className="flex-1">
       {queryHistoryEntry && (
         <div className="flex w-full justify-end">
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  onClick={onClickShare}
-                  size="sm"
-                  variant="outline"
-                  className="gap-1"
-                >
-                  <Share size={14} />
-                  Share
-                </Button>
-              </TooltipTrigger>
-              {sharedData && (
-                <ShareQuery
-                  sharedData={sharedData}
-                  setSharedData={setSharedData}
-                  queryHistoryEntry={queryHistoryEntry}
-                />
-              )}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                onClick={onClickShare}
+                size="sm"
+                variant="outline"
+                className="gap-1"
+              >
+                <Share size={14} />
+                Share
+              </Button>
+            </TooltipTrigger>
+            {sharedData && (
+              <ShareQuery
+                sharedData={sharedData}
+                setSharedData={setSharedData}
+                queryHistoryEntry={queryHistoryEntry}
+              />
+            )}
 
-              <TooltipContent>Share Query</TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+            <TooltipContent>Share Query</TooltipContent>
+          </Tooltip>
         </div>
       )}
       {isHistogram ? (
