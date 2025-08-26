@@ -5,6 +5,7 @@ import {
   SetStateAction,
   useCallback,
   useEffect,
+  useMemo,
   useRef,
   useState,
 } from "react";
@@ -96,7 +97,7 @@ const LogInterface = ({ nav }: LogInterfaceProps) => {
   const [queryRes, setQueryRes] = useState<QueryResponse | null>(null);
   const [streamRes, setStreamRes] = useState<StreamResponse[]>([]);
   const [isStreamPaused, setIsStreamPaused] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isStreamLoading, setisStreamLoading] = useState(false);
   const [isLibraryOpen, setIsLibraryOpen] = useState(false);
   const [symbol, setSymbol] = useState("");
   const [editorContent, setEditorContent] = useState<string>("");
@@ -192,7 +193,7 @@ const LogInterface = ({ nav }: LogInterfaceProps) => {
 
     // inititalize
     setStreamRes([]);
-    setIsLoading(true);
+    setisStreamLoading(true);
 
     getStream(apiClients.query, streamReq, {
       onSuccess: (res: StreamResponse) => {
@@ -205,11 +206,11 @@ const LogInterface = ({ nav }: LogInterfaceProps) => {
             : newResponses;
         });
 
-        setIsLoading(false);
+        setisStreamLoading(false);
       },
       onError: () => {
         if (!signal.aborted) {
-          setIsLoading(false);
+          setisStreamLoading(false);
         }
       },
     });
@@ -219,12 +220,12 @@ const LogInterface = ({ nav }: LogInterfaceProps) => {
     if (abortControllerRef.current) {
       setIsStreamPaused(true);
       abortControllerRef.current.abort();
-      setIsLoading(false);
+      setisStreamLoading(false);
     }
   };
 
   const {
-    data,
+    data: rawData,
     refetch,
     isFetching,
     fetchNextPage,
@@ -246,46 +247,48 @@ const LogInterface = ({ nav }: LogInterfaceProps) => {
         const response = lastPageParam as unknown as QueryResponse;
         return response?.next || undefined;
       },
-      select: (data: InfiniteData<QueryResponse, unknown>): DataValue => {
-        const logs: Log[] = [];
-        const freeForm: Table[] = [];
-        const spans: Span[] = [];
-        const queries: Query[] = [];
-        let shapeTypes: DataCase;
-
-        data.pages.forEach((page) => {
-          const shape = page.data?.shape;
-
-          if (shape?.case === "logs") {
-            logs.push(...shape.value.logs);
-            shapeTypes = "logs";
-          } else if (shape?.case === "freeForm") {
-            freeForm.push(shape.value);
-            shapeTypes = "freeForm";
-          } else if (shape?.case === "spans") {
-            spans.push(...shape.value.spans);
-            shapeTypes = "spans";
-          } else if (shape?.case === "subqueries") {
-            queries.push(...shape.value.queries);
-            shapeTypes = "subqueries";
-          }
-        });
-
-        return {
-          ...data,
-          logs,
-          freeForm,
-          spans,
-          queries,
-          shapeTypes,
-        };
-      },
       initialPageParam: undefined,
       transport: useActiveTransport(),
       queryKey: ["queryData", queryString, query],
       enabled: !!query && nav === "query",
     },
   );
+
+  const data: DataValue | undefined = useMemo(() => {
+    if (!rawData?.pages?.length) return;
+
+    const logs: Log[] = [];
+    const freeForm: Table[] = [];
+    const spans: Span[] = [];
+    const queries: Query[] = [];
+    let shapeTypes: DataCase;
+
+    rawData.pages.forEach((page: QueryResponse) => {
+      const shape = page.data?.shape;
+      if (shape?.case === "logs") {
+        logs.push(...shape.value.logs);
+        shapeTypes = "logs";
+      } else if (shape?.case === "freeForm") {
+        freeForm.push(shape.value);
+        shapeTypes = "freeForm";
+      } else if (shape?.case === "spans") {
+        spans.push(...shape.value.spans);
+        shapeTypes = "spans";
+      } else if (shape?.case === "subqueries") {
+        queries.push(...shape.value.queries);
+        shapeTypes = "subqueries";
+      }
+    });
+
+    return {
+      pages: rawData.pages,
+      logs,
+      freeForm,
+      spans,
+      queries,
+      shapeTypes,
+    };
+  }, [rawData]);
 
   const { mutate: parseMutation } = useMutation(parse, {
     onSuccess: (res: ParseResponse) => {
@@ -384,13 +387,13 @@ const LogInterface = ({ nav }: LogInterfaceProps) => {
             </div>
             {!isQueryHistoryLoading && (
               <QueryOutput
-                //@ts-ignore
                 data={data}
                 hasNextPage={hasNextPage}
                 isFetching={isFetching}
+                isQueryLoading={isQueryLoading}
                 fetchNextPage={fetchNextPage}
                 streamRes={streamRes}
-                isLoading={isLoading}
+                isStreamLoading={isStreamLoading}
                 parsedQuery={query}
                 queryHistoryEntry={queryHistoryEntry}
                 onStopStream={stopStream}
