@@ -1,5 +1,5 @@
 import { BinaryOp_Operator, Expr, Query } from "api/js/types/v1/query_pb";
-import { Fragment, useEffect, useState } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import { extractQueryIds } from "@/lib/utils/extractQueryIds";
 import {
@@ -177,7 +177,7 @@ const SubQueryPanel = ({
 }: SubQueryPanelProps) => {
   const { activeEnvironment } = useApiClients();
   const {
-    data,
+    data: rawData,
     refetch,
     isFetching,
     fetchNextPage,
@@ -202,25 +202,27 @@ const SubQueryPanel = ({
         const response = lastPageParam as unknown as QueryResponse;
         return response?.next || undefined;
       },
-      select: (data: InfiniteData<QueryResponse, unknown>): DataValue => {
-        console.log("data in subqueries useInfiniteQuery", data);
-        const logs: Log[] = [];
-        data.pages.forEach((page) => {
-          const shape = page.data?.shape;
-          if (shape?.case === "logs") {
-            logs.push(...shape.value.logs);
-          }
-        });
-        return {
-          ...data,
-          logs,
-        };
-      },
       initialPageParam: undefined,
       transport: useActiveTransport(),
       queryKey: ["logs", list.query],
     },
   );
+
+  const data: DataValue | undefined = useMemo(() => {
+    if (!rawData?.pages?.length) return;
+    const logs: Log[] = [];
+
+    rawData.pages.forEach((page: QueryResponse) => {
+      const shape = page.data?.shape;
+      if (shape?.case === "logs") {
+        logs.push(...shape.value.logs);
+      }
+    });
+
+    return {
+      logs,
+    };
+  }, [rawData]);
 
   return (
     <Fragment>
@@ -235,7 +237,6 @@ const SubQueryPanel = ({
             </button>
           )}
           <SessionPanel
-            //@ts-ignore
             logs={data?.logs}
             resourceFingerprint={extractQueryIds(list.query)}
             queryHistoryEntry={queryHistoryEntry}
