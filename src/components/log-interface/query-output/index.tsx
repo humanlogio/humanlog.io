@@ -27,12 +27,13 @@ import { Table } from "api/js/types/v1/types_pb";
 import { Span } from "api/js/types/v1/otel_tracing_pb";
 
 interface QueryOutputProps {
-  data: DataValue;
+  data: DataValue | undefined;
   hasNextPage: boolean;
   isFetching: boolean;
+  isQueryLoading: boolean;
   fetchNextPage: () => void;
   streamRes?: StreamResponse[];
-  isLoading: boolean;
+  isStreamLoading: boolean;
   parsedQuery?: Query;
   queryHistoryEntry?: QueryHistoryEntry;
   onStopStream: () => void;
@@ -44,9 +45,10 @@ const QueryOutput = ({
   data,
   hasNextPage,
   isFetching,
+  isQueryLoading,
   fetchNextPage,
   streamRes = [],
-  isLoading,
+  isStreamLoading,
   parsedQuery,
   queryHistoryEntry,
   onStopStream,
@@ -60,10 +62,10 @@ const QueryOutput = ({
 
   useEffect(() => {
     const renderOutput = () => {
-      if (isLoading && !isStreamMode) {
+      if (isStreamLoading || isQueryLoading || isFetching) {
         return (
           <div className="flex w-full flex-1 items-center justify-center">
-            <Loader className="animate-spin" />
+            <Loader className="animate-spin" size={20} />
           </div>
         );
       }
@@ -148,7 +150,7 @@ const QueryOutput = ({
   }, [
     data,
     streamRes,
-    isLoading,
+    isStreamLoading,
     parsedQuery,
     queryHistoryEntry,
     isStreamMode,
@@ -256,7 +258,6 @@ export const DataRenderer = ({
           hasNextPage={hasNextPage}
           isFetching={isFetching}
           fetchNextPage={fetchNextPage}
-          query={parsedQuery}
           queryHistoryEntry={queryHistoryEntry}
         />
       );
@@ -268,7 +269,6 @@ export const DataRenderer = ({
           hasNextPage={hasNextPage}
           isFetching={isFetching}
           fetchNextPage={fetchNextPage}
-          query={parsedQuery}
           queryHistoryEntry={queryHistoryEntry}
         />
       );

@@ -16,7 +16,6 @@ import { InfiniteData } from "@tanstack/react-query";
 import { useInView } from "react-intersection-observer";
 
 interface FreeFormContainerProps {
-  query: Query | undefined;
   spans?: Span[] | undefined;
   hasNextPage?: boolean;
   isFetching?: boolean;
@@ -26,7 +25,6 @@ interface FreeFormContainerProps {
 }
 
 export const SpansContainer = ({
-  query,
   spans,
   hasNextPage,
   isFetching,

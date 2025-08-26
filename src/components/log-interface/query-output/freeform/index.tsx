@@ -23,7 +23,6 @@ import { InfiniteData } from "@tanstack/react-query";
 import { useInView } from "react-intersection-observer";
 
 interface FreeFormContainerProps {
-  query: Query | undefined;
   freeForm: Table[] | undefined;
   hasNextPage?: boolean;
   isFetching?: boolean;
@@ -33,7 +32,6 @@ interface FreeFormContainerProps {
 }
 
 export const FreeFormContainer = ({
-  query,
   freeForm,
   hasNextPage,
   isFetching,

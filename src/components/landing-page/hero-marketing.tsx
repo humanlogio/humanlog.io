@@ -183,7 +183,7 @@ const AboveFoldHero: React.FC = () => {
                     <span className="truncate">{sampleLogs().query}</span>
                   </div>
                   <div className="flex-1 overflow-auto p-3">
-                    <SessionPanel logs={sampleLogs().data} query={undefined} />
+                    <SessionPanel logs={sampleLogs().data} />
                   </div>
                 </>
               ) : (
@@ -195,10 +195,7 @@ const AboveFoldHero: React.FC = () => {
                     <span className="truncate">{sampleSpans().query}</span>
                   </div>
                   <div className="flex-1 overflow-auto p-3">
-                    <SpansContainer
-                      spans={sampleSpans().data.spans}
-                      query={undefined}
-                    />
+                    <SpansContainer spans={sampleSpans().data.spans} />
                   </div>
                 </>
               )}
