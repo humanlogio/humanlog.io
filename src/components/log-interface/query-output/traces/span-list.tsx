@@ -90,7 +90,7 @@ export const SpanList = ({
   }, [spans, searchTerm]);
 
   return (
-    <TooltipProvider>
+    <>
       {/* Header with controls */}
       <div className="dark:bg-gray-850 flex flex-col items-center justify-between gap-4 rounded-lg p-4 shadow-sm md:flex-row">
         <div className="flex items-center gap-4">
@@ -402,6 +402,6 @@ export const SpanList = ({
           </Button>
         </div>
       )}
-    </TooltipProvider>
+    </>
   );
 };

@@ -14,6 +14,7 @@ import config from "@/features/config";
 import { AuthProvider } from "@/context/auth-context";
 import { OTELProvider } from "@/context/otel-provider";
 import { PostHogProvider } from "@/context/posthog-provider";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 export const metadata: Metadata = {
   title: "humanlog.io",
@@ -47,11 +48,13 @@ export default function RootLayout({
                 <FullWidthProvider>
                   <ListEnvironmentsProvider>
                     <AuthProvider>
-                      <div className="flex min-h-screen flex-col">
-                        <PageHeader />
-                        <div className="flex flex-1 flex-col">{children}</div>
-                        <PageFooter />
-                      </div>
+                      <TooltipProvider>
+                        <div className="flex min-h-screen flex-col">
+                          <PageHeader />
+                          <div className="flex flex-1 flex-col">{children}</div>
+                          <PageFooter />
+                        </div>
+                      </TooltipProvider>
                       <Toaster expand={true} />
                     </AuthProvider>
                   </ListEnvironmentsProvider>

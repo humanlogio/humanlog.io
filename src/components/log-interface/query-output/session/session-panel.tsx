@@ -9,7 +9,6 @@ import { useTheme } from "next-themes";
 import {
   Tooltip,
   TooltipContent,
-  TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { NoLogsView } from "@/components/log-interface/views/no-logs-view";
@@ -27,7 +26,6 @@ import { newLogsData } from "@/lib/utils/dataShapeFactories";
 import { Log } from "api/js/types/v1/otel_logging_pb";
 import { useInView } from "react-intersection-observer";
 import { LogLine } from "./log-line";
-import { TooltipPortal } from "@radix-ui/react-tooltip";
 
 interface SessionPanelProps {
   resourceFingerprint?: string;
@@ -139,102 +137,100 @@ const SessionPanel = ({
   }, [pathname, searchParams]);
 
   return (
-    <TooltipProvider>
-      <div
-        className={`flex w-full flex-col rounded-md border ${isDark ? "bg-black" : "bg-white"}`}
-      >
-        <div className="bg-muted flex h-11 w-full flex-none flex-row items-center justify-between p-2">
-          <div className="flex justify-start">
-            <h4 className="flex flex-row items-center gap-3 truncate font-bold">
-              {isFetching ? (
-                <div className="contents" title="Fetching more log data...">
-                  <Loader className="animate-spin"></Loader>
-                  <span className="sr-only">Loading...</span>
-                </div>
-              ) : (
-                <div className="text-sm">{resourceFingerprint}</div>
+    <div
+      className={`flex w-full flex-col rounded-md border ${isDark ? "bg-black" : "bg-white"}`}
+    >
+      <div className="bg-muted flex h-11 w-full flex-none flex-row items-center justify-between p-2">
+        <div className="flex justify-start">
+          <h4 className="flex flex-row items-center gap-3 truncate font-bold">
+            {isFetching ? (
+              <div className="contents" title="Fetching more log data...">
+                <Loader className="animate-spin"></Loader>
+                <span className="sr-only">Loading...</span>
+              </div>
+            ) : (
+              <div className="text-sm">{resourceFingerprint}</div>
+            )}
+          </h4>
+        </div>
+        <div className="flex gap-1">
+          {queryHistoryEntry && queryString && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button onClick={onClickShare} size="xs" variant="outline">
+                  <Share size={12} />
+                </Button>
+              </TooltipTrigger>
+              {sharedData && (
+                <ShareQuery
+                  sharedData={sharedData}
+                  setSharedData={setSharedData}
+                  queryHistoryEntry={queryHistoryEntry}
+                />
               )}
-            </h4>
-          </div>
-          <div className="flex gap-1">
-            {queryHistoryEntry && queryString && (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button onClick={onClickShare} size="xs" variant="outline">
-                    <Share size={12} />
-                  </Button>
-                </TooltipTrigger>
-                {sharedData && (
-                  <ShareQuery
-                    sharedData={sharedData}
-                    setSharedData={setSharedData}
-                    queryHistoryEntry={queryHistoryEntry}
-                  />
-                )}
-                <TooltipContent>Share Query</TooltipContent>
-              </Tooltip>
-            )}
-            {pretty && (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    size="xs"
-                    variant="outline"
-                    onClick={() => setSectionBreak(!sectionBreak)}
-                  >
-                    {sectionBreak ? (
-                      <UnfoldHorizontal size={13} />
-                    ) : (
-                      <UnfoldVertical size={13} />
-                    )}
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side="top">
-                  <p>Toggle section line breaks in logs</p>
-                </TooltipContent>
-              </Tooltip>
-            )}
-          </div>
+              <TooltipContent>Share Query</TooltipContent>
+            </Tooltip>
+          )}
+          {pretty && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  size="xs"
+                  variant="outline"
+                  onClick={() => setSectionBreak(!sectionBreak)}
+                >
+                  {sectionBreak ? (
+                    <UnfoldHorizontal size={13} />
+                  ) : (
+                    <UnfoldVertical size={13} />
+                  )}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="top">
+                <p>Toggle section line breaks in logs</p>
+              </TooltipContent>
+            </Tooltip>
+          )}
+        </div>
 
-          {/* TODO: later.. */}
-          {/*
+        {/* TODO: later.. */}
+        {/*
         <div className="flex w-1/3 justify-end">
           <Button size="icon" className="mb-1 h-8">
             <Search size={14} />
           </Button>
         </div> */}
-        </div>
+      </div>
 
-        <div
-          ref={containerRef}
-          className={twJoin("flex flex-grow text-sm", isDark && "bg-black")}
-        >
-          <div className="flex-1 border-separate overflow-x-auto py-2">
-            {logs && logs.length > 0 ? (
-              logs?.map((log: Log, i: number) => {
-                return (
-                  <LogLine
-                    key={`${i}-${log.ulid}`}
-                    log={log}
-                    index={i}
-                    selectedLines={selectedLines}
-                    pretty={pretty}
-                    sectionBreak={sectionBreak}
-                    isDark={isDark}
-                    themes={themes}
-                    localhostConfig={localhostConfig}
-                    onClickLine={handleClickLine}
-                  />
-                );
-              })
-            ) : (
-              <NoLogsView />
-            )}
-            {hasNextPage && <div ref={targetRef} className="h-4" />}
-          </div>
+      <div
+        ref={containerRef}
+        className={twJoin("flex flex-grow text-sm", isDark && "bg-black")}
+      >
+        <div className="flex-1 border-separate overflow-x-auto py-2">
+          {logs && logs.length > 0 ? (
+            logs?.map((log: Log, i: number) => {
+              return (
+                <LogLine
+                  key={`${i}-${log.ulid}`}
+                  log={log}
+                  index={i}
+                  selectedLines={selectedLines}
+                  pretty={pretty}
+                  sectionBreak={sectionBreak}
+                  isDark={isDark}
+                  themes={themes}
+                  localhostConfig={localhostConfig}
+                  onClickLine={handleClickLine}
+                />
+              );
+            })
+          ) : (
+            <NoLogsView />
+          )}
+          {hasNextPage && <div ref={targetRef} className="h-4" />}
         </div>
       </div>
-    </TooltipProvider>
+    </div>
   );
 };
 

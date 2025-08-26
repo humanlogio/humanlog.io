@@ -191,7 +191,7 @@ const SubQueryPanel = ({
     {
       environmentId: activeEnvironment?.id ?? BigInt(0),
       query: list.query ?? new Query(),
-      limit: 100,
+      limit: 1000,
     },
     {
       pageParamKey: "cursor" as const,
