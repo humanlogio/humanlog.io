@@ -8,19 +8,17 @@ import { Log } from "api/js/types/v1/otel_logging_pb";
 import { KV, Val } from "api/js/types/v1/types_pb";
 import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { twMerge } from "tailwind-merge";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Ellipsis } from "lucide-react";
 import { Tooltip } from "@/components/ui/tooltip";
 import { TooltipTrigger } from "@/components/ui/tooltip";
 import { MetaDataTooltip } from "@/components/log-interface/query-output/session/session-control";
 import { LogAttribute } from "@/components/log-interface/query-output/session/log-attribute";
+import {
+  DropdownMenuItem,
+  DropdownMenuContent,
+  DropdownMenu,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface LogLineProps {
   log: Log;
@@ -174,26 +172,23 @@ export const LogLine = memo(
           {index + 1}
         </button>
         {isSelected ? (
-          <Select
-            value=""
-            onValueChange={(value) => updateSelection(value, log)}
-          >
-            <SelectTrigger>
-              <div className="bg-main z-1 mr-2 flex h-5 w-5 items-center justify-center rounded border">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="bg-main z-1 mr-2 flex h-5 w-5 items-center justify-center rounded border hover:bg-gray-100 focus:ring-2 focus:ring-blue-500 focus:outline-none">
                 <Ellipsis size={14} />
-                <SelectValue placeholder="" />
-              </div>
-            </SelectTrigger>
-            <SelectContent position="item-aligned">
-              <SelectGroup>
-                {dropDownMenu.map((menu) => (
-                  <SelectItem key={menu.key} value={menu.key}>
-                    {menu.text}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start">
+              {dropDownMenu.map((menu) => (
+                <DropdownMenuItem
+                  key={menu.key}
+                  onClick={() => updateSelection(menu.key, log)}
+                >
+                  {menu.text}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
         ) : (
           <div className="w-5 flex-none" />
         )}
