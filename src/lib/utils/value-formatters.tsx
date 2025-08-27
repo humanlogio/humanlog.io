@@ -116,7 +116,6 @@ export const varTypeToString = (varType: VarType | undefined): string => {
  * Convert ScalarType enum to string
  */
 export const scalarTypeToString = (scalarType: ScalarType): string => {
-  console.log("scalarType", scalarType);
   switch (scalarType) {
     case ScalarType.unknown:
       return "unknown";
