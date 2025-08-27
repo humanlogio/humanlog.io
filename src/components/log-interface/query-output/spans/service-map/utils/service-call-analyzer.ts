@@ -3,8 +3,9 @@ import type {
   ServiceCallMap,
   Node,
   Link,
-} from "@/components/log-interface/query-output/traces/service-map/types";
+} from "@/components/log-interface/query-output/spans/service-map/types";
 import { Span } from "api/js/types/v1/otel_tracing_pb";
+import { spanIdToString, traceIdToString } from "@/lib/utils/id-factories";
 
 /**
  * Analyzes inter-service call relationships for Service Map
@@ -20,7 +21,7 @@ export function generateServiceCallMap(spans: Span[]): ServiceCallMap {
   const serviceTraceIds: { [key: string]: Set<string> } = {};
 
   spans.forEach((span) => {
-    spanToService[span.spanId] = span.serviceName;
+    spanToService[spanIdToString(span.spanId)] = span.serviceName;
 
     // Count spans per service
     serviceSpanCounts[span.serviceName] =
@@ -30,7 +31,7 @@ export function generateServiceCallMap(spans: Span[]): ServiceCallMap {
     if (!serviceTraceIds[span.serviceName]) {
       serviceTraceIds[span.serviceName] = new Set();
     }
-    serviceTraceIds[span.serviceName].add(span.traceId);
+    serviceTraceIds[span.serviceName].add(traceIdToString(span.traceId));
   });
 
   // Service call relationships
@@ -45,8 +46,8 @@ export function generateServiceCallMap(spans: Span[]): ServiceCallMap {
     allServices.add(currentService);
 
     // If this span has a parent, find the parent's service
-    if (span.parentSpanId && span.parentSpanId !== "") {
-      const parentService = spanToService[span.parentSpanId];
+    if (span.parentSpanId && spanIdToString(span.parentSpanId) !== "") {
+      const parentService = spanToService[spanIdToString(span.parentSpanId)];
 
       if (parentService && parentService !== currentService) {
         // Parent service calls current service

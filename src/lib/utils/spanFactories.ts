@@ -1,7 +1,7 @@
 import { Duration, Timestamp } from "@bufbuild/protobuf";
 import { KV } from "api/js/types/v1/types_pb";
-// Import KV helpers
 import { Span } from "api/js/types/v1/otel_tracing_pb";
+import { makeULID, makeTraceID, makeSpanID } from "@/lib/utils/id-factories";
 
 /**
  * Create a protobuf Duration from milliseconds.
@@ -23,9 +23,11 @@ export const makeSpan = (
   attributes: KV[],
 ): Span => {
   return new Span({
-    spanId,
-    traceId,
-    parentSpanId,
+    ulid: makeULID(),
+    indextime: Timestamp.fromDate(new Date()),
+    spanId: makeSpanID(spanId),
+    traceId: makeTraceID(traceId),
+    parentSpanId: parentSpanId ? makeSpanID(parentSpanId) : undefined,
     name: operation,
     serviceName: serviceName,
     time: time,

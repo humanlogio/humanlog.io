@@ -1,3 +1,4 @@
+import { spanIdToString } from "@/lib/utils/id-factories";
 import { Timestamp } from "@bufbuild/protobuf";
 import { Span } from "api/js/types/v1/otel_tracing_pb";
 import { ReactNode } from "react";
@@ -36,13 +37,13 @@ export const buildSpanTree = (spans: Span[]): SpanTreeNode[] => {
       visible: true,
       folded: false,
     };
-    nodeMap.set(span.spanId, node);
+    nodeMap.set(spanIdToString(span.spanId), node);
   });
 
   // Build the tree structure
   spans.forEach((span) => {
-    const parentSpanId = span.parentSpanId;
-    const currentNode = nodeMap.get(span.spanId);
+    const parentSpanId = spanIdToString(span.parentSpanId);
+    const currentNode = nodeMap.get(spanIdToString(span.spanId));
 
     if (!currentNode) return;
 
@@ -137,7 +138,7 @@ export const findSpanNodeById = (
   targetSpanId: string,
 ): SpanTreeNode | undefined => {
   for (const node of nodes) {
-    if (node.span.spanId === targetSpanId) {
+    if (spanIdToString(node.span.spanId) === targetSpanId) {
       return node;
     }
     const foundInChildren = findSpanNodeById(node.children, targetSpanId);

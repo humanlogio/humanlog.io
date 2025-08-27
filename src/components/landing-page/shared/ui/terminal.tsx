@@ -78,14 +78,12 @@ const Terminal: React.FC<TerminalProps> = ({ commands, className }) => {
 
     // Return with or without tooltip wrapper
     return command.tooltip ? (
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>{commandLine}</TooltipTrigger>
-          <TooltipContent>
-            <p>{command.tooltip}</p>
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>{commandLine}</TooltipTrigger>
+        <TooltipContent>
+          <p>{command.tooltip}</p>
+        </TooltipContent>
+      </Tooltip>
     ) : (
       commandLine
     );

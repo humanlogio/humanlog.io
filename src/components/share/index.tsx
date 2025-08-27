@@ -21,7 +21,7 @@ import QueryInput from "@/components/log-interface/query-input";
 import { useRouter } from "next/navigation";
 import { FreeFormContainer } from "@/components/log-interface/query-output/freeform";
 import { Spans } from "api/js/types/v1/data_pb";
-import { SpansContainer } from "@/components/log-interface/query-output/traces/spans-container";
+import { SpansContainer } from "@/components/log-interface/query-output/spans/spans-container";
 import { Log } from "api/js/types/v1/otel_logging_pb";
 
 interface SharedQueryProps {
@@ -175,22 +175,19 @@ export const SharedQuery = ({ sharedId, prefix }: SharedQueryProps) => {
           <div className="overflow-hidden rounded-lg border border-gray-200">
             {logData && (
               <div className="p-4">
-                <SessionPanel providedData={logData} query={undefined} />
+                <SessionPanel logs={logData} />
               </div>
             )}
 
             {freeFormData && (
               <div className="p-4">
-                <FreeFormContainer
-                  query={undefined}
-                  providedData={freeFormData}
-                />
+                <FreeFormContainer freeForm={[freeFormData]} />
               </div>
             )}
 
             {spanData && (
               <div className="p-4">
-                <SpansContainer query={undefined} providedData={spanData} />
+                <SpansContainer spans={spanData.spans} />
               </div>
             )}
 

@@ -1,5 +1,5 @@
 import { BinaryOp_Operator, Expr, Query } from "api/js/types/v1/query_pb";
-import { Fragment, useEffect, useState } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import { extractQueryIds } from "@/lib/utils/extractQueryIds";
 import {
@@ -19,6 +19,13 @@ import {
 import { KV } from "api/js/types/v1/types_pb";
 import SessionPanel from "@/components/log-interface/query-output/session/session-panel";
 import { QueryHistoryEntry } from "api/js/types/v1/query_history_entry_pb";
+import { useInfiniteQuery } from "@connectrpc/connect-query";
+import { query as queryMethod } from "api/js/svc/query/v1/service-QueryService_connectquery";
+import { useActiveTransport, useApiClients } from "@/context/api-provider";
+import { Cursor } from "api/js/types/v1/cursor_pb";
+import { QueryResponse } from "api/js/svc/query/v1/service_pb";
+import { InfiniteData } from "@tanstack/react-query";
+import { Log } from "api/js/types/v1/otel_logging_pb";
 
 interface SubQueriesContainerProps {
   queries: Query[];
@@ -53,7 +60,6 @@ export const SubQueriesContainer = ({
       _selectList.push({
         value: `${i}-${resourceFingerprint}`,
         resourceFingerprint,
-
         query,
       });
     });
@@ -131,36 +137,121 @@ export const SubQueriesContainer = ({
           >
             {selectedSessions?.map((list, i) => {
               return (
-                <Fragment key={list.value}>
-                  <Panel minSize={20}>
-                    <div className="relative pt-2 pr-2">
-                      {selectedSessions.length > 1 && (
-                        <button
-                          onClick={() => deleteSession(list.value)}
-                          className="absolute top-0 right-0 z-20 rounded-full border border-black bg-white"
-                        >
-                          <X color="black" size={14} />
-                        </button>
-                      )}
-                      <SessionPanel
-                        resourceFingerprint={extractQueryIds(list.query)}
-                        query={list.query}
-                        queryHistoryEntry={queryHistoryEntry}
-                      />
-                    </div>
-                  </Panel>
-
-                  {i !== selectedSessions.length - 1 && (
-                    <PanelResizeHandle className="flex h-auto items-center justify-center">
-                      <div className="h-12 w-1 rounded-full bg-slate-700" />
-                    </PanelResizeHandle>
-                  )}
-                </Fragment>
+                <SubQueryPanel
+                  key={list.value}
+                  index={i}
+                  list={list}
+                  selectedSessions={selectedSessions}
+                  deleteSession={deleteSession}
+                  queryHistoryEntry={queryHistoryEntry}
+                />
               );
             })}
           </PanelGroup>
         </div>
       </>
     )
+  );
+};
+
+interface SubQueryPanelProps {
+  index: number;
+  list: SelectedSessionsType;
+  selectedSessions: SelectedSessionsType[];
+  deleteSession: (value: string) => void;
+  queryHistoryEntry?: QueryHistoryEntry;
+}
+
+interface DataValue {
+  pages?: QueryResponse[];
+
+  logs: Log[];
+}
+
+const SubQueryPanel = ({
+  index,
+  list,
+  selectedSessions,
+  deleteSession,
+  queryHistoryEntry,
+}: SubQueryPanelProps) => {
+  const { activeEnvironment } = useApiClients();
+  const {
+    data: rawData,
+    refetch,
+    isFetching,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    error,
+    status,
+    isLoading: isQueryLoading,
+  } = useInfiniteQuery(
+    queryMethod,
+    {
+      environmentId: activeEnvironment?.id ?? BigInt(0),
+      query: list.query ?? new Query(),
+      limit: 1000,
+    },
+    {
+      pageParamKey: "cursor" as const,
+      getNextPageParam: (
+        lastPageParam: Cursor | undefined,
+        lastPage: QueryResponse,
+      ) => {
+        const response = lastPageParam as unknown as QueryResponse;
+        return response?.next || undefined;
+      },
+      initialPageParam: undefined,
+      transport: useActiveTransport(),
+      queryKey: ["logs", list.query],
+    },
+  );
+
+  const data: DataValue | undefined = useMemo(() => {
+    if (!rawData?.pages?.length) return;
+    const logs: Log[] = [];
+
+    rawData.pages.forEach((page: QueryResponse) => {
+      const shape = page.data?.shape;
+      if (shape?.case === "logs") {
+        logs.push(...shape.value.logs);
+      }
+    });
+
+    return {
+      logs,
+    };
+  }, [rawData]);
+
+  return (
+    <Fragment>
+      <Panel minSize={20}>
+        <div className="relative pt-2 pr-2">
+          {selectedSessions.length > 1 && (
+            <button
+              onClick={() => deleteSession(list.value)}
+              className="absolute top-0 right-0 z-20 rounded-full border border-black bg-white"
+            >
+              <X color="black" size={14} />
+            </button>
+          )}
+          <SessionPanel
+            logs={data?.logs}
+            resourceFingerprint={extractQueryIds(list.query)}
+            queryHistoryEntry={queryHistoryEntry}
+            hasNextPage={hasNextPage}
+            isFetching={isFetching}
+            fetchNextPage={fetchNextPage}
+          />
+        </div>
+      </Panel>
+
+      {index !== selectedSessions.length - 1 && (
+        <PanelResizeHandle className="flex h-auto items-center justify-center">
+          <div className="h-12 w-1 rounded-full bg-slate-700" />
+        </PanelResizeHandle>
+      )}
+    </Fragment>
   );
 };

@@ -310,64 +310,63 @@ const PageHeader: React.FC = () => {
           </SelectGroup>
         </SelectContent>
       </Select>
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger>
-            <div
-              className={`h-3 w-3 shrink-0 rounded-full ${localhostInfo ? "bg-green-500" : "bg-red-500"} ${isUpdateAvailable && "animate-pulse"}`}
-            />
-          </TooltipTrigger>
-          {isUpdateAvailable && (
-            <TooltipContent className="max-w-sm bg-transparent p-0 shadow-none">
-              <div className="border-muted space-y-3 rounded-lg border bg-white p-4 shadow-lg dark:bg-black">
-                <div className="flex items-center gap-2">
-                  <Sparkles size={16} />
-                  <h3 className="text-sm font-semibold">Update Available</h3>
-                </div>
 
-                {localhostInfo?.clientVersion && (
-                  <div className="space-y-1 text-xs">
+      <Tooltip>
+        <TooltipTrigger>
+          <div
+            className={`h-3 w-3 shrink-0 rounded-full ${localhostInfo ? "bg-green-500" : "bg-red-500"} ${isUpdateAvailable && "animate-pulse"}`}
+          />
+        </TooltipTrigger>
+        {isUpdateAvailable && (
+          <TooltipContent className="max-w-sm bg-transparent p-0 shadow-none">
+            <div className="border-muted space-y-3 rounded-lg border bg-white p-4 shadow-lg dark:bg-black">
+              <div className="flex items-center gap-2">
+                <Sparkles size={16} />
+                <h3 className="text-sm font-semibold">Update Available</h3>
+              </div>
+
+              {localhostInfo?.clientVersion && (
+                <div className="space-y-1 text-xs">
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground">Current:</span>
+                    <span className="font-mono">
+                      {versionToString(localhostInfo.clientVersion)}
+                    </span>
+                  </div>
+                  {nextVersion && (
                     <div className="flex items-center justify-between">
-                      <span className="text-muted-foreground">Current:</span>
+                      <span className="text-muted-foreground">Next:</span>
                       <span className="font-mono">
-                        {versionToString(localhostInfo.clientVersion)}
+                        {versionToString(nextVersion)}
                       </span>
                     </div>
-                    {nextVersion && (
-                      <div className="flex items-center justify-between">
-                        <span className="text-muted-foreground">Next:</span>
-                        <span className="font-mono">
-                          {versionToString(nextVersion)}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                )}
+                  )}
+                </div>
+              )}
 
-                <div className="border-t pt-2">
-                  <p className="text-muted-foreground mb-2 text-xs">
-                    Run this command to update:
-                  </p>
-                  <div className="bg-muted flex items-center gap-2 rounded-md p-2">
-                    <code className="flex-1 font-mono text-xs">
-                      humanlog version update
-                    </code>
-                    {isCopied ? (
-                      <Check size={12} />
-                    ) : (
-                      <Copy
-                        size={12}
-                        className="text-muted-foreground hover:text-foreground cursor-pointer"
-                        onClick={handleCopyCommand}
-                      />
-                    )}
-                  </div>
+              <div className="border-t pt-2">
+                <p className="text-muted-foreground mb-2 text-xs">
+                  Run this command to update:
+                </p>
+                <div className="bg-muted flex items-center gap-2 rounded-md p-2">
+                  <code className="flex-1 font-mono text-xs">
+                    humanlog version update
+                  </code>
+                  {isCopied ? (
+                    <Check size={12} />
+                  ) : (
+                    <Copy
+                      size={12}
+                      className="text-muted-foreground hover:text-foreground cursor-pointer"
+                      onClick={handleCopyCommand}
+                    />
+                  )}
                 </div>
               </div>
-            </TooltipContent>
-          )}
-        </Tooltip>
-      </TooltipProvider>
+            </div>
+          </TooltipContent>
+        )}
+      </Tooltip>
     </div>
   );
 

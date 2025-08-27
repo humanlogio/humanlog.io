@@ -28,10 +28,17 @@ interface TableProps {
   tableColumns?: TableType_Column[];
   tableRows?: Arr[];
   targetRef: (node?: Element | null) => void;
+  hasNextPage?: boolean;
 }
 
-const TableContainer = ({ tableColumns, tableRows, targetRef }: TableProps) => {
+const TableContainer = ({
+  tableColumns,
+  tableRows,
+  targetRef,
+  hasNextPage,
+}: TableProps) => {
   const isProd = config.NEXT_PUBLIC_IS_PROD;
+
   const [columnSizing, setColumnSizing] = useState({});
   const [columnSizingInfo, setColumnSizingInfo] =
     useState<ColumnSizingInfoState>({
@@ -216,114 +223,112 @@ const TableContainer = ({ tableColumns, tableRows, targetRef }: TableProps) => {
               className="scroll-container scrollbar-thin scrollbar-track-slate-100 scrollbar-thumb-slate-300 dark:scrollbar-track-slate-700 dark:scrollbar-thumb-slate-600"
               style={{ overflowX: "auto" }}
             >
-              <TooltipProvider>
-                <div className="table-wrapper">
-                  <table
-                    className="w-full font-mono"
-                    style={{
-                      tableLayout: isScrollMode ? "auto" : "fixed",
-                      minWidth: isScrollMode
-                        ? `${columnCount * 120}px`
-                        : "100%",
-                    }}
-                  >
-                    <thead className="bg-muted">
-                      {table.getHeaderGroups().map((headerGroup) => (
-                        <tr key={headerGroup.id}>
-                          {headerGroup.headers.map((header, headerIndex) => {
-                            const column = tableColumns?.[headerIndex];
-                            const typeString = column
-                              ? varTypeToString(column.type)
-                              : "unknown";
+              <div className="table-wrapper">
+                <table
+                  className="w-full font-mono"
+                  style={{
+                    tableLayout: isScrollMode ? "auto" : "fixed",
+                    minWidth: isScrollMode ? `${columnCount * 120}px` : "100%",
+                  }}
+                >
+                  <thead className="bg-muted">
+                    {table.getHeaderGroups().map((headerGroup) => (
+                      <tr key={headerGroup.id}>
+                        {headerGroup.headers.map((header, headerIndex) => {
+                          const column = tableColumns?.[headerIndex];
+                          const typeString = column
+                            ? varTypeToString(column.type)
+                            : "unknown";
 
-                            return (
-                              <th
-                                style={{
-                                  position: "relative",
-                                  width: `${header.getSize()}px`,
-                                  overflow: "visible",
-                                }}
-                                key={header.id}
-                                className="border-r border-slate-200 px-2 py-2 text-left font-semibold tracking-wider text-slate-700 last:border-r-0 dark:border-slate-700 dark:text-slate-300"
-                              >
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <div className="truncate">
-                                      {header.isPlaceholder
-                                        ? null
-                                        : flexRender(
-                                            header.column.columnDef.header,
-                                            header.getContext(),
-                                          )}
-                                    </div>
-                                  </TooltipTrigger>
-                                  <TooltipContent>
-                                    <div className="space-y-1 text-xs">
-                                      <KeyValueRow
-                                        label="Column"
-                                        value={column?.name || ""}
-                                      />
-                                      <KeyValueRow
-                                        label="Type"
-                                        value={typeString}
-                                      />
-                                    </div>
-                                  </TooltipContent>
-                                </Tooltip>
-                                {header.column.getCanResize() && (
-                                  <div
-                                    onMouseDown={header.getResizeHandler()}
-                                    onTouchStart={header.getResizeHandler()}
-                                    className={`resizer ${
-                                      header.column.getIsResizing()
-                                        ? "isResizing"
-                                        : ""
-                                    }`}
-                                    title="Drag to resize column"
-                                  ></div>
-                                )}
-                              </th>
-                            );
-                          })}
-                        </tr>
-                      ))}
-                    </thead>
-
-                    <tbody>
-                      {table.getRowModel().rows.map((row, rowIndex) => (
-                        <tr
-                          key={row.id}
-                          className="border-b border-slate-100 hover:bg-slate-100 dark:border-slate-800 dark:hover:bg-slate-900"
-                        >
-                          {row.getVisibleCells().map((cell) => (
-                            <td
+                          return (
+                            <th
                               style={{
-                                width: `${cell.column.getSize()}px`,
-                                maxWidth: `${cell.column.getSize()}px`,
+                                position: "relative",
+                                width: `${header.getSize()}px`,
+                                overflow: "visible",
                               }}
-                              key={cell.id}
-                              className="overflow-hidden border-r border-slate-100 px-2 py-1 last:border-r-0 dark:border-slate-800"
+                              key={header.id}
+                              className="border-r border-slate-200 px-2 py-2 text-left font-semibold tracking-wider text-slate-700 last:border-r-0 dark:border-slate-700 dark:text-slate-300"
                             >
-                              <div className="break-words text-ellipsis">
-                                {flexRender(
-                                  cell.column.columnDef.cell,
-                                  cell.getContext(),
-                                )}
-                              </div>
-                            </td>
-                          ))}
-                        </tr>
-                      ))}
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <div className="truncate">
+                                    {header.isPlaceholder
+                                      ? null
+                                      : flexRender(
+                                          header.column.columnDef.header,
+                                          header.getContext(),
+                                        )}
+                                  </div>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <div className="space-y-1 text-xs">
+                                    <KeyValueRow
+                                      label="Column"
+                                      value={column?.name || ""}
+                                    />
+                                    <KeyValueRow
+                                      label="Type"
+                                      value={typeString}
+                                    />
+                                  </div>
+                                </TooltipContent>
+                              </Tooltip>
+                              {header.column.getCanResize() && (
+                                <div
+                                  onMouseDown={header.getResizeHandler()}
+                                  onTouchStart={header.getResizeHandler()}
+                                  className={`resizer ${
+                                    header.column.getIsResizing()
+                                      ? "isResizing"
+                                      : ""
+                                  }`}
+                                  title="Drag to resize column"
+                                ></div>
+                              )}
+                            </th>
+                          );
+                        })}
+                      </tr>
+                    ))}
+                  </thead>
+
+                  <tbody>
+                    {table.getRowModel().rows.map((row, rowIndex) => (
+                      <tr
+                        key={row.id}
+                        className="border-b border-slate-100 hover:bg-slate-100 dark:border-slate-800 dark:hover:bg-slate-900"
+                      >
+                        {row.getVisibleCells().map((cell) => (
+                          <td
+                            style={{
+                              width: `${cell.column.getSize()}px`,
+                              maxWidth: `${cell.column.getSize()}px`,
+                            }}
+                            key={cell.id}
+                            className="overflow-hidden border-r border-slate-100 px-2 py-1 last:border-r-0 dark:border-slate-800"
+                          >
+                            <div className="break-words text-ellipsis">
+                              {flexRender(
+                                cell.column.columnDef.cell,
+                                cell.getContext(),
+                              )}
+                            </div>
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                    {hasNextPage && (
                       <tr ref={targetRef}>
                         <td
                           colSpan={tableColumns?.length || 1}
                           className="h-4"
                         />
                       </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </TooltipProvider>
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         </div>
