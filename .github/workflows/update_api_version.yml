@@ -11,7 +11,7 @@ on:
     types: [update_api_version]
 
 jobs:
-  set_humanlog_package_version:
+  set_api_package_version:
     runs-on: ubuntu-latest
 
     permissions:
