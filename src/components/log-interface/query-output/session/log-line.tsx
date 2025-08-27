@@ -22,6 +22,7 @@ import {
   DropdownMenu,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { ulidToString } from "@/lib/utils/id-factories";
 
 interface LogLineProps {
   log: Log;
@@ -64,7 +65,7 @@ export const LogLine = memo(
       },
     ];
 
-    const lineId = `${index}-${log.ulid}`;
+    const lineId = `${index}-${ulidToString(log.ulid)}`;
     const isSelected = selectedLines === lineId;
 
     const handleMetadataClick = (e: React.MouseEvent) => {

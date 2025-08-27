@@ -3,19 +3,10 @@ import { KV } from "api/js/types/v1/types_pb";
 import { Log } from "api/js/types/v1/otel_logging_pb";
 import { Resource } from "api/js/types/v1/otel_resource_pb";
 import { Scope } from "api/js/types/v1/otel_scope_pb";
+import { makeSpanID, makeTraceID, makeULID } from "@/lib/utils/id-factories";
 
 // Export KV helpers from the dedicated file
 export * from "@/lib/utils/kvFactories";
-
-// Generate a simple ULID-like string for testing
-const generateULID = (): string => {
-  const timestamp = Date.now().toString(36).padStart(10, "0");
-  const randomPart = Math.random()
-    .toString(36)
-    .substring(2, 18)
-    .padEnd(16, "0");
-  return (timestamp + randomPart).toUpperCase().substring(0, 26);
-};
 
 // Create a basic Resource
 export const makeResource = (attributes: KV[] = []): Resource => {
@@ -52,11 +43,11 @@ export const makeLog = (
   const severityNumber = getSeverityNumber(severityText);
 
   return new Log({
-    ulid: generateULID(),
+    ulid: makeULID(),
     observedTimestamp: Timestamp.fromDate(new Date()),
     timestamp,
-    traceId,
-    spanId,
+    traceId: traceId ? makeTraceID(traceId) : undefined,
+    spanId: spanId ? makeSpanID(spanId) : undefined,
     traceFlags: 0,
     severityText,
     severityNumber,

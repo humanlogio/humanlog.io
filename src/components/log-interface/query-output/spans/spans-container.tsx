@@ -9,13 +9,13 @@ import { Cursor } from "api/js/types/v1/cursor_pb";
 import { QueryResponse, StreamResponse } from "api/js/svc/query/v1/service_pb";
 import { extractFromStreamResponses } from "@/lib/utils/dataHelpers";
 
-import { ServiceMap } from "@/components/log-interface/query-output/traces/service-map";
-import { SpanList } from "@/components/log-interface/query-output/traces/span-list";
+import { ServiceMap } from "@/components/log-interface/query-output/spans/service-map/service-map";
+import { SpanList } from "@/components/log-interface/query-output/spans/span-list/span-list";
 import { Span } from "api/js/types/v1/otel_tracing_pb";
 import { InfiniteData } from "@tanstack/react-query";
 import { useInView } from "react-intersection-observer";
 
-interface FreeFormContainerProps {
+interface SpansContainerProps {
   spans?: Span[] | undefined;
   hasNextPage?: boolean;
   isFetching?: boolean;
@@ -31,7 +31,7 @@ export const SpansContainer = ({
   fetchNextPage,
   queryHistoryEntry,
   streamRes,
-}: FreeFormContainerProps) => {
+}: SpansContainerProps) => {
   const { ref: targetRef, inView } = useInView();
 
   const [viewMode, setViewMode] = useState<"list" | "map">("list");
