@@ -27,7 +27,9 @@ jobs:
         with:
           ref: ${{ github.head_ref }}
 
-      - run: echo "current_version=$(./script/show_api_version.sh)" >> $GITHUB_OUTPUT
+      - name: Set outputs
+        id: vars
+        run: echo "current_version=$(./script/show_api_version.sh)" >> $GITHUB_OUTPUT
       - name: Check outputs
         run: echo "will set api@$PACKAGE_VERSION (from ${{steps.vars.outputs.current_version}})"
 
