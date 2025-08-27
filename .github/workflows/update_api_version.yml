@@ -40,4 +40,4 @@ jobs:
           title: "chore(api): bump api@${{ github.event_name == 'workflow_dispatch' && github.event.inputs.package_version || github.event.client_payload.package_version }}"
           commit-message: "chore(api): bump api@${{ github.event_name == 'workflow_dispatch' && github.event.inputs.package_version || github.event.client_payload.package_version }}"
           branch: "bump-api"
-          description: "This is an automated PR. To see what changed, look at https://github.com/humanlogio/api/compare/${{steps.vars.outputs.current_version}}...$PACKAGE_VERSION"
+          body: "This is an automated PR. To see what changed, look at https://github.com/humanlogio/api/compare/${{steps.vars.outputs.current_version}}...$PACKAGE_VERSION"
