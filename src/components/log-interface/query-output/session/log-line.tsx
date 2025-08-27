@@ -9,8 +9,11 @@ import { KV, Val } from "api/js/types/v1/types_pb";
 import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { twMerge } from "tailwind-merge";
 import { Ellipsis } from "lucide-react";
-import { Tooltip } from "@/components/ui/tooltip";
-import { TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from "@/components/ui/tooltip";
 import { MetaDataTooltip } from "@/components/log-interface/query-output/session/session-control";
 import { LogAttribute } from "@/components/log-interface/query-output/session/log-attribute";
 import {
@@ -49,6 +52,9 @@ export const LogLine = memo(
       themes ?? localhostConfig?.formatter?.themes,
     );
 
+    // State for metadata tooltip - changed from hover to click
+    const [isTooltipOpen, setisTooltipOpen] = useState(false);
+
     /** Can be extended with additional options as needed */
     const dropDownMenu = [
       {
@@ -60,6 +66,11 @@ export const LogLine = memo(
 
     const lineId = `${index}-${log.ulid}`;
     const isSelected = selectedLines === lineId;
+
+    const handleMetadataClick = (e: React.MouseEvent) => {
+      e.stopPropagation();
+      setisTooltipOpen((prev) => !prev);
+    };
 
     const formattedValue = useCallback((value?: Val): string => {
       if (!value) return "";
@@ -194,16 +205,39 @@ export const LogLine = memo(
         )}
 
         {!pretty || shouldShowRaw ? (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <code
-                className={twMerge("flex gap-1 py-[1px] whitespace-nowrap")}
-              >
-                {decodeUint8Array(log.raw)}
-              </code>
-            </TooltipTrigger>
-            <MetaDataTooltip log={log} />
-          </Tooltip>
+          isTooltipOpen ? (
+            <Tooltip open={isTooltipOpen}>
+              <TooltipTrigger asChild>
+                <code
+                  className={twMerge(
+                    "flex cursor-pointer gap-1 rounded px-1 py-[1px] whitespace-nowrap transition-colors",
+                    isTooltipOpen
+                      ? "border border-blue-300 bg-blue-100 dark:bg-blue-900"
+                      : "hover:bg-gray-100 dark:hover:bg-gray-800",
+                  )}
+                  onClick={handleMetadataClick}
+                >
+                  {decodeUint8Array(log.raw)}
+                  {isTooltipOpen && (
+                    <span className="ml-1 text-xs text-blue-500">📌</span>
+                  )}
+                </code>
+              </TooltipTrigger>
+              <TooltipContent className="max-w-sm">
+                <div className="relative">
+                  <MetaDataTooltip log={log} />
+                </div>
+              </TooltipContent>
+            </Tooltip>
+          ) : (
+            <code
+              className="flex cursor-pointer gap-1 rounded px-1 py-[1px] whitespace-nowrap transition-colors hover:bg-gray-100 dark:hover:bg-gray-800"
+              onClick={handleMetadataClick}
+              title="Click to view metadata"
+            >
+              {decodeUint8Array(log.raw)}
+            </code>
+          )
         ) : (
           <pre
             className={twMerge(
@@ -211,10 +245,17 @@ export const LogLine = memo(
               sectionBreak && "flex-col",
             )}
           >
-            {
-              <Tooltip>
+            {isTooltipOpen ? (
+              <Tooltip open={isTooltipOpen}>
                 <TooltipTrigger asChild>
-                  <span className="inline-flex items-center">
+                  <span
+                    className={`inline-flex cursor-pointer items-center rounded px-1 py-0.5 transition-colors ${
+                      isTooltipOpen
+                        ? "border border-blue-300 bg-blue-100 dark:bg-blue-900"
+                        : "hover:bg-gray-100 dark:hover:bg-gray-800"
+                    }`}
+                    onClick={handleMetadataClick}
+                  >
                     <span style={{ color: getColor("time") }}>
                       {formattedTimestamp}{" "}
                     </span>
@@ -229,17 +270,44 @@ export const LogLine = memo(
                       </span>
                       |{" "}
                     </span>
-
                     <span style={{ color: getColor("msg") }} className="mr-1">
                       {log.body || "no message"}
                     </span>
+                    {isTooltipOpen && (
+                      <span className="ml-1 text-xs text-blue-500">📌</span>
+                    )}
                   </span>
                 </TooltipTrigger>
-                <div>
+
+                <div className="relative">
                   <MetaDataTooltip log={log} />
                 </div>
               </Tooltip>
-            }
+            ) : (
+              <span
+                className="inline-flex cursor-pointer items-center rounded px-1 py-0.5 transition-colors hover:bg-gray-100 dark:hover:bg-gray-800"
+                onClick={handleMetadataClick}
+                title="Click to view metadata"
+              >
+                <span style={{ color: getColor("time") }}>
+                  {formattedTimestamp}{" "}
+                </span>
+                <span className="text-gray-400">
+                  |
+                  <span
+                    style={{
+                      color: getLevelColor(log.severityText),
+                    }}
+                  >
+                    {log?.severityText || "EMPTY"}
+                  </span>
+                  |{" "}
+                </span>
+                <span style={{ color: getColor("msg") }} className="mr-1">
+                  {log.body || "no message"}
+                </span>
+              </span>
+            )}
             <div className={twMerge("flex", sectionBreak && "flex-col")}>
               {log.attributes.map((kv, kvIndex) => (
                 <LogAttribute
