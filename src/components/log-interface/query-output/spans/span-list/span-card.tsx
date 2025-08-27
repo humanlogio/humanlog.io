@@ -34,6 +34,7 @@ import { newIdentifierExpr } from "@/lib/utils/queryExpressions";
 import { KeyValueRow } from "@/components/log-interface/query-output/session/session-control";
 import { newIndexorExpr } from "@/lib/utils/queryExpressions";
 import { newStrVal } from "@/lib/utils/valueFactories";
+import { MouseEvent, useCallback } from "react";
 
 interface SpanCardProps {
   span: Span;
@@ -42,6 +43,14 @@ interface SpanCardProps {
 export const SpanCard = ({ span }: SpanCardProps) => {
   const traceId = unit8ArrayBufferToBase16(span.traceId?.raw);
   const spanId = unit8ArrayBufferToBase16(span.spanId?.raw);
+
+  const handleCopy = useCallback(
+    (e: MouseEvent, id: string) => {
+      e.preventDefault();
+      copyToClipboard(id);
+    },
+    [traceId, spanId],
+  );
 
   return (
     <Card className="overflow-hidden transition-colors hover:border-blue-300">
@@ -121,7 +130,7 @@ export const SpanCard = ({ span }: SpanCardProps) => {
                         variant="ghost"
                         size="xs"
                         className="h-5 w-5 p-0"
-                        onClick={() => copyToClipboard(traceId)}
+                        onClick={(e) => handleCopy(e, traceId)}
                       >
                         <Copy size={12} />
                       </Button>
@@ -140,7 +149,7 @@ export const SpanCard = ({ span }: SpanCardProps) => {
                         variant="ghost"
                         size="xs"
                         className="h-5 w-5 p-0"
-                        onClick={() => copyToClipboard(spanId)}
+                        onClick={(e) => handleCopy(e, spanId)}
                       >
                         <Copy size={12} />
                       </Button>
