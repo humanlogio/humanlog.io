@@ -4,7 +4,7 @@ import { Duration, Timestamp } from "@bufbuild/protobuf";
 import {
   generateServiceCallMap,
   groupSpansByService,
-} from "@/components/log-interface/query-output/traces/service-map/utils/service-call-analyzer";
+} from "@/components/log-interface/query-output/spans/service-map/utils/service-call-analyzer";
 
 /**
  * @vitest-environment jsdom

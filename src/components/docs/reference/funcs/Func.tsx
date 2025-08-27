@@ -18,15 +18,43 @@ import {
 import CodeBlock from "@/components/CodeBlock";
 import { Data } from "api/js/types/v1/data_pb";
 import { DataRenderer } from "@/components/log-interface/query-output";
+import { Log } from "api/js/types/v1/otel_logging_pb";
+import { Span } from "api/js/types/v1/otel_tracing_pb";
+import { Table, Val } from "api/js/types/v1/types_pb";
+import { DataCase, DataValue } from "@/components/log-interface";
 
 export function Func({ func }: { func: ScalarFuncType }) {
-  const convertOutputToData = (output: any): Data | null => {
+  const convertOutputToData = (output: any): DataValue | undefined => {
     try {
+      const logs: Log[] = [];
+      const freeForm: Table[] = [];
+      const spans: Span[] = [];
+      let shapeTypes: DataCase | undefined;
+
       const data = Data.fromJson(output);
-      return data;
+      console.log("data", data);
+      console.log("data.shape", data.shape);
+      const { case: shapeCase, value } = data.shape;
+
+      if (shapeCase === "logs") {
+        logs.push(...value.logs);
+        shapeTypes = "logs";
+      } else if (shapeCase === "freeForm") {
+        freeForm.push(value);
+        shapeTypes = "freeForm";
+      } else if (shapeCase === "spans") {
+        spans.push(...value.spans);
+        shapeTypes = "spans";
+      }
+
+      return {
+        logs,
+        freeForm,
+        spans,
+        shapeTypes,
+      };
     } catch (error) {
       console.error("Failed to convert output to Data:", error);
-      return null;
     }
   };
 

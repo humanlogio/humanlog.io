@@ -16,30 +16,32 @@ import { Data } from "api/js/types/v1/data_pb";
 import TableContainer from "@/components/log-interface/query-output/freeform/table-container";
 import Histogram from "@/components/log-interface/query-output/freeform/histogram-container";
 import { Cursor } from "api/js/types/v1/cursor_pb";
-import { StreamResponse } from "api/js/svc/query/v1/service_pb";
+import { QueryResponse, StreamResponse } from "api/js/svc/query/v1/service_pb";
 import { extractFromStreamResponses } from "@/lib/utils/dataHelpers";
 import { newTable, newTableData } from "@/lib/utils/dataShapeFactories";
+import { InfiniteData } from "@tanstack/react-query";
+import { useInView } from "react-intersection-observer";
 
 interface FreeFormContainerProps {
-  query: Query | undefined;
-  data?: Table;
-  initialNext?: Cursor | null;
-  providedData?: Table;
+  freeForm: Table[] | undefined;
+  hasNextPage?: boolean;
+  isFetching?: boolean;
+  fetchNextPage?: () => void;
   queryHistoryEntry?: QueryHistoryEntry;
   streamRes?: StreamResponse[];
 }
 
 export const FreeFormContainer = ({
-  query,
-  data: _data,
-  initialNext,
-  providedData,
+  freeForm,
+  hasNextPage,
+  isFetching,
+  fetchNextPage,
   queryHistoryEntry,
   streamRes,
 }: FreeFormContainerProps) => {
-  const { targetRef, fetchNext, fetchData, next, setNext } =
-    useInfiniteQuery(query);
-  const [data, setData] = useState<Table>();
+  const { ref: targetRef, inView } = useInView();
+
+  const [tableData, setTableData] = useState<Table[]>();
   const [tableColumns, setTableColumns] = useState<TableType_Column[]>();
   const [tableRows, setTableRows] = useState<Arr[]>();
   const [sharedData, setSharedData] = useState<Data | null>(null);
@@ -50,30 +52,18 @@ export const FreeFormContainer = ({
   };
 
   useEffect(() => {
-    if (providedData) {
-      setData(providedData);
-      setTableColumns(providedData.type?.columns);
-      setTableRows(providedData.rows);
-      return;
-    } else if (_data) {
-      setNext(initialNext);
-      setData(_data);
-      setTableColumns(_data.type?.columns);
-      setTableRows(_data.rows);
+    if (freeForm) {
+      setTableData(freeForm);
+      const _tableColumns = freeForm[0]?.type?.columns;
+      const _tableRows = freeForm.flatMap((table) => table.rows);
+      setTableColumns(_tableColumns);
+      setTableRows(_tableRows);
     }
-  }, []);
+  }, [freeForm]);
 
   useEffect(() => {
-    next &&
-      fetchNext &&
-      fetchData((value) => {
-        setTableRows((prev) => {
-          if (prev) {
-            return [...prev, ...value.rows];
-          }
-        });
-      });
-  }, [fetchNext]);
+    if (inView && fetchNextPage) fetchNextPage();
+  }, [inView]);
 
   useEffect(() => {
     if (!streamRes || streamRes.length === 0) return;
@@ -92,44 +82,42 @@ export const FreeFormContainer = ({
     <div className="flex-1">
       {queryHistoryEntry && (
         <div className="flex w-full justify-end">
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  onClick={onClickShare}
-                  size="sm"
-                  variant="outline"
-                  className="gap-1"
-                >
-                  <Share size={14} />
-                  Share
-                </Button>
-              </TooltipTrigger>
-              {sharedData && (
-                <ShareQuery
-                  sharedData={sharedData}
-                  setSharedData={setSharedData}
-                  queryHistoryEntry={queryHistoryEntry}
-                />
-              )}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                onClick={onClickShare}
+                size="sm"
+                variant="outline"
+                className="gap-1"
+              >
+                <Share size={14} />
+                Share
+              </Button>
+            </TooltipTrigger>
+            {sharedData && (
+              <ShareQuery
+                sharedData={sharedData}
+                setSharedData={setSharedData}
+                queryHistoryEntry={queryHistoryEntry}
+              />
+            )}
 
-              <TooltipContent>Share Query</TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+            <TooltipContent>Share Query</TooltipContent>
+          </Tooltip>
         </div>
       )}
       {isHistogram ? (
         <Histogram
-          data={data}
+          data={tableData?.[0]}
           tableColumns={tableColumns}
           tableRows={tableRows}
-          targetRef={targetRef}
         />
       ) : (
         <TableContainer
           tableColumns={tableColumns}
           tableRows={tableRows}
           targetRef={targetRef}
+          hasNextPage={hasNextPage}
         />
       )}
     </div>

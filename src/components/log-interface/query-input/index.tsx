@@ -94,7 +94,9 @@ const QueryInput = ({
   const editorRef = useRef<monacoEditor.IStandaloneCodeEditor>();
   const monacoRef = useRef<typeof monaco>();
 
-  const { data: listQuery } = useQuery(listQueryHistory, { limit: 1 });
+  const { data: listQuery, isLoading } = useQuery(listQueryHistory, {
+    limit: 1,
+  });
 
   const handleEditorDidMount: OnMount = (editor, monaco) => {
     editorRef.current = editor;
@@ -243,6 +245,10 @@ const QueryInput = ({
       return;
     }
 
+    if (isLoading) {
+      return;
+    }
+
     if (!listQuery || !listQuery.items[0]) {
       const newDefaultQuery = DEFAULT_QUERY_EXAMPLES;
       setDefaultQuery(newDefaultQuery);
@@ -268,64 +274,61 @@ const QueryInput = ({
         );
       }
     }
-  }, [listQuery, nav]);
+  }, [listQuery, nav, isLoading]);
 
   return (
     <>
       <div className="col-span-2 md:col-span-1">
         <div className="relative w-full overflow-hidden rounded-md border py-2">
-          <TooltipProvider>
-            <div className="absolute top-2 right-2 z-1 flex gap-1 text-sm">
+          <div className="absolute top-2 right-2 z-1 flex gap-1 text-sm">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  onClick={() => executeQuery(editorContent, fromExternalPage)}
+                  size="xs"
+                  variant="outline"
+                >
+                  <Play size={10} />
+                  Run
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                {!fromExternalPage
+                  ? "Run this query (⌘+Enter)"
+                  : "Run this query on your machine"}
+              </TooltipContent>
+            </Tooltip>
+            {setIsLibraryOpen && (
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
-                    onClick={() =>
-                      executeQuery(editorContent, fromExternalPage)
-                    }
                     size="xs"
                     variant="outline"
+                    onClick={() => setIsLibraryOpen((prev) => !prev)}
                   >
-                    <Play size={10} />
-                    Run
+                    <List size={12} />
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent>
-                  {!fromExternalPage
-                    ? "Run this query (⌘+Enter)"
-                    : "Run this query on your machine"}
-                </TooltipContent>
+                <TooltipContent>Open the Query Library</TooltipContent>
               </Tooltip>
-              {setIsLibraryOpen && (
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      size="xs"
-                      variant="outline"
-                      onClick={() => setIsLibraryOpen((prev) => !prev)}
-                    >
-                      <List size={12} />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>Open the Query Library</TooltipContent>
-                </Tooltip>
-              )}
-              {user !== "not-logged-in" && (
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      size="xs"
-                      variant="outline"
-                      disabled={!isSaveValid}
-                      onClick={() => setIsSaveQueryModalOpen(true)}
-                    >
-                      <Star size={12} />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>Save Query</TooltipContent>
-                </Tooltip>
-              )}
-            </div>
-          </TooltipProvider>
+            )}
+            {user !== "not-logged-in" && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    size="xs"
+                    variant="outline"
+                    disabled={!isSaveValid}
+                    onClick={() => setIsSaveQueryModalOpen(true)}
+                  >
+                    <Star size={12} />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Save Query</TooltipContent>
+              </Tooltip>
+            )}
+          </div>
+
           {defaultQuery && (
             <MonacoEditor
               value={editorContent}

@@ -157,45 +157,43 @@ export const SymbolList = ({
         className={`${isRoot ? "mb-2" : ""}`}
         style={{ marginLeft: isRoot ? 0 : 16 }}
       >
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <div
-                className={cn(
-                  "flex cursor-pointer items-center rounded p-1",
-                  node.isLeaf && "hover:bg-gray-50 dark:hover:bg-gray-800",
-                )}
-                onClick={() => onClickNode(node.fullPath)}
-              >
-                {hasChildren ? (
-                  isExpanded ? (
-                    <ChevronDown className="mr-1 h-3 w-3" />
-                  ) : (
-                    <ChevronRight className="mr-1 h-3 w-3" />
-                  )
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div
+              className={cn(
+                "flex cursor-pointer items-center rounded p-1",
+                node.isLeaf && "hover:bg-gray-50 dark:hover:bg-gray-800",
+              )}
+              onClick={() => onClickNode(node.fullPath)}
+            >
+              {hasChildren ? (
+                isExpanded ? (
+                  <ChevronDown className="mr-1 h-3 w-3" />
                 ) : (
-                  <span className="mr-1 flex h-3 w-3 items-center justify-center text-gray-500">
-                    •
-                  </span>
-                )}
+                  <ChevronRight className="mr-1 h-3 w-3" />
+                )
+              ) : (
+                <span className="mr-1 flex h-3 w-3 items-center justify-center text-gray-500">
+                  •
+                </span>
+              )}
 
-                <span className="font-mono text-sm">{node.name}</span>
+              <span className="font-mono text-sm">{node.name}</span>
 
-                {node.isLeaf && (
-                  <span className="ml-2 rounded bg-gray-100 px-1 py-0.5 text-xs text-gray-600">
-                    {getTypeString(node.type)}
-                  </span>
-                )}
-              </div>
-            </TooltipTrigger>
+              {node.isLeaf && (
+                <span className="ml-2 rounded bg-gray-100 px-1 py-0.5 text-xs text-gray-600">
+                  {getTypeString(node.type)}
+                </span>
+              )}
+            </div>
+          </TooltipTrigger>
 
-            {node.isLeaf && (
-              <TooltipContent className="dark:bg-secondaryBlack bg-white">
-                <div>{node.fullPath}</div>
-              </TooltipContent>
-            )}
-          </Tooltip>
-        </TooltipProvider>
+          {node.isLeaf && (
+            <TooltipContent className="dark:bg-secondaryBlack bg-white">
+              <div>{node.fullPath}</div>
+            </TooltipContent>
+          )}
+        </Tooltip>
 
         {hasChildren && isExpanded && (
           <div className="mt-1 space-y-1 border-l border-gray-200 pl-3 dark:border-gray-700">

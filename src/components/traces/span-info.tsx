@@ -1,6 +1,7 @@
 import { SpanTreeNode } from "@/components/traces/utils";
 import { AlertCircle, Hash } from "lucide-react";
 import { formatTimestamp, formatDuration } from "@/lib/utils/formatTimeStamp";
+import { spanIdToString } from "@/lib/utils/id-factories";
 
 interface SpanInfo {
   node: SpanTreeNode;
@@ -30,7 +31,7 @@ export const SpanInfo = ({ node, serviceColors }: SpanInfo) => {
           <span>Span ID</span>
         </div>
         <div className="mt-1 rounded px-2 py-1 font-mono text-sm">
-          {node.span.spanId}
+          {spanIdToString(node.span.spanId)}
         </div>
       </div>
 

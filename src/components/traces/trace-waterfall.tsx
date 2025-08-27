@@ -18,6 +18,7 @@ import { Duration } from "@bufbuild/protobuf";
 import { SpanTreeNode, walkSpanTreeNodeFlat } from "@/components/traces/utils";
 import { twMerge } from "tailwind-merge";
 import { Span } from "api/js/types/v1/otel_tracing_pb";
+import { spanIdToString } from "@/lib/utils/id-factories";
 
 interface TraceWaterfallProps {
   traceId: string;
@@ -73,10 +74,10 @@ export const TraceWaterfall = ({
     const onToggleVisibility = () => {
       setFoldedNodes((prev) => {
         const newFolded = new Set(prev);
-        if (newFolded.has(node.span.spanId)) {
-          newFolded.delete(node.span.spanId);
+        if (newFolded.has(spanIdToString(node.span.spanId))) {
+          newFolded.delete(spanIdToString(node.span.spanId));
         } else {
-          newFolded.add(node.span.spanId);
+          newFolded.add(spanIdToString(node.span.spanId));
         }
         return newFolded;
       });
@@ -85,7 +86,7 @@ export const TraceWaterfall = ({
         const newHidden = new Set(prev);
         const childIds = getAllChildIds(node);
 
-        if (foldedNodes.has(node.span.spanId)) {
+        if (foldedNodes.has(spanIdToString(node.span.spanId))) {
           childIds.forEach((id) => newHidden.delete(id));
         } else {
           childIds.forEach((id) => newHidden.add(id));
@@ -99,7 +100,7 @@ export const TraceWaterfall = ({
       if (!node.parent) {
         return true;
       }
-      if (hiddenNodes.has(node.parent.span.spanId)) {
+      if (hiddenNodes.has(spanIdToString(node.parent.span.spanId))) {
         return false;
       }
       return areAllParentsVisible(node.parent);
@@ -108,7 +109,7 @@ export const TraceWaterfall = ({
     const getAllChildIds = (node: SpanTreeNode): string[] => {
       const ids: string[] = [];
       node.children.forEach((child) => {
-        ids.push(child.span.spanId);
+        ids.push(spanIdToString(child.span.spanId));
         ids.push(...getAllChildIds(child));
       });
       return ids;
@@ -127,12 +128,15 @@ export const TraceWaterfall = ({
       return count;
     };
 
-    if (hiddenNodes.has(node.span.spanId) || !areAllParentsVisible(node)) {
+    if (
+      hiddenNodes.has(spanIdToString(node.span.spanId)) ||
+      !areAllParentsVisible(node)
+    ) {
       return;
     }
 
     const canToggle = node.children && node.children.length > 0;
-    const isFolded = foldedNodes.has(node.span.spanId);
+    const isFolded = foldedNodes.has(spanIdToString(node.span.spanId));
     const totalDescendants = getTotalDescendantCount(node);
 
     return (
@@ -143,7 +147,7 @@ export const TraceWaterfall = ({
               ? selectedSpanRef
               : null
           }
-          key={node.span.spanId}
+          key={spanIdToString(node.span.spanId)}
           style={{
             backgroundColor:
               selectedSpan?.span.spanId === node.span.spanId

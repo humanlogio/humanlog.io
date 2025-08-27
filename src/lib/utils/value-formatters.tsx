@@ -1,6 +1,11 @@
 import { Duration } from "@bufbuild/protobuf";
 import { Scalar, Val, VarType, ScalarType } from "api/js/types/v1/types_pb";
 import { decodeUint8Array } from "@/lib/utils/decode";
+import {
+  spanIdToString,
+  traceIdToString,
+  ulidToString,
+} from "@/lib/utils/id-factories";
 
 export const valueToString = (val: Val | Scalar | undefined): string => {
   if (!val) {
@@ -29,6 +34,12 @@ export const valueToString = (val: Val | Scalar | undefined): string => {
       return "null";
     case "blob":
       return decodeUint8Array(val.kind.value);
+    case "traceId":
+      return traceIdToString(val.kind.value);
+    case "spanId":
+      return spanIdToString(val.kind.value);
+    case "ulid":
+      return ulidToString(val.kind.value);
     default:
       return "unknown";
   }
@@ -122,6 +133,12 @@ export const scalarTypeToString = (scalarType: ScalarType): string => {
       return "duration";
     case ScalarType.blob:
       return "blob";
+    case ScalarType.trace_id:
+      return "trace_id";
+    case ScalarType.span_id:
+      return "span_id";
+    case ScalarType.ulid:
+      return "ulid";
     default:
       return `scalar(${scalarType})`;
   }

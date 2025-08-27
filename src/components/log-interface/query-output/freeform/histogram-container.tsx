@@ -17,7 +17,6 @@ interface HistogramProps {
   data?: Table;
   tableColumns?: TableType_Column[];
   tableRows?: Arr[];
-  targetRef: (node?: Element | null) => void;
   loading?: boolean;
 }
 
@@ -47,7 +46,6 @@ export default function Histogram({
   data,
   tableColumns,
   tableRows,
-  targetRef,
   loading,
 }: HistogramProps) {
   const [timeColumns, setTimeColumns] = useState<string[]>([]);
