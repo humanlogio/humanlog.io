@@ -94,7 +94,9 @@ const QueryInput = ({
   const editorRef = useRef<monacoEditor.IStandaloneCodeEditor>();
   const monacoRef = useRef<typeof monaco>();
 
-  const { data: listQuery } = useQuery(listQueryHistory, { limit: 1 });
+  const { data: listQuery, isLoading } = useQuery(listQueryHistory, {
+    limit: 1,
+  });
 
   const handleEditorDidMount: OnMount = (editor, monaco) => {
     editorRef.current = editor;
@@ -243,6 +245,10 @@ const QueryInput = ({
       return;
     }
 
+    if (isLoading) {
+      return;
+    }
+
     if (!listQuery || !listQuery.items[0]) {
       const newDefaultQuery = DEFAULT_QUERY_EXAMPLES;
       setDefaultQuery(newDefaultQuery);
@@ -268,7 +274,7 @@ const QueryInput = ({
         );
       }
     }
-  }, [listQuery, nav]);
+  }, [listQuery, nav, isLoading]);
 
   return (
     <>
