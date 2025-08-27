@@ -2,14 +2,7 @@ import { Spans } from "api/js/types/v1/data_pb";
 import { Timestamp, Duration } from "@bufbuild/protobuf";
 import { toBigInt } from "@/lib/utils/valueFactories";
 import { makeSpan } from "@/lib/utils/spanFactories";
-import {
-  makeDurationKV,
-  makeF64KV,
-  makeI64KV,
-  makeNullKV,
-  makeStrKV,
-  makeTimestampKV,
-} from "@/lib/utils/kvFactories";
+import { makeStrKV } from "@/lib/utils/kvFactories";
 
 interface SampleSpan {
   query: string;
@@ -33,8 +26,8 @@ export function sampleSpans(): SampleSpan {
     data: new Spans({
       spans: [
         makeSpan(
-          "75787b6c-0376-4239-88ab-bb46c9d4e015",
-          "8f641c20-f416-45da-b25f-c35f9a116826",
+          "75787b6c037642398",
+          "8f641c20f41645dab25fc35f9a116826a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6",
           "",
           "renderHomepage",
           "web-frontend",
@@ -43,9 +36,9 @@ export function sampleSpans(): SampleSpan {
           [makeStrKV("service", "web-frontend"), makeStrKV("user", "alice")],
         ),
         makeSpan(
-          "82da06d1-29dd-4534-893d-6d31f4ce0a27",
-          "8f641c20-f416-45da-b25f-c35f9a116826",
-          "75787b6c-0376-4239-88ab-bb46c9d4e015",
+          "82da06d129dd4534",
+          "8f641c20f41645dab25fc35f9a116826a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6",
+          "75787b6c037642398",
           "fetchUserProfile",
           "backend-service",
           tsAdd(ago10s, 2),
@@ -53,9 +46,9 @@ export function sampleSpans(): SampleSpan {
           [makeStrKV("service", "web-frontend"), makeStrKV("user", "alice")],
         ),
         makeSpan(
-          "99a9896a-f5ce-47b6-bd6f-d5ae99bb6c74",
-          "8f641c20-f416-45da-b25f-c35f9a116826",
-          "82da06d1-29dd-4534-893d-6d31f4ce0a27",
+          "99a9896af5ce47b6",
+          "8f641c20f41645dab25fc35f9a116826a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6",
+          "82da06d129dd4534",
           "dbQuery",
           "database-tier",
           tsAdd(ago10s, 3),

@@ -3,11 +3,11 @@ import { useEffect, useState, useRef } from "react";
 import { formatDuration } from "@/lib/utils/formatTimeStamp";
 import { Duration } from "@bufbuild/protobuf";
 import * as d3 from "d3";
-import { generateServiceCallMap } from "@/components/log-interface/query-output/traces/service-map/utils/service-call-analyzer";
+import { generateServiceCallMap } from "@/components/log-interface/query-output/spans/service-map/utils/service-call-analyzer";
 import {
   Node,
   Link,
-} from "@/components/log-interface/query-output/traces/service-map/types";
+} from "@/components/log-interface/query-output/spans/service-map/types";
 import { Span } from "api/js/types/v1/otel_tracing_pb";
 
 interface ServiceMapProps {

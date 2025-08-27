@@ -21,7 +21,7 @@ import QueryInput from "@/components/log-interface/query-input";
 import { useRouter } from "next/navigation";
 import { FreeFormContainer } from "@/components/log-interface/query-output/freeform";
 import { Spans } from "api/js/types/v1/data_pb";
-import { SpansContainer } from "@/components/log-interface/query-output/traces/spans-container";
+import { SpansContainer } from "@/components/log-interface/query-output/spans/spans-container";
 import { Log } from "api/js/types/v1/otel_logging_pb";
 
 interface SharedQueryProps {

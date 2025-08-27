@@ -25,7 +25,8 @@ import { StreamResponse } from "api/js/svc/query/v1/service_pb";
 import { newLogsData } from "@/lib/utils/dataShapeFactories";
 import { Log } from "api/js/types/v1/otel_logging_pb";
 import { useInView } from "react-intersection-observer";
-import { LogLine } from "./log-line";
+import { LogLine } from "@/components/log-interface/query-output/session/log-line";
+import { ulidToString } from "@/lib/utils/id-factories";
 
 interface SessionPanelProps {
   resourceFingerprint?: string;
@@ -211,7 +212,7 @@ const SessionPanel = ({
             logs?.map((log: Log, i: number) => {
               return (
                 <LogLine
-                  key={`${i}-${log.ulid}`}
+                  key={`${i}-${ulidToString(log.ulid)}`}
                   log={log}
                   index={i}
                   selectedLines={selectedLines}

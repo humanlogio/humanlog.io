@@ -24,7 +24,7 @@ import {
 } from "lucide-react";
 import { getSelfURL } from "@/lib/envs";
 import InstallCTA from "@/components/landing-page/shared/install-cta";
-import { SpansContainer } from "@/components/log-interface/query-output/traces/spans-container";
+import { SpansContainer } from "@/components/log-interface/query-output/spans/spans-container";
 import Terminal from "@/components/landing-page/shared/ui/terminal";
 import { sampleLogs } from "@/lib/mocks/sampleLogs";
 import { sampleSpans } from "@/lib/mocks/sampleSpans";

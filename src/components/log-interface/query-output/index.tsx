@@ -12,7 +12,7 @@ import {
 import SessionPanel from "@/components/log-interface/query-output/session/session-panel";
 import { QueryHistoryEntry } from "api/js/types/v1/query_history_entry_pb";
 import { FreeFormContainer } from "@/components/log-interface/query-output/freeform";
-import { SpansContainer } from "@/components/log-interface/query-output/traces/spans-container";
+import { SpansContainer } from "@/components/log-interface/query-output/spans/spans-container";
 import { AlertCircle, Loader, ReceiptText, StopCircle } from "lucide-react";
 import { QueryResponse, StreamResponse } from "api/js/svc/query/v1/service_pb";
 import { Data } from "api/js/types/v1/data_pb";

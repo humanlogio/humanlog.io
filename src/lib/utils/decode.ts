@@ -9,7 +9,7 @@ export const decodeUint8Array = (data: Uint8Array) => {
   }
 };
 
-export const arrayBufferToBase64 = (buffer: Uint8Array): string => {
+export const unit8ArrayBufferToBase64 = (buffer: Uint8Array): string => {
   try {
     let binary = "";
     const bytes = new Uint8Array(buffer);
@@ -22,4 +22,12 @@ export const arrayBufferToBase64 = (buffer: Uint8Array): string => {
     console.error("Base64 encoding error:", err);
     return `[Encoding failed: ${err instanceof Error ? err.message : "Unknown error"}]`;
   }
+};
+
+export const unit8ArrayBufferToBase16 = (buffer?: Uint8Array): string => {
+  if (!buffer) return "";
+
+  return Array.from(buffer)
+    .map((byte) => byte.toString(16).padStart(2, "0"))
+    .join("");
 };
