@@ -27,17 +27,21 @@ jobs:
         with:
           ref: ${{ github.head_ref }}
 
-      - name: Set outputs
-        id: vars
+      - name: Set outputs (before)
+        id: old
         run: echo "current_version=$(./script/show_api_version.sh)" >> $GITHUB_OUTPUT
       - name: Check outputs
-        run: echo "will set api@$PACKAGE_VERSION (from ${{steps.vars.outputs.current_version}})"
+        run: echo "will set api@$PACKAGE_VERSION (from ${{steps.old.outputs.current_version}})"
 
       - run: ./script/update_api_version.sh $PACKAGE_VERSION
+      - name: Set outputs (after)
+        id: next
+        run: echo "next_version=$(./script/show_api_version.sh)" >> $GITHUB_OUTPUT
+
       - uses: peter-evans/create-pull-request@v7
         with:
           token: ${{ secrets.GH_ACCESS_TOKEN_FOR_AUTO_PR }}
           title: "chore(api): bump api@${{ github.event_name == 'workflow_dispatch' && github.event.inputs.package_version || github.event.client_payload.package_version }}"
           commit-message: "chore(api): bump api@${{ github.event_name == 'workflow_dispatch' && github.event.inputs.package_version || github.event.client_payload.package_version }}"
           branch: "bump-api"
-          body: "This is an automated PR. To see what changed, look at https://github.com/humanlogio/api/compare/${{steps.vars.outputs.current_version}}...$PACKAGE_VERSION"
+          body: "This is an automated PR. To see what changed, look at https://github.com/humanlogio/api/compare/${{steps.old.outputs.current_version}}...${{steps.next.outputs.next_version}}"
