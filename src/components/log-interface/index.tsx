@@ -185,7 +185,7 @@ const LogInterface = ({ nav }: LogInterfaceProps) => {
 
     const streamReq = new StreamRequest({
       environmentId: activeEnvironment?.id,
-      query: query ?? new Query(),
+      query,
       maxBatchSize: BigInt(batchSize),
       maxBatchingFor: new Duration({
         nanos: batchInterval * 1_000_000,
