@@ -19,10 +19,8 @@ import {
   query as queryMethod,
   parse,
 } from "api/js/svc/query/v1/service-QueryService_connectquery";
-
 import {
   ParseResponse,
-  QueryRequest,
   QueryResponse,
   StreamRequest,
   StreamResponse,
@@ -36,19 +34,13 @@ import {
 } from "api/js/types/v1/query_pb";
 import { Table, Val } from "api/js/types/v1/types_pb";
 import { X } from "lucide-react";
-import {
-  getQuery,
-  getStream,
-  parseQuery,
-  QueryClientType,
-} from "@/services/queryService";
+import { getStream } from "@/services/queryService";
 import { recordQueryHistory } from "@/services/userService";
 import { RecordQueryHistoryResponse } from "api/js/svc/user/v1/service_private_pb";
 import QueryInput from "@/components/log-interface/query-input";
 import QueryOutput from "@/components/log-interface/query-output";
 import { QueryLibrary } from "@/components/log-interface/query-library";
 import { QueryHistoryEntry } from "api/js/types/v1/query_history_entry_pb";
-import { Subqueries, Logs, Spans, Data } from "api/js/types/v1/data_pb";
 import { twMerge } from "tailwind-merge";
 import Graph from "@/components/ui/graph/graph";
 import { trace, SpanStatusCode } from "@opentelemetry/api";
@@ -58,9 +50,9 @@ import FeatureFlag from "@/components/posthog/feature-flag";
 import { logger } from "@/lib/utils/telemetry/logger";
 import { newIdentifierExpr } from "@/lib/utils/queryExpressions";
 import { Cursor } from "api/js/types/v1/cursor_pb";
-import { InfiniteData } from "@tanstack/react-query";
 import { Log } from "api/js/types/v1/otel_logging_pb";
 import { Span } from "api/js/types/v1/otel_tracing_pb";
+import { QueryTimer } from "@/components/log-interface/query-timer";
 
 export type DataCase = "subqueries" | "freeForm" | "logs" | "spans" | undefined;
 
@@ -78,6 +70,13 @@ export type ExecuteQuery = (query: string) => void;
 interface LogInterfaceProps {
   nav?: "query" | "stream";
 }
+
+export type QueryTiming = {
+  isActive: boolean;
+  startTime: number | null;
+  currentDuration: number;
+  isCompleted: boolean;
+};
 
 const LogInterface = ({ nav }: LogInterfaceProps) => {
   const limit = 1000;
@@ -108,6 +107,12 @@ const LogInterface = ({ nav }: LogInterfaceProps) => {
   const [batchSize, setBatchSize] = useState<number>(100);
   const [batchInterval, setBatchInterval] = useState<number>(500);
   const [query, setQuery] = useState<Query>();
+  const [queryTiming, setQueryTiming] = useState<QueryTiming>({
+    isActive: false,
+    startTime: null,
+    currentDuration: 0,
+    isCompleted: false,
+  });
 
   const tracer = trace.getTracer("query-tracer");
   const span = tracer.startSpan("query-span");
@@ -353,6 +358,56 @@ const LogInterface = ({ nav }: LogInterfaceProps) => {
     }
   }, [splitByDefault]);
 
+  // Real-time counter update
+  useEffect(() => {
+    let intervalId: ReturnType<typeof setInterval>;
+
+    if (queryTiming.isActive && queryTiming.startTime) {
+      intervalId = setInterval(() => {
+        const currentDuration = performance.now() - queryTiming.startTime!;
+        setQueryTiming((prev) => ({ ...prev, currentDuration }));
+      }, 100); // Update every 100ms
+    }
+
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+    };
+  }, [queryTiming.isActive, queryTiming.startTime]);
+
+  // Complete reset only when a new query starts
+  useEffect(() => {
+    if ((isFetching || isFetchingNextPage) && !queryTiming.isActive) {
+      // New query started - complete reset and start
+      setQueryTiming({
+        isActive: true,
+        startTime: performance.now(),
+        currentDuration: 0,
+        isCompleted: false,
+      });
+    }
+
+    if (
+      !isFetching &&
+      !isFetchingNextPage &&
+      queryTiming.isActive &&
+      queryTiming.startTime
+    ) {
+      const finalDuration = performance.now() - queryTiming.startTime;
+      // Switch to completed state (keep displaying results)
+      setQueryTiming((prev) => ({
+        isActive: false,
+        startTime: prev.startTime, // Maintain
+        currentDuration: finalDuration,
+        isCompleted: true,
+      }));
+    }
+  }, [
+    isFetching,
+    isFetchingNextPage,
+    queryTiming.isActive,
+    queryTiming.startTime,
+  ]);
+
   if (!localhostInfo) {
     return (
       <div className="mt-32 flex justify-center">
@@ -369,6 +424,10 @@ const LogInterface = ({ nav }: LogInterfaceProps) => {
             className={`flex h-full flex-col gap-4 px-10 py-8 ${isLibraryOpen && "overflow-y-auto"}`}
           >
             <div className={twMerge("items-center gap-8")}>
+              <QueryTimer
+                queryTiming={queryTiming}
+                isFetchingNextPage={isFetchingNextPage}
+              />
               <QueryInput
                 errMsg={queryParseErrMsg}
                 onExecuteQuery={executeQuery}
