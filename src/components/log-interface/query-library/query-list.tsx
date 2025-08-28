@@ -15,6 +15,7 @@ import ReactMarkdown from "react-markdown";
 import { Dispatch, SetStateAction, useState } from "react";
 import { SaveQueryModal } from "@/components/log-interface/query-library/save-query-modal";
 import { ExecuteQuery } from "@/components/log-interface";
+import CodeBlock from "@/components/CodeBlock";
 
 interface DropdownMenuItem {
   key: string;
@@ -207,7 +208,7 @@ export const QueryListItem = ({
               {hasNote && (
                 <button
                   onClick={() => setIsNoteExpanded(!isNoteExpanded)}
-                  className="flex items-center text-xs text-gray-500 hover:text-gray-700"
+                  className="flex items-center text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
                 >
                   <FileText size={14} className="mr-1" />
                   {isNoteExpanded ? "Hide note" : "View note"}
@@ -238,9 +239,7 @@ export const QueryListItem = ({
           </div>
 
           <div className="mt-2 max-w-full overflow-x-auto rounded">
-            <code className="block w-full text-xs whitespace-pre text-gray-700 dark:text-gray-300">
-              {item.rawQuery}
-            </code>
+            <CodeBlock code={item.rawQuery} language="kusto" />
           </div>
         </div>
       </div>
