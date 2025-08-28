@@ -3,8 +3,8 @@
 import { useState, useEffect } from "react";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import {
-  vscDarkPlus,
-  vs,
+  oneLight,
+  oneDark,
 } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { useTheme } from "next-themes";
 import { copyToClipboard } from "@/lib/utils/clipboard";
@@ -54,7 +54,7 @@ export default function CodeBlock({
     >
       <SyntaxHighlighter
         language={language || "text"}
-        style={theme === "light" ? vs : vscDarkPlus}
+        style={theme === "light" ? oneLight : oneDark}
         customStyle={{
           margin: 0,
           borderRadius: "0.5rem",
