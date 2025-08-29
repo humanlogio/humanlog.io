@@ -52,7 +52,6 @@ export const buildSpanTree = (spans: Span[]): SpanTreeNode[] => {
       if (parentNode) {
         parentNode.children.push(currentNode);
         currentNode.parent = parentNode;
-        currentNode.depth = parentNode.depth + 1;
       } else {
         rootNodes.push(currentNode);
       }
@@ -60,6 +59,15 @@ export const buildSpanTree = (spans: Span[]): SpanTreeNode[] => {
       rootNodes.push(currentNode);
     }
   });
+
+  // Calculate depth recursively after tree structure is complete
+  const calculateDepth = (node: SpanTreeNode, depth: number): void => {
+    node.depth = depth;
+    node.children.forEach((child) => calculateDepth(child, depth + 1));
+  };
+
+  // Set depth for all root nodes and their descendants
+  rootNodes.forEach((rootNode) => calculateDepth(rootNode, 0));
 
   // Properly set the index and isLast of each node within its siblings group
   const setIndicesAndLastFlag = (nodes: SpanTreeNode[]) => {

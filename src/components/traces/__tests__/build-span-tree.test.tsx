@@ -250,6 +250,141 @@ describe("buildSpanTree", () => {
         ],
       },
     },
+    {
+      name: "deep nested hierarchy (5 levels)",
+      input: [
+        createSpan({
+          id: "a1b2c3d4e5f6000b",
+          startTime: 1000,
+          duration: 20,
+          service: "root-service",
+        }),
+        createSpan({
+          id: "a1b2c3d4e5f6000c",
+          parentId: "a1b2c3d4e5f6000b",
+          startTime: 1001,
+          duration: 18,
+          service: "level-1-service",
+        }),
+        createSpan({
+          id: "a1b2c3d4e5f6000d",
+          parentId: "a1b2c3d4e5f6000c",
+          startTime: 1002,
+          duration: 16,
+          service: "level-2-service",
+        }),
+        createSpan({
+          id: "a1b2c3d4e5f6000e",
+          parentId: "a1b2c3d4e5f6000d",
+          startTime: 1003,
+          duration: 14,
+          service: "level-3-service",
+        }),
+        createSpan({
+          id: "a1b2c3d4e5f6000f",
+          parentId: "a1b2c3d4e5f6000e",
+          startTime: 1004,
+          duration: 12,
+          service: "level-4-service",
+        }),
+      ],
+      expected: {
+        nodeCount: 5,
+        roots: [
+          {
+            spanId: "a1b2c3d4e5f6000b",
+            parentSpanId: undefined,
+            depth: 0,
+            childCount: 1,
+            children: [
+              {
+                spanId: "a1b2c3d4e5f6000c",
+                parentSpanId: "a1b2c3d4e5f6000b",
+                depth: 1,
+                childCount: 1,
+                children: [
+                  {
+                    spanId: "a1b2c3d4e5f6000d",
+                    parentSpanId: "a1b2c3d4e5f6000c",
+                    depth: 2,
+                    childCount: 1,
+                    children: [
+                      {
+                        spanId: "a1b2c3d4e5f6000e",
+                        parentSpanId: "a1b2c3d4e5f6000d",
+                        depth: 3,
+                        childCount: 1,
+                        children: [
+                          {
+                            spanId: "a1b2c3d4e5f6000f",
+                            parentSpanId: "a1b2c3d4e5f6000e",
+                            depth: 4,
+                            childCount: 0,
+                          },
+                        ],
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    },
+    {
+      name: "out-of-order spans (children processed before parents)",
+      input: [
+        // Child spans first, then parent - tests that depth calculation works regardless of processing order
+        createSpan({
+          id: "a1b2c3d4e5f60012",
+          parentId: "a1b2c3d4e5f60010",
+          startTime: 1002,
+          duration: 5,
+          service: "child-service",
+        }),
+        createSpan({
+          id: "a1b2c3d4e5f60013",
+          parentId: "a1b2c3d4e5f60012",
+          startTime: 1003,
+          duration: 3,
+          service: "grandchild-service",
+        }),
+        createSpan({
+          id: "a1b2c3d4e5f60010",
+          startTime: 1000,
+          duration: 10,
+          service: "parent-service",
+        }),
+      ],
+      expected: {
+        nodeCount: 3,
+        roots: [
+          {
+            spanId: "a1b2c3d4e5f60010",
+            parentSpanId: undefined,
+            depth: 0,
+            childCount: 1,
+            children: [
+              {
+                spanId: "a1b2c3d4e5f60012",
+                parentSpanId: "a1b2c3d4e5f60010",
+                depth: 1,
+                childCount: 1,
+                children: [
+                  {
+                    spanId: "a1b2c3d4e5f60013",
+                    parentSpanId: "a1b2c3d4e5f60012",
+                    depth: 2,
+                    childCount: 0,
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    },
   ];
 
   // Run all test cases
@@ -264,57 +399,47 @@ describe("buildSpanTree", () => {
         }, 0);
       };
 
+      // Helper function to recursively verify nodes and their descendants
+      const verifyNodeAndDescendants = (
+        actualNodes: SpanTreeNode[],
+        expectedNodes: ExpectedNode[],
+      ): void => {
+        expect(actualNodes.length).toBe(expectedNodes.length);
+
+        expectedNodes.forEach((expectedNode, index) => {
+          const actualNode = actualNodes[index];
+
+          expect(spanIdToString(actualNode.span.spanId)).toBe(
+            expectedNode.spanId,
+          );
+          if (!actualNode.span.parentSpanId) {
+            expect(expectedNode.parentSpanId).toBeUndefined();
+          } else {
+            expect(spanIdToString(actualNode.span.parentSpanId)).toBe(
+              expectedNode.parentSpanId,
+            );
+          }
+          expect(actualNode.depth).toBe(expectedNode.depth);
+          expect(actualNode.children.length).toBe(expectedNode.childCount);
+
+          // Recursively verify children if they exist
+          if (expectedNode.children) {
+            verifyNodeAndDescendants(
+              actualNode.children,
+              expectedNode.children,
+            );
+          }
+        });
+      };
+
       const totalNodes = countNodes(result);
       expect(totalNodes).toBe(tc.expected.nodeCount);
 
       // Verify root nodes
       expect(result.length).toBe(tc.expected.roots.length);
 
-      // Verify each root node and its descendants
-      tc.expected.roots.forEach((expectedRoot, index) => {
-        const actualRoot = result[index];
-
-        expect(spanIdToString(actualRoot.span.spanId)).toBe(
-          expectedRoot.spanId,
-        );
-        if (!actualRoot.span.parentSpanId) {
-          expect(expectedRoot.parentSpanId).toBeUndefined();
-        } else {
-          expect(spanIdToString(actualRoot.span.parentSpanId)).toBe(
-            expectedRoot.parentSpanId,
-          );
-        }
-        expect(actualRoot.depth).toBe(expectedRoot.depth);
-        expect(actualRoot.children.length).toBe(expectedRoot.childCount);
-
-        // Verify children if they exist
-        if (expectedRoot.children) {
-          expectedRoot.children.forEach((expectedChild, childIndex) => {
-            const actualChild = actualRoot.children[childIndex];
-
-            expect(spanIdToString(actualChild.span.spanId)).toBe(
-              expectedChild.spanId,
-            );
-            expect(actualChild.depth).toBe(expectedChild.depth);
-            expect(actualChild.children.length).toBe(expectedChild.childCount);
-
-            // Verify grandchildren if they exist
-            if (expectedChild.children) {
-              expectedChild.children.forEach(
-                (expectedGrandchild, grandchildIndex) => {
-                  const actualGrandchild =
-                    actualChild.children[grandchildIndex];
-
-                  expect(spanIdToString(actualGrandchild.span.spanId)).toBe(
-                    expectedGrandchild.spanId,
-                  );
-                  expect(actualGrandchild.depth).toBe(expectedGrandchild.depth);
-                },
-              );
-            }
-          });
-        }
-      });
+      // Verify each root node and its descendants recursively
+      verifyNodeAndDescendants(result, tc.expected.roots);
     });
   });
 });
