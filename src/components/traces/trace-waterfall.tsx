@@ -115,19 +115,6 @@ export const TraceWaterfall = ({
       return ids;
     };
 
-    const getTotalDescendantCount = (node: SpanTreeNode): number => {
-      let count = 0;
-      node.children.forEach((child, index, array) => {
-        // Count the child itself
-        count++;
-        // Only add descendants if this is not the last child
-        if (index < array.length - 1) {
-          count += getTotalDescendantCount(child);
-        }
-      });
-      return count;
-    };
-
     if (
       hiddenNodes.has(spanIdToString(node.span.spanId)) ||
       !areAllParentsVisible(node)
@@ -137,7 +124,6 @@ export const TraceWaterfall = ({
 
     const canToggle = node.children && node.children.length > 0;
     const isFolded = foldedNodes.has(spanIdToString(node.span.spanId));
-    const totalDescendants = getTotalDescendantCount(node);
 
     return (
       <>
@@ -157,12 +143,15 @@ export const TraceWaterfall = ({
           onClick={() => setSelectedSpan(node)}
         >
           <div className="flex items-start">
+            {/* For debugging */}
+            {/* ⭐️spanid {spanIdToString(node.span.spanId)}
+            ⭐️parentid {spanIdToString(node.parent?.span.spanId)}
+            ⭐️depth {node.depth} */}
             {Array(node.depth)
               .fill(0)
               .map((_, i) => (
                 <div key={i} className="w-5 flex-shrink-0" />
               ))}
-
             <div className={twMerge("relative flex items-center")}>
               {node.parent && (
                 <div className="absolute flex items-center">
@@ -178,8 +167,8 @@ export const TraceWaterfall = ({
                     <div
                       className={twMerge("absolute left-[-8px] w-[1px]")}
                       style={{
-                        height: `${(totalDescendants + 1) * 40}px`,
-                        top: "-22px",
+                        height: `${(node.verticalConnectorHeight + 1) * 33}px`,
+                        top: "-16px",
                         backgroundColor:
                           serviceColors[node.parent.span.serviceName],
                       }}
@@ -254,7 +243,6 @@ export const TraceWaterfall = ({
                 </div>
               </div>
             </div>
-
             {/* Timeline bar */}
             <div className="h-8 flex-grow">{renderTimeline(node.span)}</div>
           </div>
@@ -356,12 +344,17 @@ export const TraceWaterfall = ({
       </div>
 
       {/* Timeline visualization */}
-      <div className="divide-y p-2">
+      <div className="p-2">
         {spanTree
           .map((head) => {
             const flatNodes = walkSpanTreeNodeFlat(head, renderSpanAsRow);
             return flatNodes.map((node, nodeIndex) => (
-              <div key={`${head.span.spanId}-${nodeIndex}`}>{node}</div>
+              <div
+                key={`${head.span.spanId}-${nodeIndex}`}
+                className={`${!head.folded && "border-b"} `}
+              >
+                {node}
+              </div>
             ));
           })
           .flat()}
