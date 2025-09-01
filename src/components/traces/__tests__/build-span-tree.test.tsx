@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import { Duration, Timestamp } from "@bufbuild/protobuf";
 import { buildSpanTree, SpanTreeNode } from "@/components/traces/utils";
 import { Span } from "api/js/types/v1/otel_tracing_pb";
+import { makeSpanID, spanIdToString } from "@/lib/utils/id-factories";
 
 /**
  * @vitest-environment jsdom
@@ -50,8 +51,8 @@ describe("buildSpanTree", () => {
     duration?: number;
   }): Span => {
     return new Span({
-      spanId: id,
-      parentSpanId: parentId,
+      spanId: makeSpanID(id),
+      parentSpanId: parentId ? makeSpanID(parentId) : undefined,
       name,
       serviceName: service,
       time: createTimestamp(startTime),
@@ -71,12 +72,12 @@ describe("buildSpanTree", () => {
     },
     {
       name: "single root node",
-      input: [createSpan({ id: "span1" })],
+      input: [createSpan({ id: "a1b2c3d4e5f60000" })],
       expected: {
         nodeCount: 1,
         roots: [
           {
-            spanId: "span1",
+            spanId: "a1b2c3d4e5f60000",
             parentSpanId: undefined,
             depth: 0,
             childCount: 0,
@@ -87,10 +88,10 @@ describe("buildSpanTree", () => {
     {
       name: "parent-child relationship",
       input: [
-        createSpan({ id: "parent1", startTime: 1000, duration: 10 }),
+        createSpan({ id: "a1b2c3d4e5f60001", startTime: 1000, duration: 10 }),
         createSpan({
-          id: "child1",
-          parentId: "parent1",
+          id: "a1b2c3d4e5f60002",
+          parentId: "a1b2c3d4e5f60001",
           startTime: 1002,
           duration: 5,
         }),
@@ -99,14 +100,14 @@ describe("buildSpanTree", () => {
         nodeCount: 2,
         roots: [
           {
-            spanId: "parent1",
+            spanId: "a1b2c3d4e5f60001",
             parentSpanId: undefined,
             depth: 0,
             childCount: 1,
             children: [
               {
-                spanId: "child1",
-                parentSpanId: "parent1",
+                spanId: "a1b2c3d4e5f60002",
+                parentSpanId: "a1b2c3d4e5f60001",
                 depth: 1,
                 childCount: 0,
               },
@@ -119,13 +120,13 @@ describe("buildSpanTree", () => {
       name: "multiple root spans",
       input: [
         createSpan({
-          id: "root1",
+          id: "a1b2c3d4e5f60003",
           startTime: 1000,
           duration: 5,
           service: "service-1",
         }),
         createSpan({
-          id: "root2",
+          id: "a1b2c3d4e5f60004",
           startTime: 990,
           duration: 8,
           service: "service-2",
@@ -135,13 +136,13 @@ describe("buildSpanTree", () => {
         nodeCount: 2,
         roots: [
           {
-            spanId: "root2", // Starts earlier, should be first
+            spanId: "a1b2c3d4e5f60004", // Starts earlier, should be first
             parentSpanId: undefined,
             depth: 0,
             childCount: 0,
           },
           {
-            spanId: "root1",
+            spanId: "a1b2c3d4e5f60003",
             parentSpanId: undefined,
             depth: 0,
             childCount: 0,
@@ -153,28 +154,28 @@ describe("buildSpanTree", () => {
       name: "complex nested structure",
       input: [
         createSpan({
-          id: "root",
+          id: "a1b2c3d4e5f60005",
           startTime: 1000,
           duration: 15,
           service: "service-root",
         }),
         createSpan({
-          id: "child1",
-          parentId: "root",
+          id: "a1b2c3d4e5f60006",
+          parentId: "a1b2c3d4e5f60005",
           startTime: 1002,
           duration: 5,
           service: "service-1",
         }),
         createSpan({
-          id: "child2",
-          parentId: "root",
+          id: "a1b2c3d4e5f60007",
+          parentId: "a1b2c3d4e5f60005",
           startTime: 1001,
           duration: 8,
           service: "service-2",
         }),
         createSpan({
-          id: "grandchild1",
-          parentId: "child1",
+          id: "a1b2c3d4e5f60008",
+          parentId: "a1b2c3d4e5f60006",
           startTime: 1003,
           duration: 2,
           service: "service-3",
@@ -184,26 +185,26 @@ describe("buildSpanTree", () => {
         nodeCount: 4,
         roots: [
           {
-            spanId: "root",
+            spanId: "a1b2c3d4e5f60005",
             parentSpanId: undefined,
             depth: 0,
             childCount: 2,
             children: [
               {
-                spanId: "child2", // Starts earlier, should be first
-                parentSpanId: "root",
+                spanId: "a1b2c3d4e5f60007", // Starts earlier, should be first
+                parentSpanId: "a1b2c3d4e5f60005",
                 depth: 1,
                 childCount: 0,
               },
               {
-                spanId: "child1",
-                parentSpanId: "root",
+                spanId: "a1b2c3d4e5f60006",
+                parentSpanId: "a1b2c3d4e5f60005",
                 depth: 1,
                 childCount: 1,
                 children: [
                   {
-                    spanId: "grandchild1",
-                    parentSpanId: "child1",
+                    spanId: "a1b2c3d4e5f60008",
+                    parentSpanId: "a1b2c3d4e5f60006",
                     depth: 2,
                     childCount: 0,
                   },
@@ -218,14 +219,14 @@ describe("buildSpanTree", () => {
       name: "orphaned spans",
       input: [
         createSpan({
-          id: "root1",
+          id: "a1b2c3d4e5f60009",
           startTime: 1000,
           duration: 10,
           service: "service-1",
         }),
         createSpan({
-          id: "orphan1",
-          parentId: "missing-parent",
+          id: "a1b2c3d4e5f6000a",
+          parentId: "deadbeefcafe0000",
           startTime: 1002,
           duration: 5,
           service: "service-2",
@@ -235,16 +236,151 @@ describe("buildSpanTree", () => {
         nodeCount: 2,
         roots: [
           {
-            spanId: "root1",
+            spanId: "a1b2c3d4e5f60009",
             parentSpanId: undefined,
             depth: 0,
             childCount: 0,
           },
           {
-            spanId: "orphan1",
-            parentSpanId: "missing-parent",
+            spanId: "a1b2c3d4e5f6000a",
+            parentSpanId: "deadbeefcafe0000",
             depth: 0,
             childCount: 0,
+          },
+        ],
+      },
+    },
+    {
+      name: "deep nested hierarchy (5 levels)",
+      input: [
+        createSpan({
+          id: "a1b2c3d4e5f6000b",
+          startTime: 1000,
+          duration: 20,
+          service: "root-service",
+        }),
+        createSpan({
+          id: "a1b2c3d4e5f6000c",
+          parentId: "a1b2c3d4e5f6000b",
+          startTime: 1001,
+          duration: 18,
+          service: "level-1-service",
+        }),
+        createSpan({
+          id: "a1b2c3d4e5f6000d",
+          parentId: "a1b2c3d4e5f6000c",
+          startTime: 1002,
+          duration: 16,
+          service: "level-2-service",
+        }),
+        createSpan({
+          id: "a1b2c3d4e5f6000e",
+          parentId: "a1b2c3d4e5f6000d",
+          startTime: 1003,
+          duration: 14,
+          service: "level-3-service",
+        }),
+        createSpan({
+          id: "a1b2c3d4e5f6000f",
+          parentId: "a1b2c3d4e5f6000e",
+          startTime: 1004,
+          duration: 12,
+          service: "level-4-service",
+        }),
+      ],
+      expected: {
+        nodeCount: 5,
+        roots: [
+          {
+            spanId: "a1b2c3d4e5f6000b",
+            parentSpanId: undefined,
+            depth: 0,
+            childCount: 1,
+            children: [
+              {
+                spanId: "a1b2c3d4e5f6000c",
+                parentSpanId: "a1b2c3d4e5f6000b",
+                depth: 1,
+                childCount: 1,
+                children: [
+                  {
+                    spanId: "a1b2c3d4e5f6000d",
+                    parentSpanId: "a1b2c3d4e5f6000c",
+                    depth: 2,
+                    childCount: 1,
+                    children: [
+                      {
+                        spanId: "a1b2c3d4e5f6000e",
+                        parentSpanId: "a1b2c3d4e5f6000d",
+                        depth: 3,
+                        childCount: 1,
+                        children: [
+                          {
+                            spanId: "a1b2c3d4e5f6000f",
+                            parentSpanId: "a1b2c3d4e5f6000e",
+                            depth: 4,
+                            childCount: 0,
+                          },
+                        ],
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    },
+    {
+      name: "out-of-order spans (children processed before parents)",
+      input: [
+        // Child spans first, then parent - tests that depth calculation works regardless of processing order
+        createSpan({
+          id: "a1b2c3d4e5f60012",
+          parentId: "a1b2c3d4e5f60010",
+          startTime: 1002,
+          duration: 5,
+          service: "child-service",
+        }),
+        createSpan({
+          id: "a1b2c3d4e5f60013",
+          parentId: "a1b2c3d4e5f60012",
+          startTime: 1003,
+          duration: 3,
+          service: "grandchild-service",
+        }),
+        createSpan({
+          id: "a1b2c3d4e5f60010",
+          startTime: 1000,
+          duration: 10,
+          service: "parent-service",
+        }),
+      ],
+      expected: {
+        nodeCount: 3,
+        roots: [
+          {
+            spanId: "a1b2c3d4e5f60010",
+            parentSpanId: undefined,
+            depth: 0,
+            childCount: 1,
+            children: [
+              {
+                spanId: "a1b2c3d4e5f60012",
+                parentSpanId: "a1b2c3d4e5f60010",
+                depth: 1,
+                childCount: 1,
+                children: [
+                  {
+                    spanId: "a1b2c3d4e5f60013",
+                    parentSpanId: "a1b2c3d4e5f60012",
+                    depth: 2,
+                    childCount: 0,
+                  },
+                ],
+              },
+            ],
           },
         ],
       },
@@ -263,51 +399,47 @@ describe("buildSpanTree", () => {
         }, 0);
       };
 
+      // Helper function to recursively verify nodes and their descendants
+      const verifyNodeAndDescendants = (
+        actualNodes: SpanTreeNode[],
+        expectedNodes: ExpectedNode[],
+      ): void => {
+        expect(actualNodes.length).toBe(expectedNodes.length);
+
+        expectedNodes.forEach((expectedNode, index) => {
+          const actualNode = actualNodes[index];
+
+          expect(spanIdToString(actualNode.span.spanId)).toBe(
+            expectedNode.spanId,
+          );
+          if (!actualNode.span.parentSpanId) {
+            expect(expectedNode.parentSpanId).toBeUndefined();
+          } else {
+            expect(spanIdToString(actualNode.span.parentSpanId)).toBe(
+              expectedNode.parentSpanId,
+            );
+          }
+          expect(actualNode.depth).toBe(expectedNode.depth);
+          expect(actualNode.children.length).toBe(expectedNode.childCount);
+
+          // Recursively verify children if they exist
+          if (expectedNode.children) {
+            verifyNodeAndDescendants(
+              actualNode.children,
+              expectedNode.children,
+            );
+          }
+        });
+      };
+
       const totalNodes = countNodes(result);
       expect(totalNodes).toBe(tc.expected.nodeCount);
 
       // Verify root nodes
       expect(result.length).toBe(tc.expected.roots.length);
 
-      // Verify each root node and its descendants
-      tc.expected.roots.forEach((expectedRoot, index) => {
-        const actualRoot = result[index];
-
-        expect(actualRoot.span.spanId).toBe(expectedRoot.spanId);
-        if (!actualRoot.span.parentSpanId) {
-          expect(expectedRoot.parentSpanId).toBeUndefined();
-        } else {
-          expect(actualRoot.span.parentSpanId).toBe(expectedRoot.parentSpanId);
-        }
-        expect(actualRoot.depth).toBe(expectedRoot.depth);
-        expect(actualRoot.children.length).toBe(expectedRoot.childCount);
-
-        // Verify children if they exist
-        if (expectedRoot.children) {
-          expectedRoot.children.forEach((expectedChild, childIndex) => {
-            const actualChild = actualRoot.children[childIndex];
-
-            expect(actualChild.span.spanId).toBe(expectedChild.spanId);
-            expect(actualChild.depth).toBe(expectedChild.depth);
-            expect(actualChild.children.length).toBe(expectedChild.childCount);
-
-            // Verify grandchildren if they exist
-            if (expectedChild.children) {
-              expectedChild.children.forEach(
-                (expectedGrandchild, grandchildIndex) => {
-                  const actualGrandchild =
-                    actualChild.children[grandchildIndex];
-
-                  expect(actualGrandchild.span.spanId).toBe(
-                    expectedGrandchild.spanId,
-                  );
-                  expect(actualGrandchild.depth).toBe(expectedGrandchild.depth);
-                },
-              );
-            }
-          });
-        }
-      });
+      // Verify each root node and its descendants recursively
+      verifyNodeAndDescendants(result, tc.expected.roots);
     });
   });
 });
