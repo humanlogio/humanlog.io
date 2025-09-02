@@ -29,7 +29,7 @@ const formSchema = z.object({
 });
 
 export function UserSettingsForm() {
-  const { getUserInfo, user, currentOrg, defaultOrg } = useAllEnvironments();
+  const { getUserInfo, userInfo } = useAllEnvironments();
   const { apiClients } = useApiClients();
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -40,18 +40,9 @@ export function UserSettingsForm() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      firstName:
-        user !== "loading" && user !== "not-logged-in"
-          ? user.firstName || ""
-          : "",
-      lastName:
-        user !== "loading" && user !== "not-logged-in"
-          ? user.lastName || ""
-          : "",
-      username:
-        user !== "loading" && user !== "not-logged-in"
-          ? user.username || ""
-          : "",
+      firstName: userInfo?.user ? userInfo.user.firstName || "" : "",
+      lastName: userInfo?.user ? userInfo.user.lastName || "" : "",
+      username: userInfo?.user ? userInfo.user.username || "" : "",
     },
   });
 
@@ -60,12 +51,12 @@ export function UserSettingsForm() {
 
   // Check if form values have changed from initial values
   useEffect(() => {
-    if (user === "loading" || user === "not-logged-in") return;
+    if (!userInfo?.user) return;
 
     const initialValues = {
-      firstName: user.firstName || "",
-      lastName: user.lastName || "",
-      username: user.username || "",
+      firstName: userInfo.user.firstName || "",
+      lastName: userInfo.user.lastName || "",
+      username: userInfo.user.username || "",
     };
 
     const hasChanged =
@@ -74,7 +65,7 @@ export function UserSettingsForm() {
       watchedValues.username !== initialValues.username;
 
     setFormChanged(hasChanged);
-  }, [watchedValues, user]);
+  }, [watchedValues, userInfo]);
 
   // Add navigation warning for unsaved changes
   useEffect(() => {
@@ -96,11 +87,11 @@ export function UserSettingsForm() {
 
   // Reset form to initial values
   const handleReset = () => {
-    if (user !== "loading" && user !== "not-logged-in") {
+    if (userInfo?.user) {
       form.reset({
-        firstName: user.firstName || "",
-        lastName: user.lastName || "",
-        username: user.username || "",
+        firstName: userInfo.user.firstName || "",
+        lastName: userInfo.user.lastName || "",
+        username: userInfo.user.username || "",
       });
     }
   };
@@ -108,7 +99,7 @@ export function UserSettingsForm() {
   // Update form values when user data changes
   useEffect(() => {
     handleReset();
-  }, [user, form]);
+  }, [userInfo, form]);
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     if (!apiClients) return;
@@ -129,7 +120,8 @@ export function UserSettingsForm() {
   };
 
   // Billing portal section
-  const isDefaultOrg = currentOrg?.id === defaultOrg?.id;
+  const isDefaultOrg =
+    userInfo?.currentOrganization?.id === userInfo?.defaultOrganization?.id;
 
   const handleBillingPortal = async () => {
     try {
@@ -221,11 +213,7 @@ export function UserSettingsForm() {
 
           {/* Submit Button */}
           <div className="flex items-center gap-3">
-            <Button
-              type="submit"
-              disabled={isSubmitting || !formChanged}
-              variant={formChanged ? "default" : "outline"}
-            >
+            <Button type="submit" variant={formChanged ? "default" : "outline"}>
               {isSubmitting ? (
                 <>
                   <Loader className="mr-2 h-4 w-4 animate-spin" />

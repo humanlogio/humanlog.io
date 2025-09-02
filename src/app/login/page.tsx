@@ -6,12 +6,12 @@ import { useAllEnvironments } from "@/context/list-environments";
 import { Button } from "@/components/ui/button";
 
 export default function Page() {
-  const { user, doLogin } = useAllEnvironments();
+  const { userInfo, doLogin } = useAllEnvironments();
 
   const demoString = `humanlog --help`;
 
   let content;
-  if (user === "not-logged-in") {
+  if (!userInfo) {
     content = (
       <div className="container flex flex-grow flex-col items-center justify-center gap-8">
         <div>
@@ -25,21 +25,12 @@ export default function Page() {
         </div>
       </div>
     );
-  } else if (user === "loading") {
-    content = (
-      <div className="container flex flex-grow flex-col items-center justify-center gap-8">
-        <h1 className="text-center text-4xl font-bold">
-          Verifying your identity...
-        </h1>
-        <Loader className="animate-spin"></Loader>
-      </div>
-    );
   } else {
     content = (
       <div className="container flex flex-grow flex-col items-center justify-center gap-8">
         <div>
           <h1 className="text-center text-4xl font-bold">
-            Hi {user.firstName!}!
+            Hi {userInfo.user?.firstName!}!
           </h1>
           <p className="text-muted-foreground mt-4 text-center">
             {"You're logged in!"}

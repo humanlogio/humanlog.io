@@ -5,7 +5,6 @@ import { Code, ConnectError } from "@connectrpc/connect";
 import { useApiClients } from "@/context/api-provider";
 import { PingResponse } from "api/js/svc/localhost/v1/service_pb";
 import { ListEnvironmentResponse_ListItem } from "api/js/svc/organization/v1/service_pb";
-import { User } from "api/js/types/v1/user_pb";
 import { Organization } from "api/js/types/v1/organization_pb";
 import { Cursor } from "api/js/types/v1/cursor_pb";
 import {
@@ -21,8 +20,7 @@ import { AllowedUsageResponse_LocalhostUsage } from "api/js/svc/feature/v1/servi
 import { getAllowedUsage } from "@/services/featureService";
 import { LocalhostConfig } from "api/js/types/v1/localhost_config_pb";
 import { defaultConfig, getConfig } from "@/services/localhostService";
-
-export type UserState = User | "loading" | "not-logged-in";
+import { WhoamiResponse } from "api/js/svc/user/v1/service_private_pb";
 
 export type FilterBySymbol = {
   symbolName: Expr;
@@ -31,10 +29,8 @@ export type FilterBySymbol = {
 };
 
 type AllEnvironments = {
-  user: UserState;
+  userInfo: WhoamiResponse | undefined;
   localhostInfo: PingResponse | undefined;
-  currentOrg: Organization | null;
-  defaultOrg: Organization | null;
   listEnvironments: ListEnvironmentResponse_ListItem[];
   doLogin: (returnUrl?: string) => void;
   doLogout: () => void;
@@ -51,10 +47,9 @@ type AllEnvironments = {
 };
 
 const ListEnvironmentContext = createContext<AllEnvironments>({
-  user: "loading",
+  userInfo: undefined,
   localhostInfo: undefined,
-  currentOrg: null,
-  defaultOrg: null,
+
   listEnvironments: [],
   doLogin: () => {},
   doLogout: () => {},
@@ -79,7 +74,9 @@ export function ListEnvironmentsProvider({
   const [browserValid, setBrowserValid] = useState(false);
   const [localhostValid, setLocalhostValid] = useState(false);
   const [localhostInfo, setLocalhostInfo] = useState<PingResponse>();
-  const [user, setUser] = useState<UserState>("loading");
+  const [userInfo, setUserInfo] = useState<WhoamiResponse | undefined>(
+    undefined,
+  );
   const [currentOrg, setCurrentOrg] = useState<Organization | null>(null);
   const [defaultOrg, setDefaultOrg] = useState<Organization | null>(null);
   const [listEnvironments, setListEnvironments] = useState<
@@ -103,13 +100,13 @@ export function ListEnvironmentsProvider({
       const res = await apiClients?.user.whoami({});
       if (res && res.user) {
         setBrowserValid(true);
-        setUser(res?.user);
+        setUserInfo(res);
         return res;
       }
     } catch (err) {
       document.cookie = `hlog_session=; path=/; domain=.humanlog${config.TLD}; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
       setBrowserValid(false);
-      setUser("not-logged-in");
+      setUserInfo(undefined);
       // getRefreshToken();
     }
   };
@@ -222,15 +219,13 @@ export function ListEnvironmentsProvider({
     }
     if (browserValid) {
       const browserAuthRes = await checkBrowser();
-      setUser(browserAuthRes?.user ?? "not-logged-in");
-      setCurrentOrg(browserAuthRes?.currentOrganization ?? null);
-      setDefaultOrg(browserAuthRes?.defaultOrganization ?? null);
+      setUserInfo(browserAuthRes);
     }
     handleAllowedUsage();
   };
 
   const handleAllowedUsage = async () => {
-    if (!apiClients || user === "loading" || user === "not-logged-in") return;
+    if (!apiClients || !userInfo) return;
     await getAllowedUsage(apiClients.feature, {
       onSuccess: (res: AllowedUsageResponse) => {
         setAllowedUsage(res.localhostUsage);
@@ -304,9 +299,7 @@ export function ListEnvironmentsProvider({
       value={{
         localhostInfo,
         getUserInfo,
-        user,
-        currentOrg,
-        defaultOrg,
+        userInfo,
         listEnvironments,
         doLogin,
         doLogout,

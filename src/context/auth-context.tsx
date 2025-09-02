@@ -32,7 +32,7 @@ const loginRequiredPaths = [
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const { authenticated } = useApiClients();
-  const { doLogin, user } = useAllEnvironments();
+  const { doLogin, userInfo } = useAllEnvironments();
   const router = useRouter();
   const pathname = usePathname();
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
@@ -87,7 +87,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [pathname]);
 
   useEffect(() => {
-    if (user === "loading" || isLoading) {
+    if (!userInfo || isLoading) {
       return;
     }
 
@@ -96,14 +96,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [
     pathname,
-    user,
+    userInfo,
     isLoginRequired,
     authenticated,
     isAuthModalOpen,
     isLoading,
   ]);
 
-  if (isLoginRequired(pathname) && user === "loading") {
+  if (isLoginRequired(pathname) && !userInfo) {
     return (
       <div className="container flex h-[calc(100vh-260px)] flex-grow flex-col items-center justify-center gap-8">
         <Loader2 className="animate-spin" size={30}></Loader2>

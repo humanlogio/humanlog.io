@@ -7,19 +7,12 @@ import { Loader } from "lucide-react";
 import { useEffect } from "react";
 
 export default function UserSettingsPage() {
-  const { user } = useAllEnvironments();
+  const { userInfo } = useAllEnvironments();
 
-  if (user === "not-logged-in") {
+  if (!userInfo) {
     return (
       <div className="container flex flex-grow flex-col items-center justify-center gap-8">
         You need to login to access this page.
-      </div>
-    );
-  }
-  if (user === "loading") {
-    return (
-      <div className="container flex flex-grow flex-col items-center justify-center gap-8">
-        <Loader className="animate-spin" />
       </div>
     );
   }
