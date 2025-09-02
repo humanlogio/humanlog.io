@@ -15,7 +15,7 @@ import { ConnectError } from "@connectrpc/connect";
 
 export default function OnboardingPricing() {
   const { apiClients } = useApiClients();
-  const { user, doLogin, handleAllowedUsage } = useAllEnvironments();
+  const { userInfo, doLogin, handleAllowedUsage } = useAllEnvironments();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
 
@@ -29,7 +29,7 @@ export default function OnboardingPricing() {
   );
 
   const handleStartFree = async () => {
-    if (user === "loading" || user === "not-logged-in" || !apiClients) return;
+    if (!userInfo || !apiClients) return;
 
     setIsSubmitting(true);
     try {
@@ -71,17 +71,9 @@ export default function OnboardingPricing() {
     router.push("/pricing");
   };
 
-  if (user === "not-logged-in") {
+  if (!userInfo) {
     doLogin();
     return;
-  }
-
-  if (user === "loading") {
-    return (
-      <div className="flex h-[calc(100vh-260px)] w-full items-center justify-center">
-        <Loader className="animate-spin" size={50} />
-      </div>
-    );
   }
 
   return (

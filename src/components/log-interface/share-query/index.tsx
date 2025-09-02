@@ -41,27 +41,31 @@ export const ShareQuery = ({
 }: ShareQueryProps) => {
   const selfURL = getSelfURL();
 
-  const { user } = useAllEnvironments();
+  const { userInfo } = useAllEnvironments();
   const { apiClients } = useApiClients();
 
   const [username, setUsername] = useState("");
-  const [isValid, setIsValid] = useState(
-    user === "loading" || user === "not-logged-in" ? false : !!user.username,
-  );
+  const [isValid, setIsValid] = useState(!!userInfo?.user?.username);
   const [shareLink, setShareLink] = useState<string | null>();
   const [copied, setCopied] = useState(false);
 
   const handleUpdateUser = async () => {
-    if (user === "loading" || user === "not-logged-in" || !apiClients) return;
-    await updateUser(apiClients.user, user.firstName, user.lastName, username, {
-      onSuccess: (res) => {
-        if (res.user?.username) {
-          toast.success("Username successfully updated");
-          setIsValid(true);
-        }
+    if (!userInfo || !apiClients) return;
+    await updateUser(
+      apiClients.user,
+      userInfo.user?.firstName,
+      userInfo.user?.lastName,
+      username,
+      {
+        onSuccess: (res) => {
+          if (res.user?.username) {
+            toast.success("Username successfully updated");
+            setIsValid(true);
+          }
+        },
+        onError: () => setIsValid(false),
       },
-      onError: () => setIsValid(false),
-    });
+    );
   };
 
   const handleShareQuery = async (visibility: SharedResultVisibility) => {
