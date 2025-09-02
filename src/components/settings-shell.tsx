@@ -22,10 +22,12 @@ export function SettingsShell({
   activeSection,
   children,
 }: PropsWithChildren<SettingsShellProps>) {
-  const { user, localhostInfo, currentOrg, defaultOrg } = useAllEnvironments();
+  const { userInfo, localhostInfo } = useAllEnvironments();
   const { activeEnvironment } = useApiClients();
 
-  const orgName = !(currentOrg?.id == defaultOrg?.id) && currentOrg?.name;
+  const orgName =
+    !(userInfo?.currentOrganization?.id == userInfo?.defaultOrganization?.id) &&
+    userInfo?.currentOrganization?.name;
   const envName = activeEnvironment?.name;
 
   const sections = [
