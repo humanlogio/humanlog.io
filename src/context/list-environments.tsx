@@ -6,10 +6,10 @@ import { useApiClients } from "@/context/api-provider";
 import { PingResponse } from "api/js/svc/localhost/v1/service_pb";
 import { ListEnvironmentResponse_ListItem } from "api/js/svc/organization/v1/service_pb";
 import { Organization } from "api/js/types/v1/organization_pb";
-import { Cursor } from "api/js/types/v1/cursor_pb";
+import { Cursor, CursorSchema } from "api/js/types/v1/cursor_pb";
 import {
-  GetAuthURLRequest,
-  LocalhostViaBrowser,
+  GetAuthURLRequestSchema,
+  LocalhostViaBrowserSchema,
 } from "api/js/svc/auth/v1/service_pb";
 import { getSelfURL } from "@/lib/envs";
 import { usePathname, useRouter } from "next/navigation";
@@ -21,6 +21,7 @@ import { getAllowedUsage } from "@/services/featureService";
 import { LocalhostConfig } from "api/js/types/v1/localhost_config_pb";
 import { defaultConfig, getConfig } from "@/services/localhostService";
 import { WhoamiResponse } from "api/js/svc/user/v1/service_private_pb";
+import { create } from "@bufbuild/protobuf";
 
 export type FilterBySymbol = {
   symbolName: Expr;
@@ -82,7 +83,9 @@ export function ListEnvironmentsProvider({
   const [listEnvironments, setListEnvironments] = useState<
     ListEnvironmentResponse_ListItem[]
   >([]);
-  const [environmentPage, setEnvironmentPage] = useState<Cursor>(new Cursor());
+  const [environmentPage, setEnvironmentPage] = useState<Cursor>(
+    create(CursorSchema),
+  );
   const [filterBySymbol, setFilterBySymbol] = useState<FilterBySymbol | null>(
     null,
   );
@@ -135,9 +138,9 @@ export function ListEnvironmentsProvider({
 
   const doBrowserLogin = async (returnUrl: string) => {
     try {
-      const req = new GetAuthURLRequest({ returnToUrl: returnUrl });
+      const req = create(GetAuthURLRequestSchema, { returnToUrl: returnUrl });
       if (localhostInfo?.meta) {
-        req.localhost = new LocalhostViaBrowser({
+        req.localhost = create(LocalhostViaBrowserSchema, {
           architecture: localhostInfo.architecture,
           operatingSystem: localhostInfo.operatingSystem,
           usingVersion: localhostInfo.clientVersion,
@@ -201,9 +204,9 @@ export function ListEnvironmentsProvider({
     if (localhostValid) {
       const localhostAuthRes = await checkLocalhost();
 
-      const req = new GetAuthURLRequest({ returnToUrl: returnToURL });
+      const req = create(GetAuthURLRequestSchema, { returnToUrl: returnToURL });
       if (localhostAuthRes?.meta) {
-        req.localhost = new LocalhostViaBrowser({
+        req.localhost = create(LocalhostViaBrowserSchema, {
           architecture: localhostAuthRes.architecture,
           operatingSystem: localhostAuthRes.operatingSystem,
           usingVersion: localhostAuthRes.clientVersion,
