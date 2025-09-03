@@ -23,14 +23,16 @@ import {
   ParseResponse,
   QueryResponse,
   StreamRequest,
+  StreamRequestSchema,
   StreamResponse,
 } from "api/js/svc/query/v1/service_pb";
 import {
   Query,
-  RenderStatement,
-  SplitOperator,
-  SplitOperator_ByOperator,
-  Statements,
+  QuerySchema,
+  RenderStatementSchema,
+  SplitOperatorSchema,
+  SplitOperator_ByOperatorSchema,
+  StatementsSchema,
 } from "api/js/types/v1/query_pb";
 import { Table, Val } from "api/js/types/v1/types_pb";
 import { X } from "lucide-react";
@@ -45,14 +47,15 @@ import { twMerge } from "tailwind-merge";
 import Graph from "@/components/ui/graph/graph";
 import { trace, SpanStatusCode } from "@opentelemetry/api";
 import { ConnectError } from "@connectrpc/connect";
-import { Duration } from "@bufbuild/protobuf";
+import { Duration, DurationSchema } from "@bufbuild/protobuf/wkt";
 import FeatureFlag from "@/components/posthog/feature-flag";
 import { logger } from "@/lib/utils/telemetry/logger";
 import { newIdentifierExpr } from "@/lib/utils/queryExpressions";
-import { Cursor } from "api/js/types/v1/cursor_pb";
+import { Cursor, CursorSchema } from "api/js/types/v1/cursor_pb";
 import { Log } from "api/js/types/v1/otel_logging_pb";
 import { Span } from "api/js/types/v1/otel_tracing_pb";
 import { QueryTimer } from "@/components/log-interface/query-timer";
+import { create } from "@bufbuild/protobuf";
 
 export type DataCase = "subqueries" | "freeForm" | "logs" | "spans" | undefined;
 
@@ -118,11 +121,11 @@ const LogInterface = ({ nav }: LogInterfaceProps) => {
   const span = tracer.startSpan("query-span");
 
   const createSplitRenderStatement = () => {
-    return new RenderStatement({
+    return create(RenderStatementSchema, {
       stmt: {
         case: "split",
-        value: new SplitOperator({
-          by: new SplitOperator_ByOperator({
+        value: create(SplitOperatorSchema, {
+          by: create(SplitOperator_ByOperatorSchema, {
             scalars: [newIdentifierExpr("_resource_fingerprint")],
           }),
         }),
@@ -149,7 +152,7 @@ const LogInterface = ({ nav }: LogInterfaceProps) => {
           parseRes.query.query.render = renderStmt;
         }
         {
-          parseRes.query.query = new Statements({
+          parseRes.query.query = create(StatementsSchema, {
             statements: statements,
             render: renderStmt,
           });
@@ -183,11 +186,11 @@ const LogInterface = ({ nav }: LogInterfaceProps) => {
 
     if (!apiClients?.query) return;
 
-    const streamReq = new StreamRequest({
+    const streamReq = create(StreamRequestSchema, {
       environmentId: activeEnvironment?.id,
       query,
       maxBatchSize: BigInt(batchSize),
-      maxBatchingFor: new Duration({
+      maxBatchingFor: create(DurationSchema, {
         nanos: batchInterval * 1_000_000,
       }),
     });
@@ -242,9 +245,10 @@ const LogInterface = ({ nav }: LogInterfaceProps) => {
   } = useInfiniteQuery(
     queryMethod,
     {
-      environmentId: activeEnvironment?.id ?? BigInt(0),
-      query: query ?? new Query(),
+      environmentId: activeEnvironment?.id,
+      query: query,
       limit,
+      cursor: undefined,
     },
     {
       pageParamKey: "cursor" as const,
@@ -407,6 +411,8 @@ const LogInterface = ({ nav }: LogInterfaceProps) => {
     queryTiming.isActive,
     queryTiming.startTime,
   ]);
+
+  console.log("localhostInfo", localhostInfo);
 
   if (!localhostInfo) {
     return (

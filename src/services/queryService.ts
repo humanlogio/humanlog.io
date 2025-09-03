@@ -1,6 +1,6 @@
 import { CallbacksType, handleError } from "@/lib/utils/errorHandler";
 import { Client } from "@connectrpc/connect";
-import { QueryService } from "api/js/svc/query/v1/service_connect";
+import { QueryService } from "api/js/svc/query/v1/service_pb";
 import {
   FormatRequest,
   QueryRequest,
