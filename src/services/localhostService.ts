@@ -1,12 +1,16 @@
 import { CallbacksType, handleError } from "@/lib/utils/errorHandler";
 import { Client } from "@connectrpc/connect";
-import { LocalhostService } from "api/js/svc/localhost/v1/service_connect";
+import { LocalhostService } from "api/js/svc/localhost/v1/service_pb";
 import { GetConfigResponse } from "api/js/svc/localhost/v1/service_pb";
-import { LocalhostConfig } from "api/js/types/v1/localhost_config_pb";
+import {
+  LocalhostConfig,
+  LocalhostConfigSchema,
+} from "api/js/types/v1/localhost_config_pb";
+import { create } from "@bufbuild/protobuf";
 
 export type LocalhostClientType = Client<typeof LocalhostService>;
 
-export const defaultConfig: LocalhostConfig = new LocalhostConfig({
+export const defaultConfig: LocalhostConfig = create(LocalhostConfigSchema, {
   version: BigInt(2),
   formatter: {
     themes: {

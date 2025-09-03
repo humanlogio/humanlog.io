@@ -1,6 +1,12 @@
-import { TraceID, SpanID } from "api/js/types/v1/types_pb";
-import { ULID } from "api/js/types/v1/ulid_pb";
+import {
+  TraceID,
+  SpanID,
+  TraceIDSchema,
+  SpanIDSchema,
+} from "api/js/types/v1/types_pb";
+import { ULID, ULIDSchema } from "api/js/types/v1/ulid_pb";
 import { unit8ArrayBufferToBase16 } from "@/lib/utils/decode";
+import { create } from "@bufbuild/protobuf";
 
 const generateULIDString = (): string => {
   const timestamp = Date.now().toString(36).padStart(10, "0");
@@ -51,7 +57,7 @@ export const makeULID = (ulidString?: string): ULID => {
     BigInt(timestamp % 1000) * BigInt(1000000) +
     BigInt(Math.floor(Math.random() * 1000000));
 
-  return new ULID({
+  return create(ULIDSchema, {
     High: high,
     Low: low,
   });
@@ -85,7 +91,7 @@ export const makeTraceID = (traceIdString: string): TraceID => {
 
   // Convert hex string to bytes (pad to 32 chars = 16 bytes for trace ID)
   const raw = hexToUint8Array(normalizedTraceId.padEnd(32, "0")) as Uint8Array;
-  return new TraceID({ raw: raw as Uint8Array<ArrayBuffer> });
+  return create(TraceIDSchema, { raw: raw as Uint8Array<ArrayBuffer> });
 };
 
 // Convert TraceID object to string
@@ -106,7 +112,7 @@ export const makeSpanID = (spanIdString: string): SpanID => {
 
   // Convert hex string to bytes (pad to 16 chars = 8 bytes for span ID)
   const raw = hexToUint8Array(normalizedSpanId.padEnd(16, "0")) as Uint8Array;
-  return new SpanID({ raw: raw as Uint8Array<ArrayBuffer> });
+  return create(SpanIDSchema, { raw: raw as Uint8Array<ArrayBuffer> });
 };
 
 // Convert SpanID object to string

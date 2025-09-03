@@ -3,7 +3,7 @@ import { Client } from "@connectrpc/connect";
 import {
   PublicShareService,
   UserShareService,
-} from "api/js/svc/share/v1/service_connect";
+} from "api/js/svc/share/v1/service_pb";
 import {
   CreateUserSharedResultResponse,
   DeleteUserSharedResultResponse,
