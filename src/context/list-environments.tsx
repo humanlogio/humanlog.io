@@ -139,15 +139,7 @@ export function ListEnvironmentsProvider({
   const doBrowserLogin = async (returnUrl: string) => {
     try {
       const req = create(GetAuthURLRequestSchema, { returnToUrl: returnUrl });
-      if (localhostInfo?.meta) {
-        req.localhost = create(LocalhostViaBrowserSchema, {
-          architecture: localhostInfo.architecture,
-          operatingSystem: localhostInfo.operatingSystem,
-          usingVersion: localhostInfo.clientVersion,
-        });
-      }
       const res = await apiClients?.auth.getAuthURL(req);
-
       if (res) {
         router.push(res.authUrl);
       }
@@ -156,28 +148,12 @@ export function ListEnvironmentsProvider({
     }
   };
 
-  const doLocalhostLogin = async (returnUrl: string) => {
-    try {
-      await apiClients?.localhost.doLogin({ returnToURL: returnUrl });
-    } catch (error) {
-      console.log("failed to Login at the cli", error);
-    }
-  };
-
   const doLogin = async (returnUrl?: string) => {
     if (browserValid && localhostValid) {
       return;
     }
-    if (localhostValid && !localhostInfo?.loggedInUser) {
-      doLocalhostLogin(returnUrl ?? returnToURL);
-      getUserInfo();
-      return;
-    }
-    if (!browserValid) {
-      doBrowserLogin(returnUrl ?? returnToURL);
-      getUserInfo();
-      return;
-    }
+    doBrowserLogin(returnUrl ?? returnToURL);
+    getUserInfo();
   };
 
   const doLogout = async () => {
