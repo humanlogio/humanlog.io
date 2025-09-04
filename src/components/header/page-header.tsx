@@ -36,22 +36,18 @@ export const PageHeader = () => {
   };
 
   return (
-    <nav className="bg-muted flex w-full flex-col">
-      <div className="sticky top-0 z-20">
-        <div className="container flex items-center py-2">
-          <div className="flex w-full items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Link href="/" className="mr-10">
-                <HexagonIcon size={16} />
-              </Link>
-              {renderNavBlock()}
-            </div>
-            <Button onClick={() => doLogin()} variant="outline" size="sm">
-              Sign in
-            </Button>
-          </div>
+    <div className="container flex items-center">
+      <div className="flex w-full items-center justify-between">
+        <div className="flex items-center gap-4">
+          <Link href="/" className="mr-10">
+            <HexagonIcon size={16} />
+          </Link>
+          {renderNavBlock()}
         </div>
+        <Button onClick={() => doLogin()} variant="outline" size="sm">
+          Sign in
+        </Button>
       </div>
-    </nav>
+    </div>
   );
 };

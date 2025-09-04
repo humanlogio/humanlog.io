@@ -20,7 +20,10 @@ import { AllowedUsageResponse_LocalhostUsage } from "api/js/svc/feature/v1/servi
 import { getAllowedUsage } from "@/services/featureService";
 import { LocalhostConfig } from "api/js/types/v1/localhost_config_pb";
 import { defaultConfig, getConfig } from "@/services/localhostService";
-import { WhoamiResponse } from "api/js/svc/user/v1/service_private_pb";
+import {
+  WhoamiResponse,
+  ListOrganizationResponse_ListItem,
+} from "api/js/svc/user/v1/service_private_pb";
 import { create } from "@bufbuild/protobuf";
 
 export type FilterBySymbol = {
@@ -29,10 +32,13 @@ export type FilterBySymbol = {
   op?: BinaryOp_Operator;
 };
 
+type UserInfo = WhoamiResponse | "isLoading" | undefined;
+
 type AllEnvironments = {
-  userInfo: WhoamiResponse | undefined;
+  userInfo: UserInfo;
   localhostInfo: PingResponse | undefined;
   listEnvironments: ListEnvironmentResponse_ListItem[];
+  listOrganizations: ListOrganizationResponse_ListItem[];
   doLogin: (returnUrl?: string) => void;
   doLogout: () => void;
   getUserInfo: () => void;
@@ -48,10 +54,10 @@ type AllEnvironments = {
 };
 
 const ListEnvironmentContext = createContext<AllEnvironments>({
-  userInfo: undefined,
+  userInfo: "isLoading",
   localhostInfo: undefined,
-
   listEnvironments: [],
+  listOrganizations: [],
   doLogin: () => {},
   doLogout: () => {},
   getUserInfo: () => {},
@@ -72,16 +78,16 @@ export function ListEnvironmentsProvider({
   const pathname = usePathname();
   const returnToURL = `${getSelfURL()}${pathname}`;
   const { apiClients, setActiveEnvironment } = useApiClients();
-  const [browserValid, setBrowserValid] = useState(false);
   const [localhostValid, setLocalhostValid] = useState(false);
   const [localhostInfo, setLocalhostInfo] = useState<PingResponse>();
-  const [userInfo, setUserInfo] = useState<WhoamiResponse | undefined>(
-    undefined,
-  );
+  const [userInfo, setUserInfo] = useState<UserInfo>("isLoading");
   const [currentOrg, setCurrentOrg] = useState<Organization | null>(null);
   const [defaultOrg, setDefaultOrg] = useState<Organization | null>(null);
   const [listEnvironments, setListEnvironments] = useState<
     ListEnvironmentResponse_ListItem[]
+  >([]);
+  const [listOrganizations, setListOrganizations] = useState<
+    ListOrganizationResponse_ListItem[]
   >([]);
   const [environmentPage, setEnvironmentPage] = useState<Cursor>(
     create(CursorSchema),
@@ -96,22 +102,6 @@ export function ListEnvironmentsProvider({
 
   const deleteCookie = () => {
     document.cookie = `hlog_session=; path=/; domain=.humanlog${config.TLD}; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
-  };
-
-  const checkBrowser = async () => {
-    try {
-      const res = await apiClients?.user.whoami({});
-      if (res && res.user) {
-        setBrowserValid(true);
-        setUserInfo(res);
-        return res;
-      }
-    } catch (err) {
-      document.cookie = `hlog_session=; path=/; domain=.humanlog${config.TLD}; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
-      setBrowserValid(false);
-      setUserInfo(undefined);
-      // getRefreshToken();
-    }
   };
 
   const checkLocalhost = async () => {
@@ -149,9 +139,6 @@ export function ListEnvironmentsProvider({
   };
 
   const doLogin = async (returnUrl?: string) => {
-    if (browserValid && localhostValid) {
-      return;
-    }
     doBrowserLogin(returnUrl ?? returnToURL);
     getUserInfo();
   };
@@ -177,30 +164,18 @@ export function ListEnvironmentsProvider({
   };
 
   const getUserInfo = async () => {
-    if (localhostValid) {
-      const localhostAuthRes = await checkLocalhost();
-
-      const req = create(GetAuthURLRequestSchema, { returnToUrl: returnToURL });
-      if (localhostAuthRes?.meta) {
-        req.localhost = create(LocalhostViaBrowserSchema, {
-          architecture: localhostAuthRes.architecture,
-          operatingSystem: localhostAuthRes.operatingSystem,
-          usingVersion: localhostAuthRes.clientVersion,
-        });
+    try {
+      const res = await apiClients?.user.whoami({});
+      if (res && res.user) {
+        setUserInfo(res);
+        handleAllowedUsage();
+        return res;
       }
-
-      if (localhostAuthRes?.loggedInUser) {
-        const { currentOrganization, defaultOrganization } =
-          localhostAuthRes.loggedInUser;
-        setCurrentOrg(currentOrganization ?? null);
-        setDefaultOrg(defaultOrganization ?? null);
-      }
+    } catch (err) {
+      deleteCookie();
+      setUserInfo(undefined);
+      // getRefreshToken();
     }
-    if (browserValid) {
-      const browserAuthRes = await checkBrowser();
-      setUserInfo(browserAuthRes);
-    }
-    handleAllowedUsage();
   };
 
   const handleAllowedUsage = async () => {
@@ -222,6 +197,16 @@ export function ListEnvironmentsProvider({
   ) => {
     setFilterBySymbol({ symbolName, symbolValue, op });
   };
+
+  const getOrganizations = async () => {
+    if (!apiClients) return;
+    const orgs = await apiClients.user.listOrganization({});
+    setListOrganizations(orgs.items);
+  };
+
+  useEffect(() => {
+    getOrganizations();
+  }, [apiClients?.user]);
 
   useEffect(() => {
     (async () => {
@@ -256,22 +241,17 @@ export function ListEnvironmentsProvider({
 
   useEffect(() => {
     // Initial execution
-    checkBrowser();
     checkLocalhost();
-
-    const checkBrowserIntervalId = setInterval(checkBrowser, 60000); // 1m
+    getUserInfo();
     const checkLocalhostIntervalId = setInterval(checkLocalhost, 5000); // 5s
-
     return () => {
-      clearInterval(checkBrowserIntervalId);
       clearInterval(checkLocalhostIntervalId);
     };
   }, []);
 
   useEffect(() => {
-    getUserInfo();
     getLocalhostConfig();
-  }, [browserValid, localhostValid]);
+  }, [localhostValid]);
 
   return (
     <ListEnvironmentContext.Provider
@@ -280,6 +260,7 @@ export function ListEnvironmentsProvider({
         getUserInfo,
         userInfo,
         listEnvironments,
+        listOrganizations,
         doLogin,
         doLogout,
         filterBySymbol,

@@ -1,13 +1,21 @@
 "use client";
 
 import { useAllEnvironments } from "@/context/list-environments";
-import { useQuery } from "@connectrpc/connect-query";
-import { whoami } from "api/js/svc/user/v1/service_private-UserService_connectquery";
-import { AppHeader } from "./app-header";
-import { PageHeader } from "./page-header";
+import { AppHeader } from "@/components/header/app-header";
+import { PageHeader } from "@/components/header/page-header";
 
 export const Header = () => {
   const { userInfo } = useAllEnvironments();
 
-  return userInfo ? <AppHeader userInfo={userInfo} /> : <PageHeader />;
+  return (
+    <nav className="bg-muted flex h-12 w-full flex-col justify-center">
+      <div className="sticky top-0 z-20">
+        {userInfo === "isLoading" ? null : userInfo ? (
+          <AppHeader userInfo={userInfo} />
+        ) : (
+          <PageHeader />
+        )}
+      </div>
+    </nav>
+  );
 };

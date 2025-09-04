@@ -35,11 +35,19 @@ import { useAllEnvironments } from "@/context/list-environments";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import ModeToggle from "../mode-toggle";
+import ModeToggle from "@/components/mode-toggle";
+import { PingResponse } from "api/js/svc/localhost/v1/service_pb";
+import { EnvList } from "@/components/header/app-header/env-list";
+import { OrgList } from "@/components/header/app-header/org-list";
 
 interface AppHeaderProps {
   userInfo: WhoamiResponse;
 }
+
+export const localhostVersion = (res: PingResponse) => {
+  const v = res.clientVersion!;
+  return "v" + v.major + "." + v.minor + "." + v.patch;
+};
 
 export const AppHeader = ({ userInfo }: AppHeaderProps) => {
   const { allowedUsage } = useAllEnvironments();
@@ -84,70 +92,71 @@ export const AppHeader = ({ userInfo }: AppHeaderProps) => {
     },
   ];
 
-  // useEffect(() => {
-  //   if (pathname === "/") router.push("/localhost/query");
-  // }, []);
-
   return (
-    <nav className="bg-muted flex w-full flex-col">
-      <div className="sticky top-0 z-20">
-        <div className={`flex justify-between px-10 py-1.5`}>
-          <div className="flex items-center">
-            <Link href="/" className="mr-8">
-              <HexagonIcon size={18} />
-            </Link>
-            <ul className="flex gap-2">
-              {navItems.map((item) => {
-                return (
-                  <li key={item.path}>
-                    {item.disabled ? (
-                      <Tooltip>
-                        <TooltipTrigger>
-                          <div
-                            className={`group flex cursor-not-allowed items-center gap-1 px-2 py-1 text-sm font-medium opacity-60 transition-colors`}
-                          >
-                            {item.icon}
-                            {item.name}
-                          </div>
-                        </TooltipTrigger>
-                        <TooltipContent side="bottom">
-                          Coming soon!
-                        </TooltipContent>
-                      </Tooltip>
-                    ) : (
-                      <Link
-                        href={item.path}
-                        className={`hover:text-foreground relative flex items-center gap-1 px-2 py-1 text-sm font-medium transition-colors ${
-                          pathname.includes(item.path)
-                            ? "text-foreground after:bg-primary after:absolute after:-bottom-1.5 after:left-0 after:h-0.5 after:w-full after:content-['']"
-                            : "text-muted-foreground"
-                        }`}
+    <div className={`flex justify-between px-10`}>
+      <div className="flex items-center">
+        <Link href="/" className="mr-8">
+          <HexagonIcon size={18} />
+        </Link>
+        <ul className="flex gap-2">
+          {navItems.map((item) => {
+            return (
+              <li key={item.path}>
+                {item.disabled ? (
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <div
+                        className={`group flex cursor-not-allowed items-center gap-1 px-2 py-1 text-sm font-medium opacity-60 transition-colors`}
                       >
                         {item.icon}
                         {item.name}
-                      </Link>
-                    )}
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
-          <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
-            <SheetTrigger asChild>
-              <Avatar className="h-7 w-7">
-                <AvatarImage src={gravatarURL(userInfo.user?.email)} />
-                <AvatarFallback className="uppercase">
-                  {userInfo.user?.firstName?.slice(0, 2) || (
-                    <UserIcon size={14} />
-                  )}
-                </AvatarFallback>
-              </Avatar>
-            </SheetTrigger>
-            <SheetContent>
-              <SideMenu userInfo={userInfo} />
-            </SheetContent>
-          </Sheet>
-          {/* <Tooltip>
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom">Coming soon!</TooltipContent>
+                  </Tooltip>
+                ) : (
+                  <Link
+                    href={item.path}
+                    className={`hover:text-foreground relative flex items-center gap-1 px-2 py-1 text-sm font-medium transition-colors ${
+                      pathname.includes(item.path)
+                        ? "text-foreground after:bg-primary after:absolute after:-bottom-1.5 after:left-0 after:h-0.5 after:w-full after:content-['']"
+                        : "text-muted-foreground"
+                    }`}
+                  >
+                    {item.icon}
+                    {item.name}
+                  </Link>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+      <div className="flex items-center gap-2">
+        <div className="w-30">
+          <OrgList userInfo={userInfo} />
+        </div>
+        <div className="w-30">
+          <EnvList userInfo={userInfo} />
+        </div>
+
+        <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
+          <SheetTrigger asChild>
+            <Avatar className="h-7 w-7">
+              <AvatarImage src={gravatarURL(userInfo.user?.email)} />
+              <AvatarFallback className="uppercase">
+                {userInfo.user?.firstName?.slice(0, 2) || (
+                  <UserIcon size={14} />
+                )}
+              </AvatarFallback>
+            </Avatar>
+          </SheetTrigger>
+          <SheetContent>
+            <SideMenu userInfo={userInfo} />
+          </SheetContent>
+        </Sheet>
+      </div>
+      {/* <Tooltip>
             <TooltipTrigger className="flex items-center rounded-full border border-emerald-200 bg-white px-3 py-1 text-xs text-emerald-700 dark:border-emerald-700 dark:bg-emerald-900/60 dark:text-emerald-300">
               <HardDrive size={12} className="mr-1" />
               Local Storage Only
@@ -157,9 +166,7 @@ export const AppHeader = ({ userInfo }: AppHeaderProps) => {
               deleted
             </TooltipContent>
           </Tooltip> */}
-        </div>
-      </div>
-    </nav>
+    </div>
   );
 };
 
