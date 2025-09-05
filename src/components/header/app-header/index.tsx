@@ -2,7 +2,7 @@
 
 import { ReactNode, useEffect, useState } from "react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { useParams, usePathname, useRouter } from "next/navigation";
 import {
   Activity,
   Database,
@@ -50,11 +50,12 @@ export const localhostVersion = (res: PingResponse) => {
 };
 
 export const AppHeader = ({ userInfo }: AppHeaderProps) => {
-  const { allowedUsage } = useAllEnvironments();
-
+  const params = useParams();
   const pathname = usePathname();
-  const router = useRouter();
   const isProd = config.NEXT_PUBLIC_IS_PROD;
+
+  const currentOrg = userInfo.currentOrganization?.name;
+  const currentEnvSlug = params?.env || "localhost";
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [theme, setTheme] = useState<"light" | "dark" | "system">("system");
@@ -62,31 +63,31 @@ export const AppHeader = ({ userInfo }: AppHeaderProps) => {
   const navItems = [
     {
       name: "Query",
-      path: "/localhost/query",
+      path: `/${currentOrg}/${currentEnvSlug}/query`,
       icon: <Database size={14} />,
       disabled: false,
     },
     {
       name: "Stream",
-      path: "/localhost/stream",
+      path: `/${currentOrg}/${currentEnvSlug}/stream`,
       icon: <Activity size={14} />,
       disabled: false,
     },
     {
       name: "Dashboard",
-      path: "/localhost/dashboard",
+      path: `/${currentOrg}/${currentEnvSlug}/dashboard`,
       icon: <BarChart3 size={14} />,
       disabled: isProd ? true : false,
     },
     {
       name: "Monitors",
-      path: "/localhost/monitors",
+      path: `/${currentOrg}/${currentEnvSlug}/monitors`,
       icon: <Bell size={14} />,
       disabled: isProd ? true : false,
     },
     {
       name: "Settings",
-      path: "/localhost/settings",
+      path: `/${currentOrg}/${currentEnvSlug}/settings`,
       icon: <Settings size={14} />,
       disabled: isProd ? true : false,
     },
@@ -95,7 +96,11 @@ export const AppHeader = ({ userInfo }: AppHeaderProps) => {
   return (
     <div className={`flex justify-between px-10`}>
       <div className="flex items-center">
-        <Link href="/" className="mr-8">
+        <Link
+          href={`/${currentOrg}/${currentEnvSlug}/get-started`}
+          className="mr-8"
+        >
+          {/* instead of logo */}
           <HexagonIcon size={18} />
         </Link>
         <ul className="flex gap-2">
@@ -119,7 +124,7 @@ export const AppHeader = ({ userInfo }: AppHeaderProps) => {
                     href={item.path}
                     className={`hover:text-foreground relative flex items-center gap-1 px-2 py-1 text-sm font-medium transition-colors ${
                       pathname.includes(item.path)
-                        ? "text-foreground after:bg-primary after:absolute after:-bottom-1.5 after:left-0 after:h-0.5 after:w-full after:content-['']"
+                        ? "text-foreground after:bg-primary after:absolute after:-bottom-2.5 after:left-0 after:h-0.5 after:w-full after:content-['']"
                         : "text-muted-foreground"
                     }`}
                   >
@@ -133,9 +138,6 @@ export const AppHeader = ({ userInfo }: AppHeaderProps) => {
         </ul>
       </div>
       <div className="flex items-center gap-2">
-        <div className="w-30">
-          <OrgList userInfo={userInfo} />
-        </div>
         <div className="w-30">
           <EnvList userInfo={userInfo} />
         </div>
@@ -203,6 +205,14 @@ const SideMenu = ({ userInfo }: SideMenuProps) => {
             {userInfo.user?.email}
           </div>
         </div>
+      </div>
+
+      <Separator className="my-2" />
+      <div className="px-4 py-2">
+        <div className="text-muted-foreground mb-2 text-xs font-semibold tracking-wider uppercase">
+          Current Organization
+        </div>
+        <OrgList userInfo={userInfo} />
       </div>
 
       <Separator className="my-2" />

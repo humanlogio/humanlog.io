@@ -1,5 +1,5 @@
 import { useAllEnvironments } from "@/context/list-environments";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { localhostVersion } from "@/components/header/app-header";
 import {
@@ -11,12 +11,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { WhoamiResponse } from "api/js/svc/user/v1/service_private_pb";
+import { useApiClients } from "@/context/api-provider";
 
 interface Source {
   name: string;
   path: string;
   value: string;
-  isLocalhost: boolean;
 }
 
 interface EnvListProps {
@@ -26,6 +26,8 @@ interface EnvListProps {
 export const EnvList = ({ userInfo }: EnvListProps) => {
   const router = useRouter();
   const params = useParams();
+  const pathname = usePathname();
+  const { activeEnvironment, setActiveEnvironment } = useApiClients();
   const { localhostInfo, listEnvironments } = useAllEnvironments();
 
   const [menuList, setMenuList] = useState<Source[]>([]);
@@ -33,12 +35,17 @@ export const EnvList = ({ userInfo }: EnvListProps) => {
   const currentEnvSlug = params?.env as string;
 
   const getCurrentSelectedValue = () => {
-    if (currentEnvSlug === "localhost" && localhostInfo) {
+    if (
+      (currentEnvSlug === "localhost" || !activeEnvironment) &&
+      localhostInfo
+    ) {
       return localhostVersion(localhostInfo);
     }
 
     const currentEnv = listEnvironments.find(
-      (env) => env.environment?.name === currentEnvSlug,
+      (env) =>
+        env.environment?.id === activeEnvironment?.id ||
+        env.environment?.name === currentEnvSlug,
     );
 
     return currentEnv?.environment?.id?.toString() || "";
@@ -47,6 +54,12 @@ export const EnvList = ({ userInfo }: EnvListProps) => {
   const updateSelection = (value: string) => {
     const selected = menuList.find((menu) => menu.value === value);
     if (!selected) return;
+
+    const activeEnv = listEnvironments.find(
+      (env) => env.environment?.id.toString() === selected.value,
+    );
+
+    setActiveEnvironment(activeEnv?.environment);
 
     router.push(selected.path);
   };
@@ -59,7 +72,6 @@ export const EnvList = ({ userInfo }: EnvListProps) => {
         name: `localhost ${localhostVersion(localhostInfo)}`,
         path: `/${userInfo?.currentOrganization?.name}/localhost/query`,
         value: localhostVersion(localhostInfo),
-        isLocalhost: true,
       });
     }
 
@@ -68,17 +80,21 @@ export const EnvList = ({ userInfo }: EnvListProps) => {
         name: env.environment?.name || "",
         path: `/${userInfo?.currentOrganization?.name}/${env.environment?.name}/query`,
         value: env.environment?.id?.toString() || "",
-        isLocalhost: false,
       });
+    });
+    _menuList.push({
+      name: "+ Add new",
+      path: `/${userInfo?.currentOrganization?.name}/env/new`,
+      value: "add-new",
     });
 
     setMenuList(_menuList);
-  }, [listEnvironments, localhostInfo, userInfo]);
+  }, [listEnvironments, localhostInfo, userInfo, pathname]);
 
   return (
     <Select value={getCurrentSelectedValue()} onValueChange={updateSelection}>
       <SelectTrigger className="h-7 w-full">
-        <div className="flex flex-row items-center">
+        <div className="line-clamp-1 flex flex-row items-center overflow-hidden text-ellipsis whitespace-nowrap">
           <SelectValue placeholder="Select env" className="text-xs" />
         </div>
       </SelectTrigger>
