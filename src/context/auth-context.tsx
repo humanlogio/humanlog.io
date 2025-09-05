@@ -22,17 +22,11 @@ type AuthContextType = {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const loginRequiredPaths = [
-  "/settings/users",
-  "/user/*",
-  "/env/*",
-  "/org/*",
-  "/localhost/*",
-];
+const loginRequiredPaths = ["/settings/*"];
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const { authenticated } = useApiClients();
-  const { doLogin, userInfo } = useAllEnvironments();
+  const { doLogin, userInfo, setUserInfo } = useAllEnvironments();
   const router = useRouter();
   const pathname = usePathname();
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
@@ -92,7 +86,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     if (!authenticated && isLoginRequired(pathname)) {
-      handleLogin();
+      setUserInfo(undefined);
     }
   }, [
     pathname,
