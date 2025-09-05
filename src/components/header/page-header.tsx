@@ -1,9 +1,11 @@
 import { Button } from "@/components/ui/button";
 import { useAllEnvironments } from "@/context/list-environments";
+import { getSelfURL } from "@/lib/envs";
 import { HexagonIcon } from "lucide-react";
 import Link from "next/link";
 
 export const PageHeader = () => {
+  const returnToURL = `${getSelfURL()}/login`;
   const { doLogin } = useAllEnvironments();
   const navLinks = [
     {
@@ -44,7 +46,11 @@ export const PageHeader = () => {
           </Link>
           {renderNavBlock()}
         </div>
-        <Button onClick={() => doLogin()} variant="outline" size="sm">
+        <Button
+          onClick={() => doLogin(returnToURL)}
+          variant="outline"
+          size="sm"
+        >
           Sign in
         </Button>
       </div>

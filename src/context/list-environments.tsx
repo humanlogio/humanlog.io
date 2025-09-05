@@ -41,7 +41,7 @@ type AllEnvironments = {
   listOrganizations: ListOrganizationResponse_ListItem[];
   doLogin: (returnUrl?: string) => void;
   doLogout: () => void;
-  getUserInfo: () => void;
+  setUserInfo: (userInfo: UserInfo) => void;
   filterBySymbol: FilterBySymbol | null;
   onClickFilterBy: (
     symbolName: Expr,
@@ -60,7 +60,7 @@ const ListEnvironmentContext = createContext<AllEnvironments>({
   listOrganizations: [],
   doLogin: () => {},
   doLogout: () => {},
-  getUserInfo: () => {},
+  setUserInfo: () => {},
   filterBySymbol: null,
   onClickFilterBy: () => {},
   allowedUsage: null,
@@ -76,13 +76,13 @@ export function ListEnvironmentsProvider({
   const router = useRouter();
 
   const pathname = usePathname();
-  const returnToURL = `${getSelfURL()}${pathname}`;
+  const loginReturnToURL = `${getSelfURL()}/login`;
+  const logoutReturnToURL = `${getSelfURL()}/logout`;
   const { apiClients, setActiveEnvironment } = useApiClients();
   const [localhostValid, setLocalhostValid] = useState(false);
   const [localhostInfo, setLocalhostInfo] = useState<PingResponse>();
   const [userInfo, setUserInfo] = useState<UserInfo>("isLoading");
   const [currentOrg, setCurrentOrg] = useState<Organization | null>(null);
-  const [defaultOrg, setDefaultOrg] = useState<Organization | null>(null);
   const [listEnvironments, setListEnvironments] = useState<
     ListEnvironmentResponse_ListItem[]
   >([]);
@@ -126,9 +126,11 @@ export function ListEnvironmentsProvider({
     }
   };
 
-  const doBrowserLogin = async (returnUrl: string) => {
+  const doLogin = async (returnUrl?: string) => {
     try {
-      const req = create(GetAuthURLRequestSchema, { returnToUrl: returnUrl });
+      const req = create(GetAuthURLRequestSchema, {
+        returnToUrl: returnUrl || loginReturnToURL,
+      });
       const res = await apiClients?.auth.getAuthURL(req);
       if (res) {
         router.push(res.authUrl);
@@ -138,28 +140,18 @@ export function ListEnvironmentsProvider({
     }
   };
 
-  const doLogin = async (returnUrl?: string) => {
-    doBrowserLogin(returnUrl ?? returnToURL);
-    getUserInfo();
-  };
-
   const doLogout = async () => {
     deleteCookie();
     localStorage.removeItem("hlog_session");
     try {
       if (!apiClients) return;
 
-      if (!localhostValid) {
-        const { logoutUrl } = await apiClients.user.getLogoutURL({
-          returnTo: returnToURL,
-        });
-        router.push(logoutUrl);
-      }
-
-      apiClients?.localhost.doLogout({ returnToURL });
+      const { logoutUrl } = await apiClients.user.getLogoutURL({
+        returnTo: logoutReturnToURL,
+      });
+      router.push(logoutUrl);
     } catch (error) {
       console.error("Failed to get logout URL:", error);
-      // router.push("/login");
     }
   };
 
@@ -174,7 +166,7 @@ export function ListEnvironmentsProvider({
     } catch (err) {
       deleteCookie();
       setUserInfo(undefined);
-      // getRefreshToken();
+      router.push("/");
     }
   };
 
@@ -257,8 +249,8 @@ export function ListEnvironmentsProvider({
     <ListEnvironmentContext.Provider
       value={{
         localhostInfo,
-        getUserInfo,
         userInfo,
+        setUserInfo,
         listEnvironments,
         listOrganizations,
         doLogin,
