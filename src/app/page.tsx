@@ -2,8 +2,27 @@
 
 import AboveFoldHero from "@/components/landing-page/hero-marketing";
 import BelowFold from "@/components/landing-page/below-fold";
+import { useAllEnvironments } from "@/context/list-environments";
+import { useApiClients } from "@/context/api-provider";
+import { useRouter } from "next/navigation";
+import LoadingIndicator from "@/components/loading-indicator";
 
 export default function Home() {
+  const router = useRouter();
+  const { activeEnvironment } = useApiClients();
+  const { userInfo } = useAllEnvironments();
+
+  if (userInfo === "isLoading") {
+    return <LoadingIndicator />;
+  }
+
+  if (userInfo) {
+    router.replace(
+      `/${userInfo.currentOrganization?.name}/${activeEnvironment?.name || "localhost"}/query`,
+    );
+    return null;
+  }
+
   return (
     <main className="flex flex-col items-center px-4 sm:px-6 lg:px-12 xl:px-24">
       <section className="w-full">
