@@ -39,9 +39,10 @@ type AllEnvironments = {
   localhostInfo: PingResponse | undefined;
   listEnvironments: ListEnvironmentResponse_ListItem[];
   listOrganizations: ListOrganizationResponse_ListItem[];
-  doLogin: (returnUrl?: string) => void;
+  doLogin: (username: string, returnUrl?: string) => void;
   doLogout: () => void;
   setUserInfo: (userInfo: UserInfo) => void;
+  getUserInfo: () => void;
   filterBySymbol: FilterBySymbol | null;
   onClickFilterBy: (
     symbolName: Expr,
@@ -61,6 +62,7 @@ const ListEnvironmentContext = createContext<AllEnvironments>({
   doLogin: () => {},
   doLogout: () => {},
   setUserInfo: () => {},
+  getUserInfo: () => {},
   filterBySymbol: null,
   onClickFilterBy: () => {},
   allowedUsage: null,
@@ -126,10 +128,11 @@ export function ListEnvironmentsProvider({
     }
   };
 
-  const doLogin = async (returnUrl?: string) => {
+  const doLogin = async (username: string, returnUrl?: string) => {
     try {
       const req = create(GetAuthURLRequestSchema, {
         returnToUrl: returnUrl || loginReturnToURL,
+        username,
       });
       const res = await apiClients?.auth.getAuthURL(req);
       if (res) {
@@ -251,6 +254,7 @@ export function ListEnvironmentsProvider({
         localhostInfo,
         userInfo,
         setUserInfo,
+        getUserInfo,
         listEnvironments,
         listOrganizations,
         doLogin,
