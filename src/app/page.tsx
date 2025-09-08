@@ -6,6 +6,7 @@ import { useAllEnvironments } from "@/context/list-environments";
 import { useApiClients } from "@/context/api-provider";
 import { useRouter } from "next/navigation";
 import LoadingIndicator from "@/components/loading-indicator";
+import { getOrgEnvUrl } from "@/lib/utils/navigation";
 
 export default function Home() {
   const router = useRouter();
@@ -17,9 +18,8 @@ export default function Home() {
   }
 
   if (userInfo) {
-    router.replace(
-      `/${userInfo.currentOrganization?.name}/${activeEnvironment?.name || "localhost"}/query`,
-    );
+    const url = getOrgEnvUrl(userInfo, activeEnvironment);
+    router.replace(url);
     return null;
   }
 
