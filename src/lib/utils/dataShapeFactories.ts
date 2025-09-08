@@ -1,13 +1,16 @@
-import { Data, Logs, Spans } from "api/js/types/v1/data_pb";
+import { Logs, Spans, DataSchema } from "api/js/types/v1/data_pb";
 import {
   Arr,
   Table,
   TableType,
   TableType_Column,
+  TableSchema,
+  TableTypeSchema,
 } from "api/js/types/v1/types_pb";
+import { create } from "@bufbuild/protobuf";
 
 export const newTableData = (v: Table) => {
-  return new Data({
+  return create(DataSchema, {
     shape: {
       case: "freeForm",
       value: v,
@@ -16,7 +19,7 @@ export const newTableData = (v: Table) => {
 };
 
 export const newLogsData = (v: Logs) => {
-  return new Data({
+  return create(DataSchema, {
     shape: {
       case: "logs",
       value: v,
@@ -25,7 +28,7 @@ export const newLogsData = (v: Logs) => {
 };
 
 export const newSpansData = (v: Spans) => {
-  return new Data({
+  return create(DataSchema, {
     shape: {
       case: "spans",
       value: v,
@@ -34,8 +37,8 @@ export const newSpansData = (v: Spans) => {
 };
 
 export const newTable = (columns?: TableType_Column[], rows?: Arr[]) => {
-  return new Table({
-    type: new TableType({
+  return create(TableSchema, {
+    type: create(TableTypeSchema, {
       columns: columns || [],
     }),
     rows: rows || [],

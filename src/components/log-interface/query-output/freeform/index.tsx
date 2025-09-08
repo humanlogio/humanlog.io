@@ -1,4 +1,3 @@
-import { useInfiniteQuery } from "@/lib/hooks/useInfiniteQuery";
 import { QueryHistoryEntry } from "api/js/types/v1/query_history_entry_pb";
 import { Query } from "api/js/types/v1/query_pb";
 import { Arr, Table, TableType_Column } from "api/js/types/v1/types_pb";

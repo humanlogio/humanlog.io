@@ -1,4 +1,8 @@
-import { Timestamp, Duration } from "@bufbuild/protobuf";
+import {
+  Timestamp,
+  TimestampSchema,
+  DurationSchema,
+} from "@bufbuild/protobuf/wkt";
 import { toBigInt } from "@/lib/utils/valueFactories";
 import {
   makeDurationKV,
@@ -10,6 +14,7 @@ import {
 } from "@/lib/utils/kvFactories";
 import { Log } from "api/js/types/v1/otel_logging_pb";
 import { makeLog } from "@/lib/utils/logEventFactories";
+import { create } from "@bufbuild/protobuf";
 
 interface SampleLog {
   query: string;
@@ -21,7 +26,7 @@ export function sampleLogs(): SampleLog {
     query: `logs | filter severity_text != "DEBUG"`,
     data: [
       makeLog(
-        new Timestamp({ seconds: toBigInt(1707632400), nanos: 0 }),
+        create(TimestampSchema, { seconds: toBigInt(1707632400), nanos: 0 }),
         "INFO",
         "User alice logged in successfully",
         "auth-service",
@@ -32,11 +37,14 @@ export function sampleLogs(): SampleLog {
           makeF64KV("quota_used", 0.75),
           makeTimestampKV(
             "last_login",
-            new Timestamp({ seconds: toBigInt(1707630000), nanos: 0 }),
+            create(TimestampSchema, {
+              seconds: toBigInt(1707630000),
+              nanos: 0,
+            }),
           ),
           makeDurationKV(
             "session_duration",
-            new Duration({ seconds: toBigInt(3600), nanos: 0 }),
+            create(DurationSchema, { seconds: toBigInt(3600), nanos: 0 }),
           ),
           makeNullKV("notes"),
         ],
@@ -45,7 +53,7 @@ export function sampleLogs(): SampleLog {
       ),
 
       makeLog(
-        new Timestamp({ seconds: toBigInt(1707632460), nanos: 0 }),
+        create(TimestampSchema, { seconds: toBigInt(1707632460), nanos: 0 }),
         "WARN",
         "Cache miss for endpoint /gossip",
         "api-gateway",
@@ -58,7 +66,7 @@ export function sampleLogs(): SampleLog {
       ),
 
       makeLog(
-        new Timestamp({ seconds: toBigInt(1707632580), nanos: 0 }),
+        create(TimestampSchema, { seconds: toBigInt(1707632580), nanos: 0 }),
         "ERROR",
         "Failed to connect to database",
         "db-proxy",
@@ -69,7 +77,7 @@ export function sampleLogs(): SampleLog {
           makeI64KV("retry_count", 3),
           makeDurationKV(
             "timeout",
-            new Duration({ seconds: toBigInt(30), nanos: 0 }),
+            create(DurationSchema, { seconds: toBigInt(30), nanos: 0 }),
           ),
         ],
         "trace-789",
@@ -77,7 +85,7 @@ export function sampleLogs(): SampleLog {
       ),
 
       makeLog(
-        new Timestamp({ seconds: toBigInt(1707632640), nanos: 0 }),
+        create(TimestampSchema, { seconds: toBigInt(1707632640), nanos: 0 }),
         "ERROR",
         "Permission denied for file access",
         "file-service",
@@ -90,7 +98,7 @@ export function sampleLogs(): SampleLog {
         ],
       ),
       makeLog(
-        new Timestamp({ seconds: toBigInt(1707632700), nanos: 0 }),
+        create(TimestampSchema, { seconds: toBigInt(1707632700), nanos: 0 }),
         "INFO",
         "Payment transaction completed",
         "payment-service",
@@ -102,7 +110,7 @@ export function sampleLogs(): SampleLog {
           makeStrKV("payment_method", "credit_card"),
           makeDurationKV(
             "processing_time",
-            new Duration({ seconds: toBigInt(2), nanos: 500000000 }),
+            create(DurationSchema, { seconds: toBigInt(2), nanos: 500000000 }),
           ),
         ],
         "trace-abc",
@@ -110,7 +118,7 @@ export function sampleLogs(): SampleLog {
       ),
 
       makeLog(
-        new Timestamp({ seconds: toBigInt(1707632760), nanos: 0 }),
+        create(TimestampSchema, { seconds: toBigInt(1707632760), nanos: 0 }),
         "WARN",
         "High memory usage detected",
         "monitoring-service",
@@ -124,7 +132,7 @@ export function sampleLogs(): SampleLog {
       ),
 
       makeLog(
-        new Timestamp({ seconds: toBigInt(1707632820), nanos: 0 }),
+        create(TimestampSchema, { seconds: toBigInt(1707632820), nanos: 0 }),
         "FATAL",
         "Critical system failure - service shutting down",
         "core-service",
@@ -135,7 +143,10 @@ export function sampleLogs(): SampleLog {
           makeStrKV("stack_trace", "core.c:429 -> handler.c:123"),
           makeTimestampKV(
             "crash_time",
-            new Timestamp({ seconds: toBigInt(1707632820), nanos: 0 }),
+            create(TimestampSchema, {
+              seconds: toBigInt(1707632820),
+              nanos: 0,
+            }),
           ),
         ],
         "trace-critical",
@@ -143,7 +154,7 @@ export function sampleLogs(): SampleLog {
       ),
 
       makeLog(
-        new Timestamp({ seconds: toBigInt(1707632880), nanos: 0 }),
+        create(TimestampSchema, { seconds: toBigInt(1707632880), nanos: 0 }),
         "INFO",
         "Scheduled backup completed successfully",
         "backup-service",
@@ -153,7 +164,7 @@ export function sampleLogs(): SampleLog {
           makeF64KV("backup_size_gb", 23.7),
           makeDurationKV(
             "backup_duration",
-            new Duration({ seconds: toBigInt(1800), nanos: 0 }),
+            create(DurationSchema, { seconds: toBigInt(1800), nanos: 0 }),
           ),
           makeStrKV("destination", "s3://backup-bucket/daily/"),
           makeStrKV("status", "success"),

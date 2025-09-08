@@ -1,11 +1,13 @@
 import {
   Expr,
-  Identifier,
-  Indexor,
   BinaryOp_Operator,
+  ExprSchema,
+  IdentifierSchema,
+  IndexorSchema,
 } from "api/js/types/v1/query_pb";
 import { Val } from "api/js/types/v1/types_pb";
-import { Timestamp } from "@bufbuild/protobuf";
+import { Timestamp } from "@bufbuild/protobuf/wkt";
+import { create } from "@bufbuild/protobuf";
 import {
   newF64Val,
   newI64Val,
@@ -18,7 +20,7 @@ export const newBinaryExpr = (
   op: BinaryOp_Operator,
   rhs: Expr,
 ): Expr => {
-  return new Expr({
+  return create(ExprSchema, {
     expr: {
       case: "binary",
       value: {
@@ -31,25 +33,25 @@ export const newBinaryExpr = (
 };
 
 export const newIdentifierExpr = (id: string): Expr => {
-  return new Expr({
+  return create(ExprSchema, {
     expr: {
       case: "identifier",
-      value: new Identifier({ name: id }),
+      value: create(IdentifierSchema, { name: id }),
     },
   });
 };
 
 export const newIndexorExpr = (x: Expr, index: Expr): Expr => {
-  return new Expr({
+  return create(ExprSchema, {
     expr: {
       case: "indexor",
-      value: new Indexor({ x: x, index: index }),
+      value: create(IndexorSchema, { x: x, index: index }),
     },
   });
 };
 
 export const newLiteralExpr = (val: Val): Expr => {
-  return new Expr({
+  return create(ExprSchema, {
     expr: {
       case: "literal",
       value: val,
@@ -58,7 +60,7 @@ export const newLiteralExpr = (val: Val): Expr => {
 };
 
 export const newFunctionExpr = (funcname: string, args: Expr[]): Expr => {
-  return new Expr({
+  return create(ExprSchema, {
     expr: {
       case: "funcCall",
       value: {

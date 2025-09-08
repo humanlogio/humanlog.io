@@ -10,13 +10,14 @@ import { useApiClients } from "@/context/api-provider";
 import { Cursor } from "api/js/types/v1/cursor_pb";
 import { useInfiniteScroll } from "@/lib/hooks/useInfiniteScroll";
 import {
-  ListFavoriteQueryResponse_ListItem,
-  ListQueryHistoryResponse_ListItem,
+  ListFavoriteQueryResponse_ListItemSchema,
+  ListQueryHistoryResponse_ListItemSchema,
 } from "api/js/svc/user/v1/service_private_pb";
 import { SymbolList } from "@/components/log-interface/query-library/symbol-list";
 import { SavedQuery } from "@/components/log-interface/query-library/saved-query";
 import { RecentQuery } from "@/components/log-interface/query-library/recent-query";
 import { ExecuteQuery } from "@/components/log-interface";
+import { create } from "@bufbuild/protobuf";
 
 interface QueryLibraryProps {
   onClickSymbol: (symbolString: string) => void;
@@ -113,23 +114,32 @@ export const QueryLibrary = ({
 
   const updateQueryHistory = useCallback(async () => {
     const res = await apiClients?.user.getQueryHistory({ id: recentQueryId });
+    if (!res) return;
     setRecentQueriesData((prev) => {
       const filtered = prev.filter(
         (query) => query.entry?.id !== recentQueryId,
       );
-      return [res as ListQueryHistoryResponse_ListItem, ...filtered];
+      const listItem = create(ListQueryHistoryResponse_ListItemSchema, {
+        entry: res.entry,
+      });
+      return [listItem, ...filtered];
     });
-  }, [recentQueryId]);
+  }, [recentQueryId, apiClients?.user, setRecentQueriesData]);
 
   const updateSavedQuery = useCallback(async () => {
     const res = await apiClients?.user.getFavoriteQuery({ id: savedQueryId });
-    setSavedQueryData((prev) => {
-      const filtered = prev.filter(
-        (query) => query.favorite?.id != savedQueryId,
-      );
-      return [res as ListFavoriteQueryResponse_ListItem, ...filtered];
-    });
-  }, [savedQueryId]);
+    if (res) {
+      setSavedQueryData((prev) => {
+        const filtered = prev.filter(
+          (query) => query.favorite?.id != savedQueryId,
+        );
+        const listItem = create(ListFavoriteQueryResponse_ListItemSchema, {
+          favorite: res.favorite,
+        });
+        return [listItem, ...filtered];
+      });
+    }
+  }, [savedQueryId, apiClients?.user, setSavedQueryData]);
 
   useEffect(() => {
     recentQueryId && updateQueryHistory();

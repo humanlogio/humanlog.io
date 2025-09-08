@@ -20,14 +20,7 @@ import {
   useElements,
   useStripe,
 } from "@stripe/react-stripe-js";
-import {
-  ConfirmationToken,
-  loadStripe,
-  Stripe,
-  StripeElements,
-  StripeError,
-} from "@stripe/stripe-js";
-import { NewOrgModal } from "@/components/org/new-org-modal";
+import { loadStripe, Stripe } from "@stripe/stripe-js";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -37,15 +30,6 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-  SelectGroup,
-  SelectSeparator,
-} from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -63,7 +47,6 @@ import { CreateEnvironmentResponse } from "api/js/svc/organization/v1/service_pb
 import { ConnectError } from "@connectrpc/connect";
 
 const formSchema = z.object({
-  organization: z.string().min(1, "Please select an organization"),
   environmentName: z
     .string()
     .min(1, "Environment name is required")
@@ -90,7 +73,6 @@ export function EnvironmentCreationForm({
   const searchParams = useSearchParams();
   const urlPlanId = searchParams.get("plan");
 
-  const { currentOrg, defaultOrg } = useAllEnvironments();
   const [isNewOrgModalOpen, setIsNewOrgModalOpen] = useState(false);
   const [isBilledYearly, setIsBilledYearly] = useState(true);
   const [selectedProduct, setSelectedProduct] = useState<Product>();
@@ -162,7 +144,6 @@ export function EnvironmentCreationForm({
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      organization: "",
       environmentName: "",
       plan: urlPlanId || "",
     },
@@ -184,20 +165,6 @@ export function EnvironmentCreationForm({
         prices: defaultProduct.prices,
       });
   }, [listProductRes, selectedProduct, urlPlanId]);
-
-  const handleOrganizationChange = (value: string) => {
-    if (value === "createNew") {
-      setIsNewOrgModalOpen(true);
-      return;
-    }
-    form.setValue("organization", value);
-  };
-
-  const handleOrgCreated = (newOrgName: string) => {
-    // Here you might want to refresh the list of organizations
-    // and select the newly created one
-    form.setValue("organization", newOrgName);
-  };
 
   if (!stripePromise || !price) {
     return <Loader className="animate-spin" />;
@@ -223,10 +190,6 @@ export function EnvironmentCreationForm({
       <Form {...form}>
         <CheckoutForm
           form={form}
-          orgId={orgId}
-          handleOrganizationChange={handleOrganizationChange}
-          defaultOrg={defaultOrg}
-          organizations={organizations}
           isBilledYearly={isBilledYearly}
           setIsBilledYearly={setIsBilledYearly}
           products={products}
@@ -236,12 +199,6 @@ export function EnvironmentCreationForm({
           setPrice={setPrice}
         />
       </Form>
-      {/* Modals */}
-      <NewOrgModal
-        open={isNewOrgModalOpen}
-        onOpenChange={setIsNewOrgModalOpen}
-        onOrgCreated={handleOrgCreated}
-      />
     </Elements>
   );
 }
@@ -347,10 +304,6 @@ export function TotalPriceSummary({
 
 function CheckoutForm({
   form,
-  orgId,
-  handleOrganizationChange,
-  defaultOrg,
-  organizations,
   isBilledYearly,
   setIsBilledYearly,
   products,
@@ -360,10 +313,6 @@ function CheckoutForm({
   setPrice,
 }: {
   form: UseFormReturn<FormValues>;
-  orgId: string | null;
-  handleOrganizationChange: (value: string) => void;
-  defaultOrg: Organization | null;
-  organizations: Organization[] | undefined;
   isBilledYearly: boolean;
   setIsBilledYearly: Dispatch<SetStateAction<boolean>>;
   products: Product[] | undefined;
@@ -375,6 +324,7 @@ function CheckoutForm({
   const router = useRouter();
   const stripe = useStripe();
   const elements = useElements();
+  const { userInfo } = useAllEnvironments();
 
   const [errorMessage, setErrorMessage] = useState<string>();
   const [loading, setLoading] = useState(false);
@@ -439,69 +389,23 @@ function CheckoutForm({
         }
     }
     const envName = res.environment?.name;
+
+    if (userInfo === "isLoading") return;
     // Redirect after successful creation
-    const redirectPath = orgId
-      ? `/org/${values.organization}/env/${envName}`
-      : `/env/${envName}`;
+    const redirectPath = `/${userInfo?.currentOrganization?.name}/${envName}/query`;
+
     router.push(redirectPath);
   }
 
+  if (userInfo === "isLoading") return;
   return (
     <>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
         className="flex flex-col gap-6"
       >
-        {/* Organization and Environment Name */}
+        {/*  Environment Name */}
         <div className="flex flex-col gap-4 md:flex-row">
-          <FormField
-            control={form.control}
-            name="organization"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Organization</FormLabel>
-                <Select
-                  onValueChange={handleOrganizationChange}
-                  defaultValue={field.value}
-                >
-                  <FormControl>
-                    <SelectTrigger className="min-w-80">
-                      <div className="flex flex-row items-center gap-2">
-                        <Building size={16} />
-                        <SelectValue placeholder="Select an organization" />
-                      </div>
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectGroup defaultValue={defaultOrg?.name}>
-                      {organizations?.map((o) => {
-                        if (o.id === defaultOrg?.id) {
-                          return (
-                            <SelectItem key={o.name} value={o.name}>
-                              default
-                            </SelectItem>
-                          );
-                        }
-                        return (
-                          <SelectItem key={o.name} value={o.name}>
-                            {o.name}
-                          </SelectItem>
-                        );
-                      })}
-                      <SelectSeparator />
-                      <SelectItem value="createNew">+ Create new</SelectItem>
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <div className="relative hidden w-4 items-center md:flex">
-            <span className="absolute top-10 left-0 text-xl font-bold">/</span>
-          </div>
-
           <FormField
             control={form.control}
             name="environmentName"

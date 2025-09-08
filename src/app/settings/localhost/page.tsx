@@ -27,16 +27,17 @@ import { useEffect, useState } from "react";
 import { SettingsShell } from "@/components/settings-shell";
 import "react-color-palette/css";
 import {
-  FormatConfig,
+  FormatConfigSchema,
   FormatConfig_ColorMode,
   FormatConfig_Themes,
-  FormatConfig_Time,
+  FormatConfig_TimeSchema,
   LocalhostConfig,
-  ParseConfig,
-  ParseConfig_Level,
-  ParseConfig_Message,
-  ParseConfig_Time,
-  RuntimeConfig,
+  LocalhostConfigSchema,
+  ParseConfigSchema,
+  ParseConfig_LevelSchema,
+  ParseConfig_MessageSchema,
+  ParseConfig_TimeSchema,
+  RuntimeConfigSchema,
 } from "api/js/types/v1/localhost_config_pb";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -45,10 +46,11 @@ import { TIME_FORMAT } from "@/lib/utils/formatTimeStamp";
 import FieldTagsInput from "@/components/ui/field-text-input";
 import { toast } from "sonner";
 import { ThemeEditor } from "@/components/settings/ThemeEditor";
-import { ConnectError } from "@connectrpc/connect";
+
 import { useAllEnvironments } from "@/context/list-environments";
 import { NoLocalhostView } from "@/components/log-interface/views/no-localhost-view";
 import { defaultConfig, getConfig } from "@/services/localhostService";
+import { create } from "@bufbuild/protobuf";
 
 const COLOR_MODE_OPTIONS = [
   { value: FormatConfig_ColorMode.COLORMODE_AUTO.toString(), label: "Auto" },
@@ -182,11 +184,11 @@ const LocalhostSettings = () => {
         interrupt,
       } = data;
 
-      const _config = new LocalhostConfig({
+      const _config = create(LocalhostConfigSchema, {
         version: initialConfig?.version,
-        formatter: new FormatConfig({
+        formatter: create(FormatConfigSchema, {
           themes,
-          time: new FormatConfig_Time({
+          time: create(FormatConfig_TimeSchema, {
             timezone,
             format,
           }),
@@ -200,12 +202,12 @@ const LocalhostSettings = () => {
             ) as FormatConfig_ColorMode,
           }),
         }),
-        parser: new ParseConfig({
-          timestamp: new ParseConfig_Time({ fieldNames: timestamp }),
-          message: new ParseConfig_Message({ fieldNames: message }),
-          level: new ParseConfig_Level({ fieldNames: level }),
+        parser: create(ParseConfigSchema, {
+          timestamp: create(ParseConfig_TimeSchema, { fieldNames: timestamp }),
+          message: create(ParseConfig_MessageSchema, { fieldNames: message }),
+          level: create(ParseConfig_LevelSchema, { fieldNames: level }),
         }),
-        runtime: new RuntimeConfig({
+        runtime: create(RuntimeConfigSchema, {
           interrupt,
           skipCheckForUpdates,
           features: initialConfig?.runtime?.features,

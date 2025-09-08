@@ -1,10 +1,17 @@
 import { describe, it, expect } from "vitest";
-import { Span } from "api/js/types/v1/otel_tracing_pb";
-import { Duration, Timestamp } from "@bufbuild/protobuf";
+import { Span, SpanSchema } from "api/js/types/v1/otel_tracing_pb";
+import {
+  Duration,
+  DurationSchema,
+  Timestamp,
+  TimestampSchema,
+} from "@bufbuild/protobuf/wkt";
 import {
   generateServiceCallMap,
   groupSpansByService,
 } from "@/components/log-interface/query-output/spans/service-map/utils/service-call-analyzer";
+import { create } from "@bufbuild/protobuf";
+import { makeSpanID, makeTraceID } from "@/lib/utils/id-factories";
 
 /**
  * @vitest-environment jsdom
@@ -13,11 +20,11 @@ import {
 describe("service-call-analyzer", () => {
   // Helper functions
   const createTimestamp = (seconds: number): Timestamp => {
-    return new Timestamp({ seconds: BigInt(seconds), nanos: 0 });
+    return create(TimestampSchema, { seconds: BigInt(seconds), nanos: 0 });
   };
 
   const createDuration = (seconds: number): Duration => {
-    return new Duration({ seconds: BigInt(seconds), nanos: 0 });
+    return create(DurationSchema, { seconds: BigInt(seconds), nanos: 0 });
   };
 
   const createSpan = ({
@@ -26,27 +33,24 @@ describe("service-call-analyzer", () => {
     name = "test-span",
     service = "test-service",
     traceId = "trace-123",
-    startTime = 1000,
-    duration = 5,
+    time,
+    duration,
   }: {
     id: string;
     parentId?: string;
     name?: string;
     service?: string;
     traceId?: string;
-    startTime?: number;
-    duration?: number;
+    time?: Timestamp;
+    duration?: Duration;
   }): Span => {
-    return new Span({
-      spanId: id,
-      parentSpanId: parentId,
+    return create(SpanSchema, {
+      spanId: makeSpanID(id),
+      parentSpanId: makeSpanID(parentId),
       name,
       serviceName: service,
-      traceId,
-      timing: {
-        start: createTimestamp(startTime),
-        duration: createDuration(duration),
-      },
+      traceId: makeTraceID(traceId),
+      time,
     });
   };
 
@@ -77,15 +81,15 @@ describe("service-call-analyzer", () => {
         createSpan({
           id: "parent",
           service: "service-a",
-          startTime: 1000,
-          duration: 10,
+          time: createTimestamp(1000),
+          duration: createDuration(10),
         }),
         createSpan({
           id: "child",
           parentId: "parent",
           service: "service-b",
-          startTime: 1002,
-          duration: 5,
+          time: createTimestamp(1002),
+          duration: createDuration(5),
         }),
       ];
 

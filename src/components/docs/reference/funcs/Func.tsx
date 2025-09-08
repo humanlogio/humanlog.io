@@ -16,12 +16,13 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import CodeBlock from "@/components/CodeBlock";
-import { Data } from "api/js/types/v1/data_pb";
+import { DataSchema } from "api/js/types/v1/data_pb";
 import { DataRenderer } from "@/components/log-interface/query-output";
 import { Log } from "api/js/types/v1/otel_logging_pb";
 import { Span } from "api/js/types/v1/otel_tracing_pb";
 import { Table, Val } from "api/js/types/v1/types_pb";
 import { DataCase, DataValue } from "@/components/log-interface";
+import { fromJson } from "@bufbuild/protobuf";
 
 export function Func({ func }: { func: ScalarFuncType }) {
   const convertOutputToData = (output: any): DataValue | undefined => {
@@ -31,7 +32,7 @@ export function Func({ func }: { func: ScalarFuncType }) {
       const spans: Span[] = [];
       let shapeTypes: DataCase | undefined;
 
-      const data = Data.fromJson(output);
+      const data = fromJson(DataSchema, output);
       console.log("data", data);
       console.log("data.shape", data.shape);
       const { case: shapeCase, value } = data.shape;

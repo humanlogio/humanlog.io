@@ -1,5 +1,5 @@
 import { EllipsisVertical, FileText } from "lucide-react";
-import { Timestamp } from "@bufbuild/protobuf";
+import { Timestamp } from "@bufbuild/protobuf/wkt";
 import { Select, SelectContent, SelectItem } from "@/components/ui/select";
 import {
   SelectGroup,
