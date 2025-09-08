@@ -245,17 +245,16 @@ const LogInterface = ({ nav }: LogInterfaceProps) => {
     isLoading: isQueryLoading,
   } = useInfiniteQuery(
     queryMethod,
-    // @ts-ignore
     {
       environmentId: activeEnvironment?.id,
       query: query,
       limit,
+      cursor: create(CursorSchema, {}),
     },
     {
       pageParamKey: "cursor" as const,
-      getNextPageParam: (lastPageParam: Cursor | undefined) => {
-        const response = lastPageParam as unknown as QueryResponse;
-        return response?.next || undefined;
+      getNextPageParam: (lastPage: QueryResponse) => {
+        return lastPage?.next || undefined;
       },
       initialPageParam: undefined,
       transport: useActiveTransport(),
