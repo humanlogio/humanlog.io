@@ -45,10 +45,7 @@ export const OrgList = ({ userInfo }: OrgListProps) => {
   });
 
   const getCurrentSelectedValue = () => {
-    const currentOrg = listOrganizations.find(
-      (org) => org.organization?.name === userInfo.currentOrganization?.name,
-    );
-    return currentOrg?.organization?.id.toString() || "";
+    return userInfo.currentOrganization?.id.toString() || "";
   };
 
   const updateSelection = (value: string) => {
