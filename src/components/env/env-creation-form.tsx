@@ -21,7 +21,6 @@ import {
   useStripe,
 } from "@stripe/react-stripe-js";
 import { loadStripe, Stripe } from "@stripe/stripe-js";
-import { NewOrgModal } from "@/components/org/new-org-modal";
 import { Button } from "@/components/ui/button";
 import {
   Form,

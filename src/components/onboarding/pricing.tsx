@@ -14,7 +14,7 @@ import { Product_Scope } from "api/js/types/v1/product_pb";
 import { ConnectError } from "@connectrpc/connect";
 
 export default function OnboardingPricing() {
-  const { apiClients } = useApiClients();
+  const { apiClients, activeEnvironment } = useApiClients();
   const { userInfo, doLogin, handleAllowedUsage } = useAllEnvironments();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
@@ -54,7 +54,11 @@ export default function OnboardingPricing() {
       });
       handleAllowedUsage();
       toast.success("You're all set with the free plan.");
-      router.push("/localhost/query?tutorial=step1");
+      if (userInfo !== "isLoading") {
+        router.push(
+          `/${userInfo?.currentOrganization?.name}/${activeEnvironment?.name || "localhost"}/query?tutorial=step1`,
+        );
+      }
     } catch (error) {
       console.error("Error subscribing to free plan:", error);
       if (error instanceof ConnectError) {
@@ -70,11 +74,6 @@ export default function OnboardingPricing() {
   const handleViewAllPlans = () => {
     router.push("/pricing");
   };
-
-  if (!userInfo) {
-    doLogin();
-    return;
-  }
 
   return (
     <>

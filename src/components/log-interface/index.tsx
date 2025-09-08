@@ -9,7 +9,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import { NoLocalhostView } from "@/components/log-interface/views/no-localhost-view";
 import { useActiveTransport, useApiClients } from "@/context/api-provider";
@@ -83,14 +83,15 @@ export type QueryTiming = {
 
 const LogInterface = ({ nav }: LogInterfaceProps) => {
   const limit = 1000;
-
   const router = useRouter();
+  const params = useParams();
+  const searchParams = useSearchParams();
   const { apiClients, activeEnvironment } = useApiClients();
   const abortControllerRef = useRef<AbortController>();
 
   const { localhostInfo } = useAllEnvironments();
+  const currentEnvSlug = params?.env as string;
 
-  const searchParams = useSearchParams();
   const queryString = searchParams.get("query");
   const splitByDefault = searchParams.get("splitByDefault") !== "false";
 
@@ -244,11 +245,11 @@ const LogInterface = ({ nav }: LogInterfaceProps) => {
     isLoading: isQueryLoading,
   } = useInfiniteQuery(
     queryMethod,
+    // @ts-ignore
     {
       environmentId: activeEnvironment?.id,
       query: query,
       limit,
-      cursor: undefined,
     },
     {
       pageParamKey: "cursor" as const,
@@ -412,9 +413,7 @@ const LogInterface = ({ nav }: LogInterfaceProps) => {
     queryTiming.startTime,
   ]);
 
-  console.log("localhostInfo", localhostInfo);
-
-  if (!localhostInfo) {
+  if (!localhostInfo && currentEnvSlug === "localhost") {
     return (
       <div className="mt-32 flex justify-center">
         <NoLocalhostView />
