@@ -12,45 +12,43 @@ import { Loader } from "lucide-react";
 
 export const OnboardingUsername = () => {
   const { apiClients } = useApiClients();
-  const { user, doLogin, getUserInfo } = useAllEnvironments();
+  const { userInfo, doLogin, getUserInfo } = useAllEnvironments();
   const [username, setUsername] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
 
   const handleUpdateUser = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (user === "loading" || user === "not-logged-in" || !apiClients) return;
+    if (!userInfo || userInfo === "isLoading" || !apiClients) return;
     setIsSubmitting(true);
-    await updateUser(apiClients.user, user.firstName, user.lastName, username, {
-      onSuccess: (res) => {
-        if (res.user?.username) {
-          getUserInfo();
-          toast.success("Username successfully updated");
-          router.push("/onboarding?step=pricing");
+    await updateUser(
+      apiClients.user,
+      userInfo.user?.firstName,
+      userInfo.user?.lastName,
+      username,
+      {
+        onSuccess: (res) => {
+          if (res.user?.username) {
+            getUserInfo();
+            toast.success("Username successfully updated");
+            router.push("/onboarding?step=pricing");
+            setIsSubmitting(false);
+          }
+        },
+        onError: () => {
           setIsSubmitting(false);
-        }
+        },
       },
-      onError: () => {
-        setIsSubmitting(false);
-      },
-    });
+    );
   };
 
-  if (user === "not-logged-in") {
-    doLogin();
+  if (!userInfo || userInfo === "isLoading") {
+    // doLogin();
     return;
   }
 
-  if (user === "loading") {
-    return (
-      <div className="flex h-[calc(100vh-260px)] w-full items-center justify-center">
-        <Loader className="animate-spin" size={50} />
-      </div>
-    );
-  }
-
-  if (user.username) {
-    router.push("/localhost");
+  if (userInfo.user?.username) {
+    router.push("/onboarding?step=pricing");
     return;
   }
 

@@ -1,11 +1,12 @@
-import { Timestamp } from "@bufbuild/protobuf";
+import { Timestamp, TimestampSchema } from "@bufbuild/protobuf/wkt";
 import type { SampleDataScenario } from "@/components/log-interface/query-output/spans/service-map/types";
 import { makeSpan } from "@/lib/utils/spanFactories";
 import { makeStrKV } from "@/lib/utils/kvFactories";
+import { create } from "@bufbuild/protobuf";
 
 // Utility functions for creating spans
 const createTimestamp = (seconds: number, nanos: number = 0): Timestamp => {
-  return new Timestamp({ seconds: BigInt(seconds), nanos });
+  return create(TimestampSchema, { seconds: BigInt(seconds), nanos });
 };
 
 // Base timestamp for all samples (15 seconds ago)

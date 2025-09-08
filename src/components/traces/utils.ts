@@ -1,5 +1,5 @@
 import { spanIdToString } from "@/lib/utils/id-factories";
-import { Timestamp } from "@bufbuild/protobuf";
+import { Timestamp } from "@bufbuild/protobuf/wkt";
 import { Span } from "api/js/types/v1/otel_tracing_pb";
 import { ReactNode } from "react";
 

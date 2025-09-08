@@ -4,7 +4,7 @@ import { ConnectError } from "@connectrpc/connect";
 import { toast } from "sonner";
 import { QueryList } from "@/components/log-interface/query-library/query-list";
 import { ListFavoriteQueryResponse_ListItem } from "api/js/svc/user/v1/service_private_pb";
-import { Timestamp } from "@bufbuild/protobuf";
+import { Timestamp } from "@bufbuild/protobuf/wkt";
 import { ExecuteQuery } from "@/components/log-interface";
 interface SavedQueryProps {
   items: ListFavoriteQueryResponse_ListItem[];

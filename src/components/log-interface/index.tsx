@@ -9,7 +9,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import { NoLocalhostView } from "@/components/log-interface/views/no-localhost-view";
 import { useActiveTransport, useApiClients } from "@/context/api-provider";
@@ -23,14 +23,16 @@ import {
   ParseResponse,
   QueryResponse,
   StreamRequest,
+  StreamRequestSchema,
   StreamResponse,
 } from "api/js/svc/query/v1/service_pb";
 import {
   Query,
-  RenderStatement,
-  SplitOperator,
-  SplitOperator_ByOperator,
-  Statements,
+  QuerySchema,
+  RenderStatementSchema,
+  SplitOperatorSchema,
+  SplitOperator_ByOperatorSchema,
+  StatementsSchema,
 } from "api/js/types/v1/query_pb";
 import { Table, Val } from "api/js/types/v1/types_pb";
 import { X } from "lucide-react";
@@ -45,14 +47,15 @@ import { twMerge } from "tailwind-merge";
 import Graph from "@/components/ui/graph/graph";
 import { trace, SpanStatusCode } from "@opentelemetry/api";
 import { ConnectError } from "@connectrpc/connect";
-import { Duration } from "@bufbuild/protobuf";
+import { Duration, DurationSchema } from "@bufbuild/protobuf/wkt";
 import FeatureFlag from "@/components/posthog/feature-flag";
 import { logger } from "@/lib/utils/telemetry/logger";
 import { newIdentifierExpr } from "@/lib/utils/queryExpressions";
-import { Cursor } from "api/js/types/v1/cursor_pb";
+import { Cursor, CursorSchema } from "api/js/types/v1/cursor_pb";
 import { Log } from "api/js/types/v1/otel_logging_pb";
 import { Span } from "api/js/types/v1/otel_tracing_pb";
 import { QueryTimer } from "@/components/log-interface/query-timer";
+import { create } from "@bufbuild/protobuf";
 
 export type DataCase = "subqueries" | "freeForm" | "logs" | "spans" | undefined;
 
@@ -80,14 +83,15 @@ export type QueryTiming = {
 
 const LogInterface = ({ nav }: LogInterfaceProps) => {
   const limit = 1000;
-
   const router = useRouter();
+  const params = useParams();
+  const searchParams = useSearchParams();
   const { apiClients, activeEnvironment } = useApiClients();
   const abortControllerRef = useRef<AbortController>();
 
   const { localhostInfo } = useAllEnvironments();
+  const currentEnvSlug = params?.env as string;
 
-  const searchParams = useSearchParams();
   const queryString = searchParams.get("query");
   const splitByDefault = searchParams.get("splitByDefault") !== "false";
 
@@ -118,11 +122,11 @@ const LogInterface = ({ nav }: LogInterfaceProps) => {
   const span = tracer.startSpan("query-span");
 
   const createSplitRenderStatement = () => {
-    return new RenderStatement({
+    return create(RenderStatementSchema, {
       stmt: {
         case: "split",
-        value: new SplitOperator({
-          by: new SplitOperator_ByOperator({
+        value: create(SplitOperatorSchema, {
+          by: create(SplitOperator_ByOperatorSchema, {
             scalars: [newIdentifierExpr("_resource_fingerprint")],
           }),
         }),
@@ -149,7 +153,7 @@ const LogInterface = ({ nav }: LogInterfaceProps) => {
           parseRes.query.query.render = renderStmt;
         }
         {
-          parseRes.query.query = new Statements({
+          parseRes.query.query = create(StatementsSchema, {
             statements: statements,
             render: renderStmt,
           });
@@ -183,11 +187,11 @@ const LogInterface = ({ nav }: LogInterfaceProps) => {
 
     if (!apiClients?.query) return;
 
-    const streamReq = new StreamRequest({
+    const streamReq = create(StreamRequestSchema, {
       environmentId: activeEnvironment?.id,
       query,
       maxBatchSize: BigInt(batchSize),
-      maxBatchingFor: new Duration({
+      maxBatchingFor: create(DurationSchema, {
         nanos: batchInterval * 1_000_000,
       }),
     });
@@ -242,15 +246,15 @@ const LogInterface = ({ nav }: LogInterfaceProps) => {
   } = useInfiniteQuery(
     queryMethod,
     {
-      environmentId: activeEnvironment?.id ?? BigInt(0),
-      query: query ?? new Query(),
+      environmentId: activeEnvironment?.id,
+      query: query,
       limit,
+      cursor: create(CursorSchema, {}),
     },
     {
       pageParamKey: "cursor" as const,
-      getNextPageParam: (lastPageParam: Cursor | undefined) => {
-        const response = lastPageParam as unknown as QueryResponse;
-        return response?.next || undefined;
+      getNextPageParam: (lastPage: QueryResponse) => {
+        return lastPage?.next || undefined;
       },
       initialPageParam: undefined,
       transport: useActiveTransport(),
@@ -408,7 +412,7 @@ const LogInterface = ({ nav }: LogInterfaceProps) => {
     queryTiming.startTime,
   ]);
 
-  if (!localhostInfo) {
+  if (!localhostInfo && currentEnvSlug === "localhost") {
     return (
       <div className="mt-32 flex justify-center">
         <NoLocalhostView />

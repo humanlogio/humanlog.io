@@ -12,10 +12,11 @@ import { listProduct } from "api/js/svc/product/v1/service-ProductService_connec
 import { createAddonSubscription } from "api/js/svc/organization/v1/service-OrganizationService_connectquery";
 import { Product_Scope } from "api/js/types/v1/product_pb";
 import { ConnectError } from "@connectrpc/connect";
+import { getOrgEnvUrl } from "@/lib/utils/navigation";
 
 export default function OnboardingPricing() {
-  const { apiClients } = useApiClients();
-  const { user, doLogin, handleAllowedUsage } = useAllEnvironments();
+  const { apiClients, activeEnvironment } = useApiClients();
+  const { userInfo, doLogin, handleAllowedUsage } = useAllEnvironments();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
 
@@ -29,7 +30,7 @@ export default function OnboardingPricing() {
   );
 
   const handleStartFree = async () => {
-    if (user === "loading" || user === "not-logged-in" || !apiClients) return;
+    if (!userInfo || !apiClients) return;
 
     setIsSubmitting(true);
     try {
@@ -54,7 +55,9 @@ export default function OnboardingPricing() {
       });
       handleAllowedUsage();
       toast.success("You're all set with the free plan.");
-      router.push("/localhost/query?tutorial=step1");
+      if (userInfo !== "isLoading") return;
+      const url = getOrgEnvUrl(userInfo, activeEnvironment);
+      router.push(url);
     } catch (error) {
       console.error("Error subscribing to free plan:", error);
       if (error instanceof ConnectError) {
@@ -70,19 +73,6 @@ export default function OnboardingPricing() {
   const handleViewAllPlans = () => {
     router.push("/pricing");
   };
-
-  if (user === "not-logged-in") {
-    doLogin();
-    return;
-  }
-
-  if (user === "loading") {
-    return (
-      <div className="flex h-[calc(100vh-260px)] w-full items-center justify-center">
-        <Loader className="animate-spin" size={50} />
-      </div>
-    );
-  }
 
   return (
     <>

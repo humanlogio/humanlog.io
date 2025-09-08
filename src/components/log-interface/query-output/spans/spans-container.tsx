@@ -1,4 +1,3 @@
-import { useInfiniteQuery } from "@/lib/hooks/useInfiniteQuery";
 import { Spans } from "api/js/types/v1/data_pb";
 import { QueryHistoryEntry } from "api/js/types/v1/query_history_entry_pb";
 import { Query } from "api/js/types/v1/query_pb";
