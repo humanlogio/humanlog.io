@@ -1,7 +1,7 @@
 import { Card } from "@/components/ui/card";
 import { useEffect, useState, useRef } from "react";
 import { formatDuration } from "@/lib/utils/formatTimeStamp";
-import { Duration } from "@bufbuild/protobuf";
+import { DurationSchema } from "@bufbuild/protobuf/wkt";
 import * as d3 from "d3";
 import { generateServiceCallMap } from "@/components/log-interface/query-output/spans/service-map/utils/service-call-analyzer";
 import {
@@ -9,6 +9,7 @@ import {
   Link,
 } from "@/components/log-interface/query-output/spans/service-map/types";
 import { Span } from "api/js/types/v1/otel_tracing_pb";
+import { create } from "@bufbuild/protobuf";
 
 interface ServiceMapProps {
   spans: Span[];
@@ -293,7 +294,10 @@ export const ServiceMap = ({ spans }: ServiceMapProps) => {
         // Convert to Duration for formatting
         const seconds = Math.floor(avgDurationMs / 1000);
         const nanos = (avgDurationMs % 1000) * 1_000_000;
-        const duration = new Duration({ seconds: BigInt(seconds), nanos });
+        const duration = create(DurationSchema, {
+          seconds: BigInt(seconds),
+          nanos,
+        });
         return `avg: ${formatDuration(duration)}`;
       });
 
@@ -580,7 +584,7 @@ export const ServiceMap = ({ spans }: ServiceMapProps) => {
                             );
                             const seconds = Math.floor(avgDuration / 1000);
                             const nanos = (avgDuration % 1000) * 1_000_000;
-                            const duration = new Duration({
+                            const duration = create(DurationSchema, {
                               seconds: BigInt(seconds),
                               nanos,
                             });
@@ -633,7 +637,7 @@ export const ServiceMap = ({ spans }: ServiceMapProps) => {
                             );
                             const seconds = Math.floor(avgDuration / 1000);
                             const nanos = (avgDuration % 1000) * 1_000_000;
-                            const duration = new Duration({
+                            const duration = create(DurationSchema, {
                               seconds: BigInt(seconds),
                               nanos,
                             });

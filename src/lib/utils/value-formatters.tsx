@@ -1,4 +1,9 @@
-import { Duration } from "@bufbuild/protobuf";
+import {
+  Duration,
+  DurationSchema,
+  timestampDate,
+} from "@bufbuild/protobuf/wkt";
+import { toJsonString } from "@bufbuild/protobuf";
 import { Scalar, Val, VarType, ScalarType } from "api/js/types/v1/types_pb";
 import { decodeUint8Array } from "@/lib/utils/decode";
 import {
@@ -25,7 +30,7 @@ export const valueToString = (val: Val | Scalar | undefined): string => {
     case "obj":
       return JSON.stringify(val.kind.value);
     case "ts":
-      return val.kind.value.toDate().toISOString();
+      return timestampDate(val.kind.value).toISOString();
     case "dur":
       return durationToString(val.kind.value);
     case "map":
@@ -84,7 +89,7 @@ export const durationToString = (dur: Duration): string => {
   if (dur.seconds < BigInt(24 * 60 * 60)) {
     return wholeOrSingleDecimal(Number(dur.seconds), 60 * 60) + "h";
   }
-  return dur.toJsonString();
+  return toJsonString(DurationSchema, dur);
 };
 
 /**

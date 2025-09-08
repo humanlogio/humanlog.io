@@ -1,7 +1,13 @@
-import { Duration, Timestamp } from "@bufbuild/protobuf";
+import {
+  Duration,
+  DurationSchema,
+  Timestamp,
+  timestampFromDate,
+} from "@bufbuild/protobuf/wkt";
 import { KV } from "api/js/types/v1/types_pb";
-import { Span } from "api/js/types/v1/otel_tracing_pb";
+import { Span, SpanSchema } from "api/js/types/v1/otel_tracing_pb";
 import { makeULID, makeTraceID, makeSpanID } from "@/lib/utils/id-factories";
+import { create } from "@bufbuild/protobuf";
 
 /**
  * Create a protobuf Duration from milliseconds.
@@ -9,7 +15,7 @@ import { makeULID, makeTraceID, makeSpanID } from "@/lib/utils/id-factories";
 export const makeDurationFromMs = (ms: number): Duration => {
   const seconds = BigInt(Math.floor(ms / 1000));
   const nanos = (ms % 1000) * 1_000_000;
-  return new Duration({ seconds, nanos });
+  return create(DurationSchema, { seconds, nanos });
 };
 
 export const makeSpan = (
@@ -22,9 +28,9 @@ export const makeSpan = (
   durationMs: number,
   attributes: KV[],
 ): Span => {
-  return new Span({
+  return create(SpanSchema, {
     ulid: makeULID(),
-    indextime: Timestamp.fromDate(new Date()),
+    indextime: timestampFromDate(new Date()),
     spanId: makeSpanID(spanId),
     traceId: makeTraceID(traceId),
     parentSpanId: parentSpanId ? makeSpanID(parentSpanId) : undefined,
