@@ -35,10 +35,9 @@ export const EnvList = ({ userInfo }: EnvListProps) => {
   const currentEnvSlug = params?.env as string;
 
   const getCurrentSelectedValue = () => {
-    if (
-      (currentEnvSlug === "localhost" || !activeEnvironment) &&
-      localhostInfo
-    ) {
+    if (!localhostInfo) return;
+
+    if (currentEnvSlug === "localhost" || !activeEnvironment) {
       return localhostVersion(localhostInfo);
     }
 
