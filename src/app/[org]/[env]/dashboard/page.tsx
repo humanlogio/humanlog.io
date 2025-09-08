@@ -15,9 +15,9 @@ import {
 } from "@/components/ui/dialog";
 import { Accordion } from "@/components/ui/accordion";
 import { useApiClients } from "@/context/api-provider";
-import { ProjectContainer } from "@/app/localhost/dashboard/components/project-container";
 import LoadingIndicator from "@/components/loading-indicator";
-import { ProjectForm } from "@/app/localhost/dashboard/components/project-form";
+import { ProjectContainer } from "@/app/[org]/[env]/dashboard/components/project-container";
+import { ProjectForm } from "@/app/[org]/[env]/dashboard/components/project-form";
 
 export default function DashboardListPage() {
   const { activeEnvironment } = useApiClients();

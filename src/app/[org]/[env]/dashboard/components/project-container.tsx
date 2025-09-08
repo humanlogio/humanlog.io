@@ -43,8 +43,8 @@ import {
 
 import { useApiClients } from "@/context/api-provider";
 import { Project } from "api/js/types/v1/project_pb";
-import { PointerInfo } from "@/app/localhost/dashboard/components/pointer-info";
-import { ReadOnlyField } from "@/app/localhost/dashboard/components/read-only-field";
+import { PointerInfo } from "@/app/[org]/[env]/dashboard/components/pointer-info";
+import { ReadOnlyField } from "@/app/[org]/[env]/dashboard/components/read-only-field";
 import { create } from "@bufbuild/protobuf";
 
 const formSchema = z.object({
