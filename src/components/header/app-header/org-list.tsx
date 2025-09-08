@@ -56,6 +56,7 @@ export const OrgList = ({ userInfo }: OrgListProps) => {
     if (!selected) return;
 
     getAuthURLMutation({
+      username: userInfo.user?.username,
       organization: {
         case: "byId",
         value: BigInt(value),
