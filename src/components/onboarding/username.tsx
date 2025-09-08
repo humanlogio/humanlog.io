@@ -19,7 +19,7 @@ export const OnboardingUsername = () => {
 
   const handleUpdateUser = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!userInfo || !apiClients) return;
+    if (!userInfo || userInfo === "isLoading" || !apiClients) return;
     setIsSubmitting(true);
     await updateUser(
       apiClients.user,
@@ -42,13 +42,13 @@ export const OnboardingUsername = () => {
     );
   };
 
-  if (!userInfo?.user) {
-    doLogin();
+  if (!userInfo || userInfo === "isLoading") {
+    // doLogin();
     return;
   }
 
-  if (userInfo.user.username) {
-    router.push("/localhost");
+  if (userInfo.user?.username) {
+    router.push("/onboarding?step=pricing");
     return;
   }
 

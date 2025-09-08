@@ -188,9 +188,10 @@ const SubQueryPanel = ({
     isLoading: isQueryLoading,
   } = useInfiniteQuery(
     queryMethod,
+    //@ts-ignore
     {
       environmentId: activeEnvironment?.id ?? BigInt(0),
-      query: list.query ?? new Query(),
+      query: list.query,
       limit: 1000,
     },
     {

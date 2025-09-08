@@ -19,8 +19,12 @@ import { Loader } from "lucide-react";
 import { useApiClients } from "@/context/api-provider";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
-import { ConnectError } from "@connectrpc/connect";
 import { updateUser } from "@/services/userService";
+import { WhoamiResponse } from "api/js/svc/user/v1/service_private_pb";
+
+interface UserSettingsFormProps {
+  userInfo: WhoamiResponse;
+}
 
 const formSchema = z.object({
   firstName: z.string().min(1, "First Name is required"),
@@ -28,9 +32,9 @@ const formSchema = z.object({
   username: z.string().optional(),
 });
 
-export function UserSettingsForm() {
-  const { getUserInfo, userInfo } = useAllEnvironments();
+export function UserSettingsForm({ userInfo }: UserSettingsFormProps) {
   const { apiClients } = useApiClients();
+  const { getUserInfo } = useAllEnvironments();
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formChanged, setFormChanged] = useState(false);

@@ -14,7 +14,7 @@ import { Check, Copy, TriangleAlert } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { updateUser } from "@/services/userService";
-import { Dispatch, SetStateAction, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { useAllEnvironments } from "@/context/list-environments";
 import { toast } from "sonner";
 
@@ -45,12 +45,12 @@ export const ShareQuery = ({
   const { apiClients } = useApiClients();
 
   const [username, setUsername] = useState("");
-  const [isValid, setIsValid] = useState(!!userInfo?.user?.username);
+  const [isValid, setIsValid] = useState(false);
   const [shareLink, setShareLink] = useState<string | null>();
   const [copied, setCopied] = useState(false);
 
   const handleUpdateUser = async () => {
-    if (!userInfo || !apiClients) return;
+    if (userInfo === "isLoading" || !apiClients || !userInfo) return;
     await updateUser(
       apiClients.user,
       userInfo.user?.firstName,
@@ -117,6 +117,11 @@ export const ShareQuery = ({
     resetLink();
     setSharedData(null);
   };
+
+  useEffect(() => {
+    if (userInfo === "isLoading") return;
+    setIsValid(!!userInfo?.user?.username);
+  }, [userInfo]);
 
   return (
     <Dialog open={!!sharedData} onOpenChange={onOpenChange}>
