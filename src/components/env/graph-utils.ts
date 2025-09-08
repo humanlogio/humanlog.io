@@ -1,54 +1,60 @@
 import { SummarizeEventsResponse_Bucket } from "api/js/svc/query/v1/service_pb";
-import { Timestamp } from "@bufbuild/protobuf";
+import {
+  Timestamp,
+  timestampDate,
+  TimestampSchema,
+} from "@bufbuild/protobuf/wkt";
+import { create } from "@bufbuild/protobuf";
 
-const formatToDateString = (time: Timestamp, diff: number) => {
-  if (diff > 1000 * 60 * 60 * 24 * 30 * 12 * 2) {
-    // years
-    return time.toDate().toLocaleDateString("en-US", {
-      year: "numeric",
-    });
-  }
-  if (diff > 1000 * 60 * 60 * 24 * 30 * 2) {
-    // months
-    return time.toDate().toLocaleDateString("en-US", {
-      month: "short",
-      year: "numeric",
-    });
-  }
-  if (diff > 1000 * 60 * 60 * 24 * 7) {
-    // days
-    return time.toDate().toLocaleDateString("en-US", {
-      month: "short",
-      day: "2-digit",
-    });
-  }
-  if (diff > 1000 * 60 * 60 * 24 * 2) {
-    // weekday
-    return time.toDate().toLocaleDateString("en-US", {
-      weekday: "short",
-      dayPeriod: "short",
-    });
-  }
-  if (diff > 1000 * 60 * 10) {
-    // hours
-    return time.toDate().toLocaleTimeString("en-US", {
-      hourCycle: "h24",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  }
-  // minutes
-  return time.toDate().toLocaleTimeString("en-US", {
-    hourCycle: "h24",
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-    fractionalSecondDigits: 3,
-  });
-};
+// TODO: later....
+// const formatToDateString = (time: Timestamp, diff: number) => {
+//   if (diff > 1000 * 60 * 60 * 24 * 30 * 12 * 2) {
+//     // years
+//     return time.toDate().toLocaleDateString("en-US", {
+//       year: "numeric",
+//     });
+//   }
+//   if (diff > 1000 * 60 * 60 * 24 * 30 * 2) {
+//     // months
+//     return time.toDate().toLocaleDateString("en-US", {
+//       month: "short",
+//       year: "numeric",
+//     });
+//   }
+//   if (diff > 1000 * 60 * 60 * 24 * 7) {
+//     // days
+//     return time.toDate().toLocaleDateString("en-US", {
+//       month: "short",
+//       day: "2-digit",
+//     });
+//   }
+//   if (diff > 1000 * 60 * 60 * 24 * 2) {
+//     // weekday
+//     return time.toDate().toLocaleDateString("en-US", {
+//       weekday: "short",
+//       dayPeriod: "short",
+//     });
+//   }
+//   if (diff > 1000 * 60 * 10) {
+//     // hours
+//     return time.toDate().toLocaleTimeString("en-US", {
+//       hourCycle: "h24",
+//       hour: "2-digit",
+//       minute: "2-digit",
+//     });
+//   }
+//   // minutes
+//   return time.toDate().toLocaleTimeString("en-US", {
+//     hourCycle: "h24",
+//     hour: "2-digit",
+//     minute: "2-digit",
+//     second: "2-digit",
+//     fractionalSecondDigits: 3,
+//   });
+// };
 
 export const convertToTimestamp = (date: Date) =>
-  new Timestamp({
+  create(TimestampSchema, {
     seconds: BigInt(Math.floor(date.getTime() / 1000)),
     nanos: (date.getTime() % 1000) * 1e6,
   });
@@ -65,7 +71,7 @@ export const convertToGraphDataPoints = (
     .filter((data) => data?.ts)
     .map((data, i) => ({
       dayNumber: i,
-      date: data.ts!.toDate(),
+      date: timestampDate(data.ts!),
       amt: Number(data.eventCount),
     }));
 };
@@ -75,11 +81,11 @@ export const closestIndex = (
   targetDate: Date,
 ) =>
   buckets.reduce((closest, bucket, index) => {
-    const currentTs = bucket.ts?.toDate();
+    const currentTs = timestampDate(bucket.ts!);
     if (!currentTs) return closest;
 
     const currentDiff = Math.abs(currentTs.getTime() - targetDate.getTime());
-    const closestTime = buckets[closest]?.ts?.toDate()?.getTime();
+    const closestTime = timestampDate(buckets[closest]?.ts!).getTime();
     if (!closestTime) {
       return index;
     }

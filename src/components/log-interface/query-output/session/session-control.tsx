@@ -1,6 +1,6 @@
 import { TooltipContent } from "@/components/ui/tooltip";
 import { formatTimestamp, getUnixTimestamp } from "@/lib/utils/formatTimeStamp";
-import { Timestamp } from "@bufbuild/protobuf";
+import { Timestamp } from "@bufbuild/protobuf/wkt";
 import { BinaryOp_Operator, Expr } from "api/js/types/v1/query_pb";
 import { useAllEnvironments } from "@/context/list-environments";
 import {

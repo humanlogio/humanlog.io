@@ -7,12 +7,13 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useEffect, useState } from "react";
-import { Data, Spans } from "api/js/types/v1/data_pb";
+import { Data, SpansSchema } from "api/js/types/v1/data_pb";
 import { Input } from "@/components/ui/input";
 import { QueryHistoryEntry } from "api/js/types/v1/query_history_entry_pb";
 import { ShareQuery } from "@/components/log-interface/share-query";
 import { newSpansData } from "@/lib/utils/dataShapeFactories";
 import { SpanCard } from "@/components/log-interface/query-output/spans/span-list/span-card";
+import { create } from "@bufbuild/protobuf";
 
 interface SpanListProps {
   spans: Span[];
@@ -32,7 +33,7 @@ export const SpanList = ({
   const [searchTerm, setSearchTerm] = useState("");
 
   const onClickShare = () => {
-    const data = newSpansData(new Spans({ spans }));
+    const data = newSpansData(create(SpansSchema, { spans }));
     setSharedData(data);
   };
 

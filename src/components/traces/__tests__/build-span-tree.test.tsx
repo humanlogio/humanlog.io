@@ -1,8 +1,14 @@
 import { describe, it, expect } from "vitest";
-import { Duration, Timestamp } from "@bufbuild/protobuf";
+import {
+  Duration,
+  DurationSchema,
+  Timestamp,
+  TimestampSchema,
+} from "@bufbuild/protobuf/wkt";
 import { buildSpanTree, SpanTreeNode } from "@/components/traces/utils";
-import { Span } from "api/js/types/v1/otel_tracing_pb";
+import { Span, SpanSchema } from "api/js/types/v1/otel_tracing_pb";
 import { makeSpanID, spanIdToString } from "@/lib/utils/id-factories";
+import { create } from "@bufbuild/protobuf";
 
 /**
  * @vitest-environment jsdom
@@ -28,11 +34,11 @@ describe("buildSpanTree", () => {
   };
 
   const createTimestamp = (seconds: number): Timestamp => {
-    return new Timestamp({ seconds: BigInt(seconds), nanos: 0 });
+    return create(TimestampSchema, { seconds: BigInt(seconds), nanos: 0 });
   };
 
   const createDuration = (seconds: number): Duration => {
-    return new Duration({ seconds: BigInt(seconds), nanos: 0 });
+    return create(DurationSchema, { seconds: BigInt(seconds), nanos: 0 });
   };
 
   const createSpan = ({
@@ -50,7 +56,7 @@ describe("buildSpanTree", () => {
     startTime?: number;
     duration?: number;
   }): Span => {
-    return new Span({
+    return create(SpanSchema, {
       spanId: makeSpanID(id),
       parentSpanId: parentId ? makeSpanID(parentId) : undefined,
       name,

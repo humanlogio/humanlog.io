@@ -17,7 +17,7 @@ import { usePathname, useSearchParams } from "next/navigation";
 import { decodeUint8Array } from "@/lib/utils/decode";
 import { useRouter } from "next/navigation";
 import { Val } from "api/js/types/v1/types_pb";
-import { Data, Logs } from "api/js/types/v1/data_pb";
+import { Data, LogsSchema } from "api/js/types/v1/data_pb";
 import { ShareQuery } from "@/components/log-interface/share-query";
 import { QueryHistoryEntry } from "api/js/types/v1/query_history_entry_pb";
 import { useAllEnvironments } from "@/context/list-environments";
@@ -27,6 +27,7 @@ import { Log } from "api/js/types/v1/otel_logging_pb";
 import { useInView } from "react-intersection-observer";
 import { LogLine } from "@/components/log-interface/query-output/session/log-line";
 import { ulidToString } from "@/lib/utils/id-factories";
+import { create } from "@bufbuild/protobuf";
 
 interface SessionPanelProps {
   resourceFingerprint?: string;
@@ -110,7 +111,7 @@ const SessionPanel = ({
   }, []);
 
   const onClickShare = useCallback(() => {
-    const data = newLogsData(new Logs({ logs }));
+    const data = newLogsData(create(LogsSchema, { logs }));
     setSharedData(data);
   }, [logs]);
 
