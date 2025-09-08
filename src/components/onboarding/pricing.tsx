@@ -12,6 +12,7 @@ import { listProduct } from "api/js/svc/product/v1/service-ProductService_connec
 import { createAddonSubscription } from "api/js/svc/organization/v1/service-OrganizationService_connectquery";
 import { Product_Scope } from "api/js/types/v1/product_pb";
 import { ConnectError } from "@connectrpc/connect";
+import { getOrgEnvUrl } from "@/lib/utils/navigation";
 
 export default function OnboardingPricing() {
   const { apiClients, activeEnvironment } = useApiClients();
@@ -54,11 +55,9 @@ export default function OnboardingPricing() {
       });
       handleAllowedUsage();
       toast.success("You're all set with the free plan.");
-      if (userInfo !== "isLoading") {
-        router.push(
-          `/${userInfo?.currentOrganization?.name}/${activeEnvironment?.name || "localhost"}/query?tutorial=step1`,
-        );
-      }
+      if (userInfo !== "isLoading") return;
+      const url = getOrgEnvUrl(userInfo, activeEnvironment);
+      router.push(url);
     } catch (error) {
       console.error("Error subscribing to free plan:", error);
       if (error instanceof ConnectError) {

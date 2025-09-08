@@ -1,23 +1,22 @@
+import { UserInfo } from "@/context/list-environments";
+import { Environment } from "api/js/types/v1/environment_pb";
+
 // User
 export function getUserSettingsUrl() {
   return `/settings/users`;
 }
 
-// Org
-export function getOrgUrl(orgName: string) {
-  return `/org/${orgName}`;
+export function getOrgEnvUrl(
+  userInfo: UserInfo,
+  activeEnvironment?: Environment,
+) {
+  if (!userInfo || userInfo === "isLoading") return "/";
+
+  return `/${userInfo.currentOrganization?.name}/${activeEnvironment?.name ?? "localhost"}/query`;
 }
 
 export function getOrgSettingsUrl(orgName: string) {
   return `/org/${orgName}/edit`;
-}
-
-// Env
-export function getEnvUrl(envName: string, orgName?: string) {
-  if (orgName) {
-    return `/org/${orgName}/env/${envName}`;
-  }
-  return `/env/${envName}`;
 }
 
 export function getEnvSettingsUrl(envName: string, orgName: string) {

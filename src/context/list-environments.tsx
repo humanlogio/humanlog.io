@@ -32,7 +32,7 @@ export type FilterBySymbol = {
   op?: BinaryOp_Operator;
 };
 
-type UserInfo = WhoamiResponse | "isLoading" | undefined;
+export type UserInfo = WhoamiResponse | "isLoading" | undefined;
 
 type AllEnvironments = {
   userInfo: UserInfo;
@@ -147,7 +147,7 @@ export function ListEnvironmentsProvider({
     deleteCookie();
     localStorage.removeItem("hlog_session");
     try {
-      if (!apiClients) return;
+      if (!apiClients || userInfo === "isLoading") return;
 
       const { logoutUrl } = await apiClients.user.getLogoutURL({
         returnTo: logoutReturnToURL,
