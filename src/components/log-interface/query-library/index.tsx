@@ -114,17 +114,16 @@ export const QueryLibrary = ({
 
   const updateQueryHistory = useCallback(async () => {
     const res = await apiClients?.user.getQueryHistory({ id: recentQueryId });
-    if (res) {
-      setRecentQueriesData((prev) => {
-        const filtered = prev.filter(
-          (query) => query.entry?.id !== recentQueryId,
-        );
-        const listItem = create(ListQueryHistoryResponse_ListItemSchema, {
-          entry: res.entry,
-        });
-        return [listItem, ...filtered];
+    if (!res) return;
+    setRecentQueriesData((prev) => {
+      const filtered = prev.filter(
+        (query) => query.entry?.id !== recentQueryId,
+      );
+      const listItem = create(ListQueryHistoryResponse_ListItemSchema, {
+        entry: res.entry,
       });
-    }
+      return [listItem, ...filtered];
+    });
   }, [recentQueryId, apiClients?.user, setRecentQueriesData]);
 
   const updateSavedQuery = useCallback(async () => {
