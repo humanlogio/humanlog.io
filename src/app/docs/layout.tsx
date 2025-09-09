@@ -3,185 +3,185 @@ import { ReactNode } from "react";
 import { NavItem } from "@/lib/contents";
 import { reference } from "@/lib/utils/reference";
 
-export default function DocsLayout({ children }: { children: ReactNode }) {
-  const navItems: NavItem[] = [
-    {
-      title: "Get Started",
-      path: "/docs/get-started",
-      children: [
-        { title: "Introduction", path: "/docs/get-started/introduction" },
-        { title: "Installation", path: "/docs/get-started/installation" },
-        { title: "Basic Usage", path: "/docs/get-started/basic-usage" },
-      ],
-    },
-    {
-      title: "Concepts",
-      path: "/docs/concepts",
-      children: [
-        { title: "Overview", path: "/docs/concepts" },
-        { title: "Logging", path: "/docs/concepts/logging" },
-        { title: "Tracing", path: "/docs/concepts/tracing" },
-        { title: "Localhost", path: "/docs/concepts/localhost" },
-      ],
-    },
-    {
-      title: "Features",
-      path: "/docs/features",
-      children: [
-        { title: "CLI", path: "/docs/features/cli" },
-        {
-          title: "Query",
-          path: "/docs/features/query",
-          children: [
-            { title: "Basic Usage", path: "/docs/features/query#basic-usage" },
-            {
-              title: "Query Editor Area",
-              path: "/docs/features/query#query-editor-area",
-            },
-            {
-              title: "Discovering Symbols In Scope",
-              path: "/docs/features/query#discovering-symbols-in-scope",
-            },
-            {
-              title: "Reviewing Historical Queries",
-              path: "/docs/features/query#reviewing-historical-queries",
-            },
-            {
-              title: "Saving Your Favorite Queries",
-              path: "/docs/features/query#saving-your-favorite-queries",
-            },
-            {
-              title: "Query Results",
-              path: "/docs/features/query#query-results",
-            },
-            {
-              title: "Sharing Your Results",
-              path: "/docs/features/query#sharing-your-results",
-            },
-            { title: "FAQ", path: "/docs/features/query#faq" },
-          ],
-        },
-        { title: "Stream", path: "/docs/features/stream" },
-        { title: "Sharing", path: "/docs/features/sharing" },
-        { title: "Themes", path: "/docs/features/themes" },
-      ],
-    },
-    {
-      title: "Integrations",
-      path: "/docs/integrations",
-      children: [
-        { title: "Overview", path: "/docs/integrations" },
-        { title: "OpenTelemetry", path: "/docs/integrations/opentelemetry" },
-        {
-          title: "Structured Logging",
-          path: "/docs/integrations/structured-logging",
-        },
-        {
-          title: "Containers",
-          path: "/docs/integrations/containers",
-        },
-      ],
-    },
-    {
-      title: "Reference",
-      path: "/docs/reference",
-      children: [
-        {
-          title: "Overview",
-          path: "/docs/reference",
-        },
-        {
-          title: "Symbols",
-          path: "/docs/reference/symbols",
-          children: [
-            {
-              title: "Logs",
-              path: "/docs/reference/symbols/logs",
-            },
-            {
-              title: "Spans",
-              path: "/docs/reference/symbols/spans",
-            },
-          ],
-        },
-        {
-          title: "Functions",
-          path: "/docs/reference/functions",
-          children: [
-            {
-              title: "Scalar",
-              path: "/docs/reference/functions/scalar",
-              children: reference.funcs.scalar
-                .filter((func) => func.implemented)
-                .map((func) => ({
-                  title: func.name,
-                  path: `/docs/reference/functions/scalar#${func.name}`,
-                })),
-            },
-            {
-              title: "Aggregate",
-              path: "/docs/reference/functions/aggregate",
-              children: reference.funcs.aggregate
-                .filter((func) => func.implemented)
-                .map((func) => ({
-                  title: func.name,
-                  path: `/docs/reference/functions/aggregate#${func.name}`,
-                })),
-            },
-          ],
-        },
-        {
-          title: "Operators",
-          path: "/docs/reference/operators",
-          children: [
-            {
-              title: "Scalar",
-              path: "/docs/reference/operators/scalar",
-              children: reference.operators.scalar
-                .filter((op) => op.implemented)
-                .map((op) => ({
-                  title: op.name,
-                  path: `/docs/reference/operators/scalar#${op.name}`,
-                })),
-            },
-            {
-              title: "Tabular",
-              path: "/docs/reference/operators/tabular",
-              children: reference.operators.tabular
-                .filter((op) => op.implemented)
-                .map((op) => ({
-                  title: op.name,
-                  path: `/docs/reference/operators/tabular#${op.name}`,
-                })),
-            },
-          ],
-        },
-      ],
-    },
-    {
-      title: "Dev only",
-      path: "/docs/dev-only",
-      devOnly: true,
-      children: [
-        {
-          title: "Alerts Example",
-          path: "/docs/dev-only/alerts-example",
-          devOnly: true,
-        },
-        {
-          title: "Mermaid Diagrams",
-          path: "/docs/dev-only/mermaid-example",
-          devOnly: true,
-        },
-        {
-          title: "Test Code",
-          path: "/docs/dev-only/test-code",
-          devOnly: true,
-        },
-      ],
-    },
-  ];
+export const navItems: NavItem[] = [
+  {
+    title: "Get Started",
+    path: "/docs/get-started",
+    children: [
+      { title: "Introduction", path: "/docs/get-started/introduction" },
+      { title: "Installation", path: "/docs/get-started/installation" },
+      { title: "Basic Usage", path: "/docs/get-started/basic-usage" },
+    ],
+  },
+  {
+    title: "Concepts",
+    path: "/docs/concepts",
+    children: [
+      { title: "Overview", path: "/docs/concepts" },
+      { title: "Logging", path: "/docs/concepts/logging" },
+      { title: "Tracing", path: "/docs/concepts/tracing" },
+      { title: "Localhost", path: "/docs/concepts/localhost" },
+    ],
+  },
+  {
+    title: "Features",
+    path: "/docs/features",
+    children: [
+      { title: "CLI", path: "/docs/features/cli" },
+      {
+        title: "Query",
+        path: "/docs/features/query",
+        children: [
+          { title: "Basic Usage", path: "/docs/features/query#basic-usage" },
+          {
+            title: "Query Editor Area",
+            path: "/docs/features/query#query-editor-area",
+          },
+          {
+            title: "Discovering Symbols In Scope",
+            path: "/docs/features/query#discovering-symbols-in-scope",
+          },
+          {
+            title: "Reviewing Historical Queries",
+            path: "/docs/features/query#reviewing-historical-queries",
+          },
+          {
+            title: "Saving Your Favorite Queries",
+            path: "/docs/features/query#saving-your-favorite-queries",
+          },
+          {
+            title: "Query Results",
+            path: "/docs/features/query#query-results",
+          },
+          {
+            title: "Sharing Your Results",
+            path: "/docs/features/query#sharing-your-results",
+          },
+          { title: "FAQ", path: "/docs/features/query#faq" },
+        ],
+      },
+      { title: "Stream", path: "/docs/features/stream" },
+      { title: "Sharing", path: "/docs/features/sharing" },
+      { title: "Themes", path: "/docs/features/themes" },
+    ],
+  },
+  {
+    title: "Integrations",
+    path: "/docs/integrations",
+    children: [
+      { title: "Overview", path: "/docs/integrations" },
+      { title: "OpenTelemetry", path: "/docs/integrations/opentelemetry" },
+      {
+        title: "Structured Logging",
+        path: "/docs/integrations/structured-logging",
+      },
+      {
+        title: "Containers",
+        path: "/docs/integrations/containers",
+      },
+    ],
+  },
+  {
+    title: "Reference",
+    path: "/docs/reference",
+    children: [
+      {
+        title: "Overview",
+        path: "/docs/reference",
+      },
+      {
+        title: "Symbols",
+        path: "/docs/reference/symbols",
+        children: [
+          {
+            title: "Logs",
+            path: "/docs/reference/symbols/logs",
+          },
+          {
+            title: "Spans",
+            path: "/docs/reference/symbols/spans",
+          },
+        ],
+      },
+      {
+        title: "Functions",
+        path: "/docs/reference/functions",
+        children: [
+          {
+            title: "Scalar",
+            path: "/docs/reference/functions/scalar",
+            children: reference.funcs.scalar
+              .filter((func) => func.implemented)
+              .map((func) => ({
+                title: func.name,
+                path: `/docs/reference/functions/scalar#${func.name}`,
+              })),
+          },
+          {
+            title: "Aggregate",
+            path: "/docs/reference/functions/aggregate",
+            children: reference.funcs.aggregate
+              .filter((func) => func.implemented)
+              .map((func) => ({
+                title: func.name,
+                path: `/docs/reference/functions/aggregate#${func.name}`,
+              })),
+          },
+        ],
+      },
+      {
+        title: "Operators",
+        path: "/docs/reference/operators",
+        children: [
+          {
+            title: "Scalar",
+            path: "/docs/reference/operators/scalar",
+            children: reference.operators.scalar
+              .filter((op) => op.implemented)
+              .map((op) => ({
+                title: op.name,
+                path: `/docs/reference/operators/scalar#${op.name}`,
+              })),
+          },
+          {
+            title: "Tabular",
+            path: "/docs/reference/operators/tabular",
+            children: reference.operators.tabular
+              .filter((op) => op.implemented)
+              .map((op) => ({
+                title: op.name,
+                path: `/docs/reference/operators/tabular#${op.name}`,
+              })),
+          },
+        ],
+      },
+    ],
+  },
+  {
+    title: "Dev only",
+    path: "/docs/dev-only",
+    devOnly: true,
+    children: [
+      {
+        title: "Alerts Example",
+        path: "/docs/dev-only/alerts-example",
+        devOnly: true,
+      },
+      {
+        title: "Mermaid Diagrams",
+        path: "/docs/dev-only/mermaid-example",
+        devOnly: true,
+      },
+      {
+        title: "Test Code",
+        path: "/docs/dev-only/test-code",
+        devOnly: true,
+      },
+    ],
+  },
+];
 
+export default function DocsLayout({ children }: { children: ReactNode }) {
   return (
     <div className="flex min-h-screen w-full overflow-x-hidden">
       {/* Sidebar - fixed on desktop, uses Sheet on mobile */}
