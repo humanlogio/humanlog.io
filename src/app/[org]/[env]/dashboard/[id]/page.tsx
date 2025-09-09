@@ -7,7 +7,7 @@ import { use } from "react";
 // Dynamically import DashboardClient to avoid SSR issues with Perses dashboard store
 const DashboardClient = dynamic(
   () =>
-    import("@/app/localhost/dashboard/[id]/DashboardClient").then((mod) => ({
+    import("@/app/[org]/[env]/dashboard/[id]/DashboardClient").then((mod) => ({
       default: mod.DashboardClient,
     })),
   {

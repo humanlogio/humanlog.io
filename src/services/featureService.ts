@@ -1,6 +1,6 @@
 import { CallbacksType, handleError } from "@/lib/utils/errorHandler";
 import { Client } from "@connectrpc/connect";
-import { FeatureService } from "api/js/svc/feature/v1/service_connect";
+import { FeatureService } from "api/js/svc/feature/v1/service_pb";
 
 type FeatureClientType = Client<typeof FeatureService>;
 

@@ -34,7 +34,6 @@ export const useThemeColors = (
         .join("");
     }
 
-    // 16진수를 10진수로 변환
     const r = parseInt(hex.substring(0, 2), 16);
     const g = parseInt(hex.substring(2, 4), 16);
     const b = parseInt(hex.substring(4, 6), 16);
@@ -68,8 +67,9 @@ export const useThemeColors = (
     if (type === "levels" && level) {
       color = currentTheme.levels?.[level]?.foreground?.htmlHexColor;
     } else {
-      if (currentTheme[type] instanceof FormatConfig_Style) {
-        color = currentTheme[type]?.foreground?.htmlHexColor;
+      if (currentTheme[type]) {
+        const style = currentTheme[type] as FormatConfig_Style;
+        color = style?.foreground?.htmlHexColor;
       }
     }
 

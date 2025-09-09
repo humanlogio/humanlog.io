@@ -3,7 +3,7 @@ import { Client } from "@connectrpc/connect";
 import {
   PublicShareService,
   UserShareService,
-} from "api/js/svc/share/v1/service_connect";
+} from "api/js/svc/share/v1/service_pb";
 import {
   CreateUserSharedResultResponse,
   DeleteUserSharedResultResponse,
@@ -16,7 +16,7 @@ import {
 import { QueryHistoryEntry } from "api/js/types/v1/query_history_entry_pb";
 import { Data } from "api/js/types/v1/data_pb";
 import { SharedResultVisibility } from "api/js/types/v1/shared_result_pb";
-import { User } from "api/js/types/v1/user_pb";
+import { PublicUser, User } from "api/js/types/v1/user_pb";
 import { Cursor } from "api/js/types/v1/cursor_pb";
 
 type UserShareClientType = Client<typeof UserShareService>;
@@ -117,7 +117,7 @@ export const getPublicSharedResult = async (
 
 export const getPublicListSharedResult = async (
   publicShareClient: PublicShareClientType,
-  sharedBy: User,
+  sharedBy: PublicUser,
   limit: number,
   cursor?: Cursor,
   callbacks?: CallbacksType<ListSharedResultResponse>,

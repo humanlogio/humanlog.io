@@ -19,6 +19,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Copy } from "lucide-react";
+import Link from "next/link";
 
 interface InstallCTAProps {
   buttonText?: string;
@@ -114,14 +115,14 @@ const InstallCTA: React.FC<InstallCTAProps> = ({
                     <b>Linux:</b> The query engine works, but is not as polished
                     and needs to be run manually with{" "}
                     <code>humanlog service run</code>. See{" "}
-                    <a
+                    <Link
                       href="/docs/get-started/installation"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="underline"
                     >
                       installation instructions
-                    </a>
+                    </Link>
                     .
                   </div>
                 );
@@ -129,9 +130,9 @@ const InstallCTA: React.FC<InstallCTAProps> = ({
                 return (
                   <div>
                     <b>Windows:</b> Not supported yet. Please{" "}
-                    <a href="/support" className="underline">
+                    <Link href="/support" className="underline">
                       contact us
-                    </a>{" "}
+                    </Link>{" "}
                     to express your interest!
                   </div>
                 );
@@ -147,21 +148,21 @@ const InstallCTA: React.FC<InstallCTAProps> = ({
                   <b>Linux:</b> The query engine works, but is not as polished
                   and needs to be run manually with{" "}
                   <code>humanlog service run</code>. See{" "}
-                  <a
+                  <Link
                     href="/docs/get-started/installation"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="underline"
                   >
                     installation instructions
-                  </a>
+                  </Link>
                   .
                 </div>
                 <div>
                   <b>Windows:</b> Not supported yet. Please{" "}
-                  <a href="/support" className="underline">
+                  <Link href="/support" className="underline">
                     contact us
-                  </a>{" "}
+                  </Link>{" "}
                   to express your interest!
                 </div>
               </>

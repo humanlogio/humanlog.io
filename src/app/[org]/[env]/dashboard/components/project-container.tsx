@@ -6,7 +6,7 @@ import { getProject } from "api/js/svc/project/v1/service-ProjectService_connect
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Plus, Calendar } from "lucide-react";
-import { CreateDashboardRequest } from "api/js/svc/dashboard/v1/service_pb";
+import { CreateDashboardRequestSchema } from "api/js/svc/dashboard/v1/service_pb";
 import { useState } from "react";
 import {
   Dialog,
@@ -43,8 +43,9 @@ import {
 
 import { useApiClients } from "@/context/api-provider";
 import { Project } from "api/js/types/v1/project_pb";
-import { PointerInfo } from "@/app/localhost/dashboard/components/pointer-info";
-import { ReadOnlyField } from "@/app/localhost/dashboard/components/read-only-field";
+import { PointerInfo } from "@/app/[org]/[env]/dashboard/components/pointer-info";
+import { ReadOnlyField } from "@/app/[org]/[env]/dashboard/components/read-only-field";
+import { create } from "@bufbuild/protobuf";
 
 const formSchema = z.object({
   name: z
@@ -132,7 +133,7 @@ export const ProjectContainer = ({
       JSON.stringify(defaultTemplate),
     ) as Uint8Array<ArrayBuffer>;
 
-    const newDashboard = new CreateDashboardRequest({
+    const newDashboard = create(CreateDashboardRequestSchema, {
       name: data.name,
       projectName: project.name,
       description: data.description || "",

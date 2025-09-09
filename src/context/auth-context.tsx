@@ -22,17 +22,11 @@ type AuthContextType = {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const loginRequiredPaths = [
-  "/settings/users",
-  "/user/*",
-  "/env/*",
-  "/org/*",
-  "/localhost/*",
-];
+const loginRequiredPaths = ["/settings/*"];
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const { authenticated } = useApiClients();
-  const { doLogin, user } = useAllEnvironments();
+  const { doLogin, userInfo, setUserInfo } = useAllEnvironments();
   const router = useRouter();
   const pathname = usePathname();
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
@@ -87,23 +81,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [pathname]);
 
   useEffect(() => {
-    if (user === "loading" || isLoading) {
+    if (!userInfo || isLoading) {
       return;
     }
 
     if (!authenticated && isLoginRequired(pathname)) {
-      handleLogin();
+      setUserInfo(undefined);
     }
   }, [
     pathname,
-    user,
+    userInfo,
     isLoginRequired,
     authenticated,
     isAuthModalOpen,
     isLoading,
   ]);
 
-  if (isLoginRequired(pathname) && user === "loading") {
+  if (isLoginRequired(pathname) && !userInfo) {
     return (
       <div className="container flex h-[calc(100vh-260px)] flex-grow flex-col items-center justify-center gap-8">
         <Loader2 className="animate-spin" size={30}></Loader2>

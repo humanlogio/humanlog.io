@@ -18,11 +18,17 @@ import { List, Play, Star } from "lucide-react";
 import {
   BinaryOp_Operator,
   Expr,
-  FilterOperator,
+  FilterOperatorSchema,
   Query,
+  QuerySchema,
   Statement,
+  StatementSchema,
+  StatementsSchema,
 } from "api/js/types/v1/query_pb";
-import { FormatRequest, ParseResponse } from "api/js/svc/query/v1/service_pb";
+import {
+  FormatRequestSchema,
+  ParseResponse,
+} from "api/js/svc/query/v1/service_pb";
 import { formatQuery, parseQuery } from "@/services/queryService";
 import {
   Tooltip,
@@ -38,6 +44,7 @@ import { newBinaryExpr } from "@/lib/utils/queryExpressions";
 import { ExecuteQuery } from "@/components/log-interface";
 import { useQuery } from "@connectrpc/connect-query";
 import { listQueryHistory } from "api/js/svc/user/v1/service_private-UserService_connectquery";
+import { create } from "@bufbuild/protobuf";
 
 interface DefaultQueryExamples {
   query: string;
@@ -85,7 +92,7 @@ const QueryInput = ({
   const queryString = searchParams.get("query");
 
   const { apiClients } = useApiClients();
-  const { filterBySymbol, user } = useAllEnvironments();
+  const { filterBySymbol, userInfo } = useAllEnvironments();
 
   const [isSaveValid, setIsSaveValid] = useState(false);
   const [isSaveQueryModalOpen, setIsSaveQueryModalOpen] = useState(false);
@@ -139,10 +146,10 @@ const QueryInput = ({
       symbolValue,
     );
 
-    const filterStmt = new Statement({
+    const filterStmt = create(StatementSchema, {
       stmt: {
         case: "filter",
-        value: new FilterOperator({
+        value: create(FilterOperatorSchema, {
           expr: nextFilter,
         }),
       },
@@ -150,11 +157,11 @@ const QueryInput = ({
 
     statements.unshift(filterStmt);
 
-    const newQuery = new Query({
+    const newQuery = create(QuerySchema, {
       ...parseRes.query,
-      query: {
+      query: create(StatementsSchema, {
         statements,
-      },
+      }),
     });
 
     return newQuery;
@@ -163,7 +170,7 @@ const QueryInput = ({
   const handleFormatQuery = async (query?: Query) => {
     if (!apiClients || !query) return;
 
-    const formatReq = new FormatRequest({
+    const formatReq = create(FormatRequestSchema, {
       query: {
         value: query,
         case: "parsed",
@@ -312,7 +319,7 @@ const QueryInput = ({
                 <TooltipContent>Open the Query Library</TooltipContent>
               </Tooltip>
             )}
-            {user !== "not-logged-in" && (
+            {userInfo !== "isLoading" && (
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button

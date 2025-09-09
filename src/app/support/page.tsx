@@ -4,10 +4,7 @@ import { useAllEnvironments } from "@/context/list-environments";
 import Link from "next/link";
 
 export default function Page() {
-  const { user } = useAllEnvironments();
-
-  // Determine if user is logged in
-  const isLoggedIn = user !== "not-logged-in" && user !== "loading";
+  const { userInfo } = useAllEnvironments();
 
   return (
     <div
@@ -29,7 +26,7 @@ export default function Page() {
           Community support on Discord
         </Link>
 
-        {isLoggedIn && (
+        {userInfo !== "isLoading" && (
           <>
             {" or "}
             <Link

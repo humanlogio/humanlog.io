@@ -1,6 +1,6 @@
 import { CallbacksType, handleError } from "@/lib/utils/errorHandler";
 import { Client } from "@connectrpc/connect";
-import { TraceService } from "api/js/svc/query/v1/trace_service_connect";
+import { TraceService } from "api/js/svc/query/v1/trace_service_pb";
 import {
   GetSpanResponse,
   GetTraceResponse,

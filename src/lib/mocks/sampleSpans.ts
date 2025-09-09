@@ -1,8 +1,9 @@
-import { Spans } from "api/js/types/v1/data_pb";
-import { Timestamp, Duration } from "@bufbuild/protobuf";
+import { Spans, SpansSchema } from "api/js/types/v1/data_pb";
+import { Timestamp, Duration, TimestampSchema } from "@bufbuild/protobuf/wkt";
 import { toBigInt } from "@/lib/utils/valueFactories";
 import { makeSpan } from "@/lib/utils/spanFactories";
 import { makeStrKV } from "@/lib/utils/kvFactories";
+import { create } from "@bufbuild/protobuf";
 
 interface SampleSpan {
   query: string;
@@ -11,19 +12,19 @@ interface SampleSpan {
 
 // --- Sample span data ---
 export function sampleSpans(): SampleSpan {
-  const ago10s = new Timestamp({
+  const ago10s = create(TimestampSchema, {
     seconds: toBigInt(Date.now() / 1000 - 10),
     nanos: 0,
   });
   const tsAdd = (ts: Timestamp, seconds: number) => {
-    return new Timestamp({
+    return create(TimestampSchema, {
       seconds: ts.seconds + BigInt(seconds),
       nanos: Number(ts.nanos),
     });
   };
   return {
     query: `spans | where _time > ago(10s) and duration > 50ms`,
-    data: new Spans({
+    data: create(SpansSchema, {
       spans: [
         makeSpan(
           "75787b6c037642398",
