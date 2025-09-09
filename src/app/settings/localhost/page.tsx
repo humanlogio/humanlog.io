@@ -11,7 +11,6 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-
 import { Button } from "@/components/ui/button";
 import { useApiClients } from "@/context/api-provider";
 import { Clock, Globe, SquareCode, User as UserIcon } from "lucide-react";
@@ -24,7 +23,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useEffect, useState } from "react";
-import { SettingsShell } from "@/components/settings-shell";
+
 import "react-color-palette/css";
 import {
   FormatConfigSchema,
@@ -234,7 +233,7 @@ const LocalhostSettings = () => {
   }
 
   return (
-    <SettingsShell activeSection="localhost">
+    <>
       <h1 className="text-3xl font-bold">Localhost Settings</h1>
       {initialConfig && (
         <div className="mt-4 min-w-[300px]">
@@ -537,7 +536,7 @@ const LocalhostSettings = () => {
           </Form>
         </div>
       )}
-    </SettingsShell>
+    </>
   );
 };
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { PropsWithChildren } from "react";
+import { PropsWithChildren, ReactNode } from "react";
 import { getUserSettingsUrl } from "@/lib/utils/navigation";
 import {
   Building,
@@ -18,20 +18,21 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
+import { useParams, usePathname } from "next/navigation";
 
-interface SettingsShellProps {
-  activeSection: "user" | "localhost" | "organization";
+interface SettingsLayoutProps {
+  children: ReactNode;
 }
 
-export function SettingsShell({
-  activeSection,
-  children,
-}: PropsWithChildren<SettingsShellProps>) {
-  const { localhostInfo } = useAllEnvironments();
+export default function SettingsLayout({ children }: SettingsLayoutProps) {
+  const pathname = usePathname();
 
-  const getSectionDetails = (section: string) => {
+  const getSectionDetails = (pathname: string) => {
+    const path = pathname.split("/");
+    const section = path[path.length - 1];
+
     switch (section) {
-      case "user":
+      case "users":
         return {
           name: "User Settings",
           icon: <User size={16} />,
@@ -43,7 +44,7 @@ export function SettingsShell({
           icon: <CodeSquareIcon size={16} />,
           href: "/settings/localhost",
         };
-      case "organization":
+      case "org":
         return {
           name: "Organization Settings",
           icon: <Building size={16} />,
@@ -52,12 +53,12 @@ export function SettingsShell({
     }
   };
 
-  const currentSection = getSectionDetails(activeSection);
+  const currentSection = getSectionDetails(pathname);
 
   return (
-    <div className="p-2">
+    <div className="">
       {/* Breadcrumb Navigation */}
-      <div className="border-b pb-4 pl-5">
+      <div className="pl- border-b px-3 py-3">
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
