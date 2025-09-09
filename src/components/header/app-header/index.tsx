@@ -95,6 +95,11 @@ export const AppHeader = ({ userInfo }: AppHeaderProps) => {
     },
   ];
 
+  // close the menu when the pathname changes
+  useEffect(() => {
+    setIsMenuOpen(false);
+  }, [pathname]);
+
   return (
     <div className={`flex justify-between px-10`}>
       <div className="flex items-center">
