@@ -58,33 +58,35 @@ export default function SettingsLayout({ children }: SettingsLayoutProps) {
   return (
     <div className="">
       {/* Breadcrumb Navigation */}
-      <div className="pl- border-b px-3 py-3">
-        <Breadcrumb>
-          <BreadcrumbList>
-            <BreadcrumbItem>
-              <BreadcrumbLink
-                href="/settings"
-                className="flex items-center gap-2"
-              >
-                <Settings size={16} />
-                Settings
-              </BreadcrumbLink>
-            </BreadcrumbItem>
-            <BreadcrumbSeparator>
-              <ChevronRight size={16} />
-            </BreadcrumbSeparator>
-            <BreadcrumbItem>
-              <BreadcrumbPage className="flex items-center gap-2">
-                {currentSection?.icon}
-                {currentSection?.name}
-              </BreadcrumbPage>
-            </BreadcrumbItem>
-          </BreadcrumbList>
-        </Breadcrumb>
+      <div className="border-b py-3">
+        <div className="px-10">
+          <Breadcrumb>
+            <BreadcrumbList>
+              <BreadcrumbItem>
+                <BreadcrumbLink
+                  href="/settings"
+                  className="flex items-center gap-2"
+                >
+                  <Settings size={16} />
+                  Settings
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator>
+                <ChevronRight size={16} />
+              </BreadcrumbSeparator>
+              <BreadcrumbItem>
+                <BreadcrumbPage className="flex items-center gap-2">
+                  {currentSection?.icon}
+                  {currentSection?.name}
+                </BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+        </div>
       </div>
 
       {/* Main Content */}
-      <main className="p-5">{children}</main>
+      <main className="px-10 py-5">{children}</main>
     </div>
   );
 }
