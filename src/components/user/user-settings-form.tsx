@@ -38,7 +38,6 @@ export function UserSettingsForm({ userInfo }: UserSettingsFormProps) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formChanged, setFormChanged] = useState(false);
-  const [isBillingLoading, setIsBillingLoading] = useState(false);
 
   // Initialize form with user data or empty values if user is not loaded yet
   const form = useForm<z.infer<typeof formSchema>>({
@@ -123,124 +122,82 @@ export function UserSettingsForm({ userInfo }: UserSettingsFormProps) {
     });
   };
 
-  // Billing portal section
-  const isDefaultOrg =
-    userInfo?.currentOrganization?.id === userInfo?.defaultOrganization?.id;
-
-  const handleBillingPortal = async () => {
-    try {
-      setIsBillingLoading(true);
-      const res = await apiClients?.org.getStripeBillingPortal({
-        returnToUrl: window.location.href,
-      });
-      if (res) {
-        window.open(res.portalUrl);
-      }
-    } catch (error) {
-      console.error("Failed to get stripe billing portal", error);
-      toast.error("Error", {
-        description: "Failed to access billing portal. Please try again.",
-      });
-    } finally {
-      setIsBillingLoading(false);
-    }
-  };
-
-  const billingSection = isDefaultOrg ? (
-    <Button onClick={handleBillingPortal} disabled={isBillingLoading}>
-      {isBillingLoading ? (
-        <>
-          <Loader className="mr-2 h-4 w-4 animate-spin" />
-          Loading...
-        </>
-      ) : (
-        "Manage your subscriptions"
-      )}
-    </Button>
-  ) : null;
-
   return (
-    <div className="flex flex-col items-start gap-6">
-      {/* Manage subscriptions */}
-      {billingSection}
+    <Form {...form}>
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="flex w-full flex-col gap-6"
+      >
+        {/* Name Field */}
+        <FormField
+          control={form.control}
+          name="firstName"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>First Name</FormLabel>
+              <FormControl>
+                <Input placeholder="First Name" {...field} required />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
-      {/* Form */}
-      <Form {...form}>
-        <form
-          onSubmit={form.handleSubmit(onSubmit)}
-          className="flex w-full max-w-screen-sm flex-col gap-6"
-        >
-          {/* Name Field */}
-          <FormField
-            control={form.control}
-            name="firstName"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>First Name</FormLabel>
-                <FormControl>
-                  <Input placeholder="First Name" {...field} required />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
+        {/* Last Name Field */}
+        <FormField
+          control={form.control}
+          name="lastName"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Last Name (optional)</FormLabel>
+              <FormControl>
+                <Input placeholder="Last Name" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* User  Name Field */}
+        <FormField
+          control={form.control}
+          name="username"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>User Name (optional)</FormLabel>
+              <FormControl>
+                <Input placeholder="User Name" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* Submit Button */}
+        <div className="flex items-center gap-3">
+          <Button type="submit" variant={formChanged ? "default" : "outline"}>
+            {isSubmitting ? (
+              <>
+                <Loader className="mr-2 h-4 w-4 animate-spin" />
+                Saving...
+              </>
+            ) : (
+              "Save changes"
             )}
-          />
+          </Button>
 
-          {/* Last Name Field */}
-          <FormField
-            control={form.control}
-            name="lastName"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Last Name (optional)</FormLabel>
-                <FormControl>
-                  <Input placeholder="Last Name" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          {/* User  Name Field */}
-          <FormField
-            control={form.control}
-            name="username"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>User Name (optional)</FormLabel>
-                <FormControl>
-                  <Input placeholder="User Name" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          {/* Submit Button */}
-          <div className="flex items-center gap-3">
-            <Button type="submit" variant={formChanged ? "default" : "outline"}>
-              {isSubmitting ? (
-                <>
-                  <Loader className="mr-2 h-4 w-4 animate-spin" />
-                  Saving...
-                </>
-              ) : (
-                "Save changes"
-              )}
+          {formChanged && (
+            <Button
+              type="button"
+              onClick={handleReset}
+              variant="outline"
+              disabled={isSubmitting}
+            >
+              Discard changes
             </Button>
-
-            {formChanged && (
-              <Button
-                type="button"
-                onClick={handleReset}
-                variant="outline"
-                disabled={isSubmitting}
-              >
-                Discard changes
-              </Button>
-            )}
-          </div>
-        </form>
-      </Form>
-    </div>
+          )}
+        </div>
+      </form>
+    </Form>
   );
 }
