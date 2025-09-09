@@ -39,6 +39,8 @@ import ModeToggle from "@/components/mode-toggle";
 import { PingResponse } from "api/js/svc/localhost/v1/service_pb";
 import { EnvList } from "@/components/header/app-header/env-list";
 import { OrgList } from "@/components/header/app-header/org-list";
+import { findDeepestFirstPath } from "@/lib/contents";
+import { navItems } from "@/app/docs/layout";
 
 interface AppHeaderProps {
   userInfo: WhoamiResponse;
@@ -93,6 +95,11 @@ export const AppHeader = ({ userInfo }: AppHeaderProps) => {
     },
   ];
 
+  // close the menu when the pathname changes
+  useEffect(() => {
+    setIsMenuOpen(false);
+  }, [pathname]);
+
   return (
     <div className={`flex justify-between px-10`}>
       <div className="flex items-center">
@@ -137,28 +144,10 @@ export const AppHeader = ({ userInfo }: AppHeaderProps) => {
           })}
         </ul>
       </div>
-      <div className="flex items-center gap-2">
-        <div className="w-30">
-          <EnvList userInfo={userInfo} />
-        </div>
 
-        <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
-          <SheetTrigger asChild>
-            <Avatar className="h-7 w-7">
-              <AvatarImage src={gravatarURL(userInfo.user?.email)} />
-              <AvatarFallback className="uppercase">
-                {userInfo.user?.firstName?.slice(0, 2) || (
-                  <UserIcon size={14} />
-                )}
-              </AvatarFallback>
-            </Avatar>
-          </SheetTrigger>
-          <SheetContent>
-            <SideMenu userInfo={userInfo} />
-          </SheetContent>
-        </Sheet>
-      </div>
-      {/* <Tooltip>
+      <div className="flex items-center gap-3">
+        {currentEnvSlug === "localhost" && (
+          <Tooltip>
             <TooltipTrigger className="flex items-center rounded-full border border-emerald-200 bg-white px-3 py-1 text-xs text-emerald-700 dark:border-emerald-700 dark:bg-emerald-900/60 dark:text-emerald-300">
               <HardDrive size={12} className="mr-1" />
               Local Storage Only
@@ -167,7 +156,30 @@ export const AppHeader = ({ userInfo }: AppHeaderProps) => {
               100% Local Data - Your logs are stored locally and will not be
               deleted
             </TooltipContent>
-          </Tooltip> */}
+          </Tooltip>
+        )}
+        <div className="flex items-center gap-2">
+          <div className="w-30">
+            <EnvList userInfo={userInfo} />
+          </div>
+
+          <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
+            <SheetTrigger asChild>
+              <Avatar className="h-7 w-7">
+                <AvatarImage src={gravatarURL(userInfo.user?.email)} />
+                <AvatarFallback className="uppercase">
+                  {userInfo.user?.firstName?.slice(0, 2) || (
+                    <UserIcon size={14} />
+                  )}
+                </AvatarFallback>
+              </Avatar>
+            </SheetTrigger>
+            <SheetContent>
+              <SideMenu userInfo={userInfo} />
+            </SheetContent>
+          </Sheet>
+        </div>
+      </div>
     </div>
   );
 };
@@ -259,7 +271,7 @@ const SideMenu = ({ userInfo }: SideMenuProps) => {
         </div>
         <div className="space-y-1">
           <Link
-            href="/docs"
+            href={findDeepestFirstPath(navItems[0])}
             className="flex h-auto w-full justify-start px-2 py-2"
           >
             <FileText size={16} className="mr-3" />

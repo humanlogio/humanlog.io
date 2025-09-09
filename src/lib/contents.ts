@@ -43,7 +43,7 @@ export const findFirstPath = (dirName: string): string | null => {
   return findDeepestFirstPath(items[0]);
 };
 
-const findDeepestFirstPath = (item: NavItem): string => {
+export const findDeepestFirstPath = (item: NavItem): string => {
   if (item.children && item.children.length > 0) {
     return findDeepestFirstPath(item.children[0]);
   }
