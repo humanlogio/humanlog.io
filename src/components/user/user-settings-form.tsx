@@ -19,8 +19,9 @@ import { Loader } from "lucide-react";
 import { useApiClients } from "@/context/api-provider";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
-import { updateUser } from "@/services/userService";
 import { WhoamiResponse } from "api/js/svc/user/v1/service_private_pb";
+import { useMutation } from "@connectrpc/connect-query";
+import { updateUser } from "api/js/svc/user/v1/service_private-UserService_connectquery";
 
 interface UserSettingsFormProps {
   userInfo: WhoamiResponse;
@@ -36,8 +37,16 @@ export function UserSettingsForm({ userInfo }: UserSettingsFormProps) {
   const { apiClients } = useApiClients();
   const { getUserInfo } = useAllEnvironments();
   const router = useRouter();
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formChanged, setFormChanged] = useState(false);
+
+  const { mutate: updateUserMutation, isPending } = useMutation(updateUser, {
+    onSuccess: (res) => {
+      getUserInfo();
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    },
+  });
 
   // Initialize form with user data or empty values if user is not loaded yet
   const form = useForm<z.infer<typeof formSchema>>({
@@ -107,18 +116,11 @@ export function UserSettingsForm({ userInfo }: UserSettingsFormProps) {
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     if (!apiClients) return;
     const { firstName, lastName, username } = values;
-    setIsSubmitting(true);
-    await updateUser(apiClients?.user, firstName, lastName, username, {
-      onSuccess: () => {
-        toast.success("Settings updated", {
-          description:
-            "Your profile information has been updated successfully.",
-        });
-        // refetch user info
-        getUserInfo();
-        setIsSubmitting(false);
-      },
-      onError: () => setIsSubmitting(false),
+
+    updateUserMutation({
+      firstName,
+      lastName,
+      username,
     });
   };
 
@@ -176,7 +178,7 @@ export function UserSettingsForm({ userInfo }: UserSettingsFormProps) {
         {/* Submit Button */}
         <div className="flex items-center gap-3">
           <Button type="submit" variant={formChanged ? "default" : "outline"}>
-            {isSubmitting ? (
+            {isPending ? (
               <>
                 <Loader className="mr-2 h-4 w-4 animate-spin" />
                 Saving...
@@ -191,7 +193,7 @@ export function UserSettingsForm({ userInfo }: UserSettingsFormProps) {
               type="button"
               onClick={handleReset}
               variant="outline"
-              disabled={isSubmitting}
+              disabled={isPending}
             >
               Discard changes
             </Button>
