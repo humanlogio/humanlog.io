@@ -18,31 +18,32 @@ import { TraceWaterfall } from "@/components/traces/trace-waterfall";
 import { SpanInfo } from "@/components/traces/span-info";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import { makeSpan } from "@/lib/utils/spanFactories";
-import { Spans } from "api/js/types/v1/data_pb";
-import { Timestamp } from "@bufbuild/protobuf";
+import { SpansSchema } from "api/js/types/v1/data_pb";
+import { Timestamp, TimestampSchema } from "@bufbuild/protobuf/wkt";
 import { toBigInt } from "@/lib/utils/valueFactories";
 import { makeStrKV } from "@/lib/utils/kvFactories";
 import { getColorByIndex } from "@/lib/utils/colors";
 import { Span } from "api/js/types/v1/otel_tracing_pb";
+import { create } from "@bufbuild/protobuf";
 
 interface TracesProps {
   traceId: string | null;
   spanId?: string | null;
 }
 
-const ago10s = new Timestamp({
+const ago10s = create(TimestampSchema, {
   seconds: toBigInt(Date.now() / 1000 - 10),
   nanos: 0,
 });
 const tsAdd = (ts: Timestamp, seconds: number) => {
-  return new Timestamp({
+  return create(TimestampSchema, {
     seconds: ts.seconds + BigInt(seconds),
     nanos: Number(ts.nanos),
   });
 };
 
 const sampleSpans = {
-  data: new Spans({
+  data: create(SpansSchema, {
     spans: [
       // Root span - Web Frontend
       makeSpan(

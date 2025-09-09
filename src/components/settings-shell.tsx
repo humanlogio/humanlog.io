@@ -1,102 +1,89 @@
 "use client";
 
-import { PropsWithChildren, useEffect } from "react";
-import Link from "next/link";
+import { PropsWithChildren } from "react";
+import { getUserSettingsUrl } from "@/lib/utils/navigation";
 import {
-  getUserSettingsUrl,
-  getOrgSettingsUrl,
-  getEnvSettingsUrl,
-} from "@/lib/utils/navigation";
-import { cn } from "@/lib/utils";
-import { Building, CodeSquareIcon, Loader, User } from "lucide-react";
+  Building,
+  CodeSquareIcon,
+  User,
+  ChevronRight,
+  Settings,
+} from "lucide-react";
 import { useAllEnvironments } from "@/context/list-environments";
-import { useApiClients } from "@/context/api-provider";
-import { useRouter } from "next/navigation";
-import { useAuth } from "@/context/auth-context";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 
 interface SettingsShellProps {
-  activeSection: "user" | "localhost" | "organization" | "environment";
+  activeSection: "user" | "localhost" | "organization";
 }
 
 export function SettingsShell({
   activeSection,
   children,
 }: PropsWithChildren<SettingsShellProps>) {
-  const { user, localhostInfo, currentOrg, defaultOrg } = useAllEnvironments();
-  const { activeEnvironment } = useApiClients();
+  const { localhostInfo } = useAllEnvironments();
 
-  const orgName = !(currentOrg?.id == defaultOrg?.id) && currentOrg?.name;
-  const envName = activeEnvironment?.name;
+  const getSectionDetails = (section: string) => {
+    switch (section) {
+      case "user":
+        return {
+          name: "User Settings",
+          icon: <User size={16} />,
+          href: getUserSettingsUrl(),
+        };
+      case "localhost":
+        return {
+          name: "Localhost Settings",
+          icon: <CodeSquareIcon size={16} />,
+          href: "/settings/localhost",
+        };
+      case "organization":
+        return {
+          name: "Organization Settings",
+          icon: <Building size={16} />,
+          href: "/setting/org",
+        };
+    }
+  };
 
-  const sections = [
-    {
-      name: "User Settings",
-      icon: <User size={16} />,
-      href: getUserSettingsUrl(),
-      active: activeSection === "user",
-    },
-  ];
-
-  if (localhostInfo) {
-    sections.push({
-      name: "Localhost Settings",
-      icon: <Building size={16} />,
-      href: "/settings/localhost",
-      active: activeSection === "localhost",
-    });
-  }
-
-  if (orgName) {
-    sections.push({
-      name: "Organization Settings",
-      icon: <Building size={16} />,
-      href: getOrgSettingsUrl(orgName),
-      active: activeSection === "organization",
-    });
-  }
-
-  if (orgName && envName) {
-    sections.push({
-      name: "Environment Settings",
-      icon: <CodeSquareIcon size={16} />,
-      href: getEnvSettingsUrl(envName, orgName),
-      active: activeSection === "environment",
-    });
-  }
+  const currentSection = getSectionDetails(activeSection);
 
   return (
-    <div className="flex">
-      {/* Sidebar */}
-      <aside className="border-border min-h-[calc(100vh-225px)] w-80 border-r-2 py-6">
-        <nav className="space-y-2">
-          {sections.map((section) => (
-            <Link
-              key={section?.name}
-              href={section?.href}
-              className={cn(
-                "rounded-s-base flex items-center gap-2 px-4 py-2",
-                section?.active
-                  ? "border-r-main bg-muted border-r-4"
-                  : "hover:bg-slate-100",
-              )}
-            >
-              <span
-                className={section?.active ? "text-main" : "text-slate-400"}
+    <div className="p-2">
+      {/* Breadcrumb Navigation */}
+      <div className="border-b pb-4 pl-5">
+        <Breadcrumb>
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink
+                href="/settings"
+                className="flex items-center gap-2"
               >
-                {section?.icon}
-              </span>
-              <span
-                className={section?.active ? "text-text" : "text-slate-400"}
-              >
-                {section?.name}
-              </span>
-            </Link>
-          ))}
-        </nav>
-      </aside>
+                <Settings size={16} />
+                Settings
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator>
+              <ChevronRight size={16} />
+            </BreadcrumbSeparator>
+            <BreadcrumbItem>
+              <BreadcrumbPage className="flex items-center gap-2">
+                {currentSection?.icon}
+                {currentSection?.name}
+              </BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+      </div>
 
       {/* Main Content */}
-      <main className="flex-1 p-6">{children}</main>
+      <main className="p-5">{children}</main>
     </div>
   );
 }

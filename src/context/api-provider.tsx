@@ -27,25 +27,25 @@ import { Interceptor } from "@connectrpc/connect";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createConnectTransport } from "@connectrpc/connect-web";
 import { TransportProvider, useQuery } from "@connectrpc/connect-query";
-import { AuthService } from "api/js/svc/auth/v1/service_connect";
-import { EnvironmentService } from "api/js/svc/environment/v1/service_connect";
-import { OrganizationService } from "api/js/svc/organization/v1/service_connect";
-import { IngestService } from "api/js/svc/ingest/v1/service_connect";
-import { UserService } from "api/js/svc/user/v1/service_private_connect";
-import { LocalhostService } from "api/js/svc/localhost/v1/service_connect";
-import { ProductService } from "api/js/svc/product/v1/service_connect";
-import { FeatureService } from "api/js/svc/feature/v1/service_connect";
-import { QueryService } from "api/js/svc/query/v1/service_connect";
-import { ProjectService } from "api/js/svc/project/v1/service_connect";
-import { TraceService } from "api/js/svc/query/v1/trace_service_connect";
-import { UpdateService } from "api/js/svc/cliupdate/v1/service_connect";
-import { DashboardService } from "api/js/svc/dashboard/v1/service_connect";
-import { AlertService } from "api/js/svc/alert/v1/service_connect";
+import { AuthService } from "api/js/svc/auth/v1/service_pb";
+import { EnvironmentService } from "api/js/svc/environment/v1/service_pb";
+import { OrganizationService } from "api/js/svc/organization/v1/service_pb";
+import { IngestService } from "api/js/svc/ingest/v1/service_pb";
+import { UserService } from "api/js/svc/user/v1/service_private_pb";
+import { LocalhostService } from "api/js/svc/localhost/v1/service_pb";
+import { ProductService } from "api/js/svc/product/v1/service_pb";
+import { FeatureService } from "api/js/svc/feature/v1/service_pb";
+import { QueryService } from "api/js/svc/query/v1/service_pb";
+import { ProjectService } from "api/js/svc/project/v1/service_pb";
+import { TraceService } from "api/js/svc/query/v1/trace_service_pb";
+import { UpdateService } from "api/js/svc/cliupdate/v1/service_pb";
+import { DashboardService } from "api/js/svc/dashboard/v1/service_pb";
+import { AlertService } from "api/js/svc/alert/v1/service_pb";
 
 import {
   PublicShareService,
   UserShareService,
-} from "api/js/svc/share/v1/service_connect";
+} from "api/js/svc/share/v1/service_pb";
 import { getAPIURL, getSelfURL } from "@/lib/envs";
 import { useCookies } from "react-cookie";
 import { Environment } from "api/js/types/v1/environment_pb";
@@ -106,7 +106,6 @@ export function ApiClientsProvider({
   const isProd = config.NEXT_PUBLIC_IS_PROD;
   const router = useRouter();
   const returnToURL = getSelfURL();
-
   const [cookies, setCookie] = useCookies();
   const [apiTransport, setApiTransport] = useState<Transport>();
   const [activeEnvironment, setActiveEnvironment] = useState<

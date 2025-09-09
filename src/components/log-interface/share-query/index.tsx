@@ -14,7 +14,7 @@ import { Check, Copy, TriangleAlert } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { updateUser } from "@/services/userService";
-import { Dispatch, SetStateAction, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { useAllEnvironments } from "@/context/list-environments";
 import { toast } from "sonner";
 
@@ -41,27 +41,31 @@ export const ShareQuery = ({
 }: ShareQueryProps) => {
   const selfURL = getSelfURL();
 
-  const { user } = useAllEnvironments();
+  const { userInfo } = useAllEnvironments();
   const { apiClients } = useApiClients();
 
   const [username, setUsername] = useState("");
-  const [isValid, setIsValid] = useState(
-    user === "loading" || user === "not-logged-in" ? false : !!user.username,
-  );
+  const [isValid, setIsValid] = useState(false);
   const [shareLink, setShareLink] = useState<string | null>();
   const [copied, setCopied] = useState(false);
 
   const handleUpdateUser = async () => {
-    if (user === "loading" || user === "not-logged-in" || !apiClients) return;
-    await updateUser(apiClients.user, user.firstName, user.lastName, username, {
-      onSuccess: (res) => {
-        if (res.user?.username) {
-          toast.success("Username successfully updated");
-          setIsValid(true);
-        }
+    if (userInfo === "isLoading" || !apiClients || !userInfo) return;
+    await updateUser(
+      apiClients.user,
+      userInfo.user?.firstName,
+      userInfo.user?.lastName,
+      username,
+      {
+        onSuccess: (res) => {
+          if (res.user?.username) {
+            toast.success("Username successfully updated");
+            setIsValid(true);
+          }
+        },
+        onError: () => setIsValid(false),
       },
-      onError: () => setIsValid(false),
-    });
+    );
   };
 
   const handleShareQuery = async (visibility: SharedResultVisibility) => {
@@ -113,6 +117,11 @@ export const ShareQuery = ({
     resetLink();
     setSharedData(null);
   };
+
+  useEffect(() => {
+    if (userInfo === "isLoading") return;
+    setIsValid(!!userInfo?.user?.username);
+  }, [userInfo]);
 
   return (
     <Dialog open={!!sharedData} onOpenChange={onOpenChange}>

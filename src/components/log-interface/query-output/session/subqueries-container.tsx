@@ -22,10 +22,11 @@ import { QueryHistoryEntry } from "api/js/types/v1/query_history_entry_pb";
 import { useInfiniteQuery } from "@connectrpc/connect-query";
 import { query as queryMethod } from "api/js/svc/query/v1/service-QueryService_connectquery";
 import { useActiveTransport, useApiClients } from "@/context/api-provider";
-import { Cursor } from "api/js/types/v1/cursor_pb";
+import { CursorSchema } from "api/js/types/v1/cursor_pb";
 import { QueryResponse } from "api/js/svc/query/v1/service_pb";
 import { InfiniteData } from "@tanstack/react-query";
 import { Log } from "api/js/types/v1/otel_logging_pb";
+import { create } from "@bufbuild/protobuf";
 
 interface SubQueriesContainerProps {
   queries: Query[];
@@ -190,17 +191,14 @@ const SubQueryPanel = ({
     queryMethod,
     {
       environmentId: activeEnvironment?.id ?? BigInt(0),
-      query: list.query ?? new Query(),
+      query: list.query,
       limit: 1000,
+      cursor: create(CursorSchema, {}),
     },
     {
       pageParamKey: "cursor" as const,
-      getNextPageParam: (
-        lastPageParam: Cursor | undefined,
-        lastPage: QueryResponse,
-      ) => {
-        const response = lastPageParam as unknown as QueryResponse;
-        return response?.next || undefined;
+      getNextPageParam: (lastPage: QueryResponse) => {
+        return lastPage?.next || undefined;
       },
       initialPageParam: undefined,
       transport: useActiveTransport(),

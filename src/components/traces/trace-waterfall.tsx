@@ -14,11 +14,12 @@ import {
   useState,
   useRef,
 } from "react";
-import { Duration } from "@bufbuild/protobuf";
+import { DurationSchema } from "@bufbuild/protobuf/wkt";
 import { SpanTreeNode, walkSpanTreeNodeFlat } from "@/components/traces/utils";
 import { twMerge } from "tailwind-merge";
 import { Span } from "api/js/types/v1/otel_tracing_pb";
 import { spanIdToString } from "@/lib/utils/id-factories";
+import { create } from "@bufbuild/protobuf";
 
 interface TraceWaterfallProps {
   traceId: string;
@@ -298,12 +299,12 @@ export const TraceWaterfall = ({
               <>
                 <div className="absolute left-0 text-xs">
                   {formatDuration(
-                    new Duration({ seconds: BigInt(0), nanos: 0 }),
+                    create(DurationSchema, { seconds: BigInt(0), nanos: 0 }),
                   )}
                 </div>
                 <div className="absolute left-1/4 text-xs">
                   {formatDuration(
-                    new Duration({
+                    create(DurationSchema, {
                       seconds: BigInt(
                         Math.floor((totalDuration * 0.25) / 1000),
                       ),
@@ -313,7 +314,7 @@ export const TraceWaterfall = ({
                 </div>
                 <div className="absolute left-1/2 -translate-x-1/2 transform text-xs">
                   {formatDuration(
-                    new Duration({
+                    create(DurationSchema, {
                       seconds: BigInt(Math.floor((totalDuration * 0.5) / 1000)),
                       nanos: ((totalDuration * 0.5) % 1000) * 1000000,
                     }),
@@ -321,7 +322,7 @@ export const TraceWaterfall = ({
                 </div>
                 <div className="absolute left-3/4 text-xs">
                   {formatDuration(
-                    new Duration({
+                    create(DurationSchema, {
                       seconds: BigInt(
                         Math.floor((totalDuration * 0.75) / 1000),
                       ),
@@ -331,7 +332,7 @@ export const TraceWaterfall = ({
                 </div>
                 <div className="absolute right-0 text-xs">
                   {formatDuration(
-                    new Duration({
+                    create(DurationSchema, {
                       seconds: BigInt(Math.floor(totalDuration / 1000)),
                       nanos: (totalDuration % 1000) * 1000000,
                     }),

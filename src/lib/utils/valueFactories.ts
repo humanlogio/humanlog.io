@@ -1,12 +1,19 @@
-import { Duration, Timestamp } from "@bufbuild/protobuf";
-import { Null, Val, VarType } from "api/js/types/v1/types_pb";
+import { Duration, Timestamp } from "@bufbuild/protobuf/wkt";
+import {
+  Val,
+  VarType,
+  ValSchema,
+  VarTypeSchema,
+  NullSchema,
+} from "api/js/types/v1/types_pb";
+import { create } from "@bufbuild/protobuf";
 
 export const newNullVal = (): Val => {
-  return new Val({
-    type: new VarType({}),
+  return create(ValSchema, {
+    type: create(VarTypeSchema, {}),
     kind: {
       case: "null",
-      value: Null,
+      value: create(NullSchema),
     },
   });
 };
@@ -15,8 +22,8 @@ export const newStrVal = (v: string | undefined): Val => {
   if (!v) {
     return newNullVal();
   }
-  return new Val({
-    type: new VarType({}),
+  return create(ValSchema, {
+    type: create(VarTypeSchema, {}),
     kind: {
       case: "str",
       value: v,
@@ -28,8 +35,8 @@ export const newI64Val = (v: bigint | number | undefined): Val => {
   if (!v) {
     return newNullVal();
   }
-  return new Val({
-    type: new VarType({}),
+  return create(ValSchema, {
+    type: create(VarTypeSchema, {}),
     kind: {
       case: "i64",
       value: BigInt(v),
@@ -41,8 +48,8 @@ export const newF64Val = (v: number | undefined): Val => {
   if (!v) {
     return newNullVal();
   }
-  return new Val({
-    type: new VarType({}),
+  return create(ValSchema, {
+    type: create(VarTypeSchema, {}),
     kind: {
       case: "f64",
       value: v,
@@ -54,8 +61,8 @@ export const newDurationVal = (v: Duration | undefined): Val => {
   if (!v) {
     return newNullVal();
   }
-  return new Val({
-    type: new VarType({}),
+  return create(ValSchema, {
+    type: create(VarTypeSchema, {}),
     kind: {
       case: "dur",
       value: v,
@@ -67,8 +74,8 @@ export const newTimestampVal = (v: Timestamp | undefined): Val => {
   if (!v) {
     return newNullVal();
   }
-  return new Val({
-    type: new VarType({}),
+  return create(ValSchema, {
+    type: create(VarTypeSchema, {}),
     kind: {
       case: "ts",
       value: v,

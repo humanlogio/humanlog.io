@@ -20,12 +20,13 @@ import { logger } from "@/lib/utils/telemetry/logger";
 import { useMutation } from "@connectrpc/connect-query";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { createProject } from "api/js/svc/project/v1/service-ProjectService_connectquery";
-import { CreateProjectRequest } from "api/js/svc/project/v1/service_pb";
+import { CreateProjectRequestSchema } from "api/js/svc/project/v1/service_pb";
 import {
   ProjectPointer,
-  ProjectPointer_LocalGit,
-  ProjectPointer_RemoteGit,
-  ProjectPointer_Virtual,
+  ProjectPointerSchema,
+  ProjectPointer_LocalGitSchema,
+  ProjectPointer_RemoteGitSchema,
+  ProjectPointer_VirtualSchema,
 } from "api/js/types/v1/project_pb";
 import { useForm, UseFormReturn } from "react-hook-form";
 import { toast } from "sonner";
@@ -33,7 +34,8 @@ import { z } from "zod";
 import { DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Info } from "lucide-react";
-import { ReadOnlyField } from "@/app/localhost/dashboard/components/read-only-field";
+import { ReadOnlyField } from "@/app/[org]/[env]/dashboard/components/read-only-field";
+import { create } from "@bufbuild/protobuf";
 
 // Project pointer type schemas
 export const localhostProjectSchema = z.object({
@@ -103,10 +105,10 @@ export const ProjectForm = ({
     switch (pointerType) {
       case "localhost": {
         const { path, dashboardDir, alertDir, readOnly } = data;
-        pointer = new ProjectPointer({
+        pointer = create(ProjectPointerSchema, {
           scheme: {
             case: "localhost",
-            value: new ProjectPointer_LocalGit({
+            value: create(ProjectPointer_LocalGitSchema, {
               path,
               dashboardDir,
               alertDir,
@@ -118,10 +120,10 @@ export const ProjectForm = ({
       }
       case "remote": {
         const { remoteUrl, ref, dashboardDir, alertDir } = data;
-        pointer = new ProjectPointer({
+        pointer = create(ProjectPointerSchema, {
           scheme: {
             case: "remote",
-            value: new ProjectPointer_RemoteGit({
+            value: create(ProjectPointer_RemoteGitSchema, {
               remoteUrl,
               ref,
               dashboardDir,
@@ -133,10 +135,10 @@ export const ProjectForm = ({
       }
       case "db": {
         const { uri } = data;
-        pointer = new ProjectPointer({
+        pointer = create(ProjectPointerSchema, {
           scheme: {
             case: "db",
-            value: new ProjectPointer_Virtual({
+            value: create(ProjectPointer_VirtualSchema, {
               uri,
             }),
           },
@@ -147,7 +149,7 @@ export const ProjectForm = ({
         throw new Error("Invalid pointer type");
     }
 
-    const newProject = new CreateProjectRequest({
+    const newProject = create(CreateProjectRequestSchema, {
       environmentId: activeEnvironment?.id,
       name,
       pointer,

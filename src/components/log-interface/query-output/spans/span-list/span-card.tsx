@@ -19,7 +19,7 @@ import {
   Share,
 } from "lucide-react";
 import Link from "next/link";
-import { Timestamp } from "@bufbuild/protobuf";
+import { Timestamp } from "@bufbuild/protobuf/wkt";
 import { Button } from "@/components/ui/button";
 import { unit8ArrayBufferToBase16 } from "@/lib/utils/decode";
 import { copyToClipboard } from "@/lib/utils/clipboard";
