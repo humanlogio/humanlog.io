@@ -39,6 +39,8 @@ import ModeToggle from "@/components/mode-toggle";
 import { PingResponse } from "api/js/svc/localhost/v1/service_pb";
 import { EnvList } from "@/components/header/app-header/env-list";
 import { OrgList } from "@/components/header/app-header/org-list";
+import { findDeepestFirstPath } from "@/lib/contents";
+import { navItems } from "@/app/docs/layout";
 
 interface AppHeaderProps {
   userInfo: WhoamiResponse;
@@ -259,7 +261,7 @@ const SideMenu = ({ userInfo }: SideMenuProps) => {
         </div>
         <div className="space-y-1">
           <Link
-            href="/docs"
+            href={findDeepestFirstPath(navItems[0])}
             className="flex h-auto w-full justify-start px-2 py-2"
           >
             <FileText size={16} className="mr-3" />
