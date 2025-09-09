@@ -1,6 +1,5 @@
 "use client";
 
-import { SettingsShell } from "@/components/settings-shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -139,300 +138,294 @@ export default function OrgSettingsPage() {
   };
 
   return (
-    <SettingsShell activeSection="organization">
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold">Organization Settings</h1>
-          <p className="text-muted-foreground mt-2">
-            Manage your organization settings, members, and billing
-          </p>
-        </div>
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold">Organization Settings</h1>
+        <p className="text-muted-foreground mt-2">
+          Manage your organization settings, members, and billing
+        </p>
+      </div>
 
-        {/* Current Organization Info */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Building className="h-5 w-5" />
-              Current Organization
-            </CardTitle>
-            <CardDescription>
-              Information about your current organization
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-              <div>
-                <label className="text-muted-foreground text-sm font-medium">
-                  Organization Name
-                </label>
-                <div className="flex items-center gap-2">
-                  <p className="text-lg font-semibold">
-                    {userInfo?.currentOrganization?.name}
-                  </p>
-                  {isDefaultOrg && (
-                    <Badge className="bg-orange-100 text-orange-800">
-                      <Building className="h-3 w-3" />
-                      Default
-                    </Badge>
-                  )}
-                </div>
-              </div>
-              {!isDefaultOrg && (
-                <>
-                  <div>
-                    <label className="text-muted-foreground text-sm font-medium">
-                      Your Role
-                    </label>
-                    <div className="mt-1 flex items-center gap-1">
-                      <Badge className={getRoleColor("Owner")}>
-                        {getRoleIcon("Owner")}
-                        {"Owner"}
-                      </Badge>
-                    </div>
-                  </div>
-                  <div>
-                    <label className="text-muted-foreground text-sm font-medium">
-                      Members
-                    </label>
-                    <p className="text-lg font-semibold">12</p>
-                  </div>
-                  <div>
-                    <label className="text-muted-foreground text-sm font-medium">
-                      Plan
-                    </label>
-                    <p className="text-lg font-semibold">Pro</p>
-                  </div>
-                </>
-              )}
-            </div>
+      {/* Current Organization Info */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Building className="h-5 w-5" />
+            Current Organization
+          </CardTitle>
+          <CardDescription>
+            Information about your current organization
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
             <div>
               <label className="text-muted-foreground text-sm font-medium">
-                Created
+                Organization Name
               </label>
-              <div className="mt-1 flex items-center gap-1">
-                <Calendar className="text-muted-foreground h-4 w-4" />
-                <p>
-                  {formatTimestamp(userInfo?.currentOrganization?.createdAt!)}
+              <div className="flex items-center gap-2">
+                <p className="text-lg font-semibold">
+                  {userInfo?.currentOrganization?.name}
                 </p>
+                {isDefaultOrg && (
+                  <Badge className="bg-orange-100 text-orange-800">
+                    <Building className="h-3 w-3" />
+                    Default
+                  </Badge>
+                )}
               </div>
             </div>
-          </CardContent>
-        </Card>
-
-        {/* Update Organization Name */}
-        {!isDefaultOrg && (
-          <>
-            <Card>
-              <CardHeader>
-                <CardTitle>Update Organization Name</CardTitle>
-                <CardDescription>
-                  Change your organization&apos;s display name
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="flex gap-3">
-                  <Input
-                    placeholder={`Current: ${userInfo?.currentOrganization?.name}`}
-                    value={newOrgName}
-                    onChange={(e) => setNewOrgName(e.target.value)}
-                  />
-                  <Button
-                    onClick={handleUpdateOrgName}
-                    disabled={!newOrgName.trim()}
-                  >
-                    Update Name
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-            {/* Invite Users */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Mail className="h-5 w-5" />
-                  Invite New Member
-                </CardTitle>
-                <CardDescription>
-                  Send an invitation to join your organization
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="flex gap-3">
-                  <Input
-                    type="email"
-                    placeholder="Enter email address"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                  />
-                  <Button onClick={handleInviteUser} disabled={!email.trim()}>
-                    Send Invite
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-            {/* Pending Invitations */}
-            {pendingInvites.length > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Pending Invitations</CardTitle>
-                  <CardDescription>
-                    Invitations that haven&apos;t been accepted yet
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    {pendingInvites.map((invite) => (
-                      <div
-                        key={invite.id}
-                        className="flex items-center justify-between rounded-lg border p-3"
-                      >
-                        <div className="flex items-center gap-3">
-                          <Avatar>
-                            <AvatarFallback>
-                              {invite.email.charAt(0).toUpperCase()}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <p className="font-medium">{invite.email}</p>
-                            <p className="text-muted-foreground text-sm">
-                              Invited by {invite.invitedBy} •{" "}
-                              {new Date(invite.invitedAt).toLocaleDateString(
-                                "ko-KR",
-                              )}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Badge className={getRoleColor(invite.role)}>
-                            {getRoleIcon(invite.role)}
-                            {invite.role}
-                          </Badge>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleCancelInvite(invite.id)}
-                          >
-                            Cancel
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
+            {!isDefaultOrg && (
+              <>
+                <div>
+                  <label className="text-muted-foreground text-sm font-medium">
+                    Your Role
+                  </label>
+                  <div className="mt-1 flex items-center gap-1">
+                    <Badge className={getRoleColor("Owner")}>
+                      {getRoleIcon("Owner")}
+                      {"Owner"}
+                    </Badge>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+                <div>
+                  <label className="text-muted-foreground text-sm font-medium">
+                    Members
+                  </label>
+                  <p className="text-lg font-semibold">12</p>
+                </div>
+                <div>
+                  <label className="text-muted-foreground text-sm font-medium">
+                    Plan
+                  </label>
+                  <p className="text-lg font-semibold">Pro</p>
+                </div>
+              </>
             )}
+          </div>
+          <div>
+            <label className="text-muted-foreground text-sm font-medium">
+              Created
+            </label>
+            <div className="mt-1 flex items-center gap-1">
+              <Calendar className="text-muted-foreground h-4 w-4" />
+              <p>
+                {formatTimestamp(userInfo?.currentOrganization?.createdAt!)}
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
-            {/* Organization Members */}
+      {/* Update Organization Name */}
+      {!isDefaultOrg && (
+        <>
+          <Card>
+            <CardHeader>
+              <CardTitle>Update Organization Name</CardTitle>
+              <CardDescription>
+                Change your organization&apos;s display name
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex gap-3">
+                <Input
+                  placeholder={`Current: ${userInfo?.currentOrganization?.name}`}
+                  value={newOrgName}
+                  onChange={(e) => setNewOrgName(e.target.value)}
+                />
+                <Button
+                  onClick={handleUpdateOrgName}
+                  disabled={!newOrgName.trim()}
+                >
+                  Update Name
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+          {/* Invite Users */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Mail className="h-5 w-5" />
+                Invite New Member
+              </CardTitle>
+              <CardDescription>
+                Send an invitation to join your organization
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex gap-3">
+                <Input
+                  type="email"
+                  placeholder="Enter email address"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+                <Button onClick={handleInviteUser} disabled={!email.trim()}>
+                  Send Invite
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+          {/* Pending Invitations */}
+          {pendingInvites.length > 0 && (
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Users className="h-5 w-5" />
-                  Organization Members
-                </CardTitle>
+                <CardTitle>Pending Invitations</CardTitle>
                 <CardDescription>
-                  Manage members and their roles in your organization
+                  Invitations that haven&apos;t been accepted yet
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  {orgMembers.map((member) => (
+                  {pendingInvites.map((invite) => (
                     <div
-                      key={member.id}
+                      key={invite.id}
                       className="flex items-center justify-between rounded-lg border p-3"
                     >
                       <div className="flex items-center gap-3">
                         <Avatar>
                           <AvatarFallback>
-                            {member.name.charAt(0)}
+                            {invite.email.charAt(0).toUpperCase()}
                           </AvatarFallback>
                         </Avatar>
                         <div>
-                          <p className="font-medium">{member.name}</p>
+                          <p className="font-medium">{invite.email}</p>
                           <p className="text-muted-foreground text-sm">
-                            {member.email}
-                          </p>
-                          <p className="text-muted-foreground text-xs">
-                            Joined{" "}
-                            {new Date(member.joinedAt).toLocaleDateString(
+                            Invited by {invite.invitedBy} •{" "}
+                            {new Date(invite.invitedAt).toLocaleDateString(
                               "ko-KR",
                             )}
                           </p>
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
-                        <Badge className={getRoleColor(member.role)}>
-                          {getRoleIcon(member.role)}
-                          {member.role}
+                        <Badge className={getRoleColor(invite.role)}>
+                          {getRoleIcon(invite.role)}
+                          {invite.role}
                         </Badge>
-                        {member.role !== "Owner" && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleRemoveMember(member.id)}
-                            className="text-red-600 hover:text-red-700"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        )}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleCancelInvite(invite.id)}
+                        >
+                          Cancel
+                        </Button>
                       </div>
                     </div>
                   ))}
                 </div>
               </CardContent>
             </Card>
-          </>
-        )}
+          )}
 
-        {/* Create New Organization */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Create New Organization</CardTitle>
-            <CardDescription>
-              Create a new organization and become its owner
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex gap-3">
-              <Input
-                placeholder="New organization name"
-                value={orgName}
-                onChange={(e) => setOrgName(e.target.value)}
-              />
-              <Button onClick={handleCreateOrg} disabled={!orgName.trim()}>
-                Create Organization
+          {/* Organization Members */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Users className="h-5 w-5" />
+                Organization Members
+              </CardTitle>
+              <CardDescription>
+                Manage members and their roles in your organization
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {orgMembers.map((member) => (
+                  <div
+                    key={member.id}
+                    className="flex items-center justify-between rounded-lg border p-3"
+                  >
+                    <div className="flex items-center gap-3">
+                      <Avatar>
+                        <AvatarFallback>{member.name.charAt(0)}</AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <p className="font-medium">{member.name}</p>
+                        <p className="text-muted-foreground text-sm">
+                          {member.email}
+                        </p>
+                        <p className="text-muted-foreground text-xs">
+                          Joined{" "}
+                          {new Date(member.joinedAt).toLocaleDateString(
+                            "ko-KR",
+                          )}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge className={getRoleColor(member.role)}>
+                        {getRoleIcon(member.role)}
+                        {member.role}
+                      </Badge>
+                      {member.role !== "Owner" && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleRemoveMember(member.id)}
+                          className="text-red-600 hover:text-red-700"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </>
+      )}
+
+      {/* Create New Organization */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Create New Organization</CardTitle>
+          <CardDescription>
+            Create a new organization and become its owner
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex gap-3">
+            <Input
+              placeholder="New organization name"
+              value={orgName}
+              onChange={(e) => setOrgName(e.target.value)}
+            />
+            <Button onClick={handleCreateOrg} disabled={!orgName.trim()}>
+              Create Organization
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Danger Zone */}
+      <Card className="border-red-200">
+        <CardHeader>
+          <CardTitle className="text-red-600">Danger Zone</CardTitle>
+          <CardDescription>
+            Irreversible and destructive actions
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {/* TODO: only when owner */}
+          {
+            <div className="flex items-center justify-between rounded-lg border border-red-200 p-3">
+              <div>
+                <p className="font-medium text-red-600">Delete Organization</p>
+                <p className="text-muted-foreground text-sm">
+                  Permanently delete this organization and all its data
+                </p>
+              </div>
+              <Button variant="destructive" size="sm">
+                Delete Org
               </Button>
             </div>
-          </CardContent>
-        </Card>
-
-        {/* Danger Zone */}
-        <Card className="border-red-200">
-          <CardHeader>
-            <CardTitle className="text-red-600">Danger Zone</CardTitle>
-            <CardDescription>
-              Irreversible and destructive actions
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {/* TODO: only when owner */}
-            {
-              <div className="flex items-center justify-between rounded-lg border border-red-200 p-3">
-                <div>
-                  <p className="font-medium text-red-600">
-                    Delete Organization
-                  </p>
-                  <p className="text-muted-foreground text-sm">
-                    Permanently delete this organization and all its data
-                  </p>
-                </div>
-                <Button variant="destructive" size="sm">
-                  Delete Org
-                </Button>
-              </div>
-            }
-          </CardContent>
-        </Card>
-      </div>
-    </SettingsShell>
+          }
+        </CardContent>
+      </Card>
+    </div>
   );
 }
