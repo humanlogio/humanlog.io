@@ -144,28 +144,10 @@ export const AppHeader = ({ userInfo }: AppHeaderProps) => {
           })}
         </ul>
       </div>
-      <div className="flex items-center gap-2">
-        <div className="w-30">
-          <EnvList userInfo={userInfo} />
-        </div>
 
-        <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
-          <SheetTrigger asChild>
-            <Avatar className="h-7 w-7">
-              <AvatarImage src={gravatarURL(userInfo.user?.email)} />
-              <AvatarFallback className="uppercase">
-                {userInfo.user?.firstName?.slice(0, 2) || (
-                  <UserIcon size={14} />
-                )}
-              </AvatarFallback>
-            </Avatar>
-          </SheetTrigger>
-          <SheetContent>
-            <SideMenu userInfo={userInfo} />
-          </SheetContent>
-        </Sheet>
-      </div>
-      {/* <Tooltip>
+      <div className="flex items-center gap-3">
+        {currentEnvSlug === "localhost" && (
+          <Tooltip>
             <TooltipTrigger className="flex items-center rounded-full border border-emerald-200 bg-white px-3 py-1 text-xs text-emerald-700 dark:border-emerald-700 dark:bg-emerald-900/60 dark:text-emerald-300">
               <HardDrive size={12} className="mr-1" />
               Local Storage Only
@@ -174,7 +156,30 @@ export const AppHeader = ({ userInfo }: AppHeaderProps) => {
               100% Local Data - Your logs are stored locally and will not be
               deleted
             </TooltipContent>
-          </Tooltip> */}
+          </Tooltip>
+        )}
+        <div className="flex items-center gap-2">
+          <div className="w-30">
+            <EnvList userInfo={userInfo} />
+          </div>
+
+          <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
+            <SheetTrigger asChild>
+              <Avatar className="h-7 w-7">
+                <AvatarImage src={gravatarURL(userInfo.user?.email)} />
+                <AvatarFallback className="uppercase">
+                  {userInfo.user?.firstName?.slice(0, 2) || (
+                    <UserIcon size={14} />
+                  )}
+                </AvatarFallback>
+              </Avatar>
+            </SheetTrigger>
+            <SheetContent>
+              <SideMenu userInfo={userInfo} />
+            </SheetContent>
+          </Sheet>
+        </div>
+      </div>
     </div>
   );
 };
