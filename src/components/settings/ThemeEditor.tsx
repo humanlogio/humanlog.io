@@ -105,7 +105,7 @@ export const ThemeEditor = ({
           )}
         </div>
       </div>
-      <div>
+      <div className="max-w-[calc(100vw-22rem)]">
         <Preview
           themes={formValues.themes}
           mode={mode}
