@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -15,16 +14,26 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useAllEnvironments } from "@/context/list-environments";
-import { Loader } from "lucide-react";
-import { useApiClients } from "@/context/api-provider";
+import { Loader, Check, X } from "lucide-react";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
-import { updateUser } from "@/services/userService";
 import { WhoamiResponse } from "api/js/svc/user/v1/service_private_pb";
+import { useMutation } from "@connectrpc/connect-query";
+import { updateUser } from "api/js/svc/user/v1/service_private-UserService_connectquery";
+import { checkUsername } from "api/js/svc/auth/v1/service-AuthService_connectquery";
 
 interface UserSettingsFormProps {
   userInfo: WhoamiResponse;
 }
+
+type UsernameStatus =
+  | "idle"
+  | "checking"
+  | "available"
+  | "taken"
+  | "tooShort"
+  | "invalidFormat"
+  | "error";
 
 const formSchema = z.object({
   firstName: z.string().min(1, "First Name is required"),
@@ -33,12 +42,32 @@ const formSchema = z.object({
 });
 
 export function UserSettingsForm({ userInfo }: UserSettingsFormProps) {
-  const { apiClients } = useApiClients();
   const { getUserInfo } = useAllEnvironments();
-  const router = useRouter();
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formChanged, setFormChanged] = useState(false);
-  const [isBillingLoading, setIsBillingLoading] = useState(false);
+  const [usernameStatus, setUsernameStatus] = useState<UsernameStatus>("idle");
+
+  const { mutate: checkUsernameMutation } = useMutation(checkUsername, {
+    onSuccess: (res) => {
+      setUsernameStatus(res.available ? "available" : "taken");
+    },
+    onError: () => {
+      setUsernameStatus("error");
+    },
+  });
+
+  const { mutate: updateUserMutation, isPending: isUpdatingUserPending } =
+    useMutation(updateUser, {
+      onSuccess: (res) => {
+        getUserInfo();
+        toast.success("Settings updated", {
+          description:
+            "Your profile information has been updated successfully.",
+        });
+      },
+      onError: (error) => {
+        toast.error(error.message);
+      },
+    });
 
   // Initialize form with user data or empty values if user is not loaded yet
   const form = useForm<z.infer<typeof formSchema>>({
@@ -52,6 +81,39 @@ export function UserSettingsForm({ userInfo }: UserSettingsFormProps) {
 
   // Watch form values to detect changes
   const watchedValues = form.watch();
+
+  // Username availability check with debounce
+  useEffect(() => {
+    const currentUsername = watchedValues.username;
+    const originalUsername = userInfo?.user?.username || "";
+
+    // Don't check if username is empty or unchanged
+    if (!currentUsername || currentUsername === originalUsername) {
+      setUsernameStatus("idle");
+      return;
+    }
+
+    // Check length first
+    if (currentUsername.length < 3) {
+      setUsernameStatus("tooShort");
+      return;
+    }
+
+    // Check format with backend regex
+    const usernameRegex = /^[a-zA-Z0-9][a-zA-Z0-9-]+$/;
+    if (!usernameRegex.test(currentUsername)) {
+      setUsernameStatus("invalidFormat");
+      return;
+    }
+
+    setUsernameStatus("checking");
+
+    const timer = setTimeout(() => {
+      checkUsernameMutation({ username: currentUsername });
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [watchedValues.username, userInfo?.user?.username, checkUsernameMutation]);
 
   // Check if form values have changed from initial values
   useEffect(() => {
@@ -97,6 +159,7 @@ export function UserSettingsForm({ userInfo }: UserSettingsFormProps) {
         lastName: userInfo.user.lastName || "",
         username: userInfo.user.username || "",
       });
+      setUsernameStatus("idle");
     }
   };
 
@@ -106,79 +169,110 @@ export function UserSettingsForm({ userInfo }: UserSettingsFormProps) {
   }, [userInfo, form]);
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    if (!apiClients) return;
+    // Check if username is taken before submitting
+    if (values.username && usernameStatus === "taken") {
+      toast.error("Username is already taken");
+      return;
+    }
+
     const { firstName, lastName, username } = values;
-    setIsSubmitting(true);
-    await updateUser(apiClients?.user, firstName, lastName, username, {
-      onSuccess: () => {
-        toast.success("Settings updated", {
-          description:
-            "Your profile information has been updated successfully.",
-        });
-        // refetch user info
-        getUserInfo();
-        setIsSubmitting(false);
-      },
-      onError: () => setIsSubmitting(false),
+
+    updateUserMutation({
+      firstName,
+      lastName,
+      username,
     });
   };
 
-  // Billing portal section
-  const isDefaultOrg =
-    userInfo?.currentOrganization?.id === userInfo?.defaultOrganization?.id;
-
-  const handleBillingPortal = async () => {
-    try {
-      setIsBillingLoading(true);
-      const res = await apiClients?.org.getStripeBillingPortal({
-        returnToUrl: window.location.href,
-      });
-      if (res) {
-        window.open(res.portalUrl);
-      }
-    } catch (error) {
-      console.error("Failed to get stripe billing portal", error);
-      toast.error("Error", {
-        description: "Failed to access billing portal. Please try again.",
-      });
-    } finally {
-      setIsBillingLoading(false);
+  const getUsernameStatusIcon = () => {
+    switch (usernameStatus) {
+      case "checking":
+        return <Loader className="h-4 w-4 animate-spin text-gray-500" />;
+      case "available":
+        return <Check className="h-4 w-4 text-green-500" />;
+      case "taken":
+      case "tooShort":
+      case "invalidFormat":
+      case "error":
+        return <X className="h-4 w-4 text-red-500" />;
+      default:
+        return null;
     }
   };
 
-  const billingSection = isDefaultOrg ? (
-    <Button onClick={handleBillingPortal} disabled={isBillingLoading}>
-      {isBillingLoading ? (
-        <>
-          <Loader className="mr-2 h-4 w-4 animate-spin" />
-          Loading...
-        </>
-      ) : (
-        "Manage your subscriptions"
-      )}
-    </Button>
-  ) : null;
+  const getUsernameStatusText = () => {
+    switch (usernameStatus) {
+      case "checking":
+        return (
+          <span className="text-sm text-gray-500">
+            Checking availability...
+          </span>
+        );
+      case "available":
+        return (
+          <span className="text-sm text-green-600">Username is available</span>
+        );
+      case "taken":
+        return (
+          <span className="text-sm text-red-600">
+            Username is already taken
+          </span>
+        );
+      case "tooShort":
+        return (
+          <span className="text-sm text-red-600">
+            Username must be at least 3 characters
+          </span>
+        );
+      case "invalidFormat":
+        return (
+          <span className="text-sm text-red-600">
+            Username can only contain letters, numbers, and hyphens
+          </span>
+        );
+      case "error":
+        return (
+          <span className="text-sm text-red-600">
+            Unable to check availability. Please try again.
+          </span>
+        );
+      default:
+        return null;
+    }
+  };
+
+  const isSubmitDisabled = () => {
+    return !!(
+      isUpdatingUserPending ||
+      usernameStatus === "taken" ||
+      usernameStatus === "checking" ||
+      usernameStatus === "tooShort" ||
+      usernameStatus === "invalidFormat" ||
+      usernameStatus === "error"
+    );
+  };
 
   return (
-    <div className="flex flex-col items-start gap-6">
-      {/* Manage subscriptions */}
-      {billingSection}
-
-      {/* Form */}
-      <Form {...form}>
-        <form
-          onSubmit={form.handleSubmit(onSubmit)}
-          className="flex w-full max-w-screen-sm flex-col gap-6"
-        >
+    <Form {...form}>
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="flex w-full flex-col gap-6"
+      >
+        <div className="flex w-full flex-col gap-6 md:flex-row md:gap-3">
           {/* Name Field */}
           <FormField
             control={form.control}
             name="firstName"
             render={({ field }) => (
-              <FormItem>
+              <FormItem className="w-full">
                 <FormLabel>First Name</FormLabel>
                 <FormControl>
-                  <Input placeholder="First Name" {...field} required />
+                  <Input
+                    placeholder="First Name"
+                    {...field}
+                    onChange={(e) => field.onChange(e.target.value.trim())}
+                    required
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -190,57 +284,76 @@ export function UserSettingsForm({ userInfo }: UserSettingsFormProps) {
             control={form.control}
             name="lastName"
             render={({ field }) => (
-              <FormItem>
+              <FormItem className="w-full">
                 <FormLabel>Last Name (optional)</FormLabel>
                 <FormControl>
-                  <Input placeholder="Last Name" {...field} />
+                  <Input
+                    placeholder="Last Name"
+                    {...field}
+                    onChange={(e) => field.onChange(e.target.value.trim())}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
+        </div>
 
-          {/* User  Name Field */}
-          <FormField
-            control={form.control}
-            name="username"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>User Name (optional)</FormLabel>
-                <FormControl>
-                  <Input placeholder="User Name" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
+        {/* User  Name Field */}
+        <FormField
+          control={form.control}
+          name="username"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>User Name</FormLabel>
+              <FormControl>
+                <div className="relative">
+                  <Input
+                    placeholder="User Name"
+                    {...field}
+                    onChange={(e) => field.onChange(e.target.value.trim())}
+                    required
+                  />
+                </div>
+              </FormControl>
+              <div className="flex min-h-[20px] items-center gap-2">
+                {getUsernameStatusIcon()}
+                {getUsernameStatusText()}
+              </div>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* Submit Button */}
+        <div className="flex items-center gap-3">
+          <Button
+            type="submit"
+            variant={formChanged ? "default" : "outline"}
+            disabled={isSubmitDisabled()}
+          >
+            {isUpdatingUserPending ? (
+              <>
+                <Loader className="mr-2 h-4 w-4 animate-spin" />
+                Saving...
+              </>
+            ) : (
+              "Save changes"
             )}
-          />
+          </Button>
 
-          {/* Submit Button */}
-          <div className="flex items-center gap-3">
-            <Button type="submit" variant={formChanged ? "default" : "outline"}>
-              {isSubmitting ? (
-                <>
-                  <Loader className="mr-2 h-4 w-4 animate-spin" />
-                  Saving...
-                </>
-              ) : (
-                "Save changes"
-              )}
+          {formChanged && (
+            <Button
+              type="button"
+              onClick={handleReset}
+              variant="outline"
+              disabled={isUpdatingUserPending}
+            >
+              Discard changes
             </Button>
-
-            {formChanged && (
-              <Button
-                type="button"
-                onClick={handleReset}
-                variant="outline"
-                disabled={isSubmitting}
-              >
-                Discard changes
-              </Button>
-            )}
-          </div>
-        </form>
-      </Form>
-    </div>
+          )}
+        </div>
+      </form>
+    </Form>
   );
 }
