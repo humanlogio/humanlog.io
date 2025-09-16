@@ -56,6 +56,7 @@ import { Log } from "api/js/types/v1/otel_logging_pb";
 import { Span } from "api/js/types/v1/otel_tracing_pb";
 import { QueryTimer } from "@/components/log-interface/query-timer";
 import { create } from "@bufbuild/protobuf";
+import { useEnvironmentStore } from "@/stores/environment-store";
 
 export type DataCase = "subqueries" | "freeForm" | "logs" | "spans" | undefined;
 
@@ -86,7 +87,8 @@ const LogInterface = ({ nav }: LogInterfaceProps) => {
   const router = useRouter();
   const params = useParams();
   const searchParams = useSearchParams();
-  const { apiClients, activeEnvironment } = useApiClients();
+  const { apiClients } = useApiClients();
+  const { activeEnvironment } = useEnvironmentStore();
   const abortControllerRef = useRef<AbortController>();
 
   const { localhostInfo } = useAllEnvironments();
@@ -188,7 +190,7 @@ const LogInterface = ({ nav }: LogInterfaceProps) => {
     if (!apiClients?.query) return;
 
     const streamReq = create(StreamRequestSchema, {
-      environmentId: activeEnvironment?.id,
+      environmentId: activeEnvironment?.environment?.id,
       query,
       maxBatchSize: BigInt(batchSize),
       maxBatchingFor: create(DurationSchema, {
@@ -246,7 +248,7 @@ const LogInterface = ({ nav }: LogInterfaceProps) => {
   } = useInfiniteQuery(
     queryMethod,
     {
-      environmentId: activeEnvironment?.id,
+      environmentId: activeEnvironment?.environment?.id,
       query: query,
       limit,
       cursor: create(CursorSchema, {}),

@@ -13,9 +13,11 @@ import { createAddonSubscription } from "api/js/svc/organization/v1/service-Orga
 import { Product_Scope } from "api/js/types/v1/product_pb";
 import { ConnectError } from "@connectrpc/connect";
 import { getOrgEnvUrl } from "@/lib/utils/navigation";
+import { useEnvironmentStore } from "@/stores/environment-store";
 
 export default function OnboardingPricing() {
-  const { apiClients, activeEnvironment } = useApiClients();
+  const { activeEnvironment } = useEnvironmentStore();
+  const { apiClients } = useApiClients();
   const { userInfo, doLogin, handleAllowedUsage } = useAllEnvironments();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();

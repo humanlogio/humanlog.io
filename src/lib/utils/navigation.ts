@@ -1,5 +1,5 @@
 import { UserInfo } from "@/context/list-environments";
-import { Environment } from "api/js/types/v1/environment_pb";
+import { ListEnvironmentResponse_ListItem } from "api/js/svc/organization/v1/service_pb";
 
 // User
 export function getUserSettingsUrl() {
@@ -8,11 +8,11 @@ export function getUserSettingsUrl() {
 
 export function getOrgEnvUrl(
   userInfo: UserInfo,
-  activeEnvironment?: Environment,
+  activeEnvironment?: ListEnvironmentResponse_ListItem,
 ) {
   if (!userInfo || userInfo === "isLoading") return "/";
 
-  return `/${userInfo.currentOrganization?.name}/${activeEnvironment?.name ?? "localhost"}/query`;
+  return `/${userInfo.currentOrganization?.name}/${activeEnvironment?.environment?.name ?? "localhost"}/query`;
 }
 
 export function getOrgSettingsUrl(orgName: string) {

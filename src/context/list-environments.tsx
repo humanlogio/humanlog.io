@@ -25,6 +25,7 @@ import {
   ListOrganizationResponse_ListItem,
 } from "api/js/svc/user/v1/service_private_pb";
 import { create } from "@bufbuild/protobuf";
+import { useEnvironmentStore } from "@/stores/environment-store";
 
 export type FilterBySymbol = {
   symbolName: Expr;
@@ -76,11 +77,13 @@ export function ListEnvironmentsProvider({
   children: React.ReactNode;
 }) {
   const router = useRouter();
-
   const pathname = usePathname();
   const loginReturnToURL = `${getSelfURL()}/login`;
   const logoutReturnToURL = `${getSelfURL()}/logout`;
-  const { apiClients, setActiveEnvironment } = useApiClients();
+  const { apiClients } = useApiClients();
+
+  const { setActiveEnvironment } = useEnvironmentStore();
+
   const [localhostValid, setLocalhostValid] = useState(false);
   const [localhostInfo, setLocalhostInfo] = useState<PingResponse>();
   const [userInfo, setUserInfo] = useState<UserInfo>("isLoading");
@@ -146,6 +149,8 @@ export function ListEnvironmentsProvider({
   const doLogout = async () => {
     deleteCookie();
     localStorage.removeItem("hlog_session");
+    setActiveEnvironment(undefined);
+
     try {
       if (!apiClients || userInfo === "isLoading") return;
 
@@ -169,6 +174,7 @@ export function ListEnvironmentsProvider({
     } catch (err) {
       deleteCookie();
       setUserInfo(undefined);
+      setActiveEnvironment(undefined);
       router.push("/");
     }
   };
