@@ -53,13 +53,10 @@ import config from "@/features/config";
 import { v4 as uuidv4 } from "uuid";
 import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
+import { useEnvironmentStore } from "@/stores/environment-store";
 
 type ApiProviderType = {
   apiClients: ApiClients | null;
-  activeEnvironment: Environment | undefined;
-  setActiveEnvironment: React.Dispatch<
-    React.SetStateAction<Environment | undefined>
-  >;
   authenticated: boolean;
 };
 
@@ -108,13 +105,12 @@ export function ApiClientsProvider({
   const returnToURL = getSelfURL();
   const [cookies, setCookie] = useCookies();
   const [apiTransport, setApiTransport] = useState<Transport>();
-  const [activeEnvironment, setActiveEnvironment] = useState<
-    Environment | undefined
-  >();
   const [authenticated, setAuthenticated] = useState(false);
   const searchParams = useSearchParams();
   const localhostPort = searchParams.get("demo_port") ?? "32764";
   const localhostBaseUrl = `http://localhost:${localhostPort}`;
+
+  const { activeEnvironment } = useEnvironmentStore();
 
   const apiClients = useMemo((): ApiClients => {
     const auther = (): Interceptor => {
@@ -191,8 +187,6 @@ export function ApiClientsProvider({
       <ApiClientContext.Provider
         value={{
           apiClients,
-          activeEnvironment,
-          setActiveEnvironment,
           authenticated,
         }}
       >

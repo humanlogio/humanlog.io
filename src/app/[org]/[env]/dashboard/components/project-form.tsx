@@ -36,6 +36,7 @@ import { Button } from "@/components/ui/button";
 import { Info } from "lucide-react";
 import { ReadOnlyField } from "@/app/[org]/[env]/dashboard/components/read-only-field";
 import { create } from "@bufbuild/protobuf";
+import { useEnvironmentStore } from "@/stores/environment-store";
 
 // Project pointer type schemas
 export const localhostProjectSchema = z.object({
@@ -80,7 +81,7 @@ export const ProjectForm = ({
   setIsProjectDialogOpen,
   refetchProjectList,
 }: ProjectFormProps) => {
-  const { activeEnvironment } = useApiClients();
+  const { activeEnvironment } = useEnvironmentStore();
 
   const { mutate: createProjectMutation, isPending: isCreatingProject } =
     useMutation(createProject);
@@ -150,7 +151,7 @@ export const ProjectForm = ({
     }
 
     const newProject = create(CreateProjectRequestSchema, {
-      environmentId: activeEnvironment?.id,
+      environmentId: activeEnvironment?.environment?.id,
       name,
       pointer,
     });

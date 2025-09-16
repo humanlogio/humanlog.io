@@ -12,6 +12,8 @@ import {
 } from "@/components/ui/select";
 import { WhoamiResponse } from "api/js/svc/user/v1/service_private_pb";
 import { useApiClients } from "@/context/api-provider";
+import { useEnvironmentStore } from "@/stores/environment-store";
+import { GetEnvironmentResponse } from "api/js/svc/organization/v1/service_pb";
 
 interface Source {
   name: string;
@@ -19,15 +21,16 @@ interface Source {
   value: string;
 }
 
-interface EnvListProps {
+interface EnvSwitcherProps {
   userInfo: WhoamiResponse;
 }
 
-export const EnvList = ({ userInfo }: EnvListProps) => {
+export const EnvSwitcher = ({ userInfo }: EnvSwitcherProps) => {
   const router = useRouter();
   const params = useParams();
   const pathname = usePathname();
-  const { activeEnvironment, setActiveEnvironment } = useApiClients();
+
+  const { setActiveEnvironment, activeEnvironment } = useEnvironmentStore();
   const { localhostInfo, listEnvironments } = useAllEnvironments();
 
   const [menuList, setMenuList] = useState<Source[]>([]);
@@ -43,7 +46,7 @@ export const EnvList = ({ userInfo }: EnvListProps) => {
 
     const currentEnv = listEnvironments.find(
       (env) =>
-        env.environment?.id === activeEnvironment?.id ||
+        env.environment?.id === activeEnvironment?.environment?.id ||
         env.environment?.name === currentEnvSlug,
     );
 
@@ -58,8 +61,8 @@ export const EnvList = ({ userInfo }: EnvListProps) => {
       (env) => env.environment?.id.toString() === selected.value,
     );
 
-    setActiveEnvironment(activeEnv?.environment);
-
+    if (!activeEnv) return;
+    setActiveEnvironment(activeEnv);
     router.push(selected.path);
   };
 
