@@ -36,7 +36,7 @@ export const formatTimestamp = (
   formatValue?: string,
   isUtc?: boolean,
 ) => {
-  if (!timestamp) return;
+  if (!timestamp) return "N/A";
 
   let dayjsObj;
 

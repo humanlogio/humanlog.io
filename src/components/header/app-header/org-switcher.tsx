@@ -15,6 +15,7 @@ import { getAuthURL } from "api/js/svc/auth/v1/service-AuthService_connectquery"
 import { toast } from "sonner";
 import { getSelfURL } from "@/lib/envs";
 import { useEnvironmentStore } from "@/stores/environment-store";
+import { getOrgEnvUrl } from "@/lib/utils/navigation";
 
 interface Source {
   name: string;
@@ -29,6 +30,7 @@ interface OrgSwitcherProps {
 export const OrgSwitcher = ({ userInfo }: OrgSwitcherProps) => {
   const router = useRouter();
   const params = useParams();
+  const pathname = usePathname();
   const { activeEnvironment } = useEnvironmentStore();
   const { listOrganizations } = useAllEnvironments();
 
@@ -68,13 +70,13 @@ export const OrgSwitcher = ({ userInfo }: OrgSwitcherProps) => {
     listOrganizations.forEach((org) => {
       _menuList.push({
         name: org.organization?.name || "",
-        path: `/${org.organization?.name}/${activeEnvironment?.environment?.name}/query`,
+        path: getOrgEnvUrl(userInfo, activeEnvironment, pathname),
         value: org.organization?.id?.toString() || "",
       });
     });
 
     setMenuList(_menuList);
-  }, [listOrganizations, userInfo]);
+  }, [listOrganizations, userInfo, activeEnvironment, pathname]);
 
   return (
     <Select value={getCurrentSelectedValue()} onValueChange={updateSelection}>

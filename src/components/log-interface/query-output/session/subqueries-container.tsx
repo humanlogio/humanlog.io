@@ -190,11 +190,11 @@ const SubQueryPanel = ({
     isLoading: isQueryLoading,
   } = useInfiniteQuery(
     queryMethod,
+    // @ts-ignore
     {
       environmentId: activeEnvironment?.environment?.id ?? BigInt(0),
       query: list.query,
       limit: 1000,
-      cursor: create(CursorSchema, {}),
     },
     {
       pageParamKey: "cursor" as const,
