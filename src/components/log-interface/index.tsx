@@ -258,9 +258,7 @@ const LogInterface = ({ nav }: LogInterfaceProps) => {
       getNextPageParam: (lastPage: QueryResponse) => {
         return lastPage?.next || undefined;
       },
-      initialPageParam: undefined,
       transport: useActiveTransport(),
-      queryKey: ["queryData", queryString, query],
       enabled: !!query && nav === "query",
     },
   );
