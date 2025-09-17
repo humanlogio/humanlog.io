@@ -201,8 +201,6 @@ const SubQueryPanel = ({
       getNextPageParam: (lastPage: QueryResponse) => {
         return lastPage?.next || undefined;
       },
-      queryKey: ["logs", list.query],
-      initialPageParam: undefined,
       transport: useActiveTransport(),
     },
   );
