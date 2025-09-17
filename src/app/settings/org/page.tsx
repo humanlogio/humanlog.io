@@ -152,7 +152,7 @@ export default function OrgSettingsPage() {
       <div>
         <h1 className="text-3xl font-bold">Organization Settings</h1>
         <p className="text-muted-foreground mt-2">
-          Manage your organization settings, members, and billing
+          Manage this organization&apos;s settings, members, and billing
         </p>
       </div>
 
@@ -411,7 +411,7 @@ export default function OrgSettingsPage() {
                 Organization Members
               </CardTitle>
               <CardDescription>
-                Manage members and their roles in your organization
+                Manage members and their roles in this organization
               </CardDescription>
             </CardHeader>
             <CardContent>
