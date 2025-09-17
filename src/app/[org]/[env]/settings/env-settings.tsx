@@ -10,27 +10,34 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 
-import {
-  Server,
-  Calendar,
-  CreditCard,
-  Trash2,
-  AlertTriangle,
-  Database,
-} from "lucide-react";
-import { useQuery } from "@connectrpc/connect-query";
-import { listPaymentMethod } from "api/js/svc/organization/v1/service-OrganizationService_connectquery";
+import { Server, Calendar, Trash2, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import { useEnvironmentStore } from "@/stores/environment-store";
+import { useMutation } from "@connectrpc/connect-query";
+import { getStripeBillingPortal } from "api/js/svc/organization/v1/service-OrganizationService_connectquery";
 
 export const EnvSettings = () => {
   const [newEnvName, setNewEnvName] = useState("");
   const { activeEnvironment } = useEnvironmentStore();
 
-  // TODO: use useInfiniteQuery
-  const { data: listPaymentMethodData } = useQuery(listPaymentMethod);
+  const { mutate: billingPortalMutation, isPending: isBillingPending } =
+    useMutation(getStripeBillingPortal, {
+      onSuccess: (res) => {
+        window.open(res.portalUrl);
+      },
+      onError: (error) => {
+        toast.error("Error", {
+          description: error.message,
+        });
+      },
+    });
+
+  const handleBillingPortal = async () => {
+    billingPortalMutation({
+      returnToUrl: window.location.href,
+    });
+  };
 
   const handleUpdateEnvName = () => {
     // TODO: API Call to update environment name
@@ -50,7 +57,16 @@ export const EnvSettings = () => {
       <div>
         <h1 className="text-3xl font-bold">Environment Settings</h1>
         <p className="text-muted-foreground mt-2">
-          Manage your environment configuration, members, and access settings
+          Manage this environment configuration and access settings. For billing
+          and subscription management,{" "}
+          <button
+            onClick={handleBillingPortal}
+            disabled={isBillingPending}
+            className="cursor-pointer text-blue-600 hover:underline disabled:opacity-50"
+          >
+            {isBillingPending ? "opening..." : "visit billing portal"}
+          </button>
+          .
         </p>
       </div>
 
@@ -102,7 +118,7 @@ export const EnvSettings = () => {
         <CardHeader>
           <CardTitle>Update Environment Name</CardTitle>
           <CardDescription>
-            Change your environment&apos;s display name
+            Change this environment&apos;s display name
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -115,50 +131,6 @@ export const EnvSettings = () => {
             <Button onClick={handleUpdateEnvName} disabled={!newEnvName.trim()}>
               Update Name
             </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Usage & Billing */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Database className="h-5 w-5" />
-            Usage & Billing
-          </CardTitle>
-          <CardDescription>
-            Current usage statistics and billing information
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="border-t pt-4">
-            <label className="text-muted-foreground text-sm font-medium">
-              Payment Method
-            </label>
-            {listPaymentMethodData?.items &&
-            listPaymentMethodData?.items.length > 0 ? (
-              <div className="mt-2 flex items-center gap-3">
-                <CreditCard className="h-4 w-4" />
-                <span>
-                  •••• •••• ••••
-                  {listPaymentMethodData?.items[0].paymentMethod?.type?.case ===
-                  "card"
-                    ? listPaymentMethodData?.items[0].paymentMethod?.type.value
-                        .last4
-                    : ""}
-                </span>
-                <Badge variant="secondary">
-                  {listPaymentMethodData?.items[0].paymentMethod?.type?.case}
-                </Badge>
-                {/* {listPaymentMethodData?.items[0].paymentMethod && (
-                <Badge className="bg-blue-100 text-blue-800">Default</Badge>
-              )} */}
-              </div>
-            ) : (
-              <p className="text-muted-foreground mt-2 text-sm">
-                No payment methods found
-              </p>
-            )}
           </div>
         </CardContent>
       </Card>
