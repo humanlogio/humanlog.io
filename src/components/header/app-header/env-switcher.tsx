@@ -11,9 +11,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { WhoamiResponse } from "api/js/svc/user/v1/service_private_pb";
-import { useApiClients } from "@/context/api-provider";
 import { useEnvironmentStore } from "@/stores/environment-store";
-import { GetEnvironmentResponse } from "api/js/svc/organization/v1/service_pb";
+import { buildOrgEnvUrl } from "@/lib/utils/navigation";
 
 interface Source {
   name: string;
@@ -60,9 +59,7 @@ export const EnvSwitcher = ({ userInfo }: EnvSwitcherProps) => {
     const activeEnv = listEnvironments.find(
       (env) => env.environment?.id.toString() === selected.value,
     );
-
-    if (!activeEnv) return;
-    setActiveEnvironment(activeEnv);
+    setActiveEnvironment(activeEnv ?? undefined);
     router.push(selected.path);
   };
 
@@ -72,7 +69,11 @@ export const EnvSwitcher = ({ userInfo }: EnvSwitcherProps) => {
     if (localhostInfo) {
       _menuList.push({
         name: `localhost ${localhostVersion(localhostInfo)}`,
-        path: `/${userInfo?.currentOrganization?.name}/localhost/query`,
+        path: buildOrgEnvUrl(
+          userInfo?.currentOrganization?.name || "",
+          "localhost",
+          pathname,
+        ),
         value: localhostVersion(localhostInfo),
       });
     }
@@ -80,7 +81,11 @@ export const EnvSwitcher = ({ userInfo }: EnvSwitcherProps) => {
     listEnvironments.forEach((env) => {
       _menuList.push({
         name: env.environment?.name || "",
-        path: `/${userInfo?.currentOrganization?.name}/${env.environment?.name}/query`,
+        path: buildOrgEnvUrl(
+          userInfo?.currentOrganization?.name || "",
+          env.environment?.name || "",
+          pathname,
+        ),
         value: env.environment?.id?.toString() || "",
       });
     });
@@ -91,7 +96,7 @@ export const EnvSwitcher = ({ userInfo }: EnvSwitcherProps) => {
     });
 
     setMenuList(_menuList);
-  }, [listEnvironments, localhostInfo, userInfo, pathname]);
+  }, [listEnvironments, userInfo, localhostInfo, pathname]);
 
   return (
     <Select value={getCurrentSelectedValue()} onValueChange={updateSelection}>

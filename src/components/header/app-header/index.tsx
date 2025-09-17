@@ -1,8 +1,8 @@
 "use client";
 
-import { ReactNode, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useParams, usePathname, useRouter } from "next/navigation";
+import { useParams, usePathname } from "next/navigation";
 import {
   Activity,
   Database,
@@ -12,15 +12,6 @@ import {
   Settings,
   HexagonIcon,
   UserIcon,
-  LogOut,
-  Moon,
-  Sun,
-  Monitor,
-  Users,
-  Building,
-  FileText,
-  CreditCard,
-  ChevronRight,
 } from "lucide-react";
 import config from "@/features/config";
 import {
@@ -31,16 +22,10 @@ import {
 import { WhoamiResponse } from "api/js/svc/user/v1/service_private_pb";
 import { gravatarURL } from "@/lib/utils/avatar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useAllEnvironments } from "@/context/list-environments";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
-import ModeToggle from "@/components/mode-toggle";
 import { PingResponse } from "api/js/svc/localhost/v1/service_pb";
-import { EnvList } from "@/components/header/app-header/env-list";
-import { OrgList } from "@/components/header/app-header/org-list";
-import { findDeepestFirstPath } from "@/lib/contents";
-import { navItems } from "@/app/docs/layout";
+import { EnvSwitcher } from "@/components/header/app-header/env-switcher";
+import { SideMenu } from "@/components/header/app-header/side-menu";
 
 interface AppHeaderProps {
   userInfo: WhoamiResponse;
@@ -60,38 +45,37 @@ export const AppHeader = ({ userInfo }: AppHeaderProps) => {
   const currentEnvSlug = params?.env || "localhost";
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [theme, setTheme] = useState<"light" | "dark" | "system">("system");
 
   const navItems = [
     {
       name: "Query",
       path: `/${currentOrg}/${currentEnvSlug}/query`,
       icon: <Database size={14} />,
-      disabled: false,
+      isDevOnly: false,
     },
     {
       name: "Stream",
       path: `/${currentOrg}/${currentEnvSlug}/stream`,
       icon: <Activity size={14} />,
-      disabled: false,
+      isDevOnly: false,
     },
     {
       name: "Dashboard",
       path: `/${currentOrg}/${currentEnvSlug}/dashboard`,
       icon: <BarChart3 size={14} />,
-      disabled: isProd ? true : false,
+      isDevOnly: isProd,
     },
     {
       name: "Monitors",
       path: `/${currentOrg}/${currentEnvSlug}/monitors`,
       icon: <Bell size={14} />,
-      disabled: isProd ? true : false,
+      isDevOnly: isProd,
     },
     {
       name: "Settings",
       path: `/${currentOrg}/${currentEnvSlug}/settings`,
       icon: <Settings size={14} />,
-      disabled: isProd ? true : false,
+      isDevOnly: isProd,
     },
   ];
 
@@ -114,7 +98,7 @@ export const AppHeader = ({ userInfo }: AppHeaderProps) => {
           {navItems.map((item) => {
             return (
               <li key={item.path}>
-                {item.disabled ? (
+                {item.isDevOnly ? (
                   <Tooltip>
                     <TooltipTrigger>
                       <div
@@ -160,7 +144,7 @@ export const AppHeader = ({ userInfo }: AppHeaderProps) => {
         )}
         <div className="flex items-center gap-2">
           <div className="w-30">
-            <EnvList userInfo={userInfo} />
+            <EnvSwitcher userInfo={userInfo} />
           </div>
 
           <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
@@ -178,132 +162,6 @@ export const AppHeader = ({ userInfo }: AppHeaderProps) => {
               <SideMenu userInfo={userInfo} />
             </SheetContent>
           </Sheet>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-interface SideMenuProps {
-  userInfo: WhoamiResponse;
-}
-
-const SideMenu = ({ userInfo }: SideMenuProps) => {
-  const router = useRouter();
-  const { doLogout } = useAllEnvironments();
-
-  const handleLogout = () => {
-    doLogout();
-    router.push("/");
-  };
-
-  return (
-    <div className="flex h-full flex-col">
-      {/* User Info Section */}
-      <div className="flex items-center gap-3 p-4">
-        <Avatar className="h-12 w-12">
-          <AvatarImage src={gravatarURL(userInfo.user?.email)} />
-          <AvatarFallback className="uppercase">
-            {userInfo.user?.firstName?.slice(0, 2) || <UserIcon size={20} />}
-          </AvatarFallback>
-        </Avatar>
-        <div className="flex flex-col">
-          <div className="text-sm font-semibold">
-            {userInfo.user?.firstName && userInfo.user?.lastName
-              ? `${userInfo.user.firstName} ${userInfo.user.lastName}`
-              : userInfo.user?.username || "User"}
-          </div>
-          <div className="text-muted-foreground text-xs">
-            {userInfo.user?.email}
-          </div>
-        </div>
-      </div>
-
-      <Separator className="my-2" />
-      <div className="px-4 py-2">
-        <div className="text-muted-foreground mb-2 text-xs font-semibold tracking-wider uppercase">
-          Current Organization
-        </div>
-        <OrgList userInfo={userInfo} />
-      </div>
-
-      <Separator className="my-2" />
-
-      {/* Settings Section */}
-      <div className="px-4 py-2">
-        <div className="text-muted-foreground mb-2 text-xs font-semibold tracking-wider uppercase">
-          Settings
-        </div>
-        <div className="space-y-1">
-          <Link
-            href="/settings/users"
-            className="flex h-auto w-full justify-start px-2 py-2"
-          >
-            <Users size={16} className="mr-3" />
-            <span className="text-sm">User</span>
-            <ChevronRight size={14} className="ml-auto" />
-          </Link>
-          <Link
-            href="/settings/localhost"
-            className="flex h-auto w-full justify-start px-2 py-2"
-          >
-            <HardDrive size={16} className="mr-3" />
-            <span className="text-sm">Localhost</span>
-            <ChevronRight size={14} className="ml-auto" />
-          </Link>
-          <Link
-            href="/settings/org"
-            className="flex h-auto w-full justify-start px-2 py-2"
-          >
-            <Building size={16} className="mr-3" />
-            <span className="text-sm">Organization</span>
-            <ChevronRight size={14} className="ml-auto" />
-          </Link>
-        </div>
-      </div>
-
-      <Separator className="my-2" />
-
-      {/* Navigation Section */}
-      <div className="px-4 py-2">
-        <div className="text-muted-foreground mb-2 text-xs font-semibold tracking-wider uppercase">
-          Navigation
-        </div>
-        <div className="space-y-1">
-          <Link
-            href={findDeepestFirstPath(navItems[0])}
-            className="flex h-auto w-full justify-start px-2 py-2"
-          >
-            <FileText size={16} className="mr-3" />
-            <span className="text-sm">Docs</span>
-            <ChevronRight size={14} className="ml-auto" />
-          </Link>
-          <Link
-            href="/pricing"
-            className="flex h-auto w-full justify-start px-2 py-2"
-          >
-            <CreditCard size={16} className="mr-3" />
-            <span className="text-sm">Pricing</span>
-            <ChevronRight size={14} className="ml-auto" />
-          </Link>
-        </div>
-      </div>
-
-      <Separator className="my-2" />
-
-      {/* Logout Section - Bottom */}
-      <div className="mt-auto p-4">
-        <Separator className="mb-4" />
-        <div className="flex justify-between">
-          <Button
-            variant="ghost"
-            className="h-auto justify-start px-2 py-2"
-            onClick={handleLogout}
-          >
-            <LogOut size={16} className="mr-2" />
-            <span className="text-sm">Log out</span>
-          </Button>
-          <ModeToggle />
         </div>
       </div>
     </div>

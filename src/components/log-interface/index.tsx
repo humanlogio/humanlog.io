@@ -9,11 +9,9 @@ import {
   useRef,
   useState,
 } from "react";
-import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
-import { NoLocalhostView } from "@/components/log-interface/views/no-localhost-view";
 import { useActiveTransport, useApiClients } from "@/context/api-provider";
-import { useAllEnvironments } from "@/context/list-environments";
 import { useInfiniteQuery, useMutation } from "@connectrpc/connect-query";
 import {
   query as queryMethod,
@@ -22,13 +20,11 @@ import {
 import {
   ParseResponse,
   QueryResponse,
-  StreamRequest,
   StreamRequestSchema,
   StreamResponse,
 } from "api/js/svc/query/v1/service_pb";
 import {
   Query,
-  QuerySchema,
   RenderStatementSchema,
   SplitOperatorSchema,
   SplitOperator_ByOperatorSchema,
@@ -47,11 +43,10 @@ import { twMerge } from "tailwind-merge";
 import Graph from "@/components/ui/graph/graph";
 import { trace, SpanStatusCode } from "@opentelemetry/api";
 import { ConnectError } from "@connectrpc/connect";
-import { Duration, DurationSchema } from "@bufbuild/protobuf/wkt";
+import { DurationSchema } from "@bufbuild/protobuf/wkt";
 import FeatureFlag from "@/components/posthog/feature-flag";
 import { logger } from "@/lib/utils/telemetry/logger";
 import { newIdentifierExpr } from "@/lib/utils/queryExpressions";
-import { Cursor, CursorSchema } from "api/js/types/v1/cursor_pb";
 import { Log } from "api/js/types/v1/otel_logging_pb";
 import { Span } from "api/js/types/v1/otel_tracing_pb";
 import { QueryTimer } from "@/components/log-interface/query-timer";
@@ -85,20 +80,16 @@ export type QueryTiming = {
 const LogInterface = ({ nav }: LogInterfaceProps) => {
   const limit = 1000;
   const router = useRouter();
-  const params = useParams();
+
   const searchParams = useSearchParams();
   const { apiClients } = useApiClients();
   const { activeEnvironment } = useEnvironmentStore();
   const abortControllerRef = useRef<AbortController>();
 
-  const { localhostInfo } = useAllEnvironments();
-  const currentEnvSlug = params?.env as string;
-
   const queryString = searchParams.get("query");
   const splitByDefault = searchParams.get("splitByDefault") !== "false";
 
   const [queryParseErrMsg, setQueryParseErrMsg] = useState("");
-
   const [queryRes, setQueryRes] = useState<QueryResponse | null>(null);
   const [streamRes, setStreamRes] = useState<StreamResponse[]>([]);
   const [isStreamPaused, setIsStreamPaused] = useState(false);
@@ -247,11 +238,11 @@ const LogInterface = ({ nav }: LogInterfaceProps) => {
     isLoading: isQueryLoading,
   } = useInfiniteQuery(
     queryMethod,
+    // @ts-ignore
     {
       environmentId: activeEnvironment?.environment?.id,
       query: query,
       limit,
-      cursor: create(CursorSchema, {}),
     },
     {
       pageParamKey: "cursor" as const,
@@ -411,14 +402,6 @@ const LogInterface = ({ nav }: LogInterfaceProps) => {
     queryTiming.isActive,
     queryTiming.startTime,
   ]);
-
-  if (!localhostInfo && currentEnvSlug === "localhost") {
-    return (
-      <div className="mt-32 flex justify-center">
-        <NoLocalhostView />
-      </div>
-    );
-  }
 
   return (
     <section className={isLibraryOpen ? "h-[calc(100vh-4rem)]" : ""}>
