@@ -10,10 +10,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAllEnvironments } from "@/context/list-environments";
-import { useMutation } from "@connectrpc/connect-query";
-import { inviteUser } from "api/js/svc/organization/v1/service-OrganizationService_connectquery";
 import { createOrganization } from "api/js/svc/user/v1/service_private-UserService_connectquery";
 import { useState } from "react";
 import {
@@ -24,65 +22,87 @@ import {
   Calendar,
   Users,
   Building,
+  UserIcon,
 } from "lucide-react";
 import { formatTimestamp } from "@/lib/utils/formatTimeStamp";
+import {
+  inviteUser,
+  listUser,
+  listUserInvitation,
+  revokeUserInvitation,
+} from "api/js/svc/organization/v1/service-OrganizationService_connectquery";
+import { useMutation, useQuery } from "@connectrpc/connect-query";
+import { toast } from "sonner";
+import { gravatarURL } from "@/lib/utils/avatar";
 
 export default function OrgSettingsPage() {
   const [email, setEmail] = useState("");
   const [orgName, setOrgName] = useState("");
   const [newOrgName, setNewOrgName] = useState("");
   const { userInfo } = useAllEnvironments();
-  const { mutate: inviteUserMutation } = useMutation(inviteUser, {});
-  const { mutate: createOrgMutation } = useMutation(createOrganization, {});
+
+  const { data: listUserData } = useQuery(listUser);
+
+  // TODO: use useInfiniteQuery
+  const { data: listUserInvitationData } = useQuery(listUserInvitation);
+
+  const { mutate: inviteUserMutation } = useMutation(inviteUser, {
+    onSuccess: () => {
+      toast.success("User invitation sent successfully");
+      setEmail("");
+    },
+    onError: (error) => {
+      toast.error("Failed to send invitation");
+      console.error(error);
+    },
+  });
+
+  const { mutate: createOrgMutation } = useMutation(createOrganization, {
+    onSuccess: () => {
+      toast.success("Organization created successfully");
+      setEmail("");
+    },
+    onError: (error) => {
+      toast.error("Failed to create organization");
+      console.error(error);
+    },
+  });
+
+  const { mutate: revokeInviteMutation } = useMutation(revokeUserInvitation, {
+    onSuccess: () => {
+      toast.success("Invitation cancelled successfully");
+    },
+    onError: (error) => {
+      toast.error("Failed to cancel invitation");
+      console.error(error);
+    },
+  });
 
   if (userInfo === "isLoading") return;
 
   const isDefaultOrg =
     userInfo?.currentOrganization?.id === userInfo?.defaultOrganization?.id;
 
-  // hardcoded org members
-  const orgMembers = [
-    {
-      id: "1",
-      name: "dumibell",
-      email: "choyejee14@gmail.com",
-      role: "Owner",
-      joinedAt: "2024-01-15",
-      avatar: null,
-    },
-    {
-      id: "2",
-      name: "aybabtme",
-      email: "antoine@webscale.lol",
-      role: "Admin",
-      joinedAt: "2024-02-01",
-      avatar: null,
-    },
-  ];
-
-  // hardcoded pending invites
-  const pendingInvites = [
-    {
-      id: "inv-1",
-      email: "john@example.com",
-      role: "Member",
-      invitedAt: "2024-03-10",
-      invitedBy: "dumibell",
-    },
-    {
-      id: "inv-2",
-      email: "sarah@example.com",
-      role: "Admin",
-      invitedAt: "2024-03-12",
-      invitedBy: "dumibell",
-    },
-  ];
-
   const handleInviteUser = () => {
     inviteUserMutation({
       userEmail: email,
     });
     setEmail("");
+  };
+
+  const handleCancelInvite = (inviteId?: bigint) => {
+    if (!inviteId) return;
+
+    revokeInviteMutation({
+      inviteId: inviteId,
+    });
+  };
+
+  const handleRemoveMember = (memberId?: string) => {
+    if (!memberId) return;
+    // TODO: API Call to remove member
+    console.log("Removing member:", memberId);
+    toast.success("Member removed successfully");
   };
 
   const handleCreateOrg = () => {
@@ -98,19 +118,9 @@ export default function OrgSettingsPage() {
     setNewOrgName("");
   };
 
-  const handleRemoveMember = (memberId: string) => {
-    // TODO: Call API to remove member
-    console.log("Removing member:", memberId);
-  };
-
   const handleChangeRole = (memberId: string, newRole: string) => {
     // TODO: Call API to change member role
     console.log("Changing role for member:", memberId, "to:", newRole);
-  };
-
-  const handleCancelInvite = (inviteId: string) => {
-    // TODO: Call API to cancel invite
-    console.log("Cancelling invite:", inviteId);
   };
 
   const getRoleColor = (role: string) => {
@@ -243,7 +253,7 @@ export default function OrgSettingsPage() {
               </div>
             </CardContent>
           </Card>
-          {/* Invite Users */}
+          {/* Invite New Member */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -251,7 +261,7 @@ export default function OrgSettingsPage() {
                 Invite New Member
               </CardTitle>
               <CardDescription>
-                Send an invitation to join your organization
+                Send an invitation to join this environment
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -268,57 +278,130 @@ export default function OrgSettingsPage() {
               </div>
             </CardContent>
           </Card>
+
           {/* Pending Invitations */}
-          {pendingInvites.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Pending Invitations</CardTitle>
-                <CardDescription>
-                  Invitations that haven&apos;t been accepted yet
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {pendingInvites.map((invite) => (
+          {listUserInvitationData?.items &&
+            listUserInvitationData?.items.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Pending Invitations</CardTitle>
+                  <CardDescription>
+                    Invitations that haven&apos;t been accepted yet
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {listUserInvitationData?.items.map((invite) => (
+                      <div
+                        key={invite.invitation?.id}
+                        className="flex items-center justify-between rounded-lg border p-3"
+                      >
+                        <div className="flex items-center gap-3">
+                          <Avatar>
+                            <AvatarFallback>
+                              {invite.invitation?.invitedUserEmail
+                                .charAt(0)
+                                .toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <p className="font-medium">
+                              {invite.invitation?.invitedUserEmail}
+                            </p>
+                            <p className="text-muted-foreground text-sm">
+                              Invited by{" "}
+                              {invite.invitation?.invitedBy?.username} •{" "}
+                              {formatTimestamp(invite.invitation?.createdAt)}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {/* <Badge className={getRoleColor(invite.role)}>
+                    {getRoleIcon(invite.role)}
+                    {invite.role}
+                  </Badge> */}
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() =>
+                              handleCancelInvite(invite.invitation?.id)
+                            }
+                          >
+                            Cancel
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+          {/* Environment Members */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Users className="h-5 w-5" />
+                Environment Members
+              </CardTitle>
+              <CardDescription>
+                Users with access to this environment
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {listUserData?.items && listUserData?.items.length > 0 ? (
+                  listUserData.items.map((member) => (
                     <div
-                      key={invite.id}
+                      key={member.user?.id?.toString()}
                       className="flex items-center justify-between rounded-lg border p-3"
                     >
                       <div className="flex items-center gap-3">
-                        <Avatar>
-                          <AvatarFallback>
-                            {invite.email.charAt(0).toUpperCase()}
+                        <Avatar className="h-7 w-7">
+                          <AvatarImage src={gravatarURL(member.user?.email)} />
+                          <AvatarFallback className="uppercase">
+                            {member.user?.firstName?.slice(0, 2) || (
+                              <UserIcon size={14} />
+                            )}
                           </AvatarFallback>
                         </Avatar>
                         <div>
-                          <p className="font-medium">{invite.email}</p>
+                          <p className="font-medium">
+                            {member.user?.username || member.user?.firstName}
+                          </p>
                           <p className="text-muted-foreground text-sm">
-                            Invited by {invite.invitedBy} •{" "}
-                            {new Date(invite.invitedAt).toLocaleDateString(
-                              "ko-KR",
-                            )}
+                            {member.user?.email}
+                          </p>
+                          <p className="text-muted-foreground text-xs">
+                            Joined {formatTimestamp(member.user?.createdAt)}
                           </p>
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
-                        <Badge className={getRoleColor(invite.role)}>
-                          {getRoleIcon(invite.role)}
-                          {invite.role}
+                        <Badge className={getRoleColor("Admin")}>
+                          {getRoleIcon("Admin")}
                         </Badge>
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => handleCancelInvite(invite.id)}
+                          onClick={() =>
+                            handleRemoveMember(member?.user?.id?.toString())
+                          }
+                          className="text-red-600 hover:text-red-700"
                         >
-                          Cancel
+                          <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
                     </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
+                  ))
+                ) : (
+                  <p className="text-muted-foreground text-sm">
+                    No members found
+                  </p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Organization Members */}
           <Card>
@@ -333,46 +416,55 @@ export default function OrgSettingsPage() {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {orgMembers.map((member) => (
-                  <div
-                    key={member.id}
-                    className="flex items-center justify-between rounded-lg border p-3"
-                  >
-                    <div className="flex items-center gap-3">
-                      <Avatar>
-                        <AvatarFallback>{member.name.charAt(0)}</AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <p className="font-medium">{member.name}</p>
-                        <p className="text-muted-foreground text-sm">
-                          {member.email}
-                        </p>
-                        <p className="text-muted-foreground text-xs">
-                          Joined{" "}
-                          {new Date(member.joinedAt).toLocaleDateString(
-                            "ko-KR",
-                          )}
-                        </p>
+                {listUserData?.items && listUserData?.items.length > 0 ? (
+                  listUserData.items.map((member) => (
+                    <div
+                      key={member.user?.id?.toString()}
+                      className="flex items-center justify-between rounded-lg border p-3"
+                    >
+                      <div className="flex items-center gap-3">
+                        <Avatar className="h-7 w-7">
+                          <AvatarImage src={gravatarURL(member.user?.email)} />
+                          <AvatarFallback className="uppercase">
+                            {member.user?.firstName?.slice(0, 2) || (
+                              <UserIcon size={14} />
+                            )}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <p className="font-medium">
+                            {member.user?.username || member.user?.firstName}
+                          </p>
+                          <p className="text-muted-foreground text-sm">
+                            {member.user?.email}
+                          </p>
+                          <p className="text-muted-foreground text-xs">
+                            Joined {formatTimestamp(member.user?.createdAt)}
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Badge className={getRoleColor(member.role)}>
-                        {getRoleIcon(member.role)}
-                        {member.role}
-                      </Badge>
-                      {member.role !== "Owner" && (
+                      <div className="flex items-center gap-2">
+                        <Badge className={getRoleColor("Admin")}>
+                          {getRoleIcon("Admin")}
+                        </Badge>
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => handleRemoveMember(member.id)}
+                          onClick={() =>
+                            handleRemoveMember(member?.user?.id?.toString())
+                          }
                           className="text-red-600 hover:text-red-700"
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
-                      )}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))
+                ) : (
+                  <p className="text-muted-foreground text-sm">
+                    No members found
+                  </p>
+                )}
               </div>
             </CardContent>
           </Card>
