@@ -9,18 +9,38 @@ export function getUserSettingsUrl() {
 export function getOrgEnvUrl(
   userInfo: UserInfo,
   activeEnvironment?: ListEnvironmentResponse_ListItem,
+  currentPath?: string,
 ) {
   if (!userInfo || userInfo === "isLoading") return "/";
 
-  return `/${userInfo.currentOrganization?.name}/${activeEnvironment?.environment?.name ?? "localhost"}/query`;
+  const page = extractPageFromPath(currentPath) || "query";
+
+  return `/${userInfo.currentOrganization?.name}/${activeEnvironment?.environment?.name ?? "localhost"}/${page}`;
+}
+
+export function extractPageFromPath(path?: string): string | null {
+  if (!path) return null;
+
+  const segments = path.replace(/^\//, "").split("/");
+
+  if (segments.length >= 3) {
+    return segments.slice(2).join("/");
+  }
+
+  return null;
+}
+
+export function buildOrgEnvUrl(
+  orgName: string,
+  envName: string,
+  currentPath?: string,
+): string {
+  const page = extractPageFromPath(currentPath) || "query";
+  return `/${orgName}/${envName}/${page}`;
 }
 
 export function getOrgSettingsUrl(orgName: string) {
   return `/org/${orgName}/edit`;
-}
-
-export function getEnvSettingsUrl(envName: string, orgName: string) {
-  return `/org/${orgName}/env/${envName}/edit`;
 }
 
 export function getNewEnvUrl(orgName?: string) {
