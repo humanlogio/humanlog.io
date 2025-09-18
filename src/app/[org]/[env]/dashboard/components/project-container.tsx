@@ -46,6 +46,7 @@ import { Project } from "api/js/types/v1/project_pb";
 import { PointerInfo } from "@/app/[org]/[env]/dashboard/components/pointer-info";
 import { ReadOnlyField } from "@/app/[org]/[env]/dashboard/components/read-only-field";
 import { create } from "@bufbuild/protobuf";
+import { useEnvironmentStore } from "@/stores/environment-store";
 
 const formSchema = z.object({
   name: z
@@ -73,7 +74,7 @@ export const ProjectContainer = ({
   setExpandedProjects,
 }: ProjectContainerProps) => {
   const router = useRouter();
-  const { activeEnvironment } = useApiClients();
+  const { activeEnvironment } = useEnvironmentStore();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [projectContents, setProjectContents] = useState<Record<string, any>>(
     {},
@@ -102,7 +103,7 @@ export const ProjectContainer = ({
   const { data: projectData, isLoading: isLoadingProject } = useQuery(
     getProject,
     {
-      environmentId: activeEnvironment?.id,
+      environmentId: activeEnvironment?.environment?.id,
       name: project.name,
     },
     {

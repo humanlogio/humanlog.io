@@ -32,10 +32,12 @@ export const findTimeFormatKey = (formatValue: string) => {
 };
 
 export const formatTimestamp = (
-  timestamp: Timestamp,
+  timestamp?: Timestamp,
   formatValue?: string,
   isUtc?: boolean,
 ) => {
+  if (!timestamp) return "N/A";
+
   let dayjsObj;
 
   const milliseconds =

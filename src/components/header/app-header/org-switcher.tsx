@@ -14,7 +14,8 @@ import { useMutation } from "@connectrpc/connect-query";
 import { getAuthURL } from "api/js/svc/auth/v1/service-AuthService_connectquery";
 import { toast } from "sonner";
 import { getSelfURL } from "@/lib/envs";
-import { useApiClients } from "@/context/api-provider";
+import { useEnvironmentStore } from "@/stores/environment-store";
+import { getOrgEnvUrl } from "@/lib/utils/navigation";
 
 interface Source {
   name: string;
@@ -22,14 +23,15 @@ interface Source {
   value: string;
 }
 
-interface OrgListProps {
+interface OrgSwitcherProps {
   userInfo: WhoamiResponse;
 }
 
-export const OrgList = ({ userInfo }: OrgListProps) => {
+export const OrgSwitcher = ({ userInfo }: OrgSwitcherProps) => {
   const router = useRouter();
   const params = useParams();
-  const { activeEnvironment } = useApiClients();
+  const pathname = usePathname();
+  const { activeEnvironment } = useEnvironmentStore();
   const { listOrganizations } = useAllEnvironments();
 
   const [menuList, setMenuList] = useState<Source[]>([]);
@@ -68,13 +70,13 @@ export const OrgList = ({ userInfo }: OrgListProps) => {
     listOrganizations.forEach((org) => {
       _menuList.push({
         name: org.organization?.name || "",
-        path: `/${org.organization?.name}/${activeEnvironment?.name}/query`,
+        path: getOrgEnvUrl(userInfo, activeEnvironment, pathname),
         value: org.organization?.id?.toString() || "",
       });
     });
 
     setMenuList(_menuList);
-  }, [listOrganizations, userInfo]);
+  }, [listOrganizations, userInfo, activeEnvironment, pathname]);
 
   return (
     <Select value={getCurrentSelectedValue()} onValueChange={updateSelection}>

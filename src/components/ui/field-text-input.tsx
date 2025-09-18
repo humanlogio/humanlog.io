@@ -45,7 +45,7 @@ const FieldTagsInput = ({
 
       {/* existing tags */}
       <div className="flex flex-wrap gap-2">
-        {values.map((tag) => (
+        {values?.map((tag) => (
           <div
             key={tag}
             className="flex items-center gap-1 rounded-md bg-gray-100 px-2 py-1 text-sm dark:bg-gray-800"

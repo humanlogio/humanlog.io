@@ -27,6 +27,7 @@ import { QueryResponse } from "api/js/svc/query/v1/service_pb";
 import { InfiniteData } from "@tanstack/react-query";
 import { Log } from "api/js/types/v1/otel_logging_pb";
 import { create } from "@bufbuild/protobuf";
+import { useEnvironmentStore } from "@/stores/environment-store";
 
 interface SubQueriesContainerProps {
   queries: Query[];
@@ -176,7 +177,7 @@ const SubQueryPanel = ({
   deleteSession,
   queryHistoryEntry,
 }: SubQueryPanelProps) => {
-  const { activeEnvironment } = useApiClients();
+  const { activeEnvironment } = useEnvironmentStore();
   const {
     data: rawData,
     refetch,
@@ -189,20 +190,18 @@ const SubQueryPanel = ({
     isLoading: isQueryLoading,
   } = useInfiniteQuery(
     queryMethod,
+    // @ts-ignore
     {
-      environmentId: activeEnvironment?.id ?? BigInt(0),
+      environmentId: activeEnvironment?.environment?.id ?? BigInt(0),
       query: list.query,
       limit: 1000,
-      cursor: create(CursorSchema, {}),
     },
     {
       pageParamKey: "cursor" as const,
       getNextPageParam: (lastPage: QueryResponse) => {
         return lastPage?.next || undefined;
       },
-      initialPageParam: undefined,
       transport: useActiveTransport(),
-      queryKey: ["logs", list.query],
     },
   );
 

@@ -21,6 +21,7 @@ import {
 } from "@/components/env/graph-utils";
 import { useDebouncer } from "@/lib/hooks/useDebouncer";
 import DateRangePicker from "@/components/ui/graph/dateRangePicker";
+import { useEnvironmentStore } from "@/stores/environment-store";
 
 export type ZoomType = {
   startIndex?: number;
@@ -35,7 +36,8 @@ export type DataPoint = {
 };
 
 const Graph = () => {
-  const { apiClients, activeEnvironment } = useApiClients();
+  const { activeEnvironment } = useEnvironmentStore();
+  const { apiClients } = useApiClients();
 
   const [bucketCount, setBucketCount] = useState<number>(100);
   const [activeAnimations, setActiveAnimations] = useState(true);
@@ -63,7 +65,7 @@ const Graph = () => {
       (async () => {
         try {
           const events = await apiClients?.query.summarizeEvents({
-            environmentId: activeEnvironment?.id,
+            environmentId: activeEnvironment?.environment?.id,
             from: convertToTimestamp(targetStart ?? startDate),
             to: convertToTimestamp(targetEnd ?? endDate),
             bucketCount,

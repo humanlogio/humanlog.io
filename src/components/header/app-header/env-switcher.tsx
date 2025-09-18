@@ -11,7 +11,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { WhoamiResponse } from "api/js/svc/user/v1/service_private_pb";
-import { useApiClients } from "@/context/api-provider";
+import { useEnvironmentStore } from "@/stores/environment-store";
+import { buildOrgEnvUrl } from "@/lib/utils/navigation";
 
 interface Source {
   name: string;
@@ -19,15 +20,16 @@ interface Source {
   value: string;
 }
 
-interface EnvListProps {
+interface EnvSwitcherProps {
   userInfo: WhoamiResponse;
 }
 
-export const EnvList = ({ userInfo }: EnvListProps) => {
+export const EnvSwitcher = ({ userInfo }: EnvSwitcherProps) => {
   const router = useRouter();
   const params = useParams();
   const pathname = usePathname();
-  const { activeEnvironment, setActiveEnvironment } = useApiClients();
+
+  const { setActiveEnvironment, activeEnvironment } = useEnvironmentStore();
   const { localhostInfo, listEnvironments } = useAllEnvironments();
 
   const [menuList, setMenuList] = useState<Source[]>([]);
@@ -43,7 +45,7 @@ export const EnvList = ({ userInfo }: EnvListProps) => {
 
     const currentEnv = listEnvironments.find(
       (env) =>
-        env.environment?.id === activeEnvironment?.id ||
+        env.environment?.id === activeEnvironment?.environment?.id ||
         env.environment?.name === currentEnvSlug,
     );
 
@@ -57,9 +59,7 @@ export const EnvList = ({ userInfo }: EnvListProps) => {
     const activeEnv = listEnvironments.find(
       (env) => env.environment?.id.toString() === selected.value,
     );
-
-    setActiveEnvironment(activeEnv?.environment);
-
+    setActiveEnvironment(activeEnv ?? undefined);
     router.push(selected.path);
   };
 
@@ -69,7 +69,11 @@ export const EnvList = ({ userInfo }: EnvListProps) => {
     if (localhostInfo) {
       _menuList.push({
         name: `localhost ${localhostVersion(localhostInfo)}`,
-        path: `/${userInfo?.currentOrganization?.name}/localhost/query`,
+        path: buildOrgEnvUrl(
+          userInfo?.currentOrganization?.name || "",
+          "localhost",
+          pathname,
+        ),
         value: localhostVersion(localhostInfo),
       });
     }
@@ -77,7 +81,11 @@ export const EnvList = ({ userInfo }: EnvListProps) => {
     listEnvironments.forEach((env) => {
       _menuList.push({
         name: env.environment?.name || "",
-        path: `/${userInfo?.currentOrganization?.name}/${env.environment?.name}/query`,
+        path: buildOrgEnvUrl(
+          userInfo?.currentOrganization?.name || "",
+          env.environment?.name || "",
+          pathname,
+        ),
         value: env.environment?.id?.toString() || "",
       });
     });
@@ -88,7 +96,7 @@ export const EnvList = ({ userInfo }: EnvListProps) => {
     });
 
     setMenuList(_menuList);
-  }, [listEnvironments, localhostInfo, userInfo, pathname]);
+  }, [listEnvironments, userInfo, localhostInfo, pathname]);
 
   return (
     <Select value={getCurrentSelectedValue()} onValueChange={updateSelection}>
