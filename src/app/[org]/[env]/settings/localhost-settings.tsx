@@ -13,7 +13,14 @@ import {
 } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import { useApiClients } from "@/context/api-provider";
-import { Clock, Globe, SquareCode, User as UserIcon } from "lucide-react";
+import {
+  Clock,
+  Database,
+  Globe,
+  Sparkles,
+  SquareCode,
+  User as UserIcon,
+} from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -45,11 +52,18 @@ import { TIME_FORMAT } from "@/lib/utils/formatTimeStamp";
 import FieldTagsInput from "@/components/ui/field-text-input";
 import { toast } from "sonner";
 import { ThemeEditor } from "@/components/settings/ThemeEditor";
-
 import { useAllEnvironments } from "@/context/list-environments";
 import { NoLocalhostView } from "@/components/log-interface/views/no-localhost-view";
-import { defaultConfig, getConfig } from "@/services/localhostService";
+import { getConfig } from "@/services/localhostService";
 import { create } from "@bufbuild/protobuf";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+} from "@/components/ui/card";
+import { Palette, Terminal, RefreshCw } from "lucide-react";
 
 const COLOR_MODE_OPTIONS = [
   { value: FormatConfig_ColorMode.COLORMODE_AUTO.toString(), label: "Auto" },
@@ -84,7 +98,7 @@ const formSchema = z.object({
 
 export type FormValues = z.infer<typeof formSchema>;
 
-const LocalhostSettings = () => {
+export const LocalhostSettings = () => {
   const { apiClients } = useApiClients();
   const { localhostInfo } = useAllEnvironments();
 
@@ -224,33 +238,52 @@ const LocalhostSettings = () => {
     handleConfig();
   }, []);
 
-  if (!localhostInfo) {
-    return (
-      <div className="mt-36 flex items-center justify-center">
-        <NoLocalhostView />
-      </div>
-    );
-  }
+  if (!localhostInfo) return;
 
   return (
-    <>
-      <h1 className="text-3xl font-bold">Localhost Settings</h1>
-      {initialConfig && (
-        <div className="mt-4 min-w-[300px]">
-          <Form {...form}>
-            <form
-              className="flex flex-col gap-3"
-              onSubmit={form.handleSubmit(onSubmit)}
-            >
-              <Label className="border-t py-3 text-xl">Formatter</Label>
+    <div className="space-y-6 px-10 py-5">
+      <div className="flex items-end justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">Localhost Settings</h1>
+          <p className="text-muted-foreground mt-2">
+            Configure your local development environment
+          </p>
+        </div>
 
+        {/* System Management */}
+        <div className="flex gap-3">
+          <Button onClick={doUpdate} type="button">
+            <Sparkles className="h-4 w-4" />
+            Update Humanlog
+          </Button>
+          <Button onClick={doRestart} type="button">
+            <RefreshCw className="h-4 w-4" />
+            Restart Service
+          </Button>
+        </div>
+      </div>
+
+      <Form {...form}>
+        <form className="space-y-6" onSubmit={form.handleSubmit(onSubmit)}>
+          {/* Formatter Settings */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Palette className="h-5 w-5" />
+                Formatter Settings
+              </CardTitle>
+              <CardDescription>
+                Configure how your logs are displayed and formatted
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
               <FormField
                 control={form.control}
                 name="themes"
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
                     <FormControl>
-                      <div className="mt-6">
+                      <div>
                         {/* Light Theme */}
                         <div>
                           <h3 className="mb-4 text-lg font-medium">
@@ -347,6 +380,39 @@ const LocalhostSettings = () => {
 
               <FormField
                 control={form.control}
+                name="terminalColorMode"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Terminal Color Mode</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <div className="flex flex-row items-center gap-2">
+                            <SquareCode size={16} />
+                            <SelectValue placeholder="Select Terminal Color Mode" />
+                          </div>
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectGroup>
+                          {COLOR_MODE_OPTIONS.map(({ value, label }) => (
+                            <SelectItem key={value} value={value}>
+                              {label}
+                            </SelectItem>
+                          ))}
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
                 name="sortLongest"
                 render={({ field }) => (
                   <FormItem>
@@ -406,42 +472,21 @@ const LocalhostSettings = () => {
                   </FormItem>
                 )}
               />
+            </CardContent>
+          </Card>
 
-              <FormField
-                control={form.control}
-                name="terminalColorMode"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Terminal Color Mode</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <div className="flex flex-row items-center gap-2">
-                            <SquareCode size={16} />
-                            <SelectValue placeholder="Select Terminal Color Mode" />
-                          </div>
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectGroup>
-                          {COLOR_MODE_OPTIONS.map(({ value, label }) => (
-                            <SelectItem key={value} value={value}>
-                              {label}
-                            </SelectItem>
-                          ))}
-                        </SelectGroup>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <Label className="mt-8 border-t py-3 text-xl">Parser</Label>
-
+          {/* Parser Settings */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Database className="h-5 w-5" />
+                Parser Settings
+              </CardTitle>
+              <CardDescription>
+                Configure how log fields are parsed and identified
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
               <FormField
                 control={form.control}
                 name="timestamp"
@@ -487,9 +532,21 @@ const LocalhostSettings = () => {
                   </FormItem>
                 )}
               />
+            </CardContent>
+          </Card>
 
-              <Label className="mt-8 border-t py-3 text-xl">Runtime</Label>
-
+          {/* Runtime Settings */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Terminal className="h-5 w-5" />
+                Runtime Settings
+              </CardTitle>
+              <CardDescription>
+                Configure runtime behavior and system settings
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
               <FormField
                 control={form.control}
                 name="interrupt"
@@ -519,28 +576,17 @@ const LocalhostSettings = () => {
                   </FormItem>
                 )}
               />
+            </CardContent>
+          </Card>
 
-              <div className="flex gap-2">
-                <Button onClick={doUpdate} type="button">
-                  Do Update
-                </Button>
-                <Button onClick={doRestart} type="button">
-                  Restart
-                </Button>
-              </div>
-
-              <Button type="submit" className="mt-10">
-                Save
-              </Button>
-            </form>
-          </Form>
-        </div>
-      )}
-    </>
+          <Button type="submit" className="w-full">
+            Save Configuration
+          </Button>
+        </form>
+      </Form>
+    </div>
   );
 };
-
-export default LocalhostSettings;
 
 interface ToggleProps {
   name: string;

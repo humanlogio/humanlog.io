@@ -1,7 +1,7 @@
 import { useFormContext, UseFormReturn } from "react-hook-form";
 import { FormField } from "@/components/ui/form";
 import { ThemeColorPicker } from "@/components/settings/ThemeColorPicker";
-import { FormValues } from "@/app/settings/localhost/page";
+import { FormValues } from "@/app/[org]/[env]/settings/localhost-settings";
 import { Preview } from "@/components/settings/Preview";
 
 interface ThemeEditorProps {
@@ -105,7 +105,7 @@ export const ThemeEditor = ({
           )}
         </div>
       </div>
-      <div className="max-w-[calc(100vw-22rem)]">
+      <div className="max-w-[calc(100vw-26rem)]">
         <Preview
           themes={formValues.themes}
           mode={mode}

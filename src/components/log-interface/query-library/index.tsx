@@ -18,6 +18,7 @@ import { SavedQuery } from "@/components/log-interface/query-library/saved-query
 import { RecentQuery } from "@/components/log-interface/query-library/recent-query";
 import { ExecuteQuery } from "@/components/log-interface";
 import { create } from "@bufbuild/protobuf";
+import { useEnvironmentStore } from "@/stores/environment-store";
 
 interface QueryLibraryProps {
   onClickSymbol: (symbolString: string) => void;
@@ -42,14 +43,15 @@ export const QueryLibrary = ({
   setSavedQueryId,
   onExecuteQuery,
 }: QueryLibraryProps) => {
-  const { apiClients, activeEnvironment } = useApiClients();
+  const { apiClients } = useApiClients();
+  const { activeEnvironment } = useEnvironmentStore();
 
   const [activeTab, setActiveTab] = useState<tabsType>("symbols");
 
   const fetchSymbolList = useCallback(
     async ({ cursor, limit }: { cursor: Cursor | null; limit: number }) => {
       const res = await apiClients?.query.listSymbols({
-        environmentId: activeEnvironment?.id,
+        environmentId: activeEnvironment?.environment?.id,
         ...(cursor && { cursor }),
         limit,
       });

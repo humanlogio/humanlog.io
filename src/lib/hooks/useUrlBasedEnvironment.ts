@@ -3,11 +3,12 @@ import { usePathname, useParams } from "next/navigation";
 import { useEffect, useRef } from "react";
 import { useApiClients } from "@/context/api-provider";
 import { useAllEnvironments } from "@/context/list-environments";
+import { useEnvironmentStore } from "@/stores/environment-store";
 
 export const useUrlBasedEnvironment = () => {
   const pathname = usePathname();
   const params = useParams();
-  const { setActiveEnvironment } = useApiClients();
+  const { setActiveEnvironment } = useEnvironmentStore();
   const { listEnvironments, localhostInfo } = useAllEnvironments();
 
   const lastSetEnvironment = useRef<string>("");
@@ -32,7 +33,7 @@ export const useUrlBasedEnvironment = () => {
     );
 
     if (targetEnvironment) {
-      setActiveEnvironment(targetEnvironment.environment);
+      setActiveEnvironment(targetEnvironment);
       lastSetEnvironment.current = currentKey;
     }
   }, [pathname, params, listEnvironments, localhostInfo, setActiveEnvironment]);

@@ -14,13 +14,13 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Accordion } from "@/components/ui/accordion";
-import { useApiClients } from "@/context/api-provider";
 import LoadingIndicator from "@/components/loading-indicator";
 import { ProjectContainer } from "@/app/[org]/[env]/dashboard/components/project-container";
 import { ProjectForm } from "@/app/[org]/[env]/dashboard/components/project-form";
+import { useEnvironmentStore } from "@/stores/environment-store";
 
 export default function DashboardListPage() {
-  const { activeEnvironment } = useApiClients();
+  const { activeEnvironment } = useEnvironmentStore();
 
   const [isProjectDialogOpen, setIsProjectDialogOpen] = useState(false);
   const [expandedProjects, setExpandedProjects] = useState<Set<string>>(
@@ -32,7 +32,7 @@ export default function DashboardListPage() {
     refetch: refetchProjectList,
     isLoading: isLoadingProjectList,
   } = useQuery(listProject, {
-    environmentId: activeEnvironment?.id,
+    environmentId: activeEnvironment?.environment?.id,
   });
 
   if (isLoadingProjectList) {

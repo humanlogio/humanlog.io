@@ -3,14 +3,14 @@
 import AboveFoldHero from "@/components/landing-page/hero-marketing";
 import BelowFold from "@/components/landing-page/below-fold";
 import { useAllEnvironments } from "@/context/list-environments";
-import { useApiClients } from "@/context/api-provider";
+import { useEnvironmentStore } from "@/stores/environment-store";
 import { useRouter } from "next/navigation";
 import LoadingIndicator from "@/components/loading-indicator";
 import { getOrgEnvUrl } from "@/lib/utils/navigation";
 
 export default function Home() {
   const router = useRouter();
-  const { activeEnvironment } = useApiClients();
+  const { activeEnvironment } = useEnvironmentStore();
   const { userInfo } = useAllEnvironments();
 
   if (userInfo === "isLoading") {
