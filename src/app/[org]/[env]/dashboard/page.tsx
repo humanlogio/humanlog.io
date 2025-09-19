@@ -4,7 +4,7 @@ import { useQuery } from "@connectrpc/connect-query";
 import { listProject } from "api/js/svc/project/v1/service-ProjectService_connectquery";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -18,9 +18,11 @@ import LoadingIndicator from "@/components/loading-indicator";
 import { ProjectContainer } from "@/app/[org]/[env]/dashboard/components/project-container";
 import { ProjectForm } from "@/app/[org]/[env]/dashboard/components/project-form";
 import { useEnvironmentStore } from "@/stores/environment-store";
+import { usePage } from "@/stores/page-store";
 
 export default function DashboardListPage() {
   const { activeEnvironment } = useEnvironmentStore();
+  const { activePage, setActivePage } = usePage();
 
   const [isProjectDialogOpen, setIsProjectDialogOpen] = useState(false);
   const [expandedProjects, setExpandedProjects] = useState<Set<string>>(
@@ -34,6 +36,10 @@ export default function DashboardListPage() {
   } = useQuery(listProject, {
     environmentId: activeEnvironment?.environment?.id,
   });
+
+  useEffect(() => {
+    setActivePage("dashboard");
+  }, [activePage]);
 
   if (isLoadingProjectList) {
     return <LoadingIndicator message="Loading projects..." />;
