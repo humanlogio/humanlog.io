@@ -187,7 +187,8 @@ export default function OrgSettingsPage() {
             </div>
             {!isDefaultOrg && (
               <>
-                <div>
+                {/* TODO: later....... */}
+                {/* <div>
                   <label className="text-muted-foreground text-sm font-medium">
                     Your Role
                   </label>
@@ -197,12 +198,14 @@ export default function OrgSettingsPage() {
                       {"Owner"}
                     </Badge>
                   </div>
-                </div>
+                </div> */}
                 <div>
                   <label className="text-muted-foreground text-sm font-medium">
                     Members
                   </label>
-                  <p className="text-lg font-semibold">12</p>
+                  <p className="text-lg font-semibold">
+                    {listUserData?.items?.length}
+                  </p>
                 </div>
                 <div>
                   <label className="text-muted-foreground text-sm font-medium">
@@ -494,30 +497,34 @@ export default function OrgSettingsPage() {
       </Card>
 
       {/* Danger Zone */}
-      <Card className="border-red-200">
-        <CardHeader>
-          <CardTitle className="text-red-600">Danger Zone</CardTitle>
-          <CardDescription>
-            Irreversible and destructive actions
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {/* TODO: only when owner */}
-          {
-            <div className="flex items-center justify-between rounded-lg border border-red-200 p-3">
-              <div>
-                <p className="font-medium text-red-600">Delete Organization</p>
-                <p className="text-muted-foreground text-sm">
-                  Permanently delete this organization and all its data
-                </p>
+      {!isDefaultOrg && (
+        <Card className="border-red-200">
+          <CardHeader>
+            <CardTitle className="text-red-600">Danger Zone</CardTitle>
+            <CardDescription>
+              Irreversible and destructive actions
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {/* TODO: only when owner */}
+            {
+              <div className="flex items-center justify-between rounded-lg border border-red-200 p-3">
+                <div>
+                  <p className="font-medium text-red-600">
+                    Delete Organization
+                  </p>
+                  <p className="text-muted-foreground text-sm">
+                    Permanently delete this organization and all its data
+                  </p>
+                </div>
+                <Button variant="destructive" size="sm">
+                  Delete Org
+                </Button>
               </div>
-              <Button variant="destructive" size="sm">
-                Delete Org
-              </Button>
-            </div>
-          }
-        </CardContent>
-      </Card>
+            }
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
