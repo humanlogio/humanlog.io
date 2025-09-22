@@ -34,7 +34,11 @@ import { newIdentifierExpr } from "@/lib/utils/queryExpressions";
 import { KeyValueRow } from "@/components/log-interface/query-output/session/session-control";
 import { newIndexorExpr } from "@/lib/utils/queryExpressions";
 import { newStrVal } from "@/lib/utils/valueFactories";
-import { MouseEvent, useCallback } from "react";
+import { MouseEvent, useCallback, useEffect } from "react";
+import { buildOrgEnvUrl, getOrgEnvUrl } from "@/lib/utils/navigation";
+import { useAllEnvironments } from "@/context/list-environments";
+import { useEnvironmentStore } from "@/stores/environment-store";
+import { usePage } from "@/stores/page-store";
 
 interface SpanCardProps {
   span: Span;
@@ -43,7 +47,9 @@ interface SpanCardProps {
 export const SpanCard = ({ span }: SpanCardProps) => {
   const traceId = unit8ArrayBufferToBase16(span.traceId?.raw);
   const spanId = unit8ArrayBufferToBase16(span.spanId?.raw);
-
+  const { userInfo } = useAllEnvironments();
+  const { activeEnvironment } = useEnvironmentStore();
+  const { activePage, setActivePage } = usePage();
   const handleCopy = useCallback(
     (e: MouseEvent, id: string) => {
       e.preventDefault();
@@ -52,11 +58,23 @@ export const SpanCard = ({ span }: SpanCardProps) => {
     [traceId, spanId],
   );
 
+  useEffect(() => {
+    setActivePage("traces");
+  }, [activePage]);
+
+  const getHref = () => {
+    return getOrgEnvUrl(
+      userInfo,
+      activeEnvironment,
+      `traces?traceId=${encodeURIComponent(traceId)}`,
+    );
+  };
+
   return (
     <Card className="overflow-hidden transition-colors hover:border-blue-300">
       <CardHeader className="bg-gray-50 p-4 dark:bg-gray-800/60">
         <Link
-          href={`/localhost/traces?traceId=${encodeURIComponent(traceId)}`}
+          href={getHref()}
           className="flex flex-col justify-between gap-2 sm:flex-row sm:items-center"
         >
           <div className="flex items-center gap-2">
@@ -117,10 +135,7 @@ export const SpanCard = ({ span }: SpanCardProps) => {
             <AccordionContent>
               <div className="space-y-4 p-4 pt-0 text-sm">
                 <div className="flex flex-wrap gap-2">
-                  <Link
-                    href={`/localhost/traces?traceId=${traceId}`}
-                    className="flex items-center gap-2"
-                  >
+                  <Link href={getHref()} className="flex items-center gap-2">
                     <div className="font-medium text-gray-700 dark:text-gray-300">
                       Trace ID:
                     </div>
