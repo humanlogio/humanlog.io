@@ -1,0 +1,29 @@
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
+
+type ActivePage =
+  | "query"
+  | "stream"
+  | "dashboard"
+  | "monitors"
+  | "traces"
+  | "settings";
+
+interface PageStore {
+  activePage: ActivePage | undefined;
+  setActivePage: (page: ActivePage) => void;
+  clearPage: () => void;
+}
+
+export const usePage = create<PageStore>()(
+  persist(
+    (set) => ({
+      activePage: "query",
+      setActivePage: (page) => set({ activePage: page }),
+      clearPage: () => set({ activePage: undefined }),
+    }),
+    {
+      name: "page-storage",
+    },
+  ),
+);

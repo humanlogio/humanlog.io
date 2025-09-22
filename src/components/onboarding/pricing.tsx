@@ -14,11 +14,13 @@ import { Product_Scope } from "api/js/types/v1/product_pb";
 import { ConnectError } from "@connectrpc/connect";
 import { getOrgEnvUrl } from "@/lib/utils/navigation";
 import { useEnvironmentStore } from "@/stores/environment-store";
+import { usePage } from "@/stores/page-store";
 
 export default function OnboardingPricing() {
   const { activeEnvironment } = useEnvironmentStore();
   const { apiClients } = useApiClients();
   const { userInfo, doLogin, handleAllowedUsage } = useAllEnvironments();
+  const { activePage } = usePage();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
 
@@ -58,7 +60,7 @@ export default function OnboardingPricing() {
       handleAllowedUsage();
       toast.success("You're all set with the free plan.");
       if (userInfo !== "isLoading") return;
-      const url = getOrgEnvUrl(userInfo, activeEnvironment);
+      const url = getOrgEnvUrl(userInfo, activeEnvironment, activePage);
       router.push(url);
     } catch (error) {
       console.error("Error subscribing to free plan:", error);

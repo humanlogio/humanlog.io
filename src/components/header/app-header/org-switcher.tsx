@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import { getSelfURL } from "@/lib/envs";
 import { useEnvironmentStore } from "@/stores/environment-store";
 import { getOrgEnvUrl } from "@/lib/utils/navigation";
+import { usePage } from "@/stores/page-store";
 
 interface Source {
   name: string;
@@ -33,6 +34,7 @@ export const OrgSwitcher = ({ userInfo }: OrgSwitcherProps) => {
   const pathname = usePathname();
   const { activeEnvironment } = useEnvironmentStore();
   const { listOrganizations } = useAllEnvironments();
+  const { activePage } = usePage();
 
   const [menuList, setMenuList] = useState<Source[]>([]);
 
@@ -70,7 +72,7 @@ export const OrgSwitcher = ({ userInfo }: OrgSwitcherProps) => {
     listOrganizations.forEach((org) => {
       _menuList.push({
         name: org.organization?.name || "",
-        path: getOrgEnvUrl(userInfo, activeEnvironment, pathname),
+        path: getOrgEnvUrl(userInfo, activeEnvironment, activePage),
         value: org.organization?.id?.toString() || "",
       });
     });

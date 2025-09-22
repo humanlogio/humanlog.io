@@ -9,33 +9,21 @@ export function getUserSettingsUrl() {
 export function getOrgEnvUrl(
   userInfo: UserInfo,
   activeEnvironment?: ListEnvironmentResponse_ListItem,
-  currentPath?: string,
+  activePage?: string,
 ) {
   if (!userInfo || userInfo === "isLoading") return "/";
 
-  const page = extractPageFromPath(currentPath) || "query";
+  const page = activePage || "query";
 
   return `/${userInfo.currentOrganization?.name}/${activeEnvironment?.environment?.name ?? "localhost"}/${page}`;
-}
-
-export function extractPageFromPath(path?: string): string | null {
-  if (!path) return null;
-
-  const segments = path.replace(/^\//, "").split("/");
-
-  if (segments.length >= 3) {
-    return segments.slice(2).join("/");
-  }
-
-  return null;
 }
 
 export function buildOrgEnvUrl(
   orgName: string,
   envName: string,
-  currentPath?: string,
+  activePage?: string,
 ): string {
-  const page = extractPageFromPath(currentPath) || "query";
+  const page = activePage || "query";
   return `/${orgName}/${envName}/${page}`;
 }
 
