@@ -13,6 +13,7 @@ import {
 import { WhoamiResponse } from "api/js/svc/user/v1/service_private_pb";
 import { useEnvironmentStore } from "@/stores/environment-store";
 import { buildOrgEnvUrl } from "@/lib/utils/navigation";
+import { usePage } from "@/stores/page-store";
 
 interface Source {
   name: string;
@@ -27,7 +28,7 @@ interface EnvSwitcherProps {
 export const EnvSwitcher = ({ userInfo }: EnvSwitcherProps) => {
   const router = useRouter();
   const params = useParams();
-  const pathname = usePathname();
+  const { activePage } = usePage();
 
   const { setActiveEnvironment, activeEnvironment } = useEnvironmentStore();
   const { localhostInfo, listEnvironments } = useAllEnvironments();
@@ -72,7 +73,7 @@ export const EnvSwitcher = ({ userInfo }: EnvSwitcherProps) => {
         path: buildOrgEnvUrl(
           userInfo?.currentOrganization?.name || "",
           "localhost",
-          pathname,
+          activePage,
         ),
         value: localhostVersion(localhostInfo),
       });
@@ -84,7 +85,7 @@ export const EnvSwitcher = ({ userInfo }: EnvSwitcherProps) => {
         path: buildOrgEnvUrl(
           userInfo?.currentOrganization?.name || "",
           env.environment?.name || "",
-          pathname,
+          activePage,
         ),
         value: env.environment?.id?.toString() || "",
       });
@@ -96,7 +97,7 @@ export const EnvSwitcher = ({ userInfo }: EnvSwitcherProps) => {
     });
 
     setMenuList(_menuList);
-  }, [listEnvironments, userInfo, localhostInfo, pathname]);
+  }, [listEnvironments, userInfo, localhostInfo, activePage]);
 
   return (
     <Select value={getCurrentSelectedValue()} onValueChange={updateSelection}>
