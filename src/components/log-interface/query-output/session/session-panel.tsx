@@ -28,6 +28,7 @@ import { useInView } from "react-intersection-observer";
 import { LogLine } from "@/components/log-interface/query-output/session/log-line";
 import { ulidToString } from "@/lib/utils/id-factories";
 import { create } from "@bufbuild/protobuf";
+import { Virtuoso } from "react-virtuoso";
 
 interface SessionPanelProps {
   resourceFingerprint?: string;
