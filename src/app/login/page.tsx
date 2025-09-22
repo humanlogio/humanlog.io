@@ -7,25 +7,20 @@ import { useEffect } from "react";
 
 import { useRouter } from "next/navigation";
 import LoadingIndicator from "@/components/loading-indicator";
+import { useEnvironmentStore } from "@/stores/environment-store";
+import { getOrgEnvUrl } from "@/lib/utils/navigation";
 
 export default function Login() {
   const router = useRouter();
-  const { setUserInfo, localhostInfo, listEnvironments } = useAllEnvironments();
-  const { data: userInfo, isFetching } = useQuery(whoami);
+  const { setUserInfo, localhostInfo } = useAllEnvironments();
+  const { data: userInfo } = useQuery(whoami);
+  const { setActiveEnvironment, activeEnvironment } = useEnvironmentStore();
 
   useEffect(() => {
     setUserInfo(userInfo);
-    let env;
-    if (localhostInfo) {
-      env = "localhost";
-    } else if (listEnvironments.length > 0) {
-      env = listEnvironments[0]?.environment?.name;
-    } else {
-      env = "localhost";
-    }
-    userInfo?.currentOrganization?.name &&
-      env &&
-      router.replace(`/${userInfo?.currentOrganization?.name}/${env}/query`);
+    setActiveEnvironment(undefined);
+    const url = getOrgEnvUrl(userInfo, activeEnvironment);
+    router.replace(url);
   }, [userInfo, localhostInfo]);
 
   return <LoadingIndicator />;
