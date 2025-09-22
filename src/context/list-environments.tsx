@@ -157,6 +157,7 @@ export function ListEnvironmentsProvider({
       const { logoutUrl } = await apiClients.user.getLogoutURL({
         returnTo: logoutReturnToURL,
       });
+      setUserInfo(undefined);
       router.push(logoutUrl);
     } catch (error) {
       console.error("Failed to get logout URL:", error);
