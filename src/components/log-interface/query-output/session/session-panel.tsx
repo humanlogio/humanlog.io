@@ -24,9 +24,7 @@ import { useAllEnvironments } from "@/context/list-environments";
 import { StreamResponse } from "api/js/svc/query/v1/service_pb";
 import { newLogsData } from "@/lib/utils/dataShapeFactories";
 import { Log } from "api/js/types/v1/otel_logging_pb";
-import { useInView } from "react-intersection-observer";
 import { LogLine } from "@/components/log-interface/query-output/session/log-line";
-import { ulidToString } from "@/lib/utils/id-factories";
 import { create } from "@bufbuild/protobuf";
 import { Virtuoso } from "react-virtuoso";
 
@@ -60,7 +58,6 @@ const SessionPanel = ({
   const containerRef = useRef<HTMLDivElement>(null);
 
   const { localhostConfig } = useAllEnvironments();
-  const { ref: targetRef, inView } = useInView();
   const { theme } = useTheme();
 
   const pretty = searchParams.get("pretty") !== "false";
@@ -126,9 +123,9 @@ const SessionPanel = ({
     setIsDark(darkMode);
   }, [mode, theme]);
 
-  useEffect(() => {
-    if (inView && fetchNextPage) fetchNextPage();
-  }, [inView]);
+  const loadMore = useCallback(() => {
+    hasNextPage && fetchNextPage && fetchNextPage();
+  }, [hasNextPage, fetchNextPage]);
 
   useEffect(() => {
     const line = searchParams.get("line");
@@ -209,14 +206,16 @@ const SessionPanel = ({
         ref={containerRef}
         className={twJoin("flex flex-grow text-sm", isDark && "bg-black")}
       >
-        <div className="flex-1 border-separate overflow-x-auto py-2">
+        <div className="flex-1 border-separate overflow-x-auto">
           {logs && logs.length > 0 ? (
-            logs?.map((log: Log, i: number) => {
-              return (
+            <Virtuoso
+              style={{ height: "calc(100vh - 320px)", minHeight: "300px" }}
+              totalCount={logs?.length}
+              endReached={loadMore}
+              itemContent={(i) => (
                 <LogLine
-                  key={`${i}-${ulidToString(log.ulid)}`}
-                  log={log}
                   index={i}
+                  log={logs[i]}
                   selectedLines={selectedLines}
                   pretty={pretty}
                   sectionBreak={sectionBreak}
@@ -225,12 +224,11 @@ const SessionPanel = ({
                   localhostConfig={localhostConfig}
                   onClickLine={handleClickLine}
                 />
-              );
-            })
+              )}
+            />
           ) : (
             <NoLogsView />
           )}
-          {hasNextPage && <div ref={targetRef} className="h-4" />}
         </div>
       </div>
     </div>

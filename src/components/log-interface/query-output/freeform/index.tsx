@@ -61,10 +61,6 @@ export const FreeFormContainer = ({
   }, [freeForm]);
 
   useEffect(() => {
-    if (inView && fetchNextPage) fetchNextPage();
-  }, [inView]);
-
-  useEffect(() => {
     if (!streamRes || streamRes.length === 0) return;
     const _tableRows = extractFromStreamResponses<Arr>(streamRes, (value) => {
       setTableColumns(value.type?.columns);
@@ -115,8 +111,8 @@ export const FreeFormContainer = ({
         <TableContainer
           tableColumns={tableColumns}
           tableRows={tableRows}
-          targetRef={targetRef}
           hasNextPage={hasNextPage}
+          fetchNextPage={fetchNextPage}
         />
       )}
     </div>
