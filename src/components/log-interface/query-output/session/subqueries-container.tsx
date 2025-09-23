@@ -28,7 +28,7 @@ import { InfiniteData } from "@tanstack/react-query";
 import { Log } from "api/js/types/v1/otel_logging_pb";
 import { create } from "@bufbuild/protobuf";
 import { useEnvironmentStore } from "@/stores/environment-store";
-import { NoLogsView } from "@/components/log-interface/views/no-logs-view";
+import { EmptyDataView } from "@/components/log-interface/views/empty-data-view";
 
 interface SubQueriesContainerProps {
   queries: Query[];
@@ -96,8 +96,8 @@ export const SubQueriesContainer = ({
     selected && setSelectedSessions((prev) => [...(prev || []), selected]);
   };
 
-  if (!sessionList || sessionList.length === 0) {
-    return <NoLogsView />;
+  if (queries.length === 0) {
+    return <EmptyDataView dataType="logs" />;
   }
 
   return (
@@ -121,7 +121,7 @@ export const SubQueriesContainer = ({
               </SelectTrigger>
               <SelectContent>
                 <SelectGroup>
-                  {sessionList.map((list) => {
+                  {sessionList?.map((list) => {
                     return (
                       <SelectItem key={list.value} value={list.value}>
                         <span className="mr-1">
@@ -169,7 +169,6 @@ interface SubQueryPanelProps {
 
 interface DataValue {
   pages?: QueryResponse[];
-
   logs: Log[];
 }
 
@@ -187,10 +186,6 @@ const SubQueryPanel = ({
     isFetching,
     fetchNextPage,
     hasNextPage,
-    isFetchingNextPage,
-    error,
-    status,
-    isLoading: isQueryLoading,
   } = useInfiniteQuery(
     queryMethod,
     // @ts-ignore
@@ -223,6 +218,10 @@ const SubQueryPanel = ({
       logs,
     };
   }, [rawData]);
+
+  if (!data?.logs || data?.logs.length === 0) {
+    return <EmptyDataView dataType="logs" />;
+  }
 
   return (
     <Fragment>

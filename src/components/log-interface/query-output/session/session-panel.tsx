@@ -11,7 +11,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { NoLogsView } from "@/components/log-interface/views/no-logs-view";
+import { EmptyDataView } from "@/components/log-interface/views/empty-data-view";
 import { twJoin } from "tailwind-merge";
 import { usePathname, useSearchParams } from "next/navigation";
 import { decodeUint8Array } from "@/lib/utils/decode";
@@ -227,7 +227,7 @@ const SessionPanel = ({
               )}
             />
           ) : (
-            <NoLogsView />
+            <EmptyDataView dataType="logs" />
           )}
         </div>
       </div>

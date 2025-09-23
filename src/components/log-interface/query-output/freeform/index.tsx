@@ -1,25 +1,21 @@
 import { QueryHistoryEntry } from "api/js/types/v1/query_history_entry_pb";
-import { Query } from "api/js/types/v1/query_pb";
 import { Arr, Table, TableType_Column } from "api/js/types/v1/types_pb";
 import { useEffect, useState } from "react";
 import {
   Tooltip,
   TooltipContent,
-  TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
-import { Loader, Share } from "lucide-react";
+import { Share } from "lucide-react";
 import { ShareQuery } from "@/components/log-interface/share-query";
 import { Data } from "api/js/types/v1/data_pb";
 import TableContainer from "@/components/log-interface/query-output/freeform/table-container";
 import Histogram from "@/components/log-interface/query-output/freeform/histogram-container";
-import { Cursor } from "api/js/types/v1/cursor_pb";
-import { QueryResponse, StreamResponse } from "api/js/svc/query/v1/service_pb";
+import { StreamResponse } from "api/js/svc/query/v1/service_pb";
 import { extractFromStreamResponses } from "@/lib/utils/dataHelpers";
 import { newTable, newTableData } from "@/lib/utils/dataShapeFactories";
-import { InfiniteData } from "@tanstack/react-query";
-import { useInView } from "react-intersection-observer";
+import { EmptyDataView } from "../../views/empty-data-view";
 
 interface FreeFormContainerProps {
   freeForm: Table[] | undefined;
@@ -38,8 +34,6 @@ export const FreeFormContainer = ({
   queryHistoryEntry,
   streamRes,
 }: FreeFormContainerProps) => {
-  const { ref: targetRef, inView } = useInView();
-
   const [tableData, setTableData] = useState<Table[]>();
   const [tableColumns, setTableColumns] = useState<TableType_Column[]>();
   const [tableRows, setTableRows] = useState<Arr[]>();
@@ -72,6 +66,10 @@ export const FreeFormContainer = ({
   const isHistogram = tableColumns?.find(
     (col) => col.type?.type.case === "map",
   );
+
+  if (!tableData || tableData.length === 0) {
+    return <EmptyDataView dataType="table" />;
+  }
 
   return (
     <div className="flex-1">
