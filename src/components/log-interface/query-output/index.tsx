@@ -2,7 +2,7 @@
 
 import { ReactNode, useEffect, useMemo, useState } from "react";
 import { Query } from "api/js/types/v1/query_pb";
-import { NoLogsView } from "@/components/log-interface/views/no-logs-view";
+import { EmptyDataView } from "@/components/log-interface/views/empty-data-view";
 import { SubQueriesContainer } from "@/components/log-interface/query-output/session/subqueries-container";
 import { extractQueryIds } from "@/lib/utils/extractQueryIds";
 import {
@@ -96,7 +96,7 @@ const QueryOutput = ({
       if (!isStreamMode && !data) {
         return (
           <div className="flex flex-1 items-center justify-center">
-            <NoLogsView />
+            <EmptyDataView />
           </div>
         );
       }
@@ -218,7 +218,7 @@ export const DataRenderer = ({
   if (!logs?.length && !freeForm?.length && !spans?.length && !streamRes) {
     return (
       <div className="flex flex-1 items-center justify-center">
-        <NoLogsView />
+        <EmptyDataView />
       </div>
     );
   }
