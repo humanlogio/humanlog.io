@@ -28,6 +28,7 @@ import { InfiniteData } from "@tanstack/react-query";
 import { Log } from "api/js/types/v1/otel_logging_pb";
 import { create } from "@bufbuild/protobuf";
 import { useEnvironmentStore } from "@/stores/environment-store";
+import { NoLogsView } from "@/components/log-interface/views/no-logs-view";
 
 interface SubQueriesContainerProps {
   queries: Query[];
@@ -95,6 +96,10 @@ export const SubQueriesContainer = ({
     selected && setSelectedSessions((prev) => [...(prev || []), selected]);
   };
 
+  if (!sessionList || sessionList.length === 0) {
+    return <NoLogsView />;
+  }
+
   return (
     selectedSessions && (
       <>
@@ -103,34 +108,32 @@ export const SubQueriesContainer = ({
             <ToggleShowPretty />
             <ToggleSplit />
           </div>
-          {sessionList && sessionList.length > 0 && (
-            <div className="w-1/3">
-              <Select
-                value=""
-                onValueChange={(value) => {
-                  updateSelection(value);
-                }}
-              >
-                <SelectTrigger>
-                  <SquareCode size={16} />
-                  <SelectValue placeholder="+ Add New" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    {sessionList.map((list) => {
-                      return (
-                        <SelectItem key={list.value} value={list.value}>
-                          <span className="mr-1">
-                            resourceFingerprint: {list.resourceFingerprint}
-                          </span>
-                        </SelectItem>
-                      );
-                    })}
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-            </div>
-          )}
+          <div className="w-1/3">
+            <Select
+              value=""
+              onValueChange={(value) => {
+                updateSelection(value);
+              }}
+            >
+              <SelectTrigger>
+                <SquareCode size={16} />
+                <SelectValue placeholder="+ Add New" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  {sessionList.map((list) => {
+                    return (
+                      <SelectItem key={list.value} value={list.value}>
+                        <span className="mr-1">
+                          resourceFingerprint: {list.resourceFingerprint}
+                        </span>
+                      </SelectItem>
+                    );
+                  })}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
         <div className="mt-3 flex">
           <PanelGroup
