@@ -1,18 +1,13 @@
-import { Spans } from "api/js/types/v1/data_pb";
 import { QueryHistoryEntry } from "api/js/types/v1/query_history_entry_pb";
-import { Query } from "api/js/types/v1/query_pb";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { List, Network } from "lucide-react";
-import { Cursor } from "api/js/types/v1/cursor_pb";
-import { QueryResponse, StreamResponse } from "api/js/svc/query/v1/service_pb";
-import { extractFromStreamResponses } from "@/lib/utils/dataHelpers";
-
+import { StreamResponse } from "api/js/svc/query/v1/service_pb";
 import { ServiceMap } from "@/components/log-interface/query-output/spans/service-map/service-map";
 import { SpanList } from "@/components/log-interface/query-output/spans/span-list/span-list";
 import { Span } from "api/js/types/v1/otel_tracing_pb";
-import { InfiniteData } from "@tanstack/react-query";
 import { useInView } from "react-intersection-observer";
+import { EmptyDataView } from "@/components/log-interface/views/empty-data-view";
 
 interface SpansContainerProps {
   spans?: Span[] | undefined;
@@ -26,18 +21,12 @@ interface SpansContainerProps {
 export const SpansContainer = ({
   spans,
   hasNextPage,
-  isFetching,
   fetchNextPage,
   queryHistoryEntry,
-  streamRes,
 }: SpansContainerProps) => {
   const { ref: targetRef, inView } = useInView();
 
   const [viewMode, setViewMode] = useState<"list" | "map">("list");
-
-  useEffect(() => {
-    if (inView && fetchNextPage) fetchNextPage();
-  }, [inView]);
 
   // useEffect(() => {
   //   if (!streamRes || streamRes.length === 0) return;
@@ -54,6 +43,10 @@ export const SpansContainer = ({
         <div className="text-gray-500">Loading...</div>
       </div>
     );
+  }
+
+  if (spans.length === 0) {
+    return <EmptyDataView dataType="spans" />;
   }
 
   return (
@@ -88,7 +81,7 @@ export const SpansContainer = ({
           spans={spans}
           queryHistoryEntry={queryHistoryEntry}
           hasNextPage={hasNextPage}
-          targetRef={targetRef}
+          fetchNextPage={fetchNextPage}
         />
       )}
 
