@@ -404,13 +404,13 @@ const LogInterface = ({ nav }: LogInterfaceProps) => {
   ]);
 
   return (
-    <section className={isLibraryOpen ? "h-[calc(100vh-4rem)]" : ""}>
-      <PanelGroup direction="horizontal">
+    <section className="h-full">
+      <PanelGroup direction="horizontal" className="h-full">
         <Panel defaultSize={80} minSize={30}>
           <div
             className={`flex h-full flex-col gap-4 px-10 py-8 ${isLibraryOpen && "overflow-y-auto"}`}
           >
-            <div className={twMerge("items-center gap-8")}>
+            <div className={twMerge("flex-none items-center gap-8")}>
               <QueryTimer
                 queryTiming={queryTiming}
                 isFetchingNextPage={isFetchingNextPage}
@@ -431,22 +431,24 @@ const LogInterface = ({ nav }: LogInterfaceProps) => {
                 {nav === "query" && <Graph />}
               </FeatureFlag>
             </div>
-            {!isQueryHistoryLoading && (
-              <QueryOutput
-                data={data}
-                hasNextPage={hasNextPage}
-                isFetching={isFetching}
-                isQueryLoading={isQueryLoading}
-                fetchNextPage={fetchNextPage}
-                streamRes={streamRes}
-                isStreamLoading={isStreamLoading}
-                parsedQuery={query}
-                queryHistoryEntry={queryHistoryEntry}
-                onStopStream={stopStream}
-                isStreamPaused={isStreamPaused}
-                nav={nav}
-              />
-            )}
+            <div className="min-h-0 flex-1">
+              {!isQueryHistoryLoading && (
+                <QueryOutput
+                  data={data}
+                  hasNextPage={hasNextPage}
+                  isFetching={isFetching}
+                  isQueryLoading={isQueryLoading}
+                  fetchNextPage={fetchNextPage}
+                  streamRes={streamRes}
+                  isStreamLoading={isStreamLoading}
+                  parsedQuery={query}
+                  queryHistoryEntry={queryHistoryEntry}
+                  onStopStream={stopStream}
+                  isStreamPaused={isStreamPaused}
+                  nav={nav}
+                />
+              )}
+            </div>
           </div>
         </Panel>
 

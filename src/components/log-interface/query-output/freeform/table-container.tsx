@@ -174,10 +174,10 @@ const TableContainer = ({
   return (
     <div
       ref={containerRef}
-      className="table-container flex w-full flex-col rounded-md bg-white dark:bg-black"
+      className="table-container flex h-full w-full flex-col rounded-md bg-white dark:bg-black"
     >
-      <div className="flex flex-grow text-xs">
-        <div className="w-full py-2">
+      <div className="flex min-h-0 flex-1 flex-col text-xs">
+        <div className="flex min-h-0 flex-1 flex-col py-2">
           <style jsx>{`
             .resizer {
               position: absolute;
@@ -223,14 +223,14 @@ const TableContainer = ({
             }
           `}</style>
 
-          <div className="overflow-hidden rounded">
+          <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded">
             <div
-              className="scroll-container scrollbar-thin scrollbar-track-slate-100 scrollbar-thumb-slate-300 dark:scrollbar-track-slate-700 dark:scrollbar-thumb-slate-600"
+              className="scroll-container scrollbar-thin scrollbar-track-slate-100 scrollbar-thumb-slate-300 dark:scrollbar-track-slate-700 dark:scrollbar-thumb-slate-600 flex min-h-0 flex-1 flex-col"
               style={{ overflowX: "auto" }}
             >
-              <div className="table-wrapper">
+              <div className="table-wrapper flex min-h-0 flex-1 flex-col">
                 <TableVirtuoso
-                  style={{ height: "calc(100vh - 260px)" }}
+                  style={{ height: "100%" }}
                   totalCount={tableRows?.length}
                   endReached={loadMore}
                   components={{
