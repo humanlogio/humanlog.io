@@ -28,9 +28,6 @@ export const QueryTimer = ({
           </>
         )}
       </div>
-      {isFetchingNextPage && (
-        <span className="text-blue-500">Fetching next page...</span>
-      )}
     </div>
   );
 };
