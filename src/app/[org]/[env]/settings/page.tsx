@@ -13,7 +13,7 @@ export default function EnvironmentSettings() {
   const { activePage, setActivePage } = usePage();
 
   useEffect(() => {
-    setActivePage("stream");
+    setActivePage("settings");
   }, [activePage]);
 
   if (currentEnvSlug === "localhost") {
