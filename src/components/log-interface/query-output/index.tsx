@@ -2,7 +2,7 @@
 
 import { ReactNode, useEffect, useMemo, useState } from "react";
 import { Query } from "api/js/types/v1/query_pb";
-import { NoLogsView } from "@/components/log-interface/views/no-logs-view";
+import { EmptyDataView } from "@/components/log-interface/views/empty-data-view";
 import { SubQueriesContainer } from "@/components/log-interface/query-output/session/subqueries-container";
 import { extractQueryIds } from "@/lib/utils/extractQueryIds";
 import {
@@ -14,13 +14,9 @@ import { QueryHistoryEntry } from "api/js/types/v1/query_history_entry_pb";
 import { FreeFormContainer } from "@/components/log-interface/query-output/freeform";
 import { SpansContainer } from "@/components/log-interface/query-output/spans/spans-container";
 import { AlertCircle, Loader, ReceiptText, StopCircle } from "lucide-react";
-import { QueryResponse, StreamResponse } from "api/js/svc/query/v1/service_pb";
-import { Data } from "api/js/types/v1/data_pb";
-import { Cursor } from "api/js/types/v1/cursor_pb";
-import { getShapeFromResponse } from "@/lib/utils/dataHelpers";
+import { StreamResponse } from "api/js/svc/query/v1/service_pb";
 import { Button } from "@/components/ui/button";
 import { useSearchParams } from "next/navigation";
-import { InfiniteData } from "@tanstack/react-query";
 import { DataCase, DataValue } from "@/components/log-interface";
 import { Log } from "api/js/types/v1/otel_logging_pb";
 import { Table } from "api/js/types/v1/types_pb";
@@ -73,7 +69,7 @@ const QueryOutput = ({
       if (queryString === null) {
         const isStreamMode = nav === "stream";
         return (
-          <div className="flex flex-1 items-center justify-center">
+          <div className="flex h-full flex-1 items-center justify-center">
             <div className="mt-10 text-center">
               <h3 className="mb-2 text-xl font-semibold">
                 {isStreamMode
@@ -99,15 +95,15 @@ const QueryOutput = ({
 
       if (!isStreamMode && !data) {
         return (
-          <div className="flex flex-1 items-center justify-center">
-            <NoLogsView />
+          <div className="flex h-full flex-1 items-center justify-center">
+            <EmptyDataView />
           </div>
         );
       }
 
       if (isStreamMode && !streamRes) {
         return (
-          <div className="mt-20 flex flex-col items-center">
+          <div className="flex h-full flex-col items-center">
             <AlertCircle className="mb-3 text-yellow-500" size={32} />
             <div>No stream data available</div>
           </div>
@@ -115,9 +111,9 @@ const QueryOutput = ({
       }
 
       return (
-        <>
+        <div className="flex h-full flex-col">
           {isStreamMode && (
-            <div className="flex items-center justify-between">
+            <div className="mb-4 flex flex-none items-center justify-between">
               <h3 className="flex items-center gap-2 text-lg font-semibold">
                 <ReceiptText size={18} />
                 Stream Responses ({streamRes.length})
@@ -141,8 +137,9 @@ const QueryOutput = ({
             streamRes={streamRes}
             parsedQuery={parsedQuery}
             queryHistoryEntry={queryHistoryEntry}
+            isStream={isStreamMode}
           />
-        </>
+        </div>
       );
     };
 
@@ -157,7 +154,7 @@ const QueryOutput = ({
     queryString,
   ]);
 
-  return output;
+  return <div className="h-full">{output}</div>;
 };
 
 export const normalizeStreamData = (streamRes: StreamResponse[]): DataValue => {
@@ -221,8 +218,8 @@ export const DataRenderer = ({
 
   if (!logs?.length && !freeForm?.length && !spans?.length && !streamRes) {
     return (
-      <div className="flex flex-1 items-center justify-center">
-        <NoLogsView />
+      <div className="flex h-full flex-1 items-center justify-center">
+        <EmptyDataView />
       </div>
     );
   }
@@ -231,13 +228,13 @@ export const DataRenderer = ({
     case "logs":
       return (
         <>
-          <div className="mt-2 flex flex-col gap-1">
+          <div className="mb-4 flex flex-none flex-col gap-1">
             <ToggleShowPretty />
             {(!streamRes || streamRes?.length === 0) && parsedQuery && (
               <ToggleSplit />
             )}
           </div>
-          <div className="flex-1">
+          <div className="min-h-0 flex-1">
             <SessionPanel
               streamRes={streamRes}
               logs={logs}
@@ -274,12 +271,10 @@ export const DataRenderer = ({
       );
     case "subqueries":
       return (
-        <div className="flex-1">
-          <SubQueriesContainer
-            queries={queries ?? []}
-            queryHistoryEntry={queryHistoryEntry}
-          />
-        </div>
+        <SubQueriesContainer
+          queries={queries ?? []}
+          queryHistoryEntry={queryHistoryEntry}
+        />
       );
     default:
       return (

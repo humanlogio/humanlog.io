@@ -49,8 +49,10 @@ export default function RootLayout({
                   <ListEnvironmentsProvider>
                     <AuthProvider>
                       <TooltipProvider>
-                        <div className="flex min-h-screen flex-col">
-                          <Header />
+                        <div className="flex h-screen flex-col">
+                          <div className="flex-none">
+                            <Header />
+                          </div>
                           <div className="flex flex-1 flex-col">{children}</div>
                           <PageFooter />
                         </div>

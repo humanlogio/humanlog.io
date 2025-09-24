@@ -1,5 +1,5 @@
-import { BinaryOp_Operator, Expr, Query } from "api/js/types/v1/query_pb";
-import { Fragment, useEffect, useMemo, useState } from "react";
+import { Query } from "api/js/types/v1/query_pb";
+import { useEffect, useMemo, useState } from "react";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import { extractQueryIds } from "@/lib/utils/extractQueryIds";
 import {
@@ -16,18 +16,15 @@ import {
   ToggleShowPretty,
   ToggleSplit,
 } from "@/components/log-interface/query-output/toggles";
-import { KV } from "api/js/types/v1/types_pb";
 import SessionPanel from "@/components/log-interface/query-output/session/session-panel";
 import { QueryHistoryEntry } from "api/js/types/v1/query_history_entry_pb";
 import { useInfiniteQuery } from "@connectrpc/connect-query";
 import { query as queryMethod } from "api/js/svc/query/v1/service-QueryService_connectquery";
-import { useActiveTransport, useApiClients } from "@/context/api-provider";
-import { CursorSchema } from "api/js/types/v1/cursor_pb";
+import { useActiveTransport } from "@/context/api-provider";
 import { QueryResponse } from "api/js/svc/query/v1/service_pb";
-import { InfiniteData } from "@tanstack/react-query";
 import { Log } from "api/js/types/v1/otel_logging_pb";
-import { create } from "@bufbuild/protobuf";
 import { useEnvironmentStore } from "@/stores/environment-store";
+import { EmptyDataView } from "@/components/log-interface/views/empty-data-view";
 
 interface SubQueriesContainerProps {
   queries: Query[];
@@ -95,6 +92,10 @@ export const SubQueriesContainer = ({
     selected && setSelectedSessions((prev) => [...(prev || []), selected]);
   };
 
+  if (queries.length === 0) {
+    return <EmptyDataView dataType="logs" />;
+  }
+
   return (
     selectedSessions && (
       <>
@@ -103,40 +104,35 @@ export const SubQueriesContainer = ({
             <ToggleShowPretty />
             <ToggleSplit />
           </div>
-          {sessionList && sessionList.length > 0 && (
-            <div className="w-1/3">
-              <Select
-                value=""
-                onValueChange={(value) => {
-                  updateSelection(value);
-                }}
-              >
-                <SelectTrigger>
-                  <SquareCode size={16} />
-                  <SelectValue placeholder="+ Add New" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    {sessionList.map((list) => {
-                      return (
-                        <SelectItem key={list.value} value={list.value}>
-                          <span className="mr-1">
-                            resourceFingerprint: {list.resourceFingerprint}
-                          </span>
-                        </SelectItem>
-                      );
-                    })}
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-            </div>
-          )}
+          <div className="w-1/3">
+            <Select
+              value=""
+              onValueChange={(value) => {
+                updateSelection(value);
+              }}
+            >
+              <SelectTrigger>
+                <SquareCode size={16} />
+                <SelectValue placeholder="+ Add New" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  {sessionList?.map((list) => {
+                    return (
+                      <SelectItem key={list.value} value={list.value}>
+                        <span className="mr-1">
+                          resourceFingerprint: {list.resourceFingerprint}
+                        </span>
+                      </SelectItem>
+                    );
+                  })}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
-        <div className="mt-3 flex">
-          <PanelGroup
-            direction="horizontal"
-            className="flex flex-1 overflow-y-auto"
-          >
+        <div className="mt-3 flex min-h-0 flex-1">
+          <PanelGroup direction="horizontal" className="h-full min-h-0 flex-1">
             {selectedSessions?.map((list, i) => {
               return (
                 <SubQueryPanel
@@ -166,7 +162,6 @@ interface SubQueryPanelProps {
 
 interface DataValue {
   pages?: QueryResponse[];
-
   logs: Log[];
 }
 
@@ -184,10 +179,6 @@ const SubQueryPanel = ({
     isFetching,
     fetchNextPage,
     hasNextPage,
-    isFetchingNextPage,
-    error,
-    status,
-    isLoading: isQueryLoading,
   } = useInfiniteQuery(
     queryMethod,
     // @ts-ignore
@@ -221,10 +212,14 @@ const SubQueryPanel = ({
     };
   }, [rawData]);
 
+  if (!data?.logs || data?.logs.length === 0) {
+    return <EmptyDataView dataType="logs" />;
+  }
+
   return (
-    <Fragment>
+    <>
       <Panel minSize={20}>
-        <div className="relative pt-2 pr-2">
+        <div className="relative flex h-full flex-col pt-2 pr-2">
           {selectedSessions.length > 1 && (
             <button
               onClick={() => deleteSession(list.value)}
@@ -233,14 +228,16 @@ const SubQueryPanel = ({
               <X color="black" size={14} />
             </button>
           )}
-          <SessionPanel
-            logs={data?.logs}
-            resourceFingerprint={extractQueryIds(list.query)}
-            queryHistoryEntry={queryHistoryEntry}
-            hasNextPage={hasNextPage}
-            isFetching={isFetching}
-            fetchNextPage={fetchNextPage}
-          />
+          <div className="min-h-0 flex-1">
+            <SessionPanel
+              logs={data?.logs}
+              resourceFingerprint={extractQueryIds(list.query)}
+              queryHistoryEntry={queryHistoryEntry}
+              hasNextPage={hasNextPage}
+              isFetching={isFetching}
+              fetchNextPage={fetchNextPage}
+            />
+          </div>
         </div>
       </Panel>
 
@@ -249,6 +246,6 @@ const SubQueryPanel = ({
           <div className="h-12 w-1 rounded-full bg-slate-700" />
         </PanelResizeHandle>
       )}
-    </Fragment>
+    </>
   );
 };

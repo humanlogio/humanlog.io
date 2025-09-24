@@ -1,6 +1,6 @@
 import { valueToString, varTypeToString } from "@/lib/utils/value-formatters";
 import { Arr, TableType_Column, ScalarType } from "api/js/types/v1/types_pb";
-import { useMemo, useState, useEffect, useRef } from "react";
+import { useMemo, useState, useEffect, useRef, useCallback } from "react";
 import {
   CellContext,
   flexRender,
@@ -23,19 +23,20 @@ import {
   newLiteralExpr,
 } from "@/lib/utils/queryExpressions";
 import config from "@/features/config";
+import { TableVirtuoso } from "react-virtuoso";
 
 interface TableProps {
   tableColumns?: TableType_Column[];
   tableRows?: Arr[];
-  targetRef: (node?: Element | null) => void;
   hasNextPage?: boolean;
+  fetchNextPage?: () => void;
 }
 
 const TableContainer = ({
   tableColumns,
   tableRows,
-  targetRef,
   hasNextPage,
+  fetchNextPage,
 }: TableProps) => {
   const isProd = config.NEXT_PUBLIC_IS_PROD;
 
@@ -51,6 +52,10 @@ const TableContainer = ({
     });
   const [containerWidth, setContainerWidth] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  const loadMore = useCallback(() => {
+    hasNextPage && fetchNextPage && fetchNextPage();
+  }, [hasNextPage, fetchNextPage]);
 
   // Measure container width
   useEffect(() => {
@@ -169,10 +174,10 @@ const TableContainer = ({
   return (
     <div
       ref={containerRef}
-      className="table-container flex w-full flex-col rounded-md bg-white dark:bg-black"
+      className="table-container flex h-full w-full flex-col rounded-md bg-white dark:bg-black"
     >
-      <div className="flex flex-grow text-xs">
-        <div className="w-full py-2">
+      <div className="flex min-h-0 flex-1 flex-col text-xs">
+        <div className="flex min-h-0 flex-1 flex-col py-2">
           <style jsx>{`
             .resizer {
               position: absolute;
@@ -218,21 +223,65 @@ const TableContainer = ({
             }
           `}</style>
 
-          <div className="overflow-hidden rounded">
+          <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded">
             <div
-              className="scroll-container scrollbar-thin scrollbar-track-slate-100 scrollbar-thumb-slate-300 dark:scrollbar-track-slate-700 dark:scrollbar-thumb-slate-600"
+              className="scroll-container scrollbar-thin scrollbar-track-slate-100 scrollbar-thumb-slate-300 dark:scrollbar-track-slate-700 dark:scrollbar-thumb-slate-600 flex min-h-0 flex-1 flex-col"
               style={{ overflowX: "auto" }}
             >
-              <div className="table-wrapper">
-                <table
-                  className="w-full font-mono"
-                  style={{
-                    tableLayout: isScrollMode ? "auto" : "fixed",
-                    minWidth: isScrollMode ? `${columnCount * 120}px` : "100%",
+              <div className="table-wrapper flex min-h-0 flex-1 flex-col">
+                <TableVirtuoso
+                  style={{ height: "100%" }}
+                  totalCount={tableRows?.length}
+                  endReached={loadMore}
+                  components={{
+                    Table: ({ style, ...props }) => (
+                      <table
+                        className="w-full font-mono"
+                        {...props}
+                        style={{
+                          ...style,
+                          tableLayout: isScrollMode ? "auto" : "fixed",
+                          minWidth: isScrollMode
+                            ? `${columnCount * 120}px`
+                            : "100%",
+                        }}
+                      />
+                    ),
+                    TableRow: (props) => {
+                      if (!tableRows) return <tr {...props} />;
+
+                      const index = props["data-index"];
+                      const row = table.getRowModel().rows[index];
+
+                      return (
+                        <tr
+                          {...props}
+                          key={row.id}
+                          className="border-b border-slate-100 hover:bg-slate-100 dark:border-slate-800 dark:hover:bg-slate-900"
+                        >
+                          {row.getVisibleCells().map((cell) => (
+                            <td
+                              style={{
+                                width: `${cell.column.getSize()}px`,
+                                maxWidth: `${cell.column.getSize()}px`,
+                              }}
+                              key={cell.id}
+                              className="overflow-hidden border-r border-slate-100 px-2 py-1 last:border-r-0 dark:border-slate-800"
+                            >
+                              <div className="break-words text-ellipsis">
+                                {flexRender(
+                                  cell.column.columnDef.cell,
+                                  cell.getContext(),
+                                )}
+                              </div>
+                            </td>
+                          ))}
+                        </tr>
+                      );
+                    },
                   }}
-                >
-                  <thead className="bg-muted">
-                    {table.getHeaderGroups().map((headerGroup) => (
+                  fixedHeaderContent={() => {
+                    return table.getHeaderGroups().map((headerGroup) => (
                       <tr key={headerGroup.id}>
                         {headerGroup.headers.map((header, headerIndex) => {
                           const column = tableColumns?.[headerIndex];
@@ -248,7 +297,7 @@ const TableContainer = ({
                                 overflow: "visible",
                               }}
                               key={header.id}
-                              className="border-r border-slate-200 px-2 py-2 text-left font-semibold tracking-wider text-slate-700 last:border-r-0 dark:border-slate-700 dark:text-slate-300"
+                              className="bg-muted border-r border-slate-200 px-2 py-2 text-left font-semibold tracking-wider text-slate-700 last:border-r-0 dark:border-slate-700 dark:text-slate-300"
                             >
                               <Tooltip>
                                 <TooltipTrigger asChild>
@@ -290,44 +339,9 @@ const TableContainer = ({
                           );
                         })}
                       </tr>
-                    ))}
-                  </thead>
-
-                  <tbody>
-                    {table.getRowModel().rows.map((row, rowIndex) => (
-                      <tr
-                        key={row.id}
-                        className="border-b border-slate-100 hover:bg-slate-100 dark:border-slate-800 dark:hover:bg-slate-900"
-                      >
-                        {row.getVisibleCells().map((cell) => (
-                          <td
-                            style={{
-                              width: `${cell.column.getSize()}px`,
-                              maxWidth: `${cell.column.getSize()}px`,
-                            }}
-                            key={cell.id}
-                            className="overflow-hidden border-r border-slate-100 px-2 py-1 last:border-r-0 dark:border-slate-800"
-                          >
-                            <div className="break-words text-ellipsis">
-                              {flexRender(
-                                cell.column.columnDef.cell,
-                                cell.getContext(),
-                              )}
-                            </div>
-                          </td>
-                        ))}
-                      </tr>
-                    ))}
-                    {hasNextPage && (
-                      <tr ref={targetRef}>
-                        <td
-                          colSpan={tableColumns?.length || 1}
-                          className="h-4"
-                        />
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
+                    ));
+                  }}
+                />
               </div>
             </div>
           </div>
