@@ -53,9 +53,6 @@ export const LogLine = memo(
       themes ?? localhostConfig?.formatter?.themes,
     );
 
-    // State for metadata tooltip - changed from hover to click
-    const [isTooltipOpen, setisTooltipOpen] = useState(false);
-
     /** Can be extended with additional options as needed */
     const dropDownMenu = [
       {
@@ -67,11 +64,6 @@ export const LogLine = memo(
 
     const lineId = `${index}-${ulidToString(log.ulid)}`;
     const isSelected = selectedLines === lineId;
-
-    const handleMetadataClick = (e: React.MouseEvent) => {
-      e.stopPropagation();
-      setisTooltipOpen((prev) => !prev);
-    };
 
     const formattedValue = useCallback((value?: Val): string => {
       if (!value) return "";
@@ -167,6 +159,8 @@ export const LogLine = memo(
       return !!log.raw.length;
     }, [log.body, log.attributes.length, log.severityText, log.raw.length]);
 
+    if (!log) return <div></div>;
+
     return (
       <div
         key={lineId}
@@ -206,39 +200,22 @@ export const LogLine = memo(
         )}
 
         {!pretty || shouldShowRaw ? (
-          isTooltipOpen ? (
-            <Tooltip open={isTooltipOpen}>
-              <TooltipTrigger asChild>
-                <code
-                  className={twMerge(
-                    "flex cursor-pointer gap-1 rounded px-1 py-[1px] whitespace-nowrap transition-colors",
-                    isTooltipOpen
-                      ? "border border-blue-300 bg-blue-100 dark:bg-blue-900"
-                      : "hover:bg-gray-100 dark:hover:bg-gray-800",
-                  )}
-                  onClick={handleMetadataClick}
-                >
-                  {decodeUint8Array(log.raw)}
-                  {isTooltipOpen && (
-                    <span className="ml-1 text-xs text-blue-500">📌</span>
-                  )}
-                </code>
-              </TooltipTrigger>
-              <TooltipContent className="max-w-sm">
-                <div className="relative">
-                  <MetaDataTooltip log={log} />
-                </div>
-              </TooltipContent>
-            </Tooltip>
-          ) : (
-            <code
-              className="flex cursor-pointer gap-1 rounded px-1 py-[1px] whitespace-nowrap transition-colors hover:bg-gray-100 dark:hover:bg-gray-800"
-              onClick={handleMetadataClick}
-              title="Click to view metadata"
-            >
-              {decodeUint8Array(log.raw)}
-            </code>
-          )
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <code
+                className={twMerge(
+                  "flex cursor-pointer gap-1 rounded px-1 py-[1px] whitespace-nowrap transition-colors",
+                )}
+              >
+                {decodeUint8Array(log.raw)}
+              </code>
+            </TooltipTrigger>
+            <TooltipContent className="max-w-sm">
+              <div className="relative">
+                <MetaDataTooltip log={log} />
+              </div>
+            </TooltipContent>
+          </Tooltip>
         ) : (
           <pre
             className={twMerge(
@@ -246,69 +223,35 @@ export const LogLine = memo(
               sectionBreak && "flex-col",
             )}
           >
-            {isTooltipOpen ? (
-              <Tooltip open={isTooltipOpen}>
-                <TooltipTrigger asChild>
-                  <span
-                    className={`inline-flex cursor-pointer items-center rounded px-1 py-0.5 transition-colors ${
-                      isTooltipOpen
-                        ? "border border-blue-300 bg-blue-100 dark:bg-blue-900"
-                        : "hover:bg-gray-100 dark:hover:bg-gray-800"
-                    }`}
-                    onClick={handleMetadataClick}
-                  >
-                    <span style={{ color: getColor("time") }}>
-                      {formattedTimestamp}{" "}
-                    </span>
-                    <span className="text-gray-400">
-                      |
-                      <span
-                        style={{
-                          color: getLevelColor(log.severityText),
-                        }}
-                      >
-                        {log?.severityText || "EMPTY"}
-                      </span>
-                      |{" "}
-                    </span>
-                    <span style={{ color: getColor("msg") }} className="mr-1">
-                      {log.body || "no message"}
-                    </span>
-                    {isTooltipOpen && (
-                      <span className="ml-1 text-xs text-blue-500">📌</span>
-                    )}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span
+                  className={`inline-flex cursor-pointer items-center rounded px-1 py-0.5 transition-colors hover:bg-gray-100 dark:hover:bg-gray-800`}
+                >
+                  <span style={{ color: getColor("time") }}>
+                    {formattedTimestamp}{" "}
                   </span>
-                </TooltipTrigger>
+                  <span className="text-gray-400">
+                    |
+                    <span
+                      style={{
+                        color: getLevelColor(log.severityText),
+                      }}
+                    >
+                      {log?.severityText || "EMPTY"}
+                    </span>
+                    |{" "}
+                  </span>
+                  <span style={{ color: getColor("msg") }} className="mr-1">
+                    {log.body || "no message"}
+                  </span>
+                </span>
+              </TooltipTrigger>
 
-                <div className="relative">
-                  <MetaDataTooltip log={log} />
-                </div>
-              </Tooltip>
-            ) : (
-              <span
-                className="inline-flex cursor-pointer items-center rounded px-1 py-0.5 transition-colors hover:bg-gray-100 dark:hover:bg-gray-800"
-                onClick={handleMetadataClick}
-                title="Click to view metadata"
-              >
-                <span style={{ color: getColor("time") }}>
-                  {formattedTimestamp}{" "}
-                </span>
-                <span className="text-gray-400">
-                  |
-                  <span
-                    style={{
-                      color: getLevelColor(log.severityText),
-                    }}
-                  >
-                    {log?.severityText || "EMPTY"}
-                  </span>
-                  |{" "}
-                </span>
-                <span style={{ color: getColor("msg") }} className="mr-1">
-                  {log.body || "no message"}
-                </span>
-              </span>
-            )}
+              <div className="relative">
+                <MetaDataTooltip log={log} />
+              </div>
+            </Tooltip>
             <div className={twMerge("flex", sectionBreak && "flex-col")}>
               {log.attributes.map((kv, kvIndex) => (
                 <LogAttribute

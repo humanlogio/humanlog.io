@@ -40,16 +40,10 @@ const footerLinks = [
   },
 ];
 
-const pagesWithoutFooter = ["/docs", "/localhost"];
-
 const PageFooter = () => {
   const pathname = usePathname();
 
-  const showFooter = !pagesWithoutFooter.some((path) =>
-    pathname.startsWith(path),
-  );
-
-  if (!showFooter) return null;
+  if (pathname !== "/") return null;
 
   return (
     <footer className="bg-muted py-10">
