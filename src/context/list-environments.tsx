@@ -152,17 +152,16 @@ export function ListEnvironmentsProvider({
     setUserInfo(undefined);
     setActiveEnvironment(undefined);
 
-    try {
-      if (!apiClients || userInfo === "isLoading") return;
-
-      const { logoutUrl } = await apiClients.user.getLogoutURL({
-        returnTo: logoutReturnToURL,
-      });
-
-      router.push(logoutUrl);
-    } catch (error) {
-      console.error("Failed to get logout URL:", error);
-    }
+    // TODO: until API is fixed
+    // try {
+    //   if (!apiClients || userInfo === "isLoading") return;
+    //   const { logoutUrl } = await apiClients.user.getLogoutURL({
+    //     returnTo: logoutReturnToURL,
+    //   });
+    //   router.push(logoutUrl);
+    // } catch (error) {
+    //   console.error("Failed to get logout URL:", error);
+    // }
   };
 
   const getUserInfo = async () => {
