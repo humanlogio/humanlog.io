@@ -149,19 +149,20 @@ export function ListEnvironmentsProvider({
   const doLogout = async () => {
     deleteCookie();
     localStorage.removeItem("hlog_session");
+    setUserInfo(undefined);
     setActiveEnvironment(undefined);
 
-    try {
-      if (!apiClients || userInfo === "isLoading") return;
+    // TODO: until API is fixed
+    // try {
+    //   if (!apiClients || userInfo === "isLoading") return;
+    //   const { logoutUrl } = await apiClients.user.getLogoutURL({
+    //     returnTo: logoutReturnToURL,
+    //   });
 
-      const { logoutUrl } = await apiClients.user.getLogoutURL({
-        returnTo: logoutReturnToURL,
-      });
-      setUserInfo(undefined);
-      router.push(logoutUrl);
-    } catch (error) {
-      console.error("Failed to get logout URL:", error);
-    }
+    //   router.push(logoutUrl);
+    // } catch (error) {
+    //   console.error("Failed to get logout URL:", error);
+    // }
   };
 
   const getUserInfo = async () => {
