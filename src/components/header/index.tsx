@@ -8,8 +8,8 @@ export const Header = () => {
   const { userInfo } = useAllEnvironments();
 
   return (
-    <nav className="bg-muted flex h-12 w-full flex-col justify-center">
-      <div className="sticky top-0 z-20">
+    <nav className="bg-muted fixed top-0 z-20 flex h-12 w-full flex-col justify-center">
+      <div className="">
         {userInfo === "isLoading" ? null : userInfo ? (
           <AppHeader userInfo={userInfo} />
         ) : (
