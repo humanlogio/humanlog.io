@@ -11,7 +11,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { NoLogsView } from "@/components/log-interface/views/no-logs-view";
+import { EmptyDataView } from "@/components/log-interface/views/empty-data-view";
 import { twJoin } from "tailwind-merge";
 import { usePathname, useSearchParams } from "next/navigation";
 import { decodeUint8Array } from "@/lib/utils/decode";
@@ -24,10 +24,9 @@ import { useAllEnvironments } from "@/context/list-environments";
 import { StreamResponse } from "api/js/svc/query/v1/service_pb";
 import { newLogsData } from "@/lib/utils/dataShapeFactories";
 import { Log } from "api/js/types/v1/otel_logging_pb";
-import { useInView } from "react-intersection-observer";
 import { LogLine } from "@/components/log-interface/query-output/session/log-line";
-import { ulidToString } from "@/lib/utils/id-factories";
 import { create } from "@bufbuild/protobuf";
+import { Virtuoso } from "react-virtuoso";
 
 interface SessionPanelProps {
   resourceFingerprint?: string;
@@ -43,7 +42,6 @@ interface SessionPanelProps {
 
 const SessionPanel = ({
   resourceFingerprint,
-
   logs,
   hasNextPage,
   isFetching,
@@ -56,10 +54,8 @@ const SessionPanel = ({
   const searchParams = useSearchParams();
   const queryString = searchParams.get("query");
   const pathname = usePathname();
-  const containerRef = useRef<HTMLDivElement>(null);
 
   const { localhostConfig } = useAllEnvironments();
-  const { ref: targetRef, inView } = useInView();
   const { theme } = useTheme();
 
   const pretty = searchParams.get("pretty") !== "false";
@@ -125,9 +121,9 @@ const SessionPanel = ({
     setIsDark(darkMode);
   }, [mode, theme]);
 
-  useEffect(() => {
-    if (inView && fetchNextPage) fetchNextPage();
-  }, [inView]);
+  const loadMore = useCallback(() => {
+    hasNextPage && fetchNextPage && fetchNextPage();
+  }, [hasNextPage, fetchNextPage]);
 
   useEffect(() => {
     const line = searchParams.get("line");
@@ -140,8 +136,9 @@ const SessionPanel = ({
 
   return (
     <div
-      className={`flex w-full flex-col rounded-md border ${isDark ? "bg-black" : "bg-white"}`}
+      className={`flex h-full w-full flex-col rounded-md border ${isDark ? "bg-black" : "bg-white"}`}
     >
+      {/* 헤더 - 고정 높이 */}
       <div className="bg-muted flex h-11 w-full flex-none flex-row items-center justify-between p-2">
         <div className="flex justify-start">
           <h4 className="flex flex-row items-center gap-3 truncate font-bold">
@@ -194,43 +191,36 @@ const SessionPanel = ({
             </Tooltip>
           )}
         </div>
-
-        {/* TODO: later.. */}
-        {/*
-        <div className="flex w-1/3 justify-end">
-          <Button size="icon" className="mb-1 h-8">
-            <Search size={14} />
-          </Button>
-        </div> */}
       </div>
 
       <div
-        ref={containerRef}
-        className={twJoin("flex flex-grow text-sm", isDark && "bg-black")}
+        className={twJoin(
+          "flex min-h-0 flex-1 flex-col overflow-hidden text-sm",
+          isDark && "bg-black",
+        )}
       >
-        <div className="flex-1 border-separate overflow-x-auto py-2">
-          {logs && logs.length > 0 ? (
-            logs?.map((log: Log, i: number) => {
-              return (
-                <LogLine
-                  key={`${i}-${ulidToString(log.ulid)}`}
-                  log={log}
-                  index={i}
-                  selectedLines={selectedLines}
-                  pretty={pretty}
-                  sectionBreak={sectionBreak}
-                  isDark={isDark}
-                  themes={themes}
-                  localhostConfig={localhostConfig}
-                  onClickLine={handleClickLine}
-                />
-              );
-            })
-          ) : (
-            <NoLogsView />
-          )}
-          {hasNextPage && <div ref={targetRef} className="h-4" />}
-        </div>
+        {logs && logs.length > 0 ? (
+          <Virtuoso
+            style={{ height: "100%" }}
+            totalCount={logs?.length}
+            endReached={loadMore}
+            itemContent={(i) => (
+              <LogLine
+                index={i}
+                log={logs[i]}
+                selectedLines={selectedLines}
+                pretty={pretty}
+                sectionBreak={sectionBreak}
+                isDark={isDark}
+                themes={themes}
+                localhostConfig={localhostConfig}
+                onClickLine={handleClickLine}
+              />
+            )}
+          />
+        ) : (
+          <EmptyDataView dataType="logs" />
+        )}
       </div>
     </div>
   );

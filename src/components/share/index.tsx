@@ -23,6 +23,7 @@ import { FreeFormContainer } from "@/components/log-interface/query-output/freef
 import { Spans } from "api/js/types/v1/data_pb";
 import { SpansContainer } from "@/components/log-interface/query-output/spans/spans-container";
 import { Log } from "api/js/types/v1/otel_logging_pb";
+import LoadingIndicator from "@/components/loading-indicator";
 
 interface SharedQueryProps {
   sharedId: string;
@@ -101,17 +102,13 @@ export const SharedQuery = ({ sharedId, prefix }: SharedQueryProps) => {
   }, [query]);
 
   if (isLoading) {
-    return (
-      <div className="flex h-screen w-full flex-1 items-center justify-center">
-        <Loader className="mx-auto mb-4 h-10 w-10 animate-spin" />
-      </div>
-    );
+    return <LoadingIndicator />;
   }
 
   return (
-    <div className={`min-h-screen pb-12`}>
+    <div className={`flex h-full flex-col pb-12`}>
       {/* Header Section */}
-      <div className="mb-8 border-b border-gray-200">
+      <div className="mb-8 flex-none border-b border-gray-200">
         <div className={`px-8 py-6`}>
           <div className="mb-4 flex items-center">
             <Share2 className="mr-2 h-5 w-5 text-blue-600 dark:text-blue-400" />
@@ -142,9 +139,9 @@ export const SharedQuery = ({ sharedId, prefix }: SharedQueryProps) => {
         </div>
       </div>
 
-      <div className={`px-8`}>
+      <div className={`flex min-h-0 flex-1 flex-col px-8`}>
         {/* Query Section */}
-        <div className="mb-8">
+        <div className="mb-8 flex-none">
           <div className="mb-3 flex items-center">
             <Code className="mr-2 h-5 w-5 text-indigo-600 dark:text-indigo-400" />
             <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200">
@@ -164,29 +161,29 @@ export const SharedQuery = ({ sharedId, prefix }: SharedQueryProps) => {
         </div>
 
         {/* Result Section */}
-        <div>
-          <div className="mb-3 flex items-center">
+        <div className="flex min-h-0 flex-1 flex-col">
+          <div className="mb-3 flex flex-none items-center">
             <Database className="mr-2 h-5 w-5 text-green-600 dark:text-green-400" />
             <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200">
               Result
             </h2>
           </div>
 
-          <div className="overflow-hidden rounded-lg border border-gray-200">
+          <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-lg border border-gray-200">
             {logData && (
-              <div className="p-4">
+              <div className="flex min-h-0 flex-1 flex-col p-4">
                 <SessionPanel logs={logData} />
               </div>
             )}
 
             {freeFormData && (
-              <div className="p-4">
+              <div className="flex min-h-0 flex-1 flex-col p-4">
                 <FreeFormContainer freeForm={[freeFormData]} />
               </div>
             )}
 
             {spanData && (
-              <div className="p-4">
+              <div className="flex min-h-0 flex-1 flex-col p-4">
                 <SpansContainer spans={spanData.spans} />
               </div>
             )}

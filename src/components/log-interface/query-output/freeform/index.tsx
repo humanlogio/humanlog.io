@@ -1,25 +1,21 @@
 import { QueryHistoryEntry } from "api/js/types/v1/query_history_entry_pb";
-import { Query } from "api/js/types/v1/query_pb";
 import { Arr, Table, TableType_Column } from "api/js/types/v1/types_pb";
 import { useEffect, useState } from "react";
 import {
   Tooltip,
   TooltipContent,
-  TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
-import { Loader, Share } from "lucide-react";
+import { Share } from "lucide-react";
 import { ShareQuery } from "@/components/log-interface/share-query";
 import { Data } from "api/js/types/v1/data_pb";
 import TableContainer from "@/components/log-interface/query-output/freeform/table-container";
 import Histogram from "@/components/log-interface/query-output/freeform/histogram-container";
-import { Cursor } from "api/js/types/v1/cursor_pb";
-import { QueryResponse, StreamResponse } from "api/js/svc/query/v1/service_pb";
+import { StreamResponse } from "api/js/svc/query/v1/service_pb";
 import { extractFromStreamResponses } from "@/lib/utils/dataHelpers";
 import { newTable, newTableData } from "@/lib/utils/dataShapeFactories";
-import { InfiniteData } from "@tanstack/react-query";
-import { useInView } from "react-intersection-observer";
+import { EmptyDataView } from "@/components/log-interface/views/empty-data-view";
 
 interface FreeFormContainerProps {
   freeForm: Table[] | undefined;
@@ -38,8 +34,6 @@ export const FreeFormContainer = ({
   queryHistoryEntry,
   streamRes,
 }: FreeFormContainerProps) => {
-  const { ref: targetRef, inView } = useInView();
-
   const [tableData, setTableData] = useState<Table[]>();
   const [tableColumns, setTableColumns] = useState<TableType_Column[]>();
   const [tableRows, setTableRows] = useState<Arr[]>();
@@ -61,10 +55,6 @@ export const FreeFormContainer = ({
   }, [freeForm]);
 
   useEffect(() => {
-    if (inView && fetchNextPage) fetchNextPage();
-  }, [inView]);
-
-  useEffect(() => {
     if (!streamRes || streamRes.length === 0) return;
     const _tableRows = extractFromStreamResponses<Arr>(streamRes, (value) => {
       setTableColumns(value.type?.columns);
@@ -77,10 +67,14 @@ export const FreeFormContainer = ({
     (col) => col.type?.type.case === "map",
   );
 
+  if (!tableData || tableData.length === 0) {
+    return <EmptyDataView dataType="table" />;
+  }
+
   return (
-    <div className="flex-1">
+    <div className="flex h-full flex-1 flex-col">
       {queryHistoryEntry && (
-        <div className="flex w-full justify-end">
+        <div className="flex w-full flex-none justify-end">
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
@@ -105,20 +99,22 @@ export const FreeFormContainer = ({
           </Tooltip>
         </div>
       )}
-      {isHistogram ? (
-        <Histogram
-          data={tableData?.[0]}
-          tableColumns={tableColumns}
-          tableRows={tableRows}
-        />
-      ) : (
-        <TableContainer
-          tableColumns={tableColumns}
-          tableRows={tableRows}
-          targetRef={targetRef}
-          hasNextPage={hasNextPage}
-        />
-      )}
+      <div className="min-h-0 flex-1">
+        {isHistogram ? (
+          <Histogram
+            data={tableData?.[0]}
+            tableColumns={tableColumns}
+            tableRows={tableRows}
+          />
+        ) : (
+          <TableContainer
+            tableColumns={tableColumns}
+            tableRows={tableRows}
+            hasNextPage={hasNextPage}
+            fetchNextPage={fetchNextPage}
+          />
+        )}
+      </div>
     </div>
   );
 };
