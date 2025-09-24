@@ -173,7 +173,7 @@ const LogInterface = ({ nav }: LogInterfaceProps) => {
     });
   };
 
-  const handleStreamData = () => {
+  const handleStreamData = (query: Query) => {
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
     }
@@ -299,8 +299,8 @@ const LogInterface = ({ nav }: LogInterfaceProps) => {
       res.query = processQueryModifiers(res, splitByDefault);
       setQuery(res.query);
 
-      if (nav === "stream") {
-        handleStreamData();
+      if (nav === "stream" && res.query) {
+        handleStreamData(res.query);
         return;
       }
     },
