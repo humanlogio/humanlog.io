@@ -70,7 +70,7 @@ export const SpanList = ({
 
   return (
     <>
-      <div className="flex flex-col gap-2">
+      <div className="flex h-full min-h-0 flex-col gap-2">
         {/* Header with controls */}
         <div className="dark:bg-gray-850 flex flex-col items-center justify-between gap-4 rounded-lg px-4 py-2 shadow-sm md:flex-row">
           <div className="flex items-center gap-4">
@@ -121,10 +121,10 @@ export const SpanList = ({
         </div>
 
         {/* Spans list */}
-        <div>
+        <div className="h-full">
           {filteredSpans && (
             <Virtuoso
-              style={{ height: "calc(100vh - 320px)", minHeight: "300px" }}
+              style={{ height: "100%" }}
               totalCount={filteredSpans?.length}
               endReached={loadMore}
               itemContent={(i) => (

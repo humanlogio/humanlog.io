@@ -48,8 +48,6 @@ export const LogLine = memo(
     localhostConfig,
     onClickLine,
   }: LogLineProps) => {
-    if (!log) return <div></div>;
-
     const { getColor, getLevelColor } = useThemeColors(
       isDark,
       themes ?? localhostConfig?.formatter?.themes,
@@ -160,6 +158,8 @@ export const LogLine = memo(
       if (log.severityText && log.severityText !== "") return false;
       return !!log.raw.length;
     }, [log.body, log.attributes.length, log.severityText, log.raw.length]);
+
+    if (!log) return <div></div>;
 
     return (
       <div

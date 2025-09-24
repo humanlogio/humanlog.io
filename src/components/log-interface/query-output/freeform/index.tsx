@@ -15,7 +15,7 @@ import Histogram from "@/components/log-interface/query-output/freeform/histogra
 import { StreamResponse } from "api/js/svc/query/v1/service_pb";
 import { extractFromStreamResponses } from "@/lib/utils/dataHelpers";
 import { newTable, newTableData } from "@/lib/utils/dataShapeFactories";
-import { EmptyDataView } from "../../views/empty-data-view";
+import { EmptyDataView } from "@/components/log-interface/views/empty-data-view";
 
 interface FreeFormContainerProps {
   freeForm: Table[] | undefined;
@@ -72,9 +72,9 @@ export const FreeFormContainer = ({
   }
 
   return (
-    <div className="flex-1">
+    <div className="flex h-full flex-1 flex-col">
       {queryHistoryEntry && (
-        <div className="flex w-full justify-end">
+        <div className="flex w-full flex-none justify-end">
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
@@ -99,20 +99,22 @@ export const FreeFormContainer = ({
           </Tooltip>
         </div>
       )}
-      {isHistogram ? (
-        <Histogram
-          data={tableData?.[0]}
-          tableColumns={tableColumns}
-          tableRows={tableRows}
-        />
-      ) : (
-        <TableContainer
-          tableColumns={tableColumns}
-          tableRows={tableRows}
-          hasNextPage={hasNextPage}
-          fetchNextPage={fetchNextPage}
-        />
-      )}
+      <div className="min-h-0 flex-1">
+        {isHistogram ? (
+          <Histogram
+            data={tableData?.[0]}
+            tableColumns={tableColumns}
+            tableRows={tableRows}
+          />
+        ) : (
+          <TableContainer
+            tableColumns={tableColumns}
+            tableRows={tableRows}
+            hasNextPage={hasNextPage}
+            fetchNextPage={fetchNextPage}
+          />
+        )}
+      </div>
     </div>
   );
 };

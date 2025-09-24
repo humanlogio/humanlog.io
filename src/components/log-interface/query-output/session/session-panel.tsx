@@ -42,7 +42,6 @@ interface SessionPanelProps {
 
 const SessionPanel = ({
   resourceFingerprint,
-
   logs,
   hasNextPage,
   isFetching,
@@ -55,7 +54,6 @@ const SessionPanel = ({
   const searchParams = useSearchParams();
   const queryString = searchParams.get("query");
   const pathname = usePathname();
-  const containerRef = useRef<HTMLDivElement>(null);
 
   const { localhostConfig } = useAllEnvironments();
   const { theme } = useTheme();
@@ -138,8 +136,9 @@ const SessionPanel = ({
 
   return (
     <div
-      className={`flex w-full flex-col rounded-md border ${isDark ? "bg-black" : "bg-white"}`}
+      className={`flex h-full w-full flex-col rounded-md border ${isDark ? "bg-black" : "bg-white"}`}
     >
+      {/* 헤더 - 고정 높이 */}
       <div className="bg-muted flex h-11 w-full flex-none flex-row items-center justify-between p-2">
         <div className="flex justify-start">
           <h4 className="flex flex-row items-center gap-3 truncate font-bold">
@@ -192,44 +191,36 @@ const SessionPanel = ({
             </Tooltip>
           )}
         </div>
-
-        {/* TODO: later.. */}
-        {/*
-        <div className="flex w-1/3 justify-end">
-          <Button size="icon" className="mb-1 h-8">
-            <Search size={14} />
-          </Button>
-        </div> */}
       </div>
 
       <div
-        ref={containerRef}
-        className={twJoin("flex flex-grow text-sm", isDark && "bg-black")}
+        className={twJoin(
+          "flex min-h-0 flex-1 flex-col overflow-hidden text-sm",
+          isDark && "bg-black",
+        )}
       >
-        <div className="flex-1 border-separate overflow-x-auto">
-          {logs && logs.length > 0 ? (
-            <Virtuoso
-              style={{ height: "calc(100vh - 320px)", minHeight: "300px" }}
-              totalCount={logs?.length}
-              endReached={loadMore}
-              itemContent={(i) => (
-                <LogLine
-                  index={i}
-                  log={logs[i]}
-                  selectedLines={selectedLines}
-                  pretty={pretty}
-                  sectionBreak={sectionBreak}
-                  isDark={isDark}
-                  themes={themes}
-                  localhostConfig={localhostConfig}
-                  onClickLine={handleClickLine}
-                />
-              )}
-            />
-          ) : (
-            <EmptyDataView dataType="logs" />
-          )}
-        </div>
+        {logs && logs.length > 0 ? (
+          <Virtuoso
+            style={{ height: "100%" }}
+            totalCount={logs?.length}
+            endReached={loadMore}
+            itemContent={(i) => (
+              <LogLine
+                index={i}
+                log={logs[i]}
+                selectedLines={selectedLines}
+                pretty={pretty}
+                sectionBreak={sectionBreak}
+                isDark={isDark}
+                themes={themes}
+                localhostConfig={localhostConfig}
+                onClickLine={handleClickLine}
+              />
+            )}
+          />
+        ) : (
+          <EmptyDataView dataType="logs" />
+        )}
       </div>
     </div>
   );

@@ -47,8 +47,6 @@ interface SpanCardProps {
 }
 
 export const SpanCard = memo(({ index, span }: SpanCardProps) => {
-  if (!span) return <div></div>;
-
   const lineId = `${index}-${traceIdToString(span.traceId)}-${spanIdToString(span.spanId)}`;
 
   const traceId = unit8ArrayBufferToBase16(span.traceId?.raw);
@@ -75,6 +73,8 @@ export const SpanCard = memo(({ index, span }: SpanCardProps) => {
       `traces?traceId=${encodeURIComponent(traceId)}`,
     );
   };
+
+  if (!span) return <div></div>;
 
   return (
     <div key={lineId} className="my-3">
@@ -295,3 +295,5 @@ export const SpanCard = memo(({ index, span }: SpanCardProps) => {
     </div>
   );
 });
+
+SpanCard.displayName = "SpanCard";

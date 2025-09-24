@@ -7,7 +7,7 @@ import { ServiceMap } from "@/components/log-interface/query-output/spans/servic
 import { SpanList } from "@/components/log-interface/query-output/spans/span-list/span-list";
 import { Span } from "api/js/types/v1/otel_tracing_pb";
 import { useInView } from "react-intersection-observer";
-import { EmptyDataView } from "../../views/empty-data-view";
+import { EmptyDataView } from "@/components/log-interface/views/empty-data-view";
 
 interface SpansContainerProps {
   spans?: Span[] | undefined;

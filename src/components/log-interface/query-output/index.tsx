@@ -69,7 +69,7 @@ const QueryOutput = ({
       if (queryString === null) {
         const isStreamMode = nav === "stream";
         return (
-          <div className="flex flex-1 items-center justify-center">
+          <div className="flex h-full flex-1 items-center justify-center">
             <div className="mt-10 text-center">
               <h3 className="mb-2 text-xl font-semibold">
                 {isStreamMode
@@ -95,7 +95,7 @@ const QueryOutput = ({
 
       if (!isStreamMode && !data) {
         return (
-          <div className="flex flex-1 items-center justify-center">
+          <div className="flex h-full flex-1 items-center justify-center">
             <EmptyDataView />
           </div>
         );
@@ -103,7 +103,7 @@ const QueryOutput = ({
 
       if (isStreamMode && !streamRes) {
         return (
-          <div className="mt-20 flex flex-col items-center">
+          <div className="flex h-full flex-col items-center">
             <AlertCircle className="mb-3 text-yellow-500" size={32} />
             <div>No stream data available</div>
           </div>
@@ -111,9 +111,9 @@ const QueryOutput = ({
       }
 
       return (
-        <>
+        <div className="flex h-full flex-col">
           {isStreamMode && (
-            <div className="flex items-center justify-between">
+            <div className="mb-4 flex flex-none items-center justify-between">
               <h3 className="flex items-center gap-2 text-lg font-semibold">
                 <ReceiptText size={18} />
                 Stream Responses ({streamRes.length})
@@ -137,8 +137,9 @@ const QueryOutput = ({
             streamRes={streamRes}
             parsedQuery={parsedQuery}
             queryHistoryEntry={queryHistoryEntry}
+            isStream={isStreamMode}
           />
-        </>
+        </div>
       );
     };
 
@@ -153,7 +154,7 @@ const QueryOutput = ({
     queryString,
   ]);
 
-  return output;
+  return <div className="h-full">{output}</div>;
 };
 
 export const normalizeStreamData = (streamRes: StreamResponse[]): DataValue => {
@@ -217,7 +218,7 @@ export const DataRenderer = ({
 
   if (!logs?.length && !freeForm?.length && !spans?.length && !streamRes) {
     return (
-      <div className="flex flex-1 items-center justify-center">
+      <div className="flex h-full flex-1 items-center justify-center">
         <EmptyDataView />
       </div>
     );
@@ -227,13 +228,13 @@ export const DataRenderer = ({
     case "logs":
       return (
         <>
-          <div className="mt-2 flex flex-col gap-1">
+          <div className="mb-4 flex flex-none flex-col gap-1">
             <ToggleShowPretty />
             {(!streamRes || streamRes?.length === 0) && parsedQuery && (
               <ToggleSplit />
             )}
           </div>
-          <div className="flex-1">
+          <div className="min-h-0 flex-1">
             <SessionPanel
               streamRes={streamRes}
               logs={logs}
@@ -270,12 +271,10 @@ export const DataRenderer = ({
       );
     case "subqueries":
       return (
-        <div className="flex-1">
-          <SubQueriesContainer
-            queries={queries ?? []}
-            queryHistoryEntry={queryHistoryEntry}
-          />
-        </div>
+        <SubQueriesContainer
+          queries={queries ?? []}
+          queryHistoryEntry={queryHistoryEntry}
+        />
       );
     default:
       return (
