@@ -45,6 +45,8 @@ import { ExecuteQuery } from "@/components/log-interface";
 import { useQuery } from "@connectrpc/connect-query";
 import { listQueryHistory } from "api/js/svc/user/v1/service_private-UserService_connectquery";
 import { create } from "@bufbuild/protobuf";
+import { getOrgEnvUrl } from "@/lib/utils/navigation";
+import { useEnvironmentStore } from "@/stores/environment-store";
 
 interface DefaultQueryExamples {
   query: string;
@@ -92,6 +94,7 @@ const QueryInput = ({
   const queryString = searchParams.get("query");
 
   const { apiClients } = useApiClients();
+  const { activeEnvironment } = useEnvironmentStore();
   const { filterBySymbol, userInfo } = useAllEnvironments();
 
   const [isSaveValid, setIsSaveValid] = useState(false);
@@ -117,10 +120,8 @@ const QueryInput = ({
 
   const executeQuery = (query: string, fromExternalPage?: boolean) => {
     if (fromExternalPage) {
-      window.open(
-        `/localhost/query?query=${encodeURIComponent(query)}`,
-        "_blank",
-      );
+      const url = getOrgEnvUrl(userInfo, activeEnvironment, "query");
+      window.open(`${url}?query=${encodeURIComponent(query)}`, "_blank");
     } else {
       onExecuteQuery(query);
       setEditorContent(query);
