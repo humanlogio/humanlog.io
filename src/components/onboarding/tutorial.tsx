@@ -16,6 +16,9 @@ import {
   SkipForward,
 } from "lucide-react";
 import CodeBlock from "@/components/CodeBlock";
+import { useAllEnvironments } from "@/context/list-environments";
+import { useEnvironmentStore } from "@/stores/environment-store";
+import { getOrgEnvUrl } from "@/lib/utils/navigation";
 
 const tutorialSteps = [
   {
@@ -165,6 +168,8 @@ const tutorialSteps = [
 ];
 
 export const Tutorial = () => {
+  const { userInfo } = useAllEnvironments();
+  const { activeEnvironment } = useEnvironmentStore();
   const [isCompleting, setIsCompleting] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -175,10 +180,18 @@ export const Tutorial = () => {
       ? parseInt(tutorialParam.replace("step", "")) - 1
       : 0;
 
+  const redirectUrl = getOrgEnvUrl(userInfo, activeEnvironment, "query");
+
   const handleNext = () => {
     setIsCompleting(true);
+
+    const url = getOrgEnvUrl(
+      userInfo,
+      activeEnvironment,
+      `query?tutorial=step${currentStep + 2}`,
+    );
     if (currentStep < tutorialSteps.length - 1) {
-      router.replace(`/localhost/query?tutorial=step${currentStep + 2}`);
+      router.replace(url);
     } else {
       handleComplete();
     }
@@ -188,7 +201,12 @@ export const Tutorial = () => {
 
   const handlePrevious = () => {
     if (currentStep > 0) {
-      router.replace(`/localhost/query?tutorial=step${currentStep}`);
+      const url = getOrgEnvUrl(
+        userInfo,
+        activeEnvironment,
+        `query?tutorial=step${currentStep}`,
+      );
+      router.replace(url);
     }
   };
 
@@ -196,7 +214,7 @@ export const Tutorial = () => {
     setIsCompleting(true);
     try {
       toast.success("Welcome to Humanlog! You're ready to start exploring.");
-      router.replace("/localhost/query");
+      router.replace(redirectUrl);
     } catch (error) {
       toast.error("Something went wrong. Please try again.");
       setIsCompleting(false);
@@ -207,7 +225,7 @@ export const Tutorial = () => {
     setIsCompleting(true);
     try {
       toast.success("Welcome to Humanlog!");
-      router.replace("/localhost/query");
+      router.replace(redirectUrl);
     } catch (error) {
       toast.error("Something went wrong. Please try again.");
       setIsCompleting(false);
