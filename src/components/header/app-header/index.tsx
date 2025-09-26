@@ -88,7 +88,7 @@ export const AppHeader = ({ userInfo }: AppHeaderProps) => {
     <div className={`flex justify-between px-10`}>
       <div className="flex items-center">
         <Link
-          href={`/${currentOrg}/${currentEnvSlug}/get-started`}
+          href={`/${currentOrg}/${currentEnvSlug}/overview`}
           className="mr-8"
         >
           {/* instead of logo */}
