@@ -41,6 +41,9 @@ import { Dispatch, SetStateAction, useMemo, useState } from "react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useAllEnvironments } from "@/context/list-environments";
+import { getOrgEnvUrl } from "@/lib/utils/navigation";
+import { usePage } from "@/stores/page-store";
+import { useEnvironmentStore } from "@/stores/environment-store";
 
 interface Product {
   product: APIProduct;
@@ -203,6 +206,11 @@ function CheckoutForm({
   const router = useRouter();
   const stripe = useStripe();
   const elements = useElements();
+
+  const { userInfo } = useAllEnvironments();
+  const { activeEnvironment } = useEnvironmentStore();
+  const { activePage } = usePage();
+
   const [errorMessage, setErrorMessage] = useState<string>();
 
   const handleError = (error: string) => {
@@ -269,7 +277,9 @@ function CheckoutForm({
         }
     }
     console.log("checkout completed!");
-    router.push(`/localhost`);
+
+    const url = getOrgEnvUrl(userInfo, activeEnvironment, activePage);
+    router.push(url);
   }
 
   const form = useForm<z.infer<typeof formSchema>>({

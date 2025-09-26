@@ -47,6 +47,8 @@ import { PointerInfo } from "@/app/[org]/[env]/dashboard/components/pointer-info
 import { ReadOnlyField } from "@/app/[org]/[env]/dashboard/components/read-only-field";
 import { create } from "@bufbuild/protobuf";
 import { useEnvironmentStore } from "@/stores/environment-store";
+import { getOrgEnvUrl } from "@/lib/utils/navigation";
+import { useAllEnvironments } from "@/context/list-environments";
 
 const formSchema = z.object({
   name: z
@@ -75,6 +77,7 @@ export const ProjectContainer = ({
 }: ProjectContainerProps) => {
   const router = useRouter();
   const { activeEnvironment } = useEnvironmentStore();
+  const { userInfo } = useAllEnvironments();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [projectContents, setProjectContents] = useState<Record<string, any>>(
     {},
@@ -158,9 +161,8 @@ export const ProjectContainer = ({
   };
 
   const handleDashboardClick = (dashboardId: string) => {
-    router.push(
-      `/localhost/dashboard/${dashboardId}?projectName=${project.name}`,
-    );
+    const url = getOrgEnvUrl(userInfo, activeEnvironment, "dashboard");
+    router.push(`${url}/${dashboardId}?projectName=${project.name}`);
   };
 
   const handleProjectExpand = (projectName: string) => {
