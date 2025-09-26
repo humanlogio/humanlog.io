@@ -159,7 +159,7 @@ export const SpanCard = memo(({ index, span }: SpanCardProps) => {
                       </div>
                     </Link>
                     <Link
-                      href={`/localhost/traces?traceId=${traceId}&spanId=${spanId}`}
+                      href={`${getHref()}&spanId=${spanId}`}
                       className="flex items-center gap-2"
                     >
                       <div className="font-medium text-gray-700 dark:text-gray-300">
