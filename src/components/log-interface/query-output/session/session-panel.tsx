@@ -248,7 +248,7 @@ const SessionPanel = ({
             <Loader2 className="mb-2 animate-spin dark:text-white" />
           </div>
         ) : (
-          <EmptyDataView dataType="logs" />
+          <EmptyDataView dataType="logs" showBackground={false} />
         )}
       </div>
     </div>
