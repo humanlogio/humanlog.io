@@ -13,9 +13,7 @@ import { SharedResultVisibility } from "api/js/types/v1/shared_result_pb";
 import { Check, Copy, TriangleAlert } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { updateUser } from "@/services/userService";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
-import { useAllEnvironments } from "@/context/list-environments";
 import { toast } from "sonner";
 
 import {
@@ -27,6 +25,9 @@ import {
 import { copyToClipboard } from "@/lib/utils/clipboard";
 import { getSelfURL } from "@/lib/envs";
 import { Data } from "api/js/types/v1/data_pb";
+import { useMutation } from "@connectrpc/connect-query";
+import { updateUser } from "api/js/svc/user/v1/service_private-UserService_connectquery";
+import { useUser } from "@/hooks/useUser";
 
 interface ShareQueryProps {
   queryHistoryEntry: QueryHistoryEntry;
@@ -41,31 +42,30 @@ export const ShareQuery = ({
 }: ShareQueryProps) => {
   const selfURL = getSelfURL();
 
-  const { userInfo } = useAllEnvironments();
   const { apiClients } = useApiClients();
+  const { userData } = useUser();
 
   const [username, setUsername] = useState("");
   const [isValid, setIsValid] = useState(false);
   const [shareLink, setShareLink] = useState<string | null>();
   const [copied, setCopied] = useState(false);
 
-  const handleUpdateUser = async () => {
-    if (userInfo === "isLoading" || !apiClients || !userInfo) return;
-    await updateUser(
-      apiClients.user,
-      userInfo.user?.firstName,
-      userInfo.user?.lastName,
+  const { mutate: updateUserMutation } = useMutation(updateUser, {
+    onSuccess: (res) => {
+      if (res.user?.username) {
+        toast.success("Username successfully updated");
+        setIsValid(true);
+      }
+    },
+    onError: () => setIsValid(false),
+  });
+
+  const handleUpdateUser = () => {
+    updateUserMutation({
+      firstName: userData?.user?.firstName,
+      lastName: userData?.user?.lastName,
       username,
-      {
-        onSuccess: (res) => {
-          if (res.user?.username) {
-            toast.success("Username successfully updated");
-            setIsValid(true);
-          }
-        },
-        onError: () => setIsValid(false),
-      },
-    );
+    });
   };
 
   const handleShareQuery = async (visibility: SharedResultVisibility) => {
@@ -119,9 +119,8 @@ export const ShareQuery = ({
   };
 
   useEffect(() => {
-    if (userInfo === "isLoading") return;
-    setIsValid(!!userInfo?.user?.username);
-  }, [userInfo]);
+    setIsValid(!!userData?.user?.username);
+  }, [userData]);
 
   return (
     <Dialog open={!!sharedData} onOpenChange={onOpenChange}>

@@ -1,11 +1,8 @@
 "use client";
 
-import { useAllEnvironments } from "@/context/list-environments";
 import Link from "next/link";
 
 export default function Page() {
-  const { userInfo } = useAllEnvironments();
-
   return (
     <div
       className="container-min-h-full container flex flex-col items-center justify-center"
@@ -26,18 +23,14 @@ export default function Page() {
           Community support on Discord
         </Link>
 
-        {userInfo !== "isLoading" && (
-          <>
-            {" or "}
-            <Link
-              href="mailto:support@webscale.lol"
-              className="text-main underline"
-              aria-label="Contact our support team via email"
-            >
-              Contact us by Email
-            </Link>
-          </>
-        )}
+        {" or "}
+        <Link
+          href="mailto:support@webscale.lol"
+          className="text-main underline"
+          aria-label="Contact our support team via email"
+        >
+          Contact us by Email
+        </Link>
       </p>
 
       {/* TODO: link to special channel for paying customers */}

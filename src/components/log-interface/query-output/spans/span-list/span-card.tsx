@@ -35,11 +35,11 @@ import { KeyValueRow } from "@/components/log-interface/query-output/session/ses
 import { newIndexorExpr } from "@/lib/utils/queryExpressions";
 import { newStrVal } from "@/lib/utils/valueFactories";
 import { memo, MouseEvent, useCallback, useEffect } from "react";
-import { buildOrgEnvUrl, getOrgEnvUrl } from "@/lib/utils/navigation";
-import { useAllEnvironments } from "@/context/list-environments";
+import { getOrgEnvUrl } from "@/lib/utils/navigation";
 import { useEnvironmentStore } from "@/stores/environment-store";
 import { usePage } from "@/stores/page-store";
 import { spanIdToString, traceIdToString } from "@/lib/utils/id-factories";
+import { useUser } from "@/hooks/useUser";
 
 interface SpanCardProps {
   index: number;
@@ -51,9 +51,11 @@ export const SpanCard = memo(({ index, span }: SpanCardProps) => {
 
   const traceId = unit8ArrayBufferToBase16(span.traceId?.raw);
   const spanId = unit8ArrayBufferToBase16(span.spanId?.raw);
-  const { userInfo } = useAllEnvironments();
+
   const { activeEnvironment } = useEnvironmentStore();
   const { activePage, setActivePage } = usePage();
+  const { userData } = useUser();
+
   const handleCopy = useCallback(
     (e: MouseEvent, id: string) => {
       e.preventDefault();
@@ -68,7 +70,7 @@ export const SpanCard = memo(({ index, span }: SpanCardProps) => {
 
   const getHref = () => {
     return getOrgEnvUrl(
-      userInfo,
+      userData,
       activeEnvironment,
       `traces?traceId=${encodeURIComponent(traceId)}`,
     );
@@ -81,7 +83,7 @@ export const SpanCard = memo(({ index, span }: SpanCardProps) => {
       <Card className="overflow-hidden transition-colors hover:border-blue-300">
         <CardHeader className="bg-gray-50 p-4 dark:bg-gray-800/60">
           <Link
-            href={getHref()}
+            href={getHref() ?? "/"}
             className="flex flex-col justify-between gap-2 sm:flex-row sm:items-center"
           >
             <div className="flex items-center gap-2">

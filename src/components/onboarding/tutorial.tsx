@@ -16,9 +16,9 @@ import {
   SkipForward,
 } from "lucide-react";
 import CodeBlock from "@/components/CodeBlock";
-import { useAllEnvironments } from "@/context/list-environments";
 import { useEnvironmentStore } from "@/stores/environment-store";
 import { getOrgEnvUrl } from "@/lib/utils/navigation";
+import { useUser } from "@/hooks/useUser";
 
 const tutorialSteps = [
   {
@@ -168,11 +168,13 @@ const tutorialSteps = [
 ];
 
 export const Tutorial = () => {
-  const { userInfo } = useAllEnvironments();
-  const { activeEnvironment } = useEnvironmentStore();
-  const [isCompleting, setIsCompleting] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
+
+  const { activeEnvironment } = useEnvironmentStore();
+  const { userData } = useUser();
+
+  const [isCompleting, setIsCompleting] = useState(false);
 
   const tutorialParam = searchParams.get("tutorial");
   const currentStep =
@@ -180,13 +182,13 @@ export const Tutorial = () => {
       ? parseInt(tutorialParam.replace("step", "")) - 1
       : 0;
 
-  const redirectUrl = getOrgEnvUrl(userInfo, activeEnvironment, "query");
+  const redirectUrl = getOrgEnvUrl(userData, activeEnvironment, "query");
 
   const handleNext = () => {
     setIsCompleting(true);
 
     const url = getOrgEnvUrl(
-      userInfo,
+      userData,
       activeEnvironment,
       `query?tutorial=step${currentStep + 2}`,
     );
@@ -202,7 +204,7 @@ export const Tutorial = () => {
   const handlePrevious = () => {
     if (currentStep > 0) {
       const url = getOrgEnvUrl(
-        userInfo,
+        userData,
         activeEnvironment,
         `query?tutorial=step${currentStep}`,
       );

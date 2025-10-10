@@ -2,7 +2,6 @@
 
 import LoadingIndicator from "@/components/loading-indicator";
 import { UserSettingsForm } from "@/components/user/user-settings-form";
-import { useAllEnvironments } from "@/context/list-environments";
 import {
   Card,
   CardContent,
@@ -27,9 +26,10 @@ import { toast } from "sonner";
 import { useMutation } from "@connectrpc/connect-query";
 import { getStripeBillingPortal } from "api/js/svc/organization/v1/service-OrganizationService_connectquery";
 import { gravatarURL } from "@/lib/utils/avatar";
+import { useUser } from "@/hooks/useUser";
 
 export default function UserSettingsPage() {
-  const { userInfo } = useAllEnvironments();
+  const { userData, isLoadingUser, refetchUser } = useUser();
 
   const { mutate: billingPortalMutation, isPending: isBillingPending } =
     useMutation(getStripeBillingPortal, {
@@ -49,19 +49,18 @@ export default function UserSettingsPage() {
     });
   };
 
-  if (!userInfo) {
+  if (isLoadingUser) return <LoadingIndicator />;
+
+  if (!userData) {
     return (
       <div className="container flex flex-grow flex-col items-center justify-center gap-8">
         You need to login to access this page.
       </div>
     );
   }
-  if (userInfo === "isLoading") {
-    return <LoadingIndicator message="Loading user settings..." />;
-  }
 
   const isDefaultOrg =
-    userInfo?.currentOrganization?.id === userInfo?.defaultOrganization?.id;
+    userData?.currentOrganization?.id === userData?.defaultOrganization?.id;
 
   return (
     <div className="space-y-6">
@@ -86,9 +85,9 @@ export default function UserSettingsPage() {
         <CardContent className="space-y-4">
           <div className="flex items-center gap-4">
             <Avatar className="h-16 w-16">
-              <AvatarImage src={gravatarURL(userInfo.user?.email)} />
+              <AvatarImage src={gravatarURL(userData.user?.email)} />
               <AvatarFallback className="text-lg">
-                {userInfo.user?.firstName?.slice(0, 2) || (
+                {userData.user?.firstName?.slice(0, 2) || (
                   <UserIcon size={14} />
                 )}
               </AvatarFallback>
@@ -96,22 +95,22 @@ export default function UserSettingsPage() {
             <div className="space-y-1">
               <div className="flex items-center gap-2">
                 <h3 className="text-xl font-semibold">
-                  {userInfo?.user?.firstName && userInfo?.user?.lastName
-                    ? `${userInfo.user.firstName} ${userInfo.user.lastName}`
-                    : userInfo?.user?.firstName || "No name set"}
+                  {userData?.user?.firstName && userData?.user?.lastName
+                    ? `${userData.user.firstName} ${userData.user.lastName}`
+                    : userData?.user?.firstName || "No name set"}
                 </h3>
-                {userInfo?.user?.username && (
-                  <Badge variant="secondary">@{userInfo.user.username}</Badge>
+                {userData?.user?.username && (
+                  <Badge variant="secondary">@{userData.user.username}</Badge>
                 )}
               </div>
               <div className="text-muted-foreground flex items-center gap-1">
                 <Mail className="h-4 w-4" />
-                <span>{userInfo?.user?.email}</span>
+                <span>{userData?.user?.email}</span>
               </div>
-              {userInfo?.user?.createdAt && (
+              {userData?.user?.createdAt && (
                 <div className="text-muted-foreground flex items-center gap-1 text-sm">
                   <Calendar className="h-4 w-4" />
-                  <span>Joined {formatTimestamp(userInfo.user.createdAt)}</span>
+                  <span>Joined {formatTimestamp(userData.user.createdAt)}</span>
                 </div>
               )}
             </div>
@@ -124,7 +123,7 @@ export default function UserSettingsPage() {
             <div className="mt-1 flex items-center gap-2">
               <Building className="text-muted-foreground h-4 w-4" />
               <span className="font-medium">
-                {userInfo?.currentOrganization?.name}
+                {userData?.currentOrganization?.name}
               </span>
               {isDefaultOrg && (
                 <Badge className="bg-orange-100 text-orange-800">Default</Badge>
@@ -178,7 +177,7 @@ export default function UserSettingsPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <UserSettingsForm userInfo={userInfo} />
+          <UserSettingsForm userData={userData} refetchUserData={refetchUser} />
         </CardContent>
       </Card>
     </div>
