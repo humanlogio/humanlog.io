@@ -13,7 +13,7 @@ export function getOrgEnvUrl(
   activePage?: string,
 ) {
   if (!userData) {
-    // toast.error("You need to login to access this page");
+    toast.error("You need to login to access this page");
     return "/";
   }
 
