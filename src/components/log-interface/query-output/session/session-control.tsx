@@ -2,7 +2,6 @@ import { TooltipContent } from "@/components/ui/tooltip";
 import { formatTimestamp, getUnixTimestamp } from "@/lib/utils/formatTimeStamp";
 import { Timestamp } from "@bufbuild/protobuf/wkt";
 import { BinaryOp_Operator, Expr } from "api/js/types/v1/query_pb";
-import { useAllEnvironments } from "@/context/list-environments";
 import {
   newI64Expr,
   newIdentifierExpr,
@@ -10,6 +9,7 @@ import {
   newTimestampExpr,
 } from "@/lib/utils/queryExpressions";
 import { Log } from "api/js/types/v1/otel_logging_pb";
+import { useFilterBySymbolStore } from "@/stores/filter-by-symbol-store";
 
 export const OPERATORS = [
   {
@@ -156,7 +156,7 @@ export const FilterByKeyValue = ({
   symbolValue: Expr;
   symbolCase?: string;
 }) => {
-  const { onClickFilterBy } = useAllEnvironments();
+  const { setFilterBySymbol } = useFilterBySymbolStore();
   return (
     <div className="mb-2 flex w-auto flex-wrap gap-1">
       {OPERATORS.filter((op) => {
@@ -167,8 +167,7 @@ export const FilterByKeyValue = ({
           key={`${op.value}-${index}`}
           className="bg-muted rounded px-2 py-1 text-xs hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black"
           onClick={() =>
-            onClickFilterBy &&
-            onClickFilterBy(symbolName, symbolValue, op.value)
+            setFilterBySymbol({ symbolName, symbolValue, op: op.value })
           }
         >
           {op.label}

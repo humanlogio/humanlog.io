@@ -38,15 +38,17 @@ import {
 } from "@/components/ui/tooltip";
 import { SaveQueryModal } from "@/components/log-interface/query-library/save-query-modal";
 import Graph from "@/components/ui/graph/graph";
-import { useAllEnvironments } from "@/context/list-environments";
 import dynamic from "next/dynamic";
 import { newBinaryExpr } from "@/lib/utils/queryExpressions";
 import { ExecuteQuery } from "@/components/log-interface";
-import { useQuery } from "@connectrpc/connect-query";
 import { listQueryHistory } from "api/js/svc/user/v1/service_private-UserService_connectquery";
 import { create } from "@bufbuild/protobuf";
+import { useQuery } from "@connectrpc/connect-query";
+import { whoami } from "api/js/svc/user/v1/service_private-UserService_connectquery";
 import { getOrgEnvUrl } from "@/lib/utils/navigation";
 import { useEnvironmentStore } from "@/stores/environment-store";
+import { useFilterBySymbolStore } from "@/stores/filter-by-symbol-store";
+import { useUser } from "@/hooks/useUser";
 
 interface DefaultQueryExamples {
   query: string;
@@ -94,8 +96,9 @@ const QueryInput = ({
   const queryString = searchParams.get("query");
 
   const { apiClients } = useApiClients();
+  const { filterBySymbol } = useFilterBySymbolStore();
   const { activeEnvironment } = useEnvironmentStore();
-  const { filterBySymbol, userInfo } = useAllEnvironments();
+  const { userData } = useUser();
 
   const [isSaveValid, setIsSaveValid] = useState(false);
   const [isSaveQueryModalOpen, setIsSaveQueryModalOpen] = useState(false);
@@ -120,7 +123,7 @@ const QueryInput = ({
 
   const executeQuery = (query: string, fromExternalPage?: boolean) => {
     if (fromExternalPage) {
-      const url = getOrgEnvUrl(userInfo, activeEnvironment, "query");
+      const url = getOrgEnvUrl(userData, activeEnvironment, "query");
       window.open(`${url}?query=${encodeURIComponent(query)}`, "_blank");
     } else {
       onExecuteQuery(query);
@@ -320,21 +323,19 @@ const QueryInput = ({
                 <TooltipContent>Open the Query Library</TooltipContent>
               </Tooltip>
             )}
-            {userInfo !== "isLoading" && (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    size="xs"
-                    variant="outline"
-                    disabled={!isSaveValid}
-                    onClick={() => setIsSaveQueryModalOpen(true)}
-                  >
-                    <Star size={12} />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Save Query</TooltipContent>
-              </Tooltip>
-            )}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  size="xs"
+                  variant="outline"
+                  disabled={!isSaveValid}
+                  onClick={() => setIsSaveQueryModalOpen(true)}
+                >
+                  <Star size={12} />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Save Query</TooltipContent>
+            </Tooltip>
           </div>
 
           {defaultQuery && (

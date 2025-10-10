@@ -1,27 +1,25 @@
 "use client";
 
-import { useAllEnvironments } from "@/context/list-environments";
-import { useQuery } from "@connectrpc/connect-query";
-import { whoami } from "api/js/svc/user/v1/service_private-UserService_connectquery";
 import { useEffect } from "react";
-
 import { useRouter } from "next/navigation";
 import LoadingIndicator from "@/components/loading-indicator";
 import { useEnvironmentStore } from "@/stores/environment-store";
 import { getOrgEnvUrl } from "@/lib/utils/navigation";
+import { usePing } from "@/hooks/usePing";
+import { useUser } from "@/hooks/useUser";
 
 export default function Login() {
   const router = useRouter();
-  const { setUserInfo, localhostInfo } = useAllEnvironments();
-  const { data: userInfo } = useQuery(whoami);
-  const { setActiveEnvironment, activeEnvironment } = useEnvironmentStore();
+  const { activeEnvironment, setActiveEnvironment } = useEnvironmentStore();
+  const { localhostData } = usePing();
+  const { refetchUser, userData } = useUser();
 
   useEffect(() => {
-    setUserInfo(userInfo);
+    refetchUser();
     setActiveEnvironment(undefined);
-    const url = getOrgEnvUrl(userInfo, activeEnvironment);
+    const url = getOrgEnvUrl(userData, activeEnvironment);
     router.replace(url);
-  }, [userInfo, localhostInfo]);
+  }, [userData, localhostData]);
 
   return <LoadingIndicator />;
 }

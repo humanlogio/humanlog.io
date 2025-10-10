@@ -41,19 +41,18 @@ import { TraceService } from "api/js/svc/query/v1/trace_service_pb";
 import { UpdateService } from "api/js/svc/cliupdate/v1/service_pb";
 import { DashboardService } from "api/js/svc/dashboard/v1/service_pb";
 import { AlertService } from "api/js/svc/alert/v1/service_pb";
-
 import {
   PublicShareService,
   UserShareService,
 } from "api/js/svc/share/v1/service_pb";
 import { getAPIURL, getSelfURL } from "@/lib/envs";
 import { useCookies } from "react-cookie";
-import { Environment } from "api/js/types/v1/environment_pb";
 import config from "@/features/config";
 import { v4 as uuidv4 } from "uuid";
 import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
 import { useEnvironmentStore } from "@/stores/environment-store";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 
 type ApiProviderType = {
   apiClients: ApiClients | null;
@@ -104,15 +103,14 @@ export function ApiClientsProvider({
   const router = useRouter();
   const returnToURL = getSelfURL();
   const [cookies, setCookie] = useCookies();
-  const [apiTransport, setApiTransport] = useState<Transport>();
   const [authenticated, setAuthenticated] = useState(false);
   const searchParams = useSearchParams();
   const localhostPort = searchParams.get("demo_port") ?? "32764";
   const localhostBaseUrl = `http://localhost:${localhostPort}`;
 
-  const { activeEnvironment } = useEnvironmentStore();
+  const { activeEnvironment, setActiveEnvironment } = useEnvironmentStore();
 
-  const apiClients = useMemo((): ApiClients => {
+  const transports = useMemo(() => {
     const auther = (): Interceptor => {
       return (next) => async (req) => {
         const token =
@@ -135,11 +133,13 @@ export function ApiClientsProvider({
             localStorage.setItem("hlog_session", newToken);
           }
           setAuthenticated(true);
+
           return res;
         } catch (error) {
           if (error instanceof ConnectError) {
             if (error.code === Code.Unauthenticated) {
               setAuthenticated(false);
+              setActiveEnvironment(undefined);
             }
           }
           throw error;
@@ -150,25 +150,34 @@ export function ApiClientsProvider({
     const localhostTransport = createConnectTransport({
       baseUrl: localhostBaseUrl,
     });
-    const apiTpt = createConnectTransport({
+    const apiTransport = createConnectTransport({
       baseUrl: getAPIURL(),
       interceptors: [auther()],
     });
-    setApiTransport(apiTpt);
 
-    const activeTransport = !activeEnvironment ? localhostTransport : apiTpt;
+    return { localhostTransport, apiTransport };
+  }, [localhostBaseUrl]);
 
+  const activeTransport = useMemo(
+    () =>
+      !activeEnvironment
+        ? transports.localhostTransport
+        : transports.apiTransport,
+    [activeEnvironment, transports],
+  );
+
+  const apiClients = useMemo((): ApiClients => {
     return {
-      localhost: createClient(LocalhostService, localhostTransport),
-      auth: createClient(AuthService, apiTpt),
-      product: createClient(ProductService, apiTpt),
-      environment: createClient(EnvironmentService, apiTpt),
-      org: createClient(OrganizationService, apiTpt),
-      user: createClient(UserService, apiTpt),
-      feature: createClient(FeatureService, apiTpt),
-      publicShare: createClient(PublicShareService, apiTpt),
-      userShare: createClient(UserShareService, apiTpt),
-      update: createClient(UpdateService, apiTpt),
+      localhost: createClient(LocalhostService, transports.localhostTransport),
+      auth: createClient(AuthService, transports.apiTransport),
+      product: createClient(ProductService, transports.apiTransport),
+      environment: createClient(EnvironmentService, transports.apiTransport),
+      org: createClient(OrganizationService, transports.apiTransport),
+      user: createClient(UserService, transports.apiTransport),
+      feature: createClient(FeatureService, transports.apiTransport),
+      publicShare: createClient(PublicShareService, transports.apiTransport),
+      userShare: createClient(UserShareService, transports.apiTransport),
+      update: createClient(UpdateService, transports.apiTransport),
       query: createClient(QueryService, activeTransport),
       trace: createClient(TraceService, activeTransport),
       ingest: createClient(IngestService, activeTransport),
@@ -176,11 +185,11 @@ export function ApiClientsProvider({
       dashboard: createClient(DashboardService, activeTransport),
       alert: createClient(AlertService, activeTransport),
 
-      apiTransport: apiTpt,
-      localhostTransport: localhostTransport,
+      apiTransport: transports.apiTransport,
+      localhostTransport: transports.localhostTransport,
       activeTransport: activeTransport,
     };
-  }, [activeEnvironment]);
+  }, [transports, activeTransport]);
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -190,13 +199,14 @@ export function ApiClientsProvider({
           authenticated,
         }}
       >
-        <ActiveTransportContext.Provider value={apiClients.activeTransport}>
-          {/* Default transport for Connect Query - most services use API */}
-          <TransportProvider transport={apiClients.apiTransport}>
+        <ActiveTransportContext.Provider value={activeTransport}>
+          <TransportProvider transport={transports.apiTransport}>
             {children}
           </TransportProvider>
         </ActiveTransportContext.Provider>
       </ApiClientContext.Provider>
+
+      <ReactQueryDevtools initialIsOpen={false} />
     </QueryClientProvider>
   );
 }

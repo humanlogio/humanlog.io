@@ -228,7 +228,6 @@ const LogInterface = ({ nav }: LogInterfaceProps) => {
 
   const {
     data: rawData,
-    refetch,
     isFetching,
     fetchNextPage,
     hasNextPage,

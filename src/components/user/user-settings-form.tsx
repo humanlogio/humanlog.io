@@ -13,7 +13,6 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { useAllEnvironments } from "@/context/list-environments";
 import { Loader, Check, X } from "lucide-react";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
@@ -23,7 +22,8 @@ import { updateUser } from "api/js/svc/user/v1/service_private-UserService_conne
 import { checkUsername } from "api/js/svc/auth/v1/service-AuthService_connectquery";
 
 interface UserSettingsFormProps {
-  userInfo: WhoamiResponse;
+  userData: WhoamiResponse;
+  refetchUserData: () => void;
 }
 
 type UsernameStatus =
@@ -41,8 +41,10 @@ const formSchema = z.object({
   username: z.string().optional(),
 });
 
-export function UserSettingsForm({ userInfo }: UserSettingsFormProps) {
-  const { getUserInfo } = useAllEnvironments();
+export function UserSettingsForm({
+  userData,
+  refetchUserData,
+}: UserSettingsFormProps) {
   const [formChanged, setFormChanged] = useState(false);
   const [usernameStatus, setUsernameStatus] = useState<UsernameStatus>("idle");
 
@@ -58,7 +60,7 @@ export function UserSettingsForm({ userInfo }: UserSettingsFormProps) {
   const { mutate: updateUserMutation, isPending: isUpdatingUserPending } =
     useMutation(updateUser, {
       onSuccess: (res) => {
-        getUserInfo();
+        refetchUserData();
         toast.success("Settings updated", {
           description:
             "Your profile information has been updated successfully.",
@@ -73,9 +75,9 @@ export function UserSettingsForm({ userInfo }: UserSettingsFormProps) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      firstName: userInfo?.user ? userInfo.user.firstName || "" : "",
-      lastName: userInfo?.user ? userInfo.user.lastName || "" : "",
-      username: userInfo?.user ? userInfo.user.username || "" : "",
+      firstName: userData?.user ? userData.user.firstName || "" : "",
+      lastName: userData?.user ? userData.user.lastName || "" : "",
+      username: userData?.user ? userData.user.username || "" : "",
     },
   });
 
@@ -85,7 +87,7 @@ export function UserSettingsForm({ userInfo }: UserSettingsFormProps) {
   // Username availability check with debounce
   useEffect(() => {
     const currentUsername = watchedValues.username;
-    const originalUsername = userInfo?.user?.username || "";
+    const originalUsername = userData?.user?.username || "";
 
     // Don't check if username is empty or unchanged
     if (!currentUsername || currentUsername === originalUsername) {
@@ -113,16 +115,16 @@ export function UserSettingsForm({ userInfo }: UserSettingsFormProps) {
     }, 500);
 
     return () => clearTimeout(timer);
-  }, [watchedValues.username, userInfo?.user?.username, checkUsernameMutation]);
+  }, [watchedValues.username, userData?.user?.username, checkUsernameMutation]);
 
   // Check if form values have changed from initial values
   useEffect(() => {
-    if (!userInfo?.user) return;
+    if (!userData?.user) return;
 
     const initialValues = {
-      firstName: userInfo.user.firstName || "",
-      lastName: userInfo.user.lastName || "",
-      username: userInfo.user.username || "",
+      firstName: userData.user.firstName || "",
+      lastName: userData.user.lastName || "",
+      username: userData.user.username || "",
     };
 
     const hasChanged =
@@ -131,7 +133,7 @@ export function UserSettingsForm({ userInfo }: UserSettingsFormProps) {
       watchedValues.username !== initialValues.username;
 
     setFormChanged(hasChanged);
-  }, [watchedValues, userInfo]);
+  }, [watchedValues, userData]);
 
   // Add navigation warning for unsaved changes
   useEffect(() => {
@@ -153,11 +155,11 @@ export function UserSettingsForm({ userInfo }: UserSettingsFormProps) {
 
   // Reset form to initial values
   const handleReset = () => {
-    if (userInfo?.user) {
+    if (userData?.user) {
       form.reset({
-        firstName: userInfo.user.firstName || "",
-        lastName: userInfo.user.lastName || "",
-        username: userInfo.user.username || "",
+        firstName: userData.user.firstName || "",
+        lastName: userData.user.lastName || "",
+        username: userData.user.username || "",
       });
       setUsernameStatus("idle");
     }
@@ -166,7 +168,7 @@ export function UserSettingsForm({ userInfo }: UserSettingsFormProps) {
   // Update form values when user data changes
   useEffect(() => {
     handleReset();
-  }, [userInfo, form]);
+  }, [userData, form]);
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     // Check if username is taken before submitting

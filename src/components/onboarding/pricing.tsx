@@ -3,8 +3,6 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { useAllEnvironments } from "@/context/list-environments";
-import { useApiClients } from "@/context/api-provider";
 import { toast } from "sonner";
 import { Loader, ArrowRight, CreditCard } from "lucide-react";
 import { useMutation, useQuery } from "@connectrpc/connect-query";
@@ -16,27 +14,38 @@ import { getOrgEnvUrl } from "@/lib/utils/navigation";
 import { useEnvironmentStore } from "@/stores/environment-store";
 import { usePage } from "@/stores/page-store";
 
+import { useUser } from "@/hooks/useUser";
+
 export default function OnboardingPricing() {
-  const { activeEnvironment } = useEnvironmentStore();
-  const { apiClients } = useApiClients();
-  const { userInfo, doLogin, handleAllowedUsage } = useAllEnvironments();
-  const { activePage } = usePage();
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
+  const { activeEnvironment } = useEnvironmentStore();
+  const { activePage } = usePage();
+  const { userData } = useUser();
 
   const { data: productData } = useQuery(listProduct, {
     category: "logging",
     scope: Product_Scope.Organization,
   });
 
-  const { mutateAsync: createSubscription } = useMutation(
+  const { mutate: createAddonSubscriptionMutation, isPending } = useMutation(
     createAddonSubscription,
+    {
+      onSuccess: () => {
+        toast.success("You're all set with the free plan.");
+        const url = getOrgEnvUrl(userData, activeEnvironment, activePage);
+        router.push(url);
+      },
+      onError: (error) => {
+        if (error instanceof ConnectError) {
+          toast.error(`Subscription failed: ${error.message}`);
+        } else {
+          toast.error("Something went wrong. Please try again.");
+        }
+      },
+    },
   );
 
   const handleStartFree = async () => {
-    if (!userInfo || !apiClients) return;
-
-    setIsSubmitting(true);
     try {
       // Find the free personal use price
       const freePlan = productData?.items
@@ -48,7 +57,7 @@ export default function OnboardingPricing() {
         return;
       }
 
-      await createSubscription({
+      createAddonSubscriptionMutation({
         payment: {
           case: "stripe",
           value: {
@@ -57,11 +66,6 @@ export default function OnboardingPricing() {
           },
         },
       });
-      handleAllowedUsage();
-      toast.success("You're all set with the free plan.");
-      if (userInfo !== "isLoading") return;
-      const url = getOrgEnvUrl(userInfo, activeEnvironment, activePage);
-      router.push(url);
     } catch (error) {
       console.error("Error subscribing to free plan:", error);
       if (error instanceof ConnectError) {
@@ -70,7 +74,6 @@ export default function OnboardingPricing() {
         toast.error("Something went wrong. Please try again.");
       }
     } finally {
-      setIsSubmitting(false);
     }
   };
 
@@ -90,16 +93,16 @@ export default function OnboardingPricing() {
       <div className="mt-8 space-y-4">
         <Button
           onClick={handleStartFree}
-          disabled={isSubmitting}
+          disabled={isPending}
           className="h-12 w-full bg-emerald-500 text-base text-white hover:bg-emerald-700"
           size="lg"
         >
-          {isSubmitting ? (
+          {isPending ? (
             <Loader className="mr-2 animate-spin" size={16} />
           ) : (
             <CreditCard className="mr-2" size={16} />
           )}
-          {isSubmitting ? "Setting up..." : "Start with Free Plan"}
+          {isPending ? "Setting up..." : "Start with Free Plan"}
         </Button>
 
         <Button

@@ -26,25 +26,24 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { PingResponse } from "api/js/svc/localhost/v1/service_pb";
 import { EnvSwitcher } from "@/components/header/app-header/env-switcher";
 import { SideMenu } from "@/components/header/app-header/side-menu";
-
-interface AppHeaderProps {
-  userInfo: WhoamiResponse;
-}
+import { useUser } from "@/hooks/useUser";
 
 export const localhostVersion = (res: PingResponse) => {
   const v = res.clientVersion!;
   return "v" + v.major + "." + v.minor + "." + v.patch;
 };
 
-export const AppHeader = ({ userInfo }: AppHeaderProps) => {
+export const AppHeader = () => {
   const params = useParams();
   const pathname = usePathname();
   const isProd = config.NEXT_PUBLIC_IS_PROD;
 
-  const currentOrg = userInfo.currentOrganization?.name;
-  const currentEnvSlug = params?.env || "localhost";
-
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  const { userData } = useUser();
+
+  const currentOrg = userData?.currentOrganization?.name;
+  const currentEnvSlug = params?.env || "localhost";
 
   const navItems = [
     {
@@ -83,6 +82,8 @@ export const AppHeader = ({ userInfo }: AppHeaderProps) => {
   useEffect(() => {
     setIsMenuOpen(false);
   }, [pathname]);
+
+  if (!userData) return;
 
   return (
     <div className={`flex justify-between px-10`}>
@@ -144,22 +145,22 @@ export const AppHeader = ({ userInfo }: AppHeaderProps) => {
         )}
         <div className="flex items-center gap-2">
           <div className="w-30">
-            <EnvSwitcher userInfo={userInfo} />
+            <EnvSwitcher userData={userData} />
           </div>
 
           <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
             <SheetTrigger asChild>
               <Avatar className="h-7 w-7">
-                <AvatarImage src={gravatarURL(userInfo.user?.email)} />
+                <AvatarImage src={gravatarURL(userData.user?.email)} />
                 <AvatarFallback className="uppercase">
-                  {userInfo.user?.firstName?.slice(0, 2) || (
+                  {userData.user?.firstName?.slice(0, 2) || (
                     <UserIcon size={14} />
                   )}
                 </AvatarFallback>
               </Avatar>
             </SheetTrigger>
             <SheetContent>
-              <SideMenu userInfo={userInfo} />
+              <SideMenu userData={userData} />
             </SheetContent>
           </Sheet>
         </div>

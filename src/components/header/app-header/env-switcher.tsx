@@ -1,4 +1,3 @@
-import { useAllEnvironments } from "@/context/list-environments";
 import { useParams, useRouter, usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { localhostVersion } from "@/components/header/app-header";
@@ -14,7 +13,11 @@ import { WhoamiResponse } from "api/js/svc/user/v1/service_private_pb";
 import { useEnvironmentStore } from "@/stores/environment-store";
 import { buildOrgEnvUrl } from "@/lib/utils/navigation";
 import { usePage } from "@/stores/page-store";
-
+import { useQuery } from "@connectrpc/connect-query";
+import { CursorSchema } from "api/js/types/v1/cursor_pb";
+import { listEnvironment } from "api/js/svc/organization/v1/service-OrganizationService_connectquery";
+import { create } from "@bufbuild/protobuf";
+import { usePing } from "@/hooks/usePing";
 interface Source {
   name: string;
   path: string;
@@ -22,29 +25,34 @@ interface Source {
 }
 
 interface EnvSwitcherProps {
-  userInfo: WhoamiResponse;
+  userData: WhoamiResponse;
 }
 
-export const EnvSwitcher = ({ userInfo }: EnvSwitcherProps) => {
+export const EnvSwitcher = ({ userData }: EnvSwitcherProps) => {
   const router = useRouter();
   const params = useParams();
   const { activePage } = usePage();
-
+  const { localhostData } = usePing();
   const { setActiveEnvironment, activeEnvironment } = useEnvironmentStore();
-  const { localhostInfo, listEnvironments } = useAllEnvironments();
 
   const [menuList, setMenuList] = useState<Source[]>([]);
+
+  const { data: listEnvironmentData } = useQuery(listEnvironment, {
+    cursor: create(CursorSchema),
+    limit: 100,
+  });
 
   const currentEnvSlug = params?.env as string;
 
   const getCurrentSelectedValue = () => {
-    if (!localhostInfo) return;
-
     if (currentEnvSlug === "localhost" || !activeEnvironment) {
-      return localhostVersion(localhostInfo);
+      if (!localhostData) return;
+      return localhostVersion(localhostData);
     }
 
-    const currentEnv = listEnvironments.find(
+    if (!listEnvironmentData) return;
+
+    const currentEnv = listEnvironmentData.items.find(
       (env) =>
         env.environment?.id === activeEnvironment?.environment?.id ||
         env.environment?.name === currentEnvSlug,
@@ -55,9 +63,10 @@ export const EnvSwitcher = ({ userInfo }: EnvSwitcherProps) => {
 
   const updateSelection = (value: string) => {
     const selected = menuList.find((menu) => menu.value === value);
-    if (!selected) return;
 
-    const activeEnv = listEnvironments.find(
+    if (!selected || !listEnvironmentData) return;
+
+    const activeEnv = listEnvironmentData.items.find(
       (env) => env.environment?.id.toString() === selected.value,
     );
     setActiveEnvironment(activeEnv ?? undefined);
@@ -67,23 +76,25 @@ export const EnvSwitcher = ({ userInfo }: EnvSwitcherProps) => {
   useEffect(() => {
     const _menuList: Source[] = [];
 
-    if (localhostInfo) {
+    if (localhostData) {
       _menuList.push({
-        name: `localhost ${localhostVersion(localhostInfo)}`,
+        name: `localhost ${localhostVersion(localhostData)}`,
         path: buildOrgEnvUrl(
-          userInfo?.currentOrganization?.name || "",
+          userData?.currentOrganization?.name || "",
           "localhost",
           activePage,
         ),
-        value: localhostVersion(localhostInfo),
+        value: localhostVersion(localhostData),
       });
     }
 
-    listEnvironments.forEach((env) => {
+    if (!listEnvironmentData) return;
+
+    listEnvironmentData.items.forEach((env) => {
       _menuList.push({
         name: env.environment?.name || "",
         path: buildOrgEnvUrl(
-          userInfo?.currentOrganization?.name || "",
+          userData?.currentOrganization?.name || "",
           env.environment?.name || "",
           activePage,
         ),
@@ -92,12 +103,12 @@ export const EnvSwitcher = ({ userInfo }: EnvSwitcherProps) => {
     });
     _menuList.push({
       name: "+ Add new",
-      path: `/${userInfo?.currentOrganization?.name}/env/new`,
+      path: `/${userData?.currentOrganization?.name}/env/new`,
       value: "add-new",
     });
 
     setMenuList(_menuList);
-  }, [listEnvironments, userInfo, localhostInfo, activePage]);
+  }, [listEnvironmentData, userData, localhostData, activePage]);
 
   return (
     <Select value={getCurrentSelectedValue()} onValueChange={updateSelection}>
