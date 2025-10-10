@@ -1,7 +1,9 @@
 import { useQuery } from "@connectrpc/connect-query";
 import { whoami } from "api/js/svc/user/v1/service_private-UserService_connectquery";
 
-export const useUser = () => {
+export const useUser = (enabled?: boolean) => {
+  enabled = enabled ?? true;
+
   const {
     data: userData,
     isLoading: isLoadingUser,
@@ -12,6 +14,7 @@ export const useUser = () => {
     {},
     {
       staleTime: 60 * 60 * 1000, // 1 hour
+      enabled,
     },
   );
 
