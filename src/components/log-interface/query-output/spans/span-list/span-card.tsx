@@ -56,7 +56,7 @@ export const SpanCard = memo(
 
     const { activeEnvironment } = useEnvironmentStore();
     const { activePage, setActivePage } = usePage();
-    const { userData } = useUser();
+    const { userData } = useUser(!isSample);
 
     const handleCopy = useCallback(
       (e: MouseEvent, id: string) => {
@@ -72,7 +72,7 @@ export const SpanCard = memo(
 
     const getHref = () => {
       if (isSample) return "/";
-      
+
       return getOrgEnvUrl(
         userData,
         activeEnvironment,
@@ -324,7 +324,6 @@ const ConditionalLink = ({
   children,
   ...props
 }: ConditionalLinkProps) => {
-  console.log("isSample", isSample);
   return isSample ? (
     <div {...props}>{children}</div>
   ) : (
