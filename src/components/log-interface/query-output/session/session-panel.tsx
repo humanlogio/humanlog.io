@@ -1,10 +1,19 @@
 import { formatDuration, formatTimestamp } from "@/lib/utils/formatTimeStamp";
-import { Loader, Share, UnfoldHorizontal, UnfoldVertical } from "lucide-react";
+import {
+  Loader,
+  Loader2,
+  Share,
+  UnfoldHorizontal,
+  UnfoldVertical,
+} from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { DragHandle } from "@/components/sortable/sortable-item";
 import { Button } from "@/components/ui/button";
 
-import { FormatConfig_Themes } from "api/js/types/v1/localhost_config_pb";
+import {
+  FormatConfig_Themes,
+  LocalhostConfig,
+} from "api/js/types/v1/localhost_config_pb";
 import { useTheme } from "next-themes";
 import {
   Tooltip,
@@ -20,13 +29,15 @@ import { Val } from "api/js/types/v1/types_pb";
 import { Data, LogsSchema } from "api/js/types/v1/data_pb";
 import { ShareQuery } from "@/components/log-interface/share-query";
 import { QueryHistoryEntry } from "api/js/types/v1/query_history_entry_pb";
-import { useAllEnvironments } from "@/context/list-environments";
 import { StreamResponse } from "api/js/svc/query/v1/service_pb";
 import { newLogsData } from "@/lib/utils/dataShapeFactories";
 import { Log } from "api/js/types/v1/otel_logging_pb";
 import { LogLine } from "@/components/log-interface/query-output/session/log-line";
 import { create } from "@bufbuild/protobuf";
 import { Virtuoso } from "react-virtuoso";
+import { useQuery } from "@connectrpc/connect-query";
+import { getConfig } from "api/js/svc/localhost/v1/service-LocalhostService_connectquery";
+import { defaultConfig } from "@/services/localhostService";
 
 interface SessionPanelProps {
   resourceFingerprint?: string;
@@ -55,7 +66,6 @@ const SessionPanel = ({
   const queryString = searchParams.get("query");
   const pathname = usePathname();
 
-  const { localhostConfig } = useAllEnvironments();
   const { theme } = useTheme();
 
   const pretty = searchParams.get("pretty") !== "false";
@@ -65,6 +75,14 @@ const SessionPanel = ({
 
   const [selectedLines, setSelectedLines] = useState<string | null>(null);
   const [sharedData, setSharedData] = useState<Data | null>(null);
+
+  const [localhostConfig, setLocalhostConfig] = useState<LocalhostConfig>();
+
+  const {
+    data: localhostConfigData,
+    isLoading: isLoadingLocalhostConfig,
+    isError: isErrorLocalhostConfig,
+  } = useQuery(getConfig);
 
   const handleClickLine = useCallback(
     (line: string) => {
@@ -121,6 +139,14 @@ const SessionPanel = ({
     setIsDark(darkMode);
   }, [mode, theme]);
 
+  useEffect(() => {
+    if (isErrorLocalhostConfig) {
+      setLocalhostConfig(defaultConfig);
+      return;
+    }
+    setLocalhostConfig(localhostConfigData?.config);
+  }, [localhostConfigData, isErrorLocalhostConfig]);
+
   const loadMore = useCallback(() => {
     hasNextPage && fetchNextPage && fetchNextPage();
   }, [hasNextPage, fetchNextPage]);
@@ -138,7 +164,6 @@ const SessionPanel = ({
     <div
       className={`flex h-full w-full flex-col rounded-md border ${isDark ? "bg-black" : "bg-white"}`}
     >
-      {/* 헤더 - 고정 높이 */}
       <div className="bg-muted flex h-11 w-full flex-none flex-row items-center justify-between p-2">
         <div className="flex justify-start">
           <h4 className="flex flex-row items-center gap-3 truncate font-bold">
@@ -199,7 +224,7 @@ const SessionPanel = ({
           isDark && "bg-black",
         )}
       >
-        {logs && logs.length > 0 ? (
+        {logs && logs.length > 0 && !isLoadingLocalhostConfig ? (
           <Virtuoso
             style={{ height: "100%" }}
             totalCount={logs?.length}
@@ -218,8 +243,12 @@ const SessionPanel = ({
               />
             )}
           />
+        ) : isFetching || isLoadingLocalhostConfig ? (
+          <div className="flex h-full flex-1 items-center justify-center">
+            <Loader2 className="mb-2 animate-spin dark:text-white" />
+          </div>
         ) : (
-          <EmptyDataView dataType="logs" />
+          <EmptyDataView dataType="logs" showBackground={false} />
         )}
       </div>
     </div>

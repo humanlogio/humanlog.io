@@ -40,10 +40,10 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Dispatch, SetStateAction, useMemo, useState } from "react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useAllEnvironments } from "@/context/list-environments";
 import { getOrgEnvUrl } from "@/lib/utils/navigation";
 import { usePage } from "@/stores/page-store";
 import { useEnvironmentStore } from "@/stores/environment-store";
+import { useUser } from "@/hooks/useUser";
 
 interface Product {
   product: APIProduct;
@@ -207,9 +207,9 @@ function CheckoutForm({
   const stripe = useStripe();
   const elements = useElements();
 
-  const { userInfo } = useAllEnvironments();
   const { activeEnvironment } = useEnvironmentStore();
   const { activePage } = usePage();
+  const { userData } = useUser();
 
   const [errorMessage, setErrorMessage] = useState<string>();
 
@@ -278,7 +278,7 @@ function CheckoutForm({
     }
     console.log("checkout completed!");
 
-    const url = getOrgEnvUrl(userInfo, activeEnvironment, activePage);
+    const url = getOrgEnvUrl(userData, activeEnvironment, activePage);
     router.push(url);
   }
 

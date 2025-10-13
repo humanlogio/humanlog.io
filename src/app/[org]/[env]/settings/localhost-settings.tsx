@@ -13,14 +13,7 @@ import {
 } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import { useApiClients } from "@/context/api-provider";
-import {
-  Clock,
-  Database,
-  Globe,
-  Sparkles,
-  SquareCode,
-  User as UserIcon,
-} from "lucide-react";
+import { Clock, Database, Globe, Sparkles, SquareCode } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -52,8 +45,6 @@ import { TIME_FORMAT } from "@/lib/utils/formatTimeStamp";
 import FieldTagsInput from "@/components/ui/field-text-input";
 import { toast } from "sonner";
 import { ThemeEditor } from "@/components/settings/ThemeEditor";
-import { useAllEnvironments } from "@/context/list-environments";
-import { NoLocalhostView } from "@/components/log-interface/views/no-localhost-view";
 import { getConfig } from "@/services/localhostService";
 import { create } from "@bufbuild/protobuf";
 import {
@@ -64,6 +55,8 @@ import {
   CardContent,
 } from "@/components/ui/card";
 import { Palette, Terminal, RefreshCw } from "lucide-react";
+import LoadingIndicator from "@/components/loading-indicator";
+import { usePing } from "@/hooks/usePing";
 
 const COLOR_MODE_OPTIONS = [
   { value: FormatConfig_ColorMode.COLORMODE_AUTO.toString(), label: "Auto" },
@@ -100,8 +93,7 @@ export type FormValues = z.infer<typeof formSchema>;
 
 export const LocalhostSettings = () => {
   const { apiClients } = useApiClients();
-  const { localhostInfo } = useAllEnvironments();
-
+  const { localhostData, isLoadingLocalhost } = usePing();
   const [initialConfig, setInitialConfig] = useState<LocalhostConfig>();
 
   const form = useForm<FormValues>({
@@ -238,7 +230,9 @@ export const LocalhostSettings = () => {
     handleConfig();
   }, []);
 
-  if (!localhostInfo) return;
+  if (isLoadingLocalhost) return <LoadingIndicator />;
+
+  if (!localhostData) return;
 
   return (
     <div className="space-y-6 px-10 py-5">

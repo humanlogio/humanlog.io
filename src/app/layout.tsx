@@ -7,7 +7,6 @@ import { ThemeProvider } from "@/context/theme-provider";
 import { ApiClientsProvider } from "@/context/api-provider";
 import { FullWidthProvider } from "@/context/full-width-provider";
 import { Toaster } from "@/components/ui/sonner";
-import { ListEnvironmentsProvider } from "@/context/list-environments";
 import PageFooter from "@/components/page-footer";
 import config from "@/features/config";
 import { AuthProvider } from "@/context/auth-context";
@@ -15,6 +14,7 @@ import { OTELProvider } from "@/context/otel-provider";
 import { PostHogProvider } from "@/context/posthog-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Header } from "@/components/header";
+import { Suspense } from "react";
 
 export const metadata: Metadata = {
   title: "humanlog.io",
@@ -46,9 +46,9 @@ export default function RootLayout({
                 enableSystem
               >
                 <FullWidthProvider>
-                  <ListEnvironmentsProvider>
-                    <AuthProvider>
-                      <TooltipProvider>
+                  <AuthProvider>
+                    <TooltipProvider>
+                      <Suspense>
                         <div className="flex h-screen flex-col">
                           <div className="flex-none">
                             <Header />
@@ -58,10 +58,10 @@ export default function RootLayout({
                           </div>
                           <PageFooter />
                         </div>
-                      </TooltipProvider>
-                      <Toaster expand={true} />
-                    </AuthProvider>
-                  </ListEnvironmentsProvider>
+                      </Suspense>
+                    </TooltipProvider>
+                    <Toaster expand={true} />
+                  </AuthProvider>
                 </FullWidthProvider>
               </ThemeProvider>
             </ApiClientsProvider>

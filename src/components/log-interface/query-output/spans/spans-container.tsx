@@ -16,6 +16,7 @@ interface SpansContainerProps {
   fetchNextPage?: () => void;
   queryHistoryEntry?: QueryHistoryEntry;
   streamRes?: StreamResponse[];
+  isSample?: boolean;
 }
 
 export const SpansContainer = ({
@@ -23,6 +24,7 @@ export const SpansContainer = ({
   hasNextPage,
   fetchNextPage,
   queryHistoryEntry,
+  isSample = false,
 }: SpansContainerProps) => {
   const { ref: targetRef, inView } = useInView();
 
@@ -82,6 +84,7 @@ export const SpansContainer = ({
           queryHistoryEntry={queryHistoryEntry}
           hasNextPage={hasNextPage}
           fetchNextPage={fetchNextPage}
+          isSample={isSample}
         />
       )}
 

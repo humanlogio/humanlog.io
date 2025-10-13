@@ -11,7 +11,6 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useAllEnvironments } from "@/context/list-environments";
 import { createOrganization } from "api/js/svc/user/v1/service_private-UserService_connectquery";
 import { useState } from "react";
 import {
@@ -34,12 +33,14 @@ import {
 import { useMutation, useQuery } from "@connectrpc/connect-query";
 import { toast } from "sonner";
 import { gravatarURL } from "@/lib/utils/avatar";
+import { useUser } from "@/hooks/useUser";
 
 export default function OrgSettingsPage() {
+  const { userData } = useUser();
+
   const [email, setEmail] = useState("");
   const [orgName, setOrgName] = useState("");
   const [newOrgName, setNewOrgName] = useState("");
-  const { userInfo } = useAllEnvironments();
 
   const { data: listUserData } = useQuery(listUser);
 
@@ -78,10 +79,8 @@ export default function OrgSettingsPage() {
     },
   });
 
-  if (userInfo === "isLoading") return;
-
   const isDefaultOrg =
-    userInfo?.currentOrganization?.id === userInfo?.defaultOrganization?.id;
+    userData?.currentOrganization?.id === userData?.defaultOrganization?.id;
 
   const handleInviteUser = () => {
     inviteUserMutation({
@@ -175,7 +174,7 @@ export default function OrgSettingsPage() {
               </label>
               <div className="flex items-center gap-2">
                 <p className="text-lg font-semibold">
-                  {userInfo?.currentOrganization?.name}
+                  {userData?.currentOrganization?.name}
                 </p>
                 {isDefaultOrg && (
                   <Badge className="bg-orange-100 text-orange-800">
@@ -223,7 +222,7 @@ export default function OrgSettingsPage() {
             <div className="mt-1 flex items-center gap-1">
               <Calendar className="text-muted-foreground h-4 w-4" />
               <p>
-                {formatTimestamp(userInfo?.currentOrganization?.createdAt!)}
+                {formatTimestamp(userData?.currentOrganization?.createdAt!)}
               </p>
             </div>
           </div>
@@ -243,7 +242,7 @@ export default function OrgSettingsPage() {
             <CardContent>
               <div className="flex gap-3">
                 <Input
-                  placeholder={`Current: ${userInfo?.currentOrganization?.name}`}
+                  placeholder={`Current: ${userData?.currentOrganization?.name}`}
                   value={newOrgName}
                   onChange={(e) => setNewOrgName(e.target.value)}
                 />

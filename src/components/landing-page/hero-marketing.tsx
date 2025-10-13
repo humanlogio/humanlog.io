@@ -195,7 +195,10 @@ const AboveFoldHero: React.FC = () => {
                     <span className="truncate">{sampleSpans().query}</span>
                   </div>
                   <div className="flex-1 overflow-auto p-3">
-                    <SpansContainer spans={sampleSpans().data.spans} />
+                    <SpansContainer
+                      spans={sampleSpans().data.spans}
+                      isSample={true}
+                    />
                   </div>
                 </>
               )}

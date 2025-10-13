@@ -20,7 +20,6 @@ import {
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -41,14 +40,13 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 
-import { useApiClients } from "@/context/api-provider";
 import { Project } from "api/js/types/v1/project_pb";
 import { PointerInfo } from "@/app/[org]/[env]/dashboard/components/pointer-info";
 import { ReadOnlyField } from "@/app/[org]/[env]/dashboard/components/read-only-field";
 import { create } from "@bufbuild/protobuf";
 import { useEnvironmentStore } from "@/stores/environment-store";
 import { getOrgEnvUrl } from "@/lib/utils/navigation";
-import { useAllEnvironments } from "@/context/list-environments";
+import { useUser } from "@/hooks/useUser";
 
 const formSchema = z.object({
   name: z
@@ -77,7 +75,7 @@ export const ProjectContainer = ({
 }: ProjectContainerProps) => {
   const router = useRouter();
   const { activeEnvironment } = useEnvironmentStore();
-  const { userInfo } = useAllEnvironments();
+  const { userData } = useUser();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [projectContents, setProjectContents] = useState<Record<string, any>>(
     {},
@@ -161,7 +159,7 @@ export const ProjectContainer = ({
   };
 
   const handleDashboardClick = (dashboardId: string) => {
-    const url = getOrgEnvUrl(userInfo, activeEnvironment, "dashboard");
+    const url = getOrgEnvUrl(userData, activeEnvironment, "dashboard");
     router.push(`${url}/${dashboardId}?projectName=${project.name}`);
   };
 

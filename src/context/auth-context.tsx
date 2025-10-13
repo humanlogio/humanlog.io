@@ -8,11 +8,9 @@ import React, {
   ReactNode,
   useEffect,
 } from "react";
-import { getSelfURL } from "@/lib/envs";
 import { usePathname, useRouter } from "next/navigation";
-import { useAllEnvironments } from "@/context/list-environments";
-import { Loader, Loader2 } from "lucide-react";
-import { useApiClients } from "@/context/api-provider";
+import { Loader2 } from "lucide-react";
+import { useUser } from "@/hooks/useUser";
 
 type AuthContextType = {
   isAuthModalOpen: boolean;
@@ -25,14 +23,14 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 const loginRequiredPaths = ["/settings/*"];
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const { authenticated } = useApiClients();
-  const { doLogin, userInfo, setUserInfo } = useAllEnvironments();
   const router = useRouter();
   const pathname = usePathname();
+
+  const { userData } = useUser();
+
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authMessage, setAuthMessage] = useState("You need to login.");
   const [previousPath, setPreviousPath] = useState<string>();
-  const [isLoading, setIsLoading] = useState(false);
 
   const isLoginRequired = useCallback(
     (path: string) => {
@@ -64,40 +62,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } else {
       router.push("/");
     }
-  }, [pathname, router, isLoginRequired, previousPath, authenticated]);
-
-  const handleLogin = () => {
-    setIsLoading(true);
-    try {
-      doLogin(`${getSelfURL()}${pathname}`);
-    } catch (error) {
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  }, [pathname, router, isLoginRequired, previousPath, userData]);
 
   useEffect(() => {
     setPreviousPath(pathname);
   }, [pathname]);
 
-  useEffect(() => {
-    if (!userInfo || isLoading) {
-      return;
-    }
-
-    if (!authenticated && isLoginRequired(pathname)) {
-      setUserInfo(undefined);
-    }
-  }, [
-    pathname,
-    userInfo,
-    isLoginRequired,
-    authenticated,
-    isAuthModalOpen,
-    isLoading,
-  ]);
-
-  if (isLoginRequired(pathname) && !userInfo) {
+  if (isLoginRequired(pathname) && !userData) {
     return (
       <div className="container flex h-[calc(100vh-260px)] flex-grow flex-col items-center justify-center gap-8">
         <Loader2 className="animate-spin" size={30}></Loader2>

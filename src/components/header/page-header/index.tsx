@@ -1,28 +1,40 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { useAllEnvironments } from "@/context/list-environments";
 import { getSelfURL } from "@/lib/envs";
 import { HexagonIcon } from "lucide-react";
 import Link from "next/link";
 import { SetUserNameModal } from "@/components/header/page-header/set-user-name-modal";
+import { useRouter } from "next/navigation";
+import { useMutation } from "@connectrpc/connect-query";
+import { getAuthURL } from "api/js/svc/auth/v1/service-AuthService_connectquery";
+import { toast } from "sonner";
 
 export const PageHeader = () => {
-  const returnToURL = `${getSelfURL()}/login`;
-  const { doLogin } = useAllEnvironments();
+  const router = useRouter();
+  const returnToUrl = `${getSelfURL()}/login`;
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const handleSignInClick = () => {
-    const storedUsername = localStorage.getItem("username");
+  const { mutate: getAuthURLMutation } = useMutation(getAuthURL, {
+    onSuccess: (res) => {
+      router.push(res.authUrl);
+    },
+    onError: (err) => {
+      toast.error(err.message);
+    },
+  });
 
-    if (storedUsername) {
-      doLogin(storedUsername, returnToURL);
+  const handleSignInClick = () => {
+    const username = localStorage.getItem("username");
+
+    if (username) {
+      getAuthURLMutation({ returnToUrl, username });
     } else {
       setIsModalOpen(true);
     }
   };
 
   const handleModalSubmit = (username: string) => {
-    doLogin(username, returnToURL);
+    getAuthURLMutation({ returnToUrl, username });
   };
 
   const navLinks = [

@@ -9,7 +9,6 @@ import {
   ChevronRight,
   Settings,
 } from "lucide-react";
-import { useAllEnvironments } from "@/context/list-environments";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -18,7 +17,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
-import { useParams, usePathname } from "next/navigation";
+import { usePathname } from "next/navigation";
 
 interface SettingsLayoutProps {
   children: ReactNode;

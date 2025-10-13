@@ -1,16 +1,23 @@
 "use client";
 
 import LoadingIndicator from "@/components/loading-indicator";
-import { useAllEnvironments } from "@/context/list-environments";
+import { useEnvironmentStore } from "@/stores/environment-store";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import { usePage } from "@/stores/page-store";
+import { useUser } from "@/hooks/useUser";
 
 export default function Logout() {
   const router = useRouter();
-  const { setUserInfo } = useAllEnvironments();
+  const { setActiveEnvironment } = useEnvironmentStore();
+
+  const { clearPage } = usePage();
+  const { refetchUser } = useUser();
 
   useEffect(() => {
-    setUserInfo(undefined);
+    setActiveEnvironment(undefined);
+    refetchUser();
+    clearPage();
     router.push("/");
   }, []);
 
