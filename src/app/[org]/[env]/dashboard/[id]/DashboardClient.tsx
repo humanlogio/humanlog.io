@@ -72,7 +72,7 @@ function DashboardClientContent({ dashboardId }: DashboardClientProps) {
 
   // Decode the persesJson bytes back to DashboardResource
   const decodedDashboard = useMemo(() => {
-    const dashboard = decodePersesJson(data?.dashboard?.persesJson);
+    const dashboard = decodePersesJson(data?.dashboard?.spec?.persesJson);
 
     if (dashboard) {
       // Initialize datasources object if it doesn't exist
@@ -122,7 +122,7 @@ function DashboardClientContent({ dashboardId }: DashboardClientProps) {
     }
 
     return dashboard;
-  }, [data?.dashboard?.persesJson]);
+  }, [data?.dashboard?.spec?.persesJson]);
 
   const themeMode = useMemo(() => {
     switch (theme) {
@@ -215,10 +215,10 @@ function DashboardClientContent({ dashboardId }: DashboardClientProps) {
                           <div className="flex items-center justify-between">
                             <div>
                               <h1 className="mb-1 text-2xl font-bold">
-                                {data?.dashboard?.name}
+                                {data?.dashboard?.spec?.name}
                               </h1>
                               <p className="text-muted-foreground mb-6">
-                                {data?.dashboard?.description}
+                                {data?.dashboard?.spec?.description}
                               </p>
                             </div>
                             <DashboardControls
