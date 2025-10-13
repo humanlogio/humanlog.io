@@ -17,8 +17,10 @@ export default function Login() {
   useEffect(() => {
     refetchUser();
     setActiveEnvironment(undefined);
-    const url = getOrgEnvUrl(userData, activeEnvironment);
-    router.replace(url);
+    if (userData) {
+      const url = getOrgEnvUrl(userData, activeEnvironment);
+      router.replace(url);
+    }
   }, [userData, localhostData]);
 
   return <LoadingIndicator />;
