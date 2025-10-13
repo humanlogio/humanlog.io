@@ -1,20 +1,15 @@
 "use client";
 
-import { Copy, Loader } from "lucide-react";
+import { Copy } from "lucide-react";
 import { copyToClipboard } from "@/lib/utils/clipboard";
-import { useAllEnvironments } from "@/context/list-environments";
-import LoadingIndicator from "@/components/loading-indicator";
+import { useUser } from "@/hooks/useUser";
 
 export default function Page() {
-  const { userInfo } = useAllEnvironments();
+  const { userData } = useUser();
 
   const demoString = `humanlog --help`;
 
-  if (userInfo === "isLoading") {
-    return <LoadingIndicator />;
-  }
-
-  if (!userInfo) {
+  if (!userData) {
     return (
       <div className="container flex flex-grow flex-col items-center justify-center gap-8">
         <h1 className="text-center text-4xl font-bold">You need to login.</h1>
@@ -26,7 +21,7 @@ export default function Page() {
     <div className="container flex flex-grow flex-col items-center justify-center gap-8">
       <div>
         <h1 className="text-center text-4xl font-bold">
-          Hi {userInfo.user?.firstName}
+          Hi {userData.user?.firstName}
         </h1>
         <p className="text-muted-foreground mt-4 text-center">
           {"You're logged in!"}

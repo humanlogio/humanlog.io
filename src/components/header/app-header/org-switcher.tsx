@@ -1,4 +1,3 @@
-import { useAllEnvironments } from "@/context/list-environments";
 import { useParams, usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
@@ -10,13 +9,16 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { WhoamiResponse } from "api/js/svc/user/v1/service_private_pb";
-import { useMutation } from "@connectrpc/connect-query";
+import { useMutation, useQuery } from "@connectrpc/connect-query";
 import { getAuthURL } from "api/js/svc/auth/v1/service-AuthService_connectquery";
 import { toast } from "sonner";
 import { getSelfURL } from "@/lib/envs";
 import { useEnvironmentStore } from "@/stores/environment-store";
 import { getOrgEnvUrl } from "@/lib/utils/navigation";
 import { usePage } from "@/stores/page-store";
+import { listOrganization } from "api/js/svc/user/v1/service_private-UserService_connectquery";
+import { CursorSchema } from "api/js/types/v1/cursor_pb";
+import { create } from "@bufbuild/protobuf";
 
 interface Source {
   name: string;
@@ -25,18 +27,23 @@ interface Source {
 }
 
 interface OrgSwitcherProps {
-  userInfo: WhoamiResponse;
+  userData: WhoamiResponse;
 }
 
-export const OrgSwitcher = ({ userInfo }: OrgSwitcherProps) => {
+export const OrgSwitcher = ({ userData }: OrgSwitcherProps) => {
   const router = useRouter();
   const params = useParams();
   const pathname = usePathname();
   const { activeEnvironment } = useEnvironmentStore();
-  const { listOrganizations } = useAllEnvironments();
+
   const { activePage } = usePage();
 
   const [menuList, setMenuList] = useState<Source[]>([]);
+
+  const { data: listOrganizations } = useQuery(listOrganization, {
+    cursor: create(CursorSchema),
+    limit: 100,
+  });
 
   const { mutate: getAuthURLMutation } = useMutation(getAuthURL, {
     onSuccess: (res) => {
@@ -49,7 +56,7 @@ export const OrgSwitcher = ({ userInfo }: OrgSwitcherProps) => {
   });
 
   const getCurrentSelectedValue = () => {
-    return userInfo.currentOrganization?.id.toString() || "";
+    return userData.currentOrganization?.id.toString() || "";
   };
 
   const updateSelection = (value: string) => {
@@ -57,7 +64,7 @@ export const OrgSwitcher = ({ userInfo }: OrgSwitcherProps) => {
     if (!selected) return;
 
     getAuthURLMutation({
-      username: userInfo.user?.username,
+      username: userData.user?.username,
       organization: {
         case: "byId",
         value: BigInt(value),
@@ -69,16 +76,16 @@ export const OrgSwitcher = ({ userInfo }: OrgSwitcherProps) => {
   useEffect(() => {
     const _menuList: Source[] = [];
 
-    listOrganizations.forEach((org) => {
+    listOrganizations?.items.forEach((org) => {
       _menuList.push({
         name: org.organization?.name || "",
-        path: getOrgEnvUrl(userInfo, activeEnvironment, activePage),
+        path: getOrgEnvUrl(userData, activeEnvironment, activePage),
         value: org.organization?.id?.toString() || "",
       });
     });
 
     setMenuList(_menuList);
-  }, [listOrganizations, userInfo, activeEnvironment, pathname]);
+  }, [listOrganizations, userData, activeEnvironment, pathname]);
 
   return (
     <Select value={getCurrentSelectedValue()} onValueChange={updateSelection}>

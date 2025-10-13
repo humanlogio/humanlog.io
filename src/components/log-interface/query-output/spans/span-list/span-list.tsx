@@ -21,6 +21,7 @@ interface SpanListProps {
   queryHistoryEntry?: QueryHistoryEntry;
   hasNextPage?: boolean;
   fetchNextPage?: () => void;
+  isSample?: boolean;
 }
 
 export const SpanList = ({
@@ -28,6 +29,7 @@ export const SpanList = ({
   queryHistoryEntry,
   hasNextPage,
   fetchNextPage,
+  isSample = false,
 }: SpanListProps) => {
   const [filteredSpans, setFilteredSpans] = useState<Span[]>();
   const [sharedData, setSharedData] = useState<Data | null>(null);
@@ -128,7 +130,11 @@ export const SpanList = ({
               totalCount={filteredSpans?.length}
               endReached={loadMore}
               itemContent={(i) => (
-                <SpanCard index={i} span={filteredSpans[i]} />
+                <SpanCard
+                  index={i}
+                  span={filteredSpans[i]}
+                  isSample={isSample}
+                />
               )}
             />
           )}

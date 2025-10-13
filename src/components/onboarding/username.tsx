@@ -1,53 +1,46 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { useAllEnvironments } from "@/context/list-environments";
-import { useApiClients } from "@/context/api-provider";
-import { updateUser } from "@/services/userService";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
-import { Loader } from "lucide-react";
+
+import { useMutation } from "@connectrpc/connect-query";
+import { updateUser } from "api/js/svc/user/v1/service_private-UserService_connectquery";
+import LoadingIndicator from "@/components/loading-indicator";
+import { useUser } from "@/hooks/useUser";
 
 export const OnboardingUsername = () => {
-  const { apiClients } = useApiClients();
-  const { userInfo, doLogin, getUserInfo } = useAllEnvironments();
   const [username, setUsername] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const router = useRouter();
+
+  const { userData, isLoadingUser, refetchUser } = useUser();
+
+  const { mutate: updateUserMutation, isPending } = useMutation(updateUser, {
+    onSuccess: (res) => {
+      if (res.user?.username) {
+        toast.success("Username successfully updated");
+        refetchUser();
+        router.push("/onboarding?step=pricing");
+      }
+    },
+    onError: () => {},
+  });
 
   const handleUpdateUser = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!userInfo || userInfo === "isLoading" || !apiClients) return;
-    setIsSubmitting(true);
-    await updateUser(
-      apiClients.user,
-      userInfo.user?.firstName,
-      userInfo.user?.lastName,
+    updateUserMutation({
+      firstName: userData?.user?.firstName,
+      lastName: userData?.user?.lastName,
       username,
-      {
-        onSuccess: (res) => {
-          if (res.user?.username) {
-            getUserInfo();
-            toast.success("Username successfully updated");
-            router.push("/onboarding?step=pricing");
-            setIsSubmitting(false);
-          }
-        },
-        onError: () => {
-          setIsSubmitting(false);
-        },
-      },
-    );
+    });
   };
 
-  if (!userInfo || userInfo === "isLoading") {
-    // doLogin();
-    return;
-  }
+  if (isLoadingUser) return <LoadingIndicator />;
 
-  if (userInfo.user?.username) {
+  if (userData?.user?.username) {
     router.push("/onboarding?step=pricing");
     return;
   }
@@ -85,8 +78,8 @@ export const OnboardingUsername = () => {
         </div>
 
         <div>
-          <Button type="submit" disabled={isSubmitting} className="w-full">
-            {isSubmitting ? "Saving..." : "Save"}
+          <Button type="submit" disabled={isPending} className="w-full">
+            {isPending ? "Saving..." : "Save"}
           </Button>
         </div>
       </form>
