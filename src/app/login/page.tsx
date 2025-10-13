@@ -17,6 +17,8 @@ export default function Login() {
   useEffect(() => {
     refetchUser();
     setActiveEnvironment(undefined);
+
+    if (!userData) return;
     const url = getOrgEnvUrl(userData, activeEnvironment);
     router.replace(url);
   }, [userData, localhostData]);
