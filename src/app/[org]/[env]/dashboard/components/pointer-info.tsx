@@ -80,13 +80,9 @@ const POINTER_INFO_CONFIGS = {
 };
 
 export const PointerInfo = ({ project }: PointerInfoProps) => {
-  const { pointer } = project;
-  if (!pointer) return null;
+  if (!project.spec?.pointer?.scheme) return;
 
-  const { scheme } = pointer;
-  if (!scheme) return null;
-
-  const { case: pointerType, value } = scheme;
+  const { case: pointerType, value } = project.spec.pointer.scheme;
 
   const config =
     POINTER_INFO_CONFIGS[pointerType as keyof typeof POINTER_INFO_CONFIGS];

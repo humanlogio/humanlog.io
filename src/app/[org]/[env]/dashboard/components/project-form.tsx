@@ -152,8 +152,10 @@ export const ProjectForm = ({
 
     const newProject = create(CreateProjectRequestSchema, {
       environmentId: activeEnvironment?.environment?.id,
-      name,
-      pointer,
+      spec: {
+        name,
+        pointer,
+      },
     });
 
     createProjectMutation(newProject, {
