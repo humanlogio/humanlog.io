@@ -1,10 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useDashboardStore } from "@perses-dev/dashboards";
 import { DashboardResource } from "@perses-dev/core";
-import {
-  UpdateDashboardRequestSchema,
-  UpdateDashboardRequest_MutationSchema,
-} from "api/js/svc/dashboard/v1/service_pb";
+import { UpdateDashboardRequestSchema } from "api/js/svc/dashboard/v1/service_pb";
 import { create } from "@bufbuild/protobuf";
 
 // Dashboard changes tracking for backend API integration
@@ -161,14 +158,10 @@ export function useDashboardPersistence(
     // Create UpdateDashboardRequest
     const updateRequest = create(UpdateDashboardRequestSchema, {
       id: dashboardId,
-      mutations: [
-        create(UpdateDashboardRequest_MutationSchema, {
-          do: {
-            case: "setPersesJson",
-            value: persesJsonBytes,
-          },
-        }),
-      ],
+      projectName: currentDashboard.metadata.project,
+      spec: {
+        persesJson: persesJsonBytes,
+      },
     });
 
     return {

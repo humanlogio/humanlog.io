@@ -46,7 +46,7 @@ export default function DashboardListPage() {
   }
 
   return (
-    <div className="mx-auto px-4 py-8">
+    <div className="mx-auto w-full px-4 py-8">
       <div className="mb-8 flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
@@ -97,11 +97,11 @@ export default function DashboardListPage() {
           >
             {projectList.items.map((item) => {
               const project = item.project;
-              if (!project?.name) return null;
+              if (!project?.spec?.name) return null;
 
               return (
                 <ProjectContainer
-                  key={project?.name}
+                  key={project?.spec?.name}
                   project={project}
                   expandedProjects={expandedProjects}
                   setExpandedProjects={setExpandedProjects}

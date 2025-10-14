@@ -82,10 +82,9 @@ export const ProjectContainer = ({
   );
 
   const isProjectReadonly = (project: Project): boolean => {
-    const { pointer } = project;
-    if (!pointer?.scheme) return false;
+    if (!project.spec?.pointer?.scheme) return false;
 
-    const { case: pointerType, value } = pointer.scheme;
+    const { case: pointerType, value } = project.spec.pointer.scheme;
 
     if (pointerType === "localhost") {
       const localPointer = value as any;
@@ -99,13 +98,15 @@ export const ProjectContainer = ({
     return false;
   };
 
-  const isExpanded = expandedProjects.has(project.name);
+  const isExpanded = project.spec?.name
+    ? expandedProjects.has(project.spec?.name)
+    : false;
 
   const { data: projectData, isLoading: isLoadingProject } = useQuery(
     getProject,
     {
       environmentId: activeEnvironment?.environment?.id,
-      name: project.name,
+      name: project.spec?.name,
     },
     {
       enabled: isExpanded,
@@ -136,11 +137,15 @@ export const ProjectContainer = ({
     ) as Uint8Array<ArrayBuffer>;
 
     const newDashboard = create(CreateDashboardRequestSchema, {
-      name: data.name,
-      projectName: project.name,
-      description: data.description || "",
-      isReadonly: data.isReadonly,
-      persesJson: persesJsonBytes, // Add the default template
+      environmentId: activeEnvironment?.environment?.id,
+
+      projectName: project?.spec?.name,
+      spec: {
+        name: data.name,
+        description: data.description || "",
+        isReadonly: data.isReadonly,
+        persesJson: persesJsonBytes,
+      },
     });
 
     createDashboardMutation(newDashboard, {
@@ -160,7 +165,7 @@ export const ProjectContainer = ({
 
   const handleDashboardClick = (dashboardId: string) => {
     const url = getOrgEnvUrl(userData, activeEnvironment, "dashboard");
-    router.push(`${url}/${dashboardId}?projectName=${project.name}`);
+    router.push(`${url}/${dashboardId}?projectName=${project?.spec?.name}`);
   };
 
   const handleProjectExpand = (projectName: string) => {
@@ -184,18 +189,17 @@ export const ProjectContainer = ({
     }
   };
   return (
-    <AccordionItem key={project.name} value={project.name}>
+    <AccordionItem key={project?.spec?.name} value={project?.spec?.name || ""}>
       <AccordionTrigger
         className="hover:no-underline"
-        onClick={() => handleProjectExpand(project.name)}
+        onClick={() => handleProjectExpand(project?.spec?.name || "")}
       >
         <div className="mr-2 flex w-full items-center justify-between">
           <div className="flex items-center gap-3">
-            <h3 className="text-lg font-semibold">{project.name}</h3>
+            <h3 className="text-lg font-semibold">{project?.spec?.name}</h3>
             {(() => {
-              const { pointer } = project;
-              if (!pointer) return;
-              const { case: pointerType } = pointer.scheme;
+              if (!project.spec?.pointer?.scheme) return;
+              const { case: pointerType } = project.spec.pointer.scheme;
               const getPointerBadgeClassName = (type: string | undefined) => {
                 switch (type) {
                   case "localhost":

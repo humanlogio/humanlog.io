@@ -351,12 +351,18 @@ export const createMockDashboards = (): ListDashboardResponse_ListItem[] => {
   return mockDashboards.map((mock) =>
     create(ListDashboardResponse_ListItemSchema, {
       dashboard: create(DashboardSchema, {
-        id: mock.id,
-        name: mock.name,
-        description: mock.description,
-        isReadonly: mock.isReadonly,
-        createdAt: mock.createdAt,
-        updatedAt: mock.updatedAt,
+        meta: {
+          id: mock.id,
+        },
+        spec: {
+          name: mock.name,
+          description: mock.description,
+          isReadonly: mock.isReadonly,
+        },
+        status: {
+          createdAt: mock.createdAt,
+          updatedAt: mock.updatedAt,
+        },
       }),
     }),
   );
