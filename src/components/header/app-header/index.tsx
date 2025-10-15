@@ -27,6 +27,7 @@ import { PingResponse } from "api/js/svc/localhost/v1/service_pb";
 import { EnvSwitcher } from "@/components/header/app-header/env-switcher";
 import { SideMenu } from "@/components/header/app-header/side-menu";
 import { useUser } from "@/hooks/useUser";
+import { BetaBadge } from "@/components/beta-badge";
 
 export const localhostVersion = (res: PingResponse) => {
   const v = res.clientVersion!;
@@ -88,13 +89,12 @@ export const AppHeader = () => {
   return (
     <div className={`flex justify-between px-10`}>
       <div className="flex items-center">
-        <Link
-          href={`/${currentOrg}/${currentEnvSlug}/overview`}
-          className="mr-8"
-        >
-          {/* instead of logo */}
-          <HexagonIcon size={18} />
-        </Link>
+        <div className="mr-8 flex items-center">
+          <Link href={`/${currentOrg}/${currentEnvSlug}/overview`}>
+            <HexagonIcon size={18} />
+          </Link>
+          <BetaBadge />
+        </div>
         <ul className="flex gap-2">
           {navItems.map((item) => {
             return (
