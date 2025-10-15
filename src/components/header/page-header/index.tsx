@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import { useMutation } from "@connectrpc/connect-query";
 import { getAuthURL } from "api/js/svc/auth/v1/service-AuthService_connectquery";
 import { toast } from "sonner";
+import { BetaBadge } from "@/components/beta-badge";
 
 export const PageHeader = () => {
   const router = useRouter();
@@ -72,9 +73,12 @@ export const PageHeader = () => {
       <div className="container flex items-center">
         <div className="flex w-full items-center justify-between">
           <div className="flex items-center gap-4">
-            <Link href="/" className="mr-10">
-              <HexagonIcon size={16} />
-            </Link>
+            <div className="mr-10 flex items-center">
+              <Link href="/">
+                <HexagonIcon size={16} />
+              </Link>
+              <BetaBadge />
+            </div>
             {renderNavBlock()}
           </div>
           <Button onClick={handleSignInClick} variant="outline" size="sm">
