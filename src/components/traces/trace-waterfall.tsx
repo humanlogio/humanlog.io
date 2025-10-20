@@ -73,12 +73,14 @@ export const TraceWaterfall = ({
 
   const renderSpanAsRow = (node: SpanTreeNode): ReactNode | undefined => {
     const onToggleVisibility = () => {
+      const nodeId = spanIdToString(node.span.spanId);
+
       setFoldedNodes((prev) => {
         const newFolded = new Set(prev);
-        if (newFolded.has(spanIdToString(node.span.spanId))) {
-          newFolded.delete(spanIdToString(node.span.spanId));
+        if (newFolded.has(nodeId)) {
+          newFolded.delete(nodeId);
         } else {
-          newFolded.add(spanIdToString(node.span.spanId));
+          newFolded.add(nodeId);
         }
         return newFolded;
       });
@@ -86,9 +88,21 @@ export const TraceWaterfall = ({
       setHiddenNodes((prev) => {
         const newHidden = new Set(prev);
         const childIds = getAllChildIds(node);
+        const isCurrentlyFolded = foldedNodes.has(nodeId);
 
-        if (foldedNodes.has(spanIdToString(node.span.spanId))) {
-          childIds.forEach((id) => newHidden.delete(id));
+        if (isCurrentlyFolded) {
+          node.children.forEach((child) => {
+            const childId = spanIdToString(child.span.spanId);
+            newHidden.delete(childId);
+
+            if (foldedNodes.has(childId)) {
+              const grandChildIds = getAllChildIds(child);
+              grandChildIds.forEach((id) => newHidden.add(id));
+            } else {
+              const grandChildIds = getAllChildIds(child);
+              grandChildIds.forEach((id) => newHidden.delete(id));
+            }
+          });
         } else {
           childIds.forEach((id) => newHidden.add(id));
         }
@@ -111,7 +125,10 @@ export const TraceWaterfall = ({
       const ids: string[] = [];
       node.children.forEach((child) => {
         ids.push(spanIdToString(child.span.spanId));
-        ids.push(...getAllChildIds(child));
+        // 자식이 접히지 않은 경우에만 그 하위들도 포함
+        if (!foldedNodes.has(spanIdToString(child.span.spanId))) {
+          ids.push(...getAllChildIds(child));
+        }
       });
       return ids;
     };
@@ -123,9 +140,25 @@ export const TraceWaterfall = ({
       return;
     }
 
+    // 동적으로 연결선 높이 계산
+    const calculateDynamicConnectorHeight = (node: SpanTreeNode): number => {
+      let count = 0;
+      node.children.forEach((child) => {
+        if (!hiddenNodes.has(spanIdToString(child.span.spanId))) {
+          count++;
+
+          if (!foldedNodes.has(spanIdToString(child.span.spanId))) {
+            count += calculateDynamicConnectorHeight(child);
+          }
+        }
+      });
+      return count;
+    };
+
     const canToggle = node.children && node.children.length > 0;
     const isFolded = foldedNodes.has(spanIdToString(node.span.spanId));
     const isHidden = hiddenNodes.has(spanIdToString(node.span.spanId));
+    const dynamicConnectorHeight = calculateDynamicConnectorHeight(node);
 
     return (
       <>
@@ -170,7 +203,7 @@ export const TraceWaterfall = ({
                     <div
                       className={twMerge("absolute left-[-8px] w-[1px]")}
                       style={{
-                        height: `${(node.verticalConnectorHeight + 1) * 33}px`,
+                        height: `${(dynamicConnectorHeight + 1) * 33}px`,
                         top: "-16px",
                         backgroundColor:
                           serviceColors[node.parent.span.serviceName],
@@ -222,7 +255,7 @@ export const TraceWaterfall = ({
                 )}
               </div>
 
-              {node.children.length > 0 && (
+              {node.children.length > 0 && !isFolded && (
                 <div
                   className="absolute bottom-[-2px] left-[9.5px] h-3 w-[1px]"
                   style={{
