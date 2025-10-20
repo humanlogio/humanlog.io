@@ -125,6 +125,7 @@ export const TraceWaterfall = ({
 
     const canToggle = node.children && node.children.length > 0;
     const isFolded = foldedNodes.has(spanIdToString(node.span.spanId));
+    const isHidden = hiddenNodes.has(spanIdToString(node.span.spanId));
 
     return (
       <>
@@ -141,6 +142,7 @@ export const TraceWaterfall = ({
                 ? "rgba(147,197,253, 0.3)"
                 : "transparent",
           }}
+          className={`${!isHidden && "border-b"}`}
           onClick={() => setSelectedSpan(node)}
         >
           <div className="flex items-start">
@@ -349,13 +351,9 @@ export const TraceWaterfall = ({
         {spanTree
           .map((head) => {
             const flatNodes = walkSpanTreeNodeFlat(head, renderSpanAsRow);
+
             return flatNodes.map((node, nodeIndex) => (
-              <div
-                key={`${head.span.spanId}-${nodeIndex}`}
-                className={`${!head.folded && "border-b"} `}
-              >
-                {node}
-              </div>
+              <div key={`${head.span.spanId}-${nodeIndex}`}>{node}</div>
             ));
           })
           .flat()}
