@@ -12,7 +12,6 @@ export interface SpanTreeNode {
   depth: number;
   visible: boolean;
   folded: boolean;
-  verticalConnectorHeight: number;
 }
 
 /**
@@ -37,7 +36,6 @@ export const buildSpanTree = (spans: Span[]): SpanTreeNode[] => {
       depth: 0,
       visible: true,
       folded: false,
-      verticalConnectorHeight: 0,
     };
     nodeMap.set(spanIdToString(span.spanId), node);
   });
@@ -70,38 +68,6 @@ export const buildSpanTree = (spans: Span[]): SpanTreeNode[] => {
 
   // Set depth for all root nodes and their descendants
   rootNodes.forEach((rootNode) => calculateDepth(rootNode, 0));
-
-  // Calculate vertical connector height for each node
-  const calculateVerticalConnectorHeight = (node: SpanTreeNode): void => {
-    // Helper function that counts ALL descendants without checking isLast
-    const countAllDescendants = (node: SpanTreeNode): number => {
-      let count = 0;
-      node.children.forEach((child) => {
-        count++;
-        count += countAllDescendants(child);
-      });
-      return count;
-    };
-
-    // Main logic: only check isLast at the first level
-    let count = 0;
-    node.children.forEach((child) => {
-      count++; // Count the direct child
-      if (!child.isLast) {
-        // If not the last child, include ALL its descendants
-        count += countAllDescendants(child);
-      }
-      // If it is the last child, don't include its descendants
-    });
-
-    node.verticalConnectorHeight = count;
-
-    // Recursively calculate for all children
-    node.children.forEach((child) => calculateVerticalConnectorHeight(child));
-  };
-
-  // Calculate vertical connector height for all root nodes and their descendants
-  rootNodes.forEach((rootNode) => calculateVerticalConnectorHeight(rootNode));
 
   // Properly set the index and isLast of each node within its siblings group
   const setIndicesAndLastFlag = (nodes: SpanTreeNode[]) => {
