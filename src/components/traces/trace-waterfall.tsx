@@ -125,7 +125,7 @@ export const TraceWaterfall = ({
       const ids: string[] = [];
       node.children.forEach((child) => {
         ids.push(spanIdToString(child.span.spanId));
-        // 자식이 접히지 않은 경우에만 그 하위들도 포함
+
         if (!foldedNodes.has(spanIdToString(child.span.spanId))) {
           ids.push(...getAllChildIds(child));
         }
@@ -140,7 +140,6 @@ export const TraceWaterfall = ({
       return;
     }
 
-    // 동적으로 연결선 높이 계산
     const calculateDynamicConnectorHeight = (node: SpanTreeNode): number => {
       let count = 0;
       node.children.forEach((child) => {
