@@ -99,31 +99,6 @@ const SessionPanel = ({
     [selectedLines, searchParams, router],
   );
 
-  const formattedValue = useCallback((value?: Val): string => {
-    if (!value) return "";
-
-    const {
-      kind: { case: valueCase, value: valueValue },
-    } = value;
-
-    switch (valueCase) {
-      case "i64":
-        return valueValue?.toString();
-      case "ts":
-        return formatTimestamp(valueValue, "Jan _2 15:04:05.000");
-      case "dur":
-        return formatDuration(valueValue);
-      case "blob":
-        return decodeUint8Array(valueValue);
-      case "arr":
-        return valueValue.items.map((item) => formattedValue(item)).join(", ");
-      case "null":
-        return "null";
-      default:
-        return valueValue?.toString() || "";
-    }
-  }, []);
-
   const onClickShare = useCallback(() => {
     const data = newLogsData(create(LogsSchema, { logs }));
     setSharedData(data);

@@ -26,13 +26,26 @@ export const OPERATORS = [
       "arr",
       "obj",
       "map",
+      "traceId",
+      "spanId",
       "default",
     ],
   },
   {
     label: "not equals (!=)",
     value: BinaryOp_Operator.CMP_NOTEQ,
-    cases: ["str", "i64", "ts", "blob", "arr", "obj", "map", "default"],
+    cases: [
+      "str",
+      "i64",
+      "ts",
+      "blob",
+      "arr",
+      "obj",
+      "map",
+      "traceId",
+      "spanId",
+      "default",
+    ],
   },
   {
     label: "contains",
@@ -157,6 +170,7 @@ export const FilterByKeyValue = ({
   symbolCase?: string;
 }) => {
   const { setFilterBySymbol } = useFilterBySymbolStore();
+
   return (
     <div className="mb-2 flex w-auto flex-wrap gap-1">
       {OPERATORS.filter((op) => {

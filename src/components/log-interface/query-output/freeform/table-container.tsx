@@ -1,5 +1,13 @@
 import { valueToString, varTypeToString } from "@/lib/utils/value-formatters";
-import { Arr, TableType_Column, ScalarType } from "api/js/types/v1/types_pb";
+import {
+  Arr,
+  TableType_Column,
+  ScalarType,
+  TraceID,
+  SpanID,
+  Val,
+  Scalar,
+} from "api/js/types/v1/types_pb";
 import { useMemo, useState, useEffect, useRef, useCallback } from "react";
 import {
   CellContext,
@@ -11,7 +19,6 @@ import {
 import {
   Tooltip,
   TooltipContent,
-  TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import {
@@ -24,6 +31,9 @@ import {
 } from "@/lib/utils/queryExpressions";
 import config from "@/features/config";
 import { TableVirtuoso } from "react-virtuoso";
+import { traceIdToString } from "@/lib/utils/id-factories";
+import { useSpanNavigation } from "@/hooks/useSpanNavigation";
+import Link from "next/link";
 
 interface TableProps {
   tableColumns?: TableType_Column[];
@@ -125,10 +135,8 @@ const TableContainer = ({
 
           return item ? (
             <Tooltip>
-              <TooltipTrigger asChild>
-                <span className="px-1 py-0.5 hover:bg-slate-100 dark:hover:bg-slate-800">
-                  {valueToString(item)}
-                </span>
+              <TooltipTrigger>
+                <ValueToComponent val={item} />
               </TooltipTrigger>
               <TooltipContent>
                 <div className="space-y-1 text-xs">
@@ -257,7 +265,7 @@ const TableContainer = ({
                         <tr
                           {...props}
                           key={row.id}
-                          className="border-b border-slate-100 hover:bg-slate-100 dark:border-slate-800 dark:hover:bg-slate-900"
+                          className="border-b border-slate-100 dark:border-slate-800"
                         >
                           {row.getVisibleCells().map((cell) => (
                             <td
@@ -348,6 +356,45 @@ const TableContainer = ({
         </div>
       </div>
     </div>
+  );
+};
+
+interface ValueToComponentProps {
+  val: Val | Scalar | undefined;
+}
+
+const ValueToComponent = ({ val }: ValueToComponentProps) => {
+  if (!val) {
+    return;
+  }
+  switch (val.kind.case) {
+    case "traceId":
+      return <ConditionalLink traceId={traceIdToString(val.kind.value)} />;
+  }
+  return (
+    <span className="px-1 py-0.5 hover:bg-slate-100 dark:hover:bg-slate-800">
+      {valueToString(val)}
+    </span>
+  );
+};
+
+interface ConditionalLinkProps {
+  traceId: string;
+}
+
+const ConditionalLink = ({ traceId }: ConditionalLinkProps) => {
+  const { traceUrl } = useSpanNavigation(traceId);
+
+  if (!traceUrl) return <span>{traceId}</span>;
+
+  return (
+    <Link
+      href={traceUrl}
+      title="Click to view full trace details"
+      className="px-1 py-0.5 text-blue-600 underline decoration-dotted hover:text-blue-800 dark:text-blue-400"
+    >
+      {traceId}
+    </Link>
   );
 };
 

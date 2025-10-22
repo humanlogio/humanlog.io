@@ -22,7 +22,14 @@ import {
   DropdownMenu,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ulidToString } from "@/lib/utils/id-factories";
+import {
+  spanIdToString,
+  traceIdToString,
+  ulidToString,
+} from "@/lib/utils/id-factories";
+import Link from "next/link";
+import { useSpanNavigation } from "@/hooks/useSpanNavigation";
+import { valueToString } from "@/lib/utils/value-formatters";
 
 interface LogLineProps {
   log: Log;
@@ -65,32 +72,10 @@ export const LogLine = memo(
     const lineId = `${index}-${ulidToString(log.ulid)}`;
     const isSelected = selectedLines === lineId;
 
-    const formattedValue = useCallback((value?: Val): string => {
-      if (!value) return "";
+    const traceId = traceIdToString(log.traceId);
+    const spanId = spanIdToString(log.spanId);
 
-      const {
-        kind: { case: valueCase, value: valueValue },
-      } = value;
-
-      switch (valueCase) {
-        case "i64":
-          return valueValue?.toString();
-        case "ts":
-          return formatTimestamp(valueValue, "Jan _2 15:04:05.000");
-        case "dur":
-          return formatDuration(valueValue);
-        case "blob":
-          return decodeUint8Array(valueValue);
-        case "arr":
-          return valueValue.items
-            .map((item) => formattedValue(item))
-            .join(", ");
-        case "null":
-          return "null";
-        default:
-          return valueValue?.toString() || "";
-      }
-    }, []);
+    const { traceUrl, spanUrl } = useSpanNavigation(traceId, spanId);
 
     const formatKvText = useCallback(
       (kvs?: KV[], sectionBreak?: boolean): string => {
@@ -101,12 +86,12 @@ export const LogLine = memo(
           if (sectionBreak && index > 0) {
             result += "\n";
           }
-          result += `${kv.key}=${formattedValue(kv.value)} `;
+          result += `${kv.key}=${valueToString(kv.value)} `;
         });
 
         return result;
       },
-      [formattedValue],
+      [valueToString],
     );
 
     const updateSelection = useCallback(
@@ -126,8 +111,10 @@ export const LogLine = memo(
 
           const level = log.severityText ?? "EMPTY";
           const message = log.body ?? "no message";
+          const traceId = traceIdToString(log.traceId);
+          const spanId = spanIdToString(log.spanId);
           const kvText = formatKvText(log.attributes, sectionBreak);
-          text = `${timestamp} |${level}| ${message} ${kvText}`;
+          text = `${timestamp} |${level}| ${message} ${traceId && `[trace id: ${traceId}]`} ${spanId && `[span id: ${spanId}]`} ${kvText}`;
         }
 
         selected.func(text);
@@ -226,7 +213,7 @@ export const LogLine = memo(
             <Tooltip>
               <TooltipTrigger asChild>
                 <span
-                  className={`inline-flex cursor-pointer items-center rounded px-1 py-0.5 transition-colors hover:bg-gray-100 dark:hover:bg-gray-800`}
+                  className={`inline-flex items-center rounded px-1 py-0.5 transition-colors hover:bg-gray-100 dark:hover:bg-gray-800`}
                 >
                   <span style={{ color: getColor("time") }}>
                     {formattedTimestamp}{" "}
@@ -248,18 +235,34 @@ export const LogLine = memo(
                 </span>
               </TooltipTrigger>
 
+              {traceUrl && (
+                <Link
+                  href={traceUrl}
+                  title="Click to view full trace details"
+                  className="px-1 py-0.5 text-blue-600 underline decoration-dotted hover:text-blue-800 dark:text-blue-400"
+                >
+                  traceId: {traceId}
+                </Link>
+              )}
+              {spanUrl ? (
+                <Link
+                  href={spanUrl}
+                  title="Click to view full trace details"
+                  className="px-1 py-0.5 text-blue-600 underline decoration-dotted hover:text-blue-800 dark:text-blue-400"
+                >
+                  traceId: {traceId}
+                </Link>
+              ) : spanId ? (
+                <span>{`spanId: ${spanId}`}</span>
+              ) : null}
+
               <div className="relative">
                 <MetaDataTooltip log={log} />
               </div>
             </Tooltip>
             <div className={twMerge("flex", sectionBreak && "flex-col")}>
               {log.attributes.map((kv, kvIndex) => (
-                <LogAttribute
-                  key={kvIndex}
-                  kv={kv}
-                  getColor={getColor}
-                  formattedValue={formattedValue}
-                />
+                <LogAttribute key={kvIndex} kv={kv} getColor={getColor} />
               ))}
             </div>
           </pre>
