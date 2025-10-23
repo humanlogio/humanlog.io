@@ -11,5 +11,9 @@ export default function Stream() {
     setActivePage("stream");
   }, [activePage]);
 
-  return <LogInterface nav="stream" />;
+  return (
+    <div className="h-full w-full">
+      <LogInterface nav="stream" />
+    </div>
+  );
 }

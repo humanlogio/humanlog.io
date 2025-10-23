@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { ReactNode, useEffect } from "react";
 import { usePing } from "@/hooks/usePing";
 import { useUser } from "@/hooks/useUser";
+import { SideMenu } from "@/app/[org]/[env]/side-menu";
 
 export default function EnvLayout({ children }: { children: ReactNode }) {
   const params = useParams();
@@ -25,6 +26,10 @@ export default function EnvLayout({ children }: { children: ReactNode }) {
       <NoLocalhostView />
     </div>
   ) : (
-    children
+    <div className="flex w-screen flex-1">
+      <SideMenu />
+
+      {children}
+    </div>
   );
 }

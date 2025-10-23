@@ -34,7 +34,7 @@ import { z } from "zod";
 import { DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Info } from "lucide-react";
-import { ReadOnlyField } from "@/app/[org]/[env]/dashboard/components/read-only-field";
+import { ReadOnlyField } from "@/app/[org]/[env]/project/components/read-only-field";
 import { create } from "@bufbuild/protobuf";
 import { useEnvironmentStore } from "@/stores/environment-store";
 
