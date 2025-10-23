@@ -74,8 +74,47 @@ export const LogLine = memo(
 
     const traceId = traceIdToString(log.traceId);
     const spanId = spanIdToString(log.spanId);
+    // For testing
+    // const traceId = "e1b79ed34efce1ef5ff1a6f8d3475ae9e7faf3bf3cdb4d5e";
+    // const spanId = "6f7f37739dfb7fb75deb6f7a";
 
     const { traceUrl, spanUrl } = useSpanNavigation(traceId, spanId);
+
+    const styleForLink =
+      "px-1 py-0.5 text-blue-600 underline decoration-dotted hover:text-blue-800 dark:text-blue-400";
+
+    const renderTraceLink = () => {
+      if (!traceUrl) return null;
+
+      return (
+        <Link
+          href={traceUrl}
+          title="Click to view trace details"
+          className={styleForLink}
+        >
+          traceId: {traceId}
+        </Link>
+      );
+    };
+
+    const renderSpanLink = () => {
+      if (!spanId) return null;
+
+      if (traceId && spanUrl) {
+        return (
+          <Link
+            href={spanUrl}
+            title="Click to view span details"
+            className={styleForLink}
+          >
+            spanId: {spanId}
+          </Link>
+        );
+      }
+
+      // Non-clickable span
+      return <span className="px-1 py-0.5">spanId: {spanId}</span>;
+    };
 
     const formatKvText = useCallback(
       (kvs?: KV[], sectionBreak?: boolean): string => {
@@ -235,26 +274,8 @@ export const LogLine = memo(
                 </span>
               </TooltipTrigger>
 
-              {traceUrl && (
-                <Link
-                  href={traceUrl}
-                  title="Click to view full trace details"
-                  className="px-1 py-0.5 text-blue-600 underline decoration-dotted hover:text-blue-800 dark:text-blue-400"
-                >
-                  traceId: {traceId}
-                </Link>
-              )}
-              {spanUrl ? (
-                <Link
-                  href={spanUrl}
-                  title="Click to view full trace details"
-                  className="px-1 py-0.5 text-blue-600 underline decoration-dotted hover:text-blue-800 dark:text-blue-400"
-                >
-                  traceId: {traceId}
-                </Link>
-              ) : spanId ? (
-                <span>{`spanId: ${spanId}`}</span>
-              ) : null}
+              {renderTraceLink()}
+              {renderSpanLink()}
 
               <div className="relative">
                 <MetaDataTooltip log={log} />
