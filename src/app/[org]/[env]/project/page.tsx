@@ -15,8 +15,8 @@ import {
 } from "@/components/ui/dialog";
 import { Accordion } from "@/components/ui/accordion";
 import LoadingIndicator from "@/components/loading-indicator";
-import { ProjectContainer } from "@/app/[org]/[env]/dashboard/components/project-container";
-import { ProjectForm } from "@/app/[org]/[env]/dashboard/components/project-form";
+import { ProjectContainer } from "@/app/[org]/[env]/project/components/project-container";
+import { ProjectForm } from "@/app/[org]/[env]/project/components/project-form";
 import { useEnvironmentStore } from "@/stores/environment-store";
 import { usePage } from "@/stores/page-store";
 
@@ -38,7 +38,7 @@ export default function DashboardListPage() {
   });
 
   useEffect(() => {
-    setActivePage("dashboard");
+    setActivePage("project");
   }, [activePage]);
 
   if (isLoadingProjectList) {

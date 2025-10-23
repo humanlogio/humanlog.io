@@ -1,13 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
-type ActivePage =
-  | "query"
-  | "stream"
-  | "dashboard"
-  | "monitors"
-  | "traces"
-  | "settings";
+type ActivePage = "query" | "stream" | "project" | "traces" | "settings";
 
 interface PageStore {
   activePage: ActivePage | undefined;
