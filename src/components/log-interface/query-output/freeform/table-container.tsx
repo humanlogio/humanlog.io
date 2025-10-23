@@ -1,13 +1,5 @@
 import { valueToString, varTypeToString } from "@/lib/utils/value-formatters";
-import {
-  Arr,
-  TableType_Column,
-  ScalarType,
-  TraceID,
-  SpanID,
-  Val,
-  Scalar,
-} from "api/js/types/v1/types_pb";
+import { Arr, TableType_Column, Val, Scalar } from "api/js/types/v1/types_pb";
 import { useMemo, useState, useEffect, useRef, useCallback } from "react";
 import {
   CellContext,
@@ -31,7 +23,7 @@ import {
 } from "@/lib/utils/queryExpressions";
 import config from "@/features/config";
 import { TableVirtuoso } from "react-virtuoso";
-import { traceIdToString } from "@/lib/utils/id-factories";
+import { spanIdToString, traceIdToString } from "@/lib/utils/id-factories";
 import { useSpanNavigation } from "@/hooks/useSpanNavigation";
 import Link from "next/link";
 
@@ -115,6 +107,14 @@ const TableContainer = ({
       columnCount,
       containerWidth,
     );
+    const findTraceIdInRow = (row: Arr): string | null => {
+      for (const item of row.items) {
+        if (item?.kind.case === "traceId") {
+          return traceIdToString(item.kind.value);
+        }
+      }
+      return null;
+    };
 
     return tableColumns.map((col, colIndex) => {
       return {
@@ -133,10 +133,13 @@ const TableContainer = ({
           const item = tableRows[rowIndex].items[colIndex];
           const column = tableColumns[colIndex];
 
+          // find trace id in row
+          const rowTraceId = findTraceIdInRow(tableRows[rowIndex]);
+
           return item ? (
             <Tooltip>
               <TooltipTrigger>
-                <ValueToComponent val={item} />
+                <TableCellValue val={item} rowTraceId={rowTraceId} />
               </TooltipTrigger>
               <TooltipContent>
                 <div className="space-y-1 text-xs">
@@ -359,41 +362,63 @@ const TableContainer = ({
   );
 };
 
-interface ValueToComponentProps {
+interface TableCellValueProps {
   val: Val | Scalar | undefined;
+  rowTraceId: string | null;
 }
 
-const ValueToComponent = ({ val }: ValueToComponentProps) => {
-  if (!val) {
-    return;
-  }
+const TableCellValue = ({ val, rowTraceId }: TableCellValueProps) => {
+  if (!val) return null;
+
   switch (val.kind.case) {
     case "traceId":
-      return <ConditionalLink traceId={traceIdToString(val.kind.value)} />;
-  }
-  return (
-    <span className="px-1 py-0.5 hover:bg-slate-100 dark:hover:bg-slate-800">
-      {valueToString(val)}
-    </span>
-  );
-};
+      return <TraceSpanLink traceId={traceIdToString(val.kind.value)} />;
 
-interface ConditionalLinkProps {
+    case "spanId":
+      const spanId = spanIdToString(val.kind.value);
+      return rowTraceId ? (
+        <TraceSpanLink traceId={rowTraceId} spanId={spanId} />
+      ) : (
+        <span className="px-1 py-0.5 text-gray-600 dark:text-gray-400">
+          {spanId}
+        </span>
+      );
+
+    default:
+      return (
+        <span className="px-1 py-0.5 hover:bg-slate-100 dark:hover:bg-slate-800">
+          {valueToString(val)}
+        </span>
+      );
+  }
+};
+interface TraceSpanLinkProps {
   traceId: string;
+  spanId?: string;
 }
 
-const ConditionalLink = ({ traceId }: ConditionalLinkProps) => {
-  const { traceUrl } = useSpanNavigation(traceId);
+const TraceSpanLink = ({ traceId, spanId }: TraceSpanLinkProps) => {
+  const { traceUrl, spanUrl } = useSpanNavigation(traceId, spanId);
+  const url = spanId && spanUrl ? spanUrl : traceUrl;
+  const displayText = spanId || traceId;
 
-  if (!traceUrl) return <span>{traceId}</span>;
+  if (!url) {
+    return (
+      <span className="px-1 py-0.5 text-gray-600 dark:text-gray-400">
+        {displayText}
+      </span>
+    );
+  }
 
   return (
     <Link
-      href={traceUrl}
-      title="Click to view full trace details"
+      href={url}
+      title={
+        spanId ? "Click to view span details" : "Click to view trace details"
+      }
       className="px-1 py-0.5 text-blue-600 underline decoration-dotted hover:text-blue-800 dark:text-blue-400"
     >
-      {traceId}
+      {displayText}
     </Link>
   );
 };
