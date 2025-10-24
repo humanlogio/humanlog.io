@@ -72,7 +72,7 @@ export const SpanCard = memo(({ index, span }: SpanCardProps) => {
       <Card className="overflow-hidden transition-colors hover:border-blue-300">
         <CardHeader className="bg-gray-50 p-4 dark:bg-gray-800/60">
           <ConditionalLink
-            href={traceUrl}
+            href={spanUrl}
             className="flex flex-col justify-between gap-2 sm:flex-row sm:items-center"
           >
             <div className="flex items-center gap-2">
