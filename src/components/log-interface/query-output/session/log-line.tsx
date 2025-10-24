@@ -1,12 +1,12 @@
 import { useThemeColors } from "@/lib/hooks/useThemeColors";
 import { copyToClipboard } from "@/lib/utils/clipboard";
 import { decodeUint8Array } from "@/lib/utils/decode";
-import { formatDuration, formatTimestamp } from "@/lib/utils/formatTimeStamp";
+import { formatTimestamp } from "@/lib/utils/formatTimeStamp";
 import { Timestamp } from "@bufbuild/protobuf/wkt";
 import { FormatConfig_Themes } from "api/js/types/v1/localhost_config_pb";
 import { Log } from "api/js/types/v1/otel_logging_pb";
 import { KV, Val } from "api/js/types/v1/types_pb";
-import { memo, useCallback, useEffect, useMemo, useState } from "react";
+import { memo, useCallback, useMemo } from "react";
 import { twMerge } from "tailwind-merge";
 import { Ellipsis } from "lucide-react";
 import {
@@ -82,39 +82,6 @@ export const LogLine = memo(
 
     const styleForLink =
       "px-1 py-0.5 text-blue-600 underline decoration-dotted hover:text-blue-800 dark:text-blue-400";
-
-    const renderTraceLink = () => {
-      if (!traceUrl) return null;
-
-      return (
-        <Link
-          href={traceUrl}
-          title="Click to view trace details"
-          className={styleForLink}
-        >
-          traceId: {traceId}
-        </Link>
-      );
-    };
-
-    const renderSpanLink = () => {
-      if (!spanId) return null;
-
-      if (traceId && spanUrl) {
-        return (
-          <Link
-            href={spanUrl}
-            title="Click to view span details"
-            className={styleForLink}
-          >
-            spanId: {spanId}
-          </Link>
-        );
-      }
-
-      // Non-clickable span
-      return <span className="px-1 py-0.5">spanId: {spanId}</span>;
-    };
 
     const formatKvText = useCallback(
       (kvs?: KV[], sectionBreak?: boolean): string => {
@@ -274,8 +241,25 @@ export const LogLine = memo(
                 </span>
               </TooltipTrigger>
 
-              {renderTraceLink()}
-              {renderSpanLink()}
+              {traceUrl && (
+                <Link
+                  href={traceUrl}
+                  title="Click to view trace details"
+                  className={styleForLink}
+                >
+                  traceId: {traceId}
+                </Link>
+              )}
+
+              {spanUrl && (
+                <Link
+                  href={spanUrl}
+                  title="Click to view span details"
+                  className={styleForLink}
+                >
+                  spanId: {spanId}
+                </Link>
+              )}
 
               <div className="relative">
                 <MetaDataTooltip log={log} />
