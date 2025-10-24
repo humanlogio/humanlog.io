@@ -13,55 +13,53 @@ import {
   newIdentifierExpr,
   newLiteralExpr,
 } from "@/lib/utils/queryExpressions";
+import { valueToString } from "@/lib/utils/value-formatters";
 
 type ThemeType = "msg" | "time" | "key" | "value" | "levels";
 
 interface LogAttributeProps {
   kv: KV;
   getColor: (type: ThemeType) => string | undefined;
-  formattedValue: (value?: Val) => string;
 }
 
-export const LogAttribute = memo(
-  ({ kv, getColor, formattedValue }: LogAttributeProps) => {
-    return (
-      <span className="mr-1 inline-flex">
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <span
-              className={`inline cursor-pointer rounded px-1 py-0.5 transition-colors hover:bg-gray-100 dark:hover:bg-gray-800`}
-            >
-              <span style={{ color: getColor("key") }}>{kv.key}=</span>
-              <span style={{ color: getColor("value") }}>
-                {formattedValue(kv.value)}
-              </span>
+export const LogAttribute = memo(({ kv, getColor }: LogAttributeProps) => {
+  return (
+    <span className="mr-1 inline-flex">
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <span
+            className={`inline rounded px-1 py-0.5 transition-colors hover:bg-gray-100 dark:hover:bg-gray-800`}
+          >
+            <span style={{ color: getColor("key") }}>{kv.key}=</span>
+            <span style={{ color: getColor("value") }}>
+              {valueToString(kv.value)}
             </span>
-          </TooltipTrigger>
-          <TooltipContent className="max-w-sm">
-            <div className="relative">
-              <KeyValueRow label="Key" value={kv.key} />
-              <KeyValueRow
-                label="Type"
-                value={kv.value?.kind.case?.toString() ?? ""}
-              />
-              <KeyValueRow label="Value" value={formattedValue(kv.value)} />
+          </span>
+        </TooltipTrigger>
+        <TooltipContent className="max-w-sm">
+          <div className="relative">
+            <KeyValueRow label="Key" value={kv.key} />
+            <KeyValueRow
+              label="Type"
+              value={kv.value?.kind.case?.toString() ?? ""}
+            />
+            <KeyValueRow label="Value" value={valueToString(kv.value)} />
 
-              <div className="mt-2 border-t border-gray-200 pt-2">
-                <div className="mb-2 text-xs font-medium text-gray-700 dark:text-gray-300">
-                  Filter Options:
-                </div>
-                <FilterByKeyValue
-                  symbolName={newIdentifierExpr(kv.key)}
-                  symbolValue={newLiteralExpr(kv.value!)}
-                  symbolCase={kv.value?.kind.case}
-                />
+            <div className="mt-2 border-t border-gray-200 pt-2">
+              <div className="mb-2 text-xs font-medium text-gray-700 dark:text-gray-300">
+                Filter Options:
               </div>
+              <FilterByKeyValue
+                symbolName={newIdentifierExpr(kv.key)}
+                symbolValue={newLiteralExpr(kv.value!)}
+                symbolCase={kv.value?.kind.case}
+              />
             </div>
-          </TooltipContent>
-        </Tooltip>
-      </span>
-    );
-  },
-);
+          </div>
+        </TooltipContent>
+      </Tooltip>
+    </span>
+  );
+});
 
 LogAttribute.displayName = "LogAttribute";
