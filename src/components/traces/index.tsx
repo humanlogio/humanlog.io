@@ -1,11 +1,6 @@
 "use client";
 
 import { useApiClients } from "@/context/api-provider";
-import {
-  getDurationInMilliseconds,
-  getUnixTimestamp,
-} from "@/lib/utils/formatTimeStamp";
-import { getTrace } from "@/services/traceService";
 import { useEffect, useMemo, useState } from "react";
 import { Copy } from "lucide-react";
 import { copyToClipboard } from "@/lib/utils/clipboard";
@@ -25,9 +20,12 @@ import { makeStrKV } from "@/lib/utils/kvFactories";
 import { getColorByIndex } from "@/lib/utils/colors";
 import { Span } from "api/js/types/v1/otel_tracing_pb";
 import { create } from "@bufbuild/protobuf";
+import { useQuery } from "@connectrpc/connect-query";
+import { getTrace } from "api/js/svc/query/v1/trace_service-TraceService_connectquery";
+import { traceIdToString } from "@/lib/utils/id-factories";
 
 interface TracesProps {
-  traceId: string | null;
+  traceId?: string | null;
   spanId?: string | null;
 }
 
@@ -231,36 +229,47 @@ export const Traces = ({ traceId, spanId }: TracesProps) => {
     setServiceColors(_serviceColors);
   }, [spans, traceId]);
 
+  const { data: traceData } = useQuery(
+    getTrace,
+    {
+      by: spanId
+        ? {
+            case: "spanId",
+            value: spanId,
+          }
+        : traceId
+          ? {
+              case: "traceId",
+              value: traceId,
+            }
+          : undefined,
+    },
+    {
+      transport: apiClients?.activeTransport,
+      enabled: !!(spanId || traceId),
+    },
+  );
+
   // Load data
   useEffect(() => {
-    if (!apiClients || !traceId) return;
+    if (!traceData?.trace) return;
 
-    getTrace(apiClients?.trace, traceId, {
-      onSuccess: (res) => {
-        if (res.trace?.spans) {
-          setSpans(res.trace.spans);
-          const tree = buildSpanTree(res.trace.spans);
-          setSpanTree(tree);
-          if (spanId) {
-            const span = findSpanNodeById(tree, spanId);
-            if (span) {
-              setSelectedSpan(span);
-            }
-            return;
-          }
-          setSelectedSpan(tree[0]);
-        }
-      },
-    });
+    setSpans(traceData?.trace?.spans || []);
+    const tree = buildSpanTree(traceData.trace.spans);
+    setSpanTree(tree);
+    if (!spanId) return;
+    const span = findSpanNodeById(spanTree, spanId);
+    if (!span) return;
+    setSelectedSpan(span);
 
     // fake data
     // setSpans(sampleSpans.data.spans);
     // const tree = buildSpanTree(sampleSpans.data.spans);
     // setSpanTree(tree);
-  }, [apiClients, traceId, spanId]);
+  }, [traceData, traceId, spanId]);
 
   return (
-    traceId && (
+    traceData?.trace && (
       <div className="flex px-6 py-8">
         <PanelGroup direction="horizontal">
           <Panel defaultSize={80} minSize={30}>
@@ -269,15 +278,17 @@ export const Traces = ({ traceId, spanId }: TracesProps) => {
                 <span className="text-2xl font-extrabold">Trace</span>
                 <button
                   className="flex max-w-md items-center truncate text-sm text-gray-500"
-                  onClick={() => copyToClipboard(traceId)}
+                  onClick={() =>
+                    copyToClipboard(traceIdToString(traceData?.trace?.traceId))
+                  }
                 >
-                  {traceId}
+                  {traceIdToString(traceData?.trace?.traceId)}
                   <Copy size={12} className="flex-none" />
                 </button>
               </div>
 
               <TraceWaterfall
-                traceId={traceId}
+                traceId={traceIdToString(traceData?.trace?.traceId)}
                 serviceColors={serviceColors}
                 spans={spans}
                 spanTree={spanTree}

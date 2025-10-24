@@ -107,14 +107,6 @@ const TableContainer = ({
       columnCount,
       containerWidth,
     );
-    const findTraceIdInRow = (row: Arr): string | null => {
-      for (const item of row.items) {
-        if (item?.kind.case === "traceId") {
-          return traceIdToString(item.kind.value);
-        }
-      }
-      return null;
-    };
 
     return tableColumns.map((col, colIndex) => {
       return {
@@ -133,13 +125,10 @@ const TableContainer = ({
           const item = tableRows[rowIndex].items[colIndex];
           const column = tableColumns[colIndex];
 
-          // find trace id in row
-          const rowTraceId = findTraceIdInRow(tableRows[rowIndex]);
-
           return item ? (
             <Tooltip>
               <TooltipTrigger>
-                <TableCellValue val={item} rowTraceId={rowTraceId} />
+                <TableCellValue val={item} />
               </TooltipTrigger>
               <TooltipContent>
                 <div className="space-y-1 text-xs">
@@ -364,25 +353,19 @@ const TableContainer = ({
 
 interface TableCellValueProps {
   val: Val | Scalar | undefined;
-  rowTraceId: string | null;
 }
 
-const TableCellValue = ({ val, rowTraceId }: TableCellValueProps) => {
+const TableCellValue = ({ val }: TableCellValueProps) => {
   if (!val) return null;
 
   switch (val.kind.case) {
     case "traceId":
-      return <TraceSpanLink traceId={traceIdToString(val.kind.value)} />;
+      const traceId = traceIdToString(val.kind.value);
+      return <TraceSpanLink traceId={traceId} />;
 
     case "spanId":
       const spanId = spanIdToString(val.kind.value);
-      return rowTraceId ? (
-        <TraceSpanLink traceId={rowTraceId} spanId={spanId} />
-      ) : (
-        <span className="px-1 py-0.5 text-gray-600 dark:text-gray-400">
-          {spanId}
-        </span>
-      );
+      return <TraceSpanLink spanId={spanId} />;
 
     default:
       return (
@@ -393,13 +376,13 @@ const TableCellValue = ({ val, rowTraceId }: TableCellValueProps) => {
   }
 };
 interface TraceSpanLinkProps {
-  traceId: string;
+  traceId?: string;
   spanId?: string;
 }
 
 const TraceSpanLink = ({ traceId, spanId }: TraceSpanLinkProps) => {
   const { traceUrl, spanUrl } = useSpanNavigation(traceId, spanId);
-  const url = spanId && spanUrl ? spanUrl : traceUrl;
+  const url = spanUrl ? spanUrl : traceUrl;
   const displayText = spanId || traceId;
 
   if (!url) {
