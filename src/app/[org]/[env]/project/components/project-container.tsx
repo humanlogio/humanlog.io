@@ -41,8 +41,8 @@ import {
 } from "@/components/ui/accordion";
 
 import { Project } from "api/js/types/v1/project_pb";
-import { PointerInfo } from "@/app/[org]/[env]/dashboard/components/pointer-info";
-import { ReadOnlyField } from "@/app/[org]/[env]/dashboard/components/read-only-field";
+import { PointerInfo } from "@/app/[org]/[env]/project/dashboard/[id]/components/pointer-info";
+import { ReadOnlyField } from "@/app/[org]/[env]/project/components/read-only-field";
 import { create } from "@bufbuild/protobuf";
 import { useEnvironmentStore } from "@/stores/environment-store";
 import { getOrgEnvUrl } from "@/lib/utils/navigation";

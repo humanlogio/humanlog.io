@@ -1,14 +1,23 @@
 "use client";
 
 import { NoLocalhostView } from "@/components/log-interface/views/no-localhost-view";
-import { useParams } from "next/navigation";
-import { ReactNode } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { ReactNode, useEffect } from "react";
 import { usePing } from "@/hooks/usePing";
+import { useUser } from "@/hooks/useUser";
+import { SideMenu } from "@/app/[org]/[env]/side-menu";
 
 export default function EnvLayout({ children }: { children: ReactNode }) {
   const params = useParams();
+  const router = useRouter();
+  const { userData, isLoadingUser } = useUser();
   const { localhostData, isLoadingLocalhost } = usePing();
   const currentEnvSlug = params?.env as string;
+
+  useEffect(() => {
+    if (isLoadingUser || userData) return;
+    router.replace("/");
+  }, [userData, isLoadingUser]);
 
   if (isLoadingLocalhost) return <></>;
 
@@ -17,6 +26,10 @@ export default function EnvLayout({ children }: { children: ReactNode }) {
       <NoLocalhostView />
     </div>
   ) : (
-    children
+    <div className="flex w-screen flex-1">
+      <SideMenu />
+
+      {children}
+    </div>
   );
 }

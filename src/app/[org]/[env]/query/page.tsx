@@ -18,11 +18,11 @@ export default function Query() {
   }, [activePage]);
 
   return (
-    <div className="h-full">
+    <div className="h-full w-full">
       {!tutorialParam && (
         <Suspense
           fallback={
-            <div className="flex h-full w-full items-center justify-center">
+            <div className="flex h-full items-center justify-center">
               <Loader2 className="animate-spin" size={30} />
             </div>
           }

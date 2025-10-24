@@ -24,8 +24,6 @@ import { gravatarURL } from "@/lib/utils/avatar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { PingResponse } from "api/js/svc/localhost/v1/service_pb";
-import { EnvSwitcher } from "@/components/header/app-header/env-switcher";
-import { SideMenu } from "@/components/header/app-header/side-menu";
 import { useUser } from "@/hooks/useUser";
 import { BetaBadge } from "@/components/beta-badge";
 
@@ -144,10 +142,6 @@ export const AppHeader = () => {
           </Tooltip>
         )}
         <div className="flex items-center gap-2">
-          <div className="w-30">
-            <EnvSwitcher userData={userData} />
-          </div>
-
           <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
             <SheetTrigger asChild>
               <Avatar className="h-7 w-7">
@@ -159,9 +153,7 @@ export const AppHeader = () => {
                 </AvatarFallback>
               </Avatar>
             </SheetTrigger>
-            <SheetContent>
-              <SideMenu userData={userData} />
-            </SheetContent>
+            <SheetContent></SheetContent>
           </Sheet>
         </div>
       </div>
