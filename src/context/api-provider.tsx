@@ -140,7 +140,6 @@ export function ApiClientsProvider({
             if (error.code === Code.Unauthenticated) {
               setAuthenticated(false);
               setActiveEnvironment(undefined);
-              router.replace("/");
             }
           }
           throw error;
