@@ -1,12 +1,12 @@
 import { useThemeColors } from "@/lib/hooks/useThemeColors";
 import { copyToClipboard } from "@/lib/utils/clipboard";
 import { decodeUint8Array } from "@/lib/utils/decode";
-import { formatDuration, formatTimestamp } from "@/lib/utils/formatTimeStamp";
+import { formatTimestamp } from "@/lib/utils/formatTimeStamp";
 import { Timestamp } from "@bufbuild/protobuf/wkt";
 import { FormatConfig_Themes } from "api/js/types/v1/localhost_config_pb";
 import { Log } from "api/js/types/v1/otel_logging_pb";
 import { KV, Val } from "api/js/types/v1/types_pb";
-import { memo, useCallback, useEffect, useMemo, useState } from "react";
+import { memo, useCallback, useMemo } from "react";
 import { twMerge } from "tailwind-merge";
 import { Ellipsis } from "lucide-react";
 import {
@@ -22,7 +22,14 @@ import {
   DropdownMenu,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ulidToString } from "@/lib/utils/id-factories";
+import {
+  spanIdToString,
+  traceIdToString,
+  ulidToString,
+} from "@/lib/utils/id-factories";
+import Link from "next/link";
+import { useSpanNavigation } from "@/hooks/useSpanNavigation";
+import { valueToString } from "@/lib/utils/value-formatters";
 
 interface LogLineProps {
   log: Log;
@@ -65,32 +72,16 @@ export const LogLine = memo(
     const lineId = `${index}-${ulidToString(log.ulid)}`;
     const isSelected = selectedLines === lineId;
 
-    const formattedValue = useCallback((value?: Val): string => {
-      if (!value) return "";
+    const traceId = traceIdToString(log.traceId);
+    const spanId = spanIdToString(log.spanId);
+    // For testing
+    // const traceId = "e1b79ed34efce1ef5ff1a6f8d3475ae9e7faf3bf3cdb4d5e";
+    // const spanId = "6f7f37739dfb7fb75deb6f7a";
 
-      const {
-        kind: { case: valueCase, value: valueValue },
-      } = value;
+    const { traceUrl, spanUrl } = useSpanNavigation(traceId, spanId);
 
-      switch (valueCase) {
-        case "i64":
-          return valueValue?.toString();
-        case "ts":
-          return formatTimestamp(valueValue, "Jan _2 15:04:05.000");
-        case "dur":
-          return formatDuration(valueValue);
-        case "blob":
-          return decodeUint8Array(valueValue);
-        case "arr":
-          return valueValue.items
-            .map((item) => formattedValue(item))
-            .join(", ");
-        case "null":
-          return "null";
-        default:
-          return valueValue?.toString() || "";
-      }
-    }, []);
+    const styleForLink =
+      "px-1 py-0.5 text-blue-600 underline decoration-dotted hover:text-blue-800 dark:text-blue-400";
 
     const formatKvText = useCallback(
       (kvs?: KV[], sectionBreak?: boolean): string => {
@@ -101,12 +92,12 @@ export const LogLine = memo(
           if (sectionBreak && index > 0) {
             result += "\n";
           }
-          result += `${kv.key}=${formattedValue(kv.value)} `;
+          result += `${kv.key}=${valueToString(kv.value)} `;
         });
 
         return result;
       },
-      [formattedValue],
+      [valueToString],
     );
 
     const updateSelection = useCallback(
@@ -126,8 +117,10 @@ export const LogLine = memo(
 
           const level = log.severityText ?? "EMPTY";
           const message = log.body ?? "no message";
+          const traceId = traceIdToString(log.traceId);
+          const spanId = spanIdToString(log.spanId);
           const kvText = formatKvText(log.attributes, sectionBreak);
-          text = `${timestamp} |${level}| ${message} ${kvText}`;
+          text = `${timestamp} |${level}| ${message} ${traceId && `[trace id: ${traceId}]`} ${spanId && `[span id: ${spanId}]`} ${kvText}`;
         }
 
         selected.func(text);
@@ -226,7 +219,7 @@ export const LogLine = memo(
             <Tooltip>
               <TooltipTrigger asChild>
                 <span
-                  className={`inline-flex cursor-pointer items-center rounded px-1 py-0.5 transition-colors hover:bg-gray-100 dark:hover:bg-gray-800`}
+                  className={`inline-flex items-center rounded px-1 py-0.5 transition-colors hover:bg-gray-100 dark:hover:bg-gray-800`}
                 >
                   <span style={{ color: getColor("time") }}>
                     {formattedTimestamp}{" "}
@@ -248,18 +241,33 @@ export const LogLine = memo(
                 </span>
               </TooltipTrigger>
 
+              {traceUrl && (
+                <Link
+                  href={traceUrl}
+                  title="Click to view trace details"
+                  className={styleForLink}
+                >
+                  traceId: {traceId}
+                </Link>
+              )}
+
+              {spanUrl && (
+                <Link
+                  href={spanUrl}
+                  title="Click to view span details"
+                  className={styleForLink}
+                >
+                  spanId: {spanId}
+                </Link>
+              )}
+
               <div className="relative">
                 <MetaDataTooltip log={log} />
               </div>
             </Tooltip>
             <div className={twMerge("flex", sectionBreak && "flex-col")}>
               {log.attributes.map((kv, kvIndex) => (
-                <LogAttribute
-                  key={kvIndex}
-                  kv={kv}
-                  getColor={getColor}
-                  formattedValue={formattedValue}
-                />
+                <LogAttribute key={kvIndex} kv={kv} getColor={getColor} />
               ))}
             </div>
           </pre>

@@ -130,11 +130,7 @@ export const SpanList = ({
               totalCount={filteredSpans?.length}
               endReached={loadMore}
               itemContent={(i) => (
-                <SpanCard
-                  index={i}
-                  span={filteredSpans[i]}
-                  isSample={isSample}
-                />
+                <SpanCard index={i} span={filteredSpans[i]} />
               )}
             />
           )}
