@@ -235,7 +235,7 @@ export const LocalhostSettings = () => {
   if (!localhostData) return;
 
   return (
-    <div className="space-y-6 px-10 py-5">
+    <div className="w-full space-y-6 px-10 py-5">
       <div className="flex items-end justify-between">
         <div>
           <h1 className="text-3xl font-bold">Localhost Settings</h1>

@@ -18,6 +18,12 @@ import { CursorSchema } from "api/js/types/v1/cursor_pb";
 import { listEnvironment } from "api/js/svc/organization/v1/service-OrganizationService_connectquery";
 import { create } from "@bufbuild/protobuf";
 import { usePing } from "@/hooks/usePing";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { HardDrive } from "lucide-react";
 interface Source {
   name: string;
   path: string;
@@ -33,6 +39,7 @@ export const EnvSwitcher = ({ userData }: EnvSwitcherProps) => {
   const params = useParams();
   const { activePage } = usePage();
   const { localhostData } = usePing();
+
   const { setActiveEnvironment, activeEnvironment } = useEnvironmentStore();
 
   const [menuList, setMenuList] = useState<Source[]>([]);
@@ -111,21 +118,34 @@ export const EnvSwitcher = ({ userData }: EnvSwitcherProps) => {
   }, [listEnvironmentData, userData, localhostData, activePage]);
 
   return (
-    <Select value={getCurrentSelectedValue()} onValueChange={updateSelection}>
-      <SelectTrigger className="h-7 w-full">
-        <div className="line-clamp-1 flex flex-row items-center overflow-hidden text-ellipsis whitespace-nowrap">
-          <SelectValue placeholder="Select env" className="text-xs" />
-        </div>
-      </SelectTrigger>
-      <SelectContent>
-        <SelectGroup>
-          {menuList.map((menu, i) => (
-            <SelectItem className="cursor-pointer" key={i} value={menu.value}>
-              {menu.name}
-            </SelectItem>
-          ))}
-        </SelectGroup>
-      </SelectContent>
-    </Select>
+    <div className="flex items-center gap-3">
+      <Select value={getCurrentSelectedValue()} onValueChange={updateSelection}>
+        <SelectTrigger className="h-8 w-full min-w-42">
+          <div className="line-clamp-1 flex flex-row items-center overflow-hidden text-ellipsis whitespace-nowrap">
+            <SelectValue placeholder="Select source" />
+          </div>
+        </SelectTrigger>
+        <SelectContent>
+          <SelectGroup>
+            {menuList.map((menu, i) => (
+              <SelectItem className="cursor-pointer" key={i} value={menu.value}>
+                {menu.name}
+              </SelectItem>
+            ))}
+          </SelectGroup>
+        </SelectContent>
+      </Select>
+      {currentEnvSlug === "localhost" && (
+        <Tooltip>
+          <TooltipTrigger className="flex h-8 items-center gap-1 rounded-lg border border-[#19D163] bg-[#82E2A9]/10 px-3 py-1 whitespace-nowrap">
+            <HardDrive size={16} className="mr-1 text-[#19D163]" />
+            <span className="text-green-600">Local Storage Only</span>
+          </TooltipTrigger>
+          <TooltipContent side="bottom">
+            100% Local Data - Your logs are stored locally
+          </TooltipContent>
+        </Tooltip>
+      )}
+    </div>
   );
 };

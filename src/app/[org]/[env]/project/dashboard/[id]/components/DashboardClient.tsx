@@ -33,8 +33,7 @@ import * as tablePlugin from "@perses-dev/table-plugin";
 import * as barchartPlugin from "@perses-dev/bar-chart-plugin";
 import * as humanlogPlugin from "@humanlogio/perses-plugin";
 import { useTheme } from "next-themes";
-
-import { DashboardControls } from "@/app/[org]/[env]/dashboard/components/DashboardControls";
+import { DashboardControls } from "@/app/[org]/[env]/project/dashboard/[id]/components/DashboardControls";
 import { Suspense, useMemo } from "react";
 import { getDashboard } from "api/js/svc/dashboard/v1/service-DashboardService_connectquery";
 import { useQuery } from "@connectrpc/connect-query";
