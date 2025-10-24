@@ -142,8 +142,7 @@ export const EnvSwitcher = ({ userData }: EnvSwitcherProps) => {
             <span className="text-green-600">Local Storage Only</span>
           </TooltipTrigger>
           <TooltipContent side="bottom">
-            100% Local Data - Your logs are stored locally and will not be
-            deleted
+            100% Local Data - Your logs are stored locally
           </TooltipContent>
         </Tooltip>
       )}
