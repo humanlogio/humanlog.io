@@ -21,6 +21,12 @@ import {
 import Link from "next/link";
 import { usePage } from "@/stores/page-store";
 import { Separator } from "@/components/ui/separator";
+import { useFeatureFlag } from "@/lib/hooks/useFeatureFlag";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 export const SideMenu = () => {
   // TODO: 함수 util로 분리하기
@@ -34,6 +40,8 @@ export const SideMenu = () => {
   const { activePage } = usePage();
   const currentOrg = userData?.currentOrganization?.name;
   const currentEnvSlug = params?.env || "localhost";
+  // PostHog feature flags
+  const showProjectMenu = useFeatureFlag("release_project_menu_temp", true);
 
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -43,28 +51,28 @@ export const SideMenu = () => {
       page: "query",
       path: `/${currentOrg}/${currentEnvSlug}/query`,
       icon: <Database size={14} />,
-      isDevOnly: false,
+      isReady: true,
     },
     {
       name: "Stream",
       page: "stream",
       path: `/${currentOrg}/${currentEnvSlug}/stream`,
       icon: <Activity size={14} />,
-      isDevOnly: false,
+      isReady: true,
     },
     {
       name: "Project",
       page: "project",
       path: `/${currentOrg}/${currentEnvSlug}/project`,
       icon: <FolderKanban size={14} />,
-      isDevOnly: isProd,
+      isReady: showProjectMenu,
     },
     {
       name: "Settings",
       page: "settings",
       path: `/${currentOrg}/${currentEnvSlug}/settings`,
       icon: <Settings size={14} />,
-      isDevOnly: isProd,
+      isReady: true,
     },
   ];
 
@@ -72,25 +80,41 @@ export const SideMenu = () => {
     <div
       className={`h-full border-r bg-neutral-50 transition-all duration-300 ease-in-out dark:bg-neutral-950 ${isExpanded ? "w-35" : "w-13"} flex flex-col justify-between overflow-x-hidden`}
     >
-      {/* 메뉴 아이템들 */}
       <nav className="space-y-1 p-2">
-        {navItems.map((item) => (
-          <div key={item.path}>
-            {item.page === "settings" && <Separator />}
-            <Link href={item.path}>
-              <Button
-                variant="ghost"
-                className={`h-9 w-full justify-start px-2 ${activePage === item.page && "bg-accent text-accent-foreground"}`}
-              >
-                {item.icon}
-                <span className="ml-3">{item.name}</span>
-              </Button>
-            </Link>
-          </div>
-        ))}
+        {navItems.map((item) =>
+          item.isReady ? (
+            <div key={item.path}>
+              {item.page === "settings" && <Separator className="my-1" />}
+              <Link href={item.path}>
+                <Button
+                  variant="ghost"
+                  className={`h-9 w-full justify-start px-2 ${activePage === item.page && "bg-accent text-accent-foreground"}`}
+                >
+                  {item.icon}
+                  <span className="ml-3">{item.name}</span>
+                </Button>
+              </Link>
+            </div>
+          ) : (
+            <Tooltip key={item.path}>
+              <TooltipTrigger asChild>
+                <div>
+                  <Button
+                    variant="ghost"
+                    className={`h-9 w-full justify-start px-2 ${activePage === item.page && "bg-accent text-accent-foreground"}`}
+                    disabled
+                  >
+                    {item.icon}
+                    <span className="ml-3">{item.name}</span>
+                  </Button>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent side="right">Coming soon!</TooltipContent>
+            </Tooltip>
+          ),
+        )}
       </nav>
 
-      {/* 토글 버튼 */}
       <div className="w-full justify-start">
         <Button
           variant="ghost"
