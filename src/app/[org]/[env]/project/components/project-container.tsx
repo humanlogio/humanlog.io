@@ -49,6 +49,8 @@ import { getOrgEnvUrl } from "@/lib/utils/navigation";
 import { useUser } from "@/hooks/useUser";
 import { formatTimestamp } from "@/lib/utils/formatTimeStamp";
 import { useActiveTransport } from "@/context/api-provider";
+import { isDashboardReadonly, isProjectReadonly } from "@/lib/utils/project";
+import { Dashboard } from "api/js/types/v1/dashboard_pb";
 
 const formSchema = z.object({
   name: z
@@ -82,23 +84,6 @@ export const ProjectContainer = ({
   const [projectContents, setProjectContents] = useState<Record<string, any>>(
     {},
   );
-
-  const isProjectReadonly = (project: Project): boolean => {
-    if (!project.spec?.pointer?.scheme) return false;
-
-    const { case: pointerType, value } = project.spec.pointer.scheme;
-
-    if (pointerType === "localhost") {
-      const localPointer = value as any;
-      return localPointer.readOnly === true;
-    }
-
-    if (pointerType === "remote") {
-      return true;
-    }
-
-    return false;
-  };
 
   const isExpanded = project.spec?.name
     ? expandedProjects.has(project.spec?.name)
@@ -170,7 +155,8 @@ export const ProjectContainer = ({
     createDashboardMutation(newDashboard);
   };
 
-  const handleDashboardClick = (dashboardId: string) => {
+  const handleDashboardClick = (dashboardId?: string) => {
+    if (!dashboardId) return;
     const url = getOrgEnvUrl(userData, activeEnvironment, "project");
     router.push(
       `${url}/dashboard/${dashboardId}?projectName=${project?.spec?.name}`,
@@ -232,7 +218,7 @@ export const ProjectContainer = ({
             })()}
 
             {isProjectReadonly(project) && (
-              <Badge variant="secondary" className="ml-2 text-xs">
+              <Badge variant="secondary" className="text-xs">
                 Read Only
               </Badge>
             )}
@@ -349,9 +335,9 @@ export const ProjectContainer = ({
               </div>
               {projectData?.dashboards && projectData?.dashboards.length > 0 ? (
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-                  {projectData?.dashboards.map((dashboard: any) => (
+                  {projectData?.dashboards.map((dashboard: Dashboard) => (
                     <div
-                      key={dashboard.meta.id?.toString()}
+                      key={dashboard.meta?.id?.toString()}
                       onClick={() => handleDashboardClick(dashboard.meta?.id)}
                       className="border-muted cursor-pointer rounded-lg border p-4 transition-shadow duration-200 hover:border-gray-200 dark:hover:border-gray-700"
                     >
@@ -359,7 +345,7 @@ export const ProjectContainer = ({
                         <h5 className="truncate font-medium text-gray-900 dark:text-white">
                           {dashboard.spec?.name || "Untitled Dashboard"}
                         </h5>
-                        {dashboard.isReadonly && (
+                        {isDashboardReadonly(dashboard) && (
                           <Badge variant="secondary" className="ml-2 text-xs">
                             Read Only
                           </Badge>
