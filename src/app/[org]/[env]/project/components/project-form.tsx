@@ -15,7 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useApiClients } from "@/context/api-provider";
+import { useActiveTransport } from "@/context/api-provider";
 import { logger } from "@/lib/utils/telemetry/logger";
 import { useMutation } from "@connectrpc/connect-query";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -84,7 +84,9 @@ export const ProjectForm = ({
   const { activeEnvironment } = useEnvironmentStore();
 
   const { mutate: createProjectMutation, isPending: isCreatingProject } =
-    useMutation(createProject);
+    useMutation(createProject, {
+      transport: useActiveTransport(),
+    });
 
   const stackForm = useForm<ProjectFormData>({
     resolver: zodResolver(stackFormSchema),
