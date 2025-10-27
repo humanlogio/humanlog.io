@@ -1,12 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
-import Logo from "@/components/logo";
 import dayjs from "dayjs";
 import { GithubMark } from "@/components/icons/github-mark";
 import { DiscordMark } from "@/components/icons/discord-mark";
 import { usePathname } from "next/navigation";
+import { ThemeToggle } from "@/components/theme-toggle";
+import config from "@/features/config";
 
 const iconSocialLinks = [
   {
@@ -46,16 +46,19 @@ const PageFooter = () => {
   if (pathname !== "/") return null;
 
   return (
-    <footer className="bg-muted py-10">
+    <footer className="bg-neutral-50 px-5 py-10 dark:bg-neutral-950">
       <div className="container">
         <div className="grid grid-cols-1 gap-10 md:grid-cols-12">
           <div className="flex flex-col items-center gap-4 text-center md:col-span-8 md:items-start md:text-start">
-            <Logo sm />
+            <p>Humanlog.{config.TLD}</p>
             <p className="text-muted-foreground">
               WebScale LLC, 2024-{dayjs().year()}.
               <br />
               Humanlog.io © All rights reserved.
             </p>
+            <div className="mt-2">
+              <ThemeToggle />
+            </div>
           </div>
 
           <div className="flex flex-col items-center gap-2 md:col-span-2 md:items-start">
