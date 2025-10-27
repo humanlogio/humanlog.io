@@ -2,7 +2,7 @@
 
 import { NoLocalhostView } from "@/components/log-interface/views/no-localhost-view";
 import { useParams, useRouter } from "next/navigation";
-import { ReactNode, useEffect } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { usePing } from "@/hooks/usePing";
 import { useUser } from "@/hooks/useUser";
 import { SideMenu } from "@/app/[org]/[env]/side-menu";
@@ -13,6 +13,8 @@ export default function EnvLayout({ children }: { children: ReactNode }) {
   const { userData, isLoadingUser } = useUser();
   const { localhostData, isLoadingLocalhost } = usePing();
   const currentEnvSlug = params?.env as string;
+
+  const [isExpanded, setIsExpanded] = useState(false);
 
   useEffect(() => {
     if (isLoadingUser || userData) return;
@@ -27,9 +29,11 @@ export default function EnvLayout({ children }: { children: ReactNode }) {
     </div>
   ) : (
     <div className="flex w-screen flex-1">
-      <SideMenu />
+      <SideMenu isExpanded={isExpanded} setIsExpanded={setIsExpanded} />
 
-      {children}
+      <div className={`w-full ${isExpanded ? "ml-35" : "ml-13"}`}>
+        {children}
+      </div>
     </div>
   );
 }
