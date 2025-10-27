@@ -96,7 +96,7 @@ export const SideMenu = () => {
               </Link>
             </div>
           ) : (
-            <Tooltip>
+            <Tooltip key={item.path}>
               <TooltipTrigger asChild>
                 <div>
                   <Button
