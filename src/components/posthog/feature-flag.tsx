@@ -1,12 +1,13 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { usePostHog } from "posthog-js/react";
+import React from "react";
+import { useFeatureFlag } from "@/lib/hooks/useFeatureFlag";
 
 type FeatureFlagProps = {
   flagKey: string;
   fallback?: React.ReactNode;
   children: React.ReactNode;
+  defaultValue?: boolean;
 };
 
 /**
@@ -17,21 +18,9 @@ export const FeatureFlag: React.FC<FeatureFlagProps> = ({
   flagKey,
   fallback = null,
   children,
+  defaultValue = false,
 }) => {
-  const posthog = usePostHog();
-  const [flagEnabled, setFlagEnabled] = useState<boolean | null>(null);
-
-  useEffect(() => {
-    if (posthog) {
-      const enabled = posthog.isFeatureEnabled(flagKey);
-      setFlagEnabled(enabled === true);
-    }
-  }, [posthog, flagKey]);
-
-  // Still loading or PostHog not available
-  if (flagEnabled === null) {
-    return <>{fallback}</>;
-  }
+  const flagEnabled = useFeatureFlag(flagKey, defaultValue);
 
   return <>{flagEnabled ? children : fallback}</>;
 };
