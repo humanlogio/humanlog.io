@@ -41,6 +41,7 @@ import { DashboardResource } from "@perses-dev/core";
 import { mockDatasourceApi } from "@/lib/mocks/sampleDashboards";
 import { useSearchParams } from "next/navigation";
 import { BrowserRouter } from "react-router-dom";
+import { useActiveTransport } from "@/context/api-provider";
 
 // Helper function to decode persesJson bytes back to DashboardResource
 function decodePersesJson(
@@ -52,6 +53,7 @@ function decodePersesJson(
     const jsonString = new TextDecoder().decode(persesJsonBytes);
     return JSON.parse(jsonString) as DashboardResource;
   } catch (error) {
+    console.error("Error decoding persesJson bytes:", error);
     return null;
   }
 }
@@ -64,13 +66,20 @@ function DashboardClientContent({ dashboardId }: DashboardClientProps) {
   const { theme } = useTheme();
   const searchParams = useSearchParams();
   const projectName = searchParams.get("projectName") || undefined;
-  const { isLoading, data } = useQuery(getDashboard, {
-    id: dashboardId,
-    projectName,
-  });
+  const { isLoading, data } = useQuery(
+    getDashboard,
+    {
+      id: dashboardId,
+      projectName,
+    },
+    {
+      transport: useActiveTransport(),
+    },
+  );
 
   // Decode the persesJson bytes back to DashboardResource
   const decodedDashboard = useMemo(() => {
+    if (!data || isLoading) return;
     const dashboard = decodePersesJson(data?.dashboard?.spec?.persesJson);
 
     if (dashboard) {
@@ -78,6 +87,16 @@ function DashboardClientContent({ dashboardId }: DashboardClientProps) {
       if (!dashboard.spec.datasources) {
         dashboard.spec.datasources = {};
       }
+
+      dashboard.spec.datasources["humanlog-localhost"] = {
+        default: true, // Default for local development
+        plugin: {
+          kind: "HumanlogDatasource",
+          spec: {
+            directUrl: "http://localhost:32764",
+          },
+        },
+      };
 
       // Add both local and hosted Humanlog datasources if they don't exist
       if (!dashboard.spec.datasources["humanlog-localhost"]) {
@@ -121,7 +140,7 @@ function DashboardClientContent({ dashboardId }: DashboardClientProps) {
     }
 
     return dashboard;
-  }, [data?.dashboard?.spec?.persesJson]);
+  }, [data, isLoading]);
 
   const themeMode = useMemo(() => {
     switch (theme) {
@@ -210,7 +229,7 @@ function DashboardClientContent({ dashboardId }: DashboardClientProps) {
                           isEditMode: true,
                         }}
                       >
-                        <div className="min-h-screen bg-white p-6 text-black dark:bg-gray-900 dark:text-white">
+                        <div className="min-h-screen w-full bg-white p-6 text-black dark:bg-gray-900 dark:text-white">
                           <div className="flex items-center justify-between">
                             <div>
                               <h1 className="mb-1 text-2xl font-bold">
