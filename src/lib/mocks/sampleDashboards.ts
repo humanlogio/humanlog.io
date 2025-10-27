@@ -56,7 +56,7 @@ export function createDefaultDashboardTemplate(
     spec: {
       display: {
         name: name,
-        description: description || "Getting started with your new dashboard",
+        description: description,
       },
       datasources: {
         prometheus: {

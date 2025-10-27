@@ -26,6 +26,7 @@ export interface DashboardChanges {
 export function useDashboardPersistence(
   initialDashboard: DashboardResource,
   dashboardId: string,
+  projectName: string,
 ) {
   const [dashboardChanges, setDashboardChanges] = useState<DashboardChanges>({
     dashboardResource: initialDashboard,
@@ -36,7 +37,6 @@ export function useDashboardPersistence(
 
   // Get current dashboard state
   const currentDashboardState = useDashboardStore((state) => {
-    console.log("state", state);
     // Reconstruct DashboardResource from current state
     const currentDashboard: DashboardResource = {
       kind: state.kind as "Dashboard",
@@ -149,8 +149,6 @@ export function useDashboardPersistence(
   const prepareDashboardForSave = useCallback(() => {
     const currentDashboard = dashboardChanges.dashboardResource;
 
-    console.log("Current dashboard:", currentDashboard);
-
     // Serialize the entire dashboard to JSON for setPersesJson
     const persesJsonString = JSON.stringify(currentDashboard);
     const persesJsonBytes = new TextEncoder().encode(persesJsonString);
@@ -158,7 +156,7 @@ export function useDashboardPersistence(
     // Create UpdateDashboardRequest
     const updateRequest = create(UpdateDashboardRequestSchema, {
       id: dashboardId,
-      projectName: currentDashboard.metadata.project,
+      projectName,
       spec: {
         persesJson: persesJsonBytes,
       },

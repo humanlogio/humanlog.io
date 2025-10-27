@@ -47,6 +47,8 @@ import { create } from "@bufbuild/protobuf";
 import { useEnvironmentStore } from "@/stores/environment-store";
 import { getOrgEnvUrl } from "@/lib/utils/navigation";
 import { useUser } from "@/hooks/useUser";
+import { formatTimestamp } from "@/lib/utils/formatTimeStamp";
+import { useActiveTransport } from "@/context/api-provider";
 
 const formSchema = z.object({
   name: z
@@ -102,7 +104,11 @@ export const ProjectContainer = ({
     ? expandedProjects.has(project.spec?.name)
     : false;
 
-  const { data: projectData, isLoading: isLoadingProject } = useQuery(
+  const {
+    data: projectData,
+    isLoading: isLoadingProject,
+    refetch: refetchProject,
+  } = useQuery(
     getProject,
     {
       environmentId: activeEnvironment?.environment?.id,
@@ -110,11 +116,24 @@ export const ProjectContainer = ({
     },
     {
       enabled: isExpanded,
+      transport: useActiveTransport(),
     },
   );
 
   const { mutate: createDashboardMutation, isPending: isCreatingDashboard } =
-    useMutation(createDashboard);
+    useMutation(createDashboard, {
+      onSuccess: (res) => {
+        logger.info(`Dashboard created successfully: ${res}`);
+        toast.success("Dashboard created successfully");
+        refetchProject();
+        setIsDialogOpen(false);
+      },
+      onError: (error) => {
+        toast.error(`Failed to create dashboard: ${error.message}`);
+        logger.error(`Failed to create dashboard: ${error.message}`);
+      },
+      transport: useActiveTransport(),
+    });
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -148,24 +167,14 @@ export const ProjectContainer = ({
       },
     });
 
-    createDashboardMutation(newDashboard, {
-      onSuccess: (response) => {
-        logger.info(`Dashboard created successfully: ${response}`);
-        toast.info("Dashboard created successfully");
-
-        setIsDialogOpen(false);
-        form.reset();
-      },
-      onError: (error) => {
-        toast.error(`Failed to create dashboard: ${error.message}`);
-        logger.error(`Failed to create dashboard: ${error.message}`);
-      },
-    });
+    createDashboardMutation(newDashboard);
   };
 
   const handleDashboardClick = (dashboardId: string) => {
-    const url = getOrgEnvUrl(userData, activeEnvironment, "dashboard");
-    router.push(`${url}/${dashboardId}?projectName=${project?.spec?.name}`);
+    const url = getOrgEnvUrl(userData, activeEnvironment, "project");
+    router.push(
+      `${url}/dashboard/${dashboardId}?projectName=${project?.spec?.name}`,
+    );
   };
 
   const handleProjectExpand = (projectName: string) => {
@@ -342,13 +351,13 @@ export const ProjectContainer = ({
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
                   {projectData?.dashboards.map((dashboard: any) => (
                     <div
-                      key={dashboard.id?.toString()}
-                      onClick={() => handleDashboardClick(dashboard.id)}
-                      className="border-muted cursor-pointer rounded-lg border p-4 transition-shadow duration-200 hover:border-gray-500"
+                      key={dashboard.meta.id?.toString()}
+                      onClick={() => handleDashboardClick(dashboard.meta?.id)}
+                      className="border-muted cursor-pointer rounded-lg border p-4 transition-shadow duration-200 hover:border-gray-200 dark:hover:border-gray-700"
                     >
                       <div className="flex items-start justify-between">
                         <h5 className="truncate font-medium text-gray-900 dark:text-white">
-                          {dashboard.name || "Untitled Dashboard"}
+                          {dashboard.spec?.name || "Untitled Dashboard"}
                         </h5>
                         {dashboard.isReadonly && (
                           <Badge variant="secondary" className="ml-2 text-xs">
@@ -356,19 +365,15 @@ export const ProjectContainer = ({
                           </Badge>
                         )}
                       </div>
-                      {dashboard.description && (
+                      {dashboard.spec?.description && (
                         <p className="text-muted-foreground mt-2 line-clamp-2 text-sm">
-                          {dashboard.description}
+                          {dashboard.spec?.description}
                         </p>
                       )}
                       <div className="text-muted-foreground mt-3 flex items-center text-xs">
                         <Calendar className="mr-1 h-3 w-3" />
                         <span>
-                          {dashboard.createdAt
-                            ? new Date(
-                                Number(dashboard.createdAt.seconds) * 1000,
-                              ).toLocaleDateString()
-                            : "Unknown"}
+                          {formatTimestamp(dashboard.status?.createdAt)}
                         </span>
                       </div>
                     </div>

@@ -19,6 +19,7 @@ import { ProjectContainer } from "@/app/[org]/[env]/project/components/project-c
 import { ProjectForm } from "@/app/[org]/[env]/project/components/project-form";
 import { useEnvironmentStore } from "@/stores/environment-store";
 import { usePage } from "@/stores/page-store";
+import { useActiveTransport } from "@/context/api-provider";
 
 export default function DashboardListPage() {
   const { activeEnvironment } = useEnvironmentStore();
@@ -33,13 +34,15 @@ export default function DashboardListPage() {
     data: projectList,
     refetch: refetchProjectList,
     isLoading: isLoadingProjectList,
-  } = useQuery(listProject, {
-    environmentId: activeEnvironment?.environment?.id,
-  });
-
-  useEffect(() => {
-    setActivePage("project");
-  }, [activePage]);
+  } = useQuery(
+    listProject,
+    {
+      environmentId: activeEnvironment?.environment?.id,
+    },
+    {
+      transport: useActiveTransport(),
+    },
+  );
 
   if (isLoadingProjectList) {
     return <LoadingIndicator message="Loading projects..." />;
