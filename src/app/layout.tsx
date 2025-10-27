@@ -9,7 +9,6 @@ import { FullWidthProvider } from "@/context/full-width-provider";
 import { Toaster } from "@/components/ui/sonner";
 import PageFooter from "@/components/page-footer";
 import config from "@/features/config";
-import { AuthProvider } from "@/context/auth-context";
 import { OTELProvider } from "@/context/otel-provider";
 import { PostHogProvider } from "@/context/posthog-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -46,22 +45,20 @@ export default function RootLayout({
                 enableSystem
               >
                 <FullWidthProvider>
-                  <AuthProvider>
-                    <TooltipProvider>
-                      <Suspense>
-                        <div className="flex h-screen flex-col">
-                          <div className="flex-none">
-                            <Header />
-                          </div>
-                          <div className="mt-12 flex flex-1 flex-col">
-                            {children}
-                          </div>
-                          <PageFooter />
+                  <TooltipProvider>
+                    <Suspense>
+                      <div className="flex h-screen flex-col">
+                        <div className="flex-none">
+                          <Header />
                         </div>
-                      </Suspense>
-                    </TooltipProvider>
-                    <Toaster expand={true} />
-                  </AuthProvider>
+                        <div className="mt-12 flex flex-1 flex-col">
+                          {children}
+                        </div>
+                        <PageFooter />
+                      </div>
+                    </Suspense>
+                  </TooltipProvider>
+                  <Toaster expand={true} />
                 </FullWidthProvider>
               </ThemeProvider>
             </ApiClientsProvider>
