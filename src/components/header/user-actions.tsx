@@ -8,16 +8,7 @@ import { getAuthURL } from "api/js/svc/auth/v1/service-AuthService_connectquery"
 import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { gravatarURL } from "@/lib/utils/avatar";
-import {
-  Building,
-  ChevronRight,
-  LogOut,
-  Moon,
-  Sun,
-  User,
-  UserIcon,
-  SunMoon,
-} from "lucide-react";
+import { Building, ChevronRight, LogOut, User, UserIcon } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -27,21 +18,18 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { NavigationMenuItem } from "@/components/ui/navigation-menu";
 import { OrgSwitcher } from "@/components/header/org-switcher";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useTheme } from "next-themes";
 import Link from "next/link";
 import { WhoamiResponse } from "api/js/svc/user/v1/service_private_pb";
 import { getLogoutURL } from "api/js/svc/user/v1/service_private-UserService_connectquery";
 import config from "@/features/config";
 import { SetUserNameModal } from "@/components/header/set-user-name-modal";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 interface UserActionsProps {
   userData: WhoamiResponse | undefined;
 }
 
 export const UserActions = ({ userData }: UserActionsProps) => {
-  const { theme, setTheme } = useTheme();
-
   const router = useRouter();
   const returnToUrl = `${getSelfURL()}/login`;
 
@@ -159,19 +147,7 @@ export const UserActions = ({ userData }: UserActionsProps) => {
         <div className="px-2 py-1.5">
           <div className="flex items-center justify-between">
             <div className="text-xs">Theme</div>
-            <Tabs value={theme} onValueChange={setTheme}>
-              <TabsList className="h-8">
-                <TabsTrigger value="system">
-                  <SunMoon size={15} />
-                </TabsTrigger>
-                <TabsTrigger value="light">
-                  <Sun size={15} />
-                </TabsTrigger>
-                <TabsTrigger value="dark">
-                  <Moon size={15} />
-                </TabsTrigger>
-              </TabsList>
-            </Tabs>
+            <ThemeToggle />
           </div>
         </div>
 
