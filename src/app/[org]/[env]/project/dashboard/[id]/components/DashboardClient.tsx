@@ -42,6 +42,8 @@ import { mockDatasourceApi } from "@/lib/mocks/sampleDashboards";
 import { useSearchParams } from "next/navigation";
 import { BrowserRouter } from "react-router-dom";
 import { useActiveTransport } from "@/context/api-provider";
+import { Badge } from "@/components/ui/badge";
+import { isDashboardReadonly } from "@/lib/utils/project";
 
 // Helper function to decode persesJson bytes back to DashboardResource
 function decodePersesJson(
@@ -226,23 +228,36 @@ function DashboardClientContent({ dashboardId }: DashboardClientProps) {
                       <DashboardProvider
                         initialState={{
                           dashboardResource: decodedDashboard,
-                          isEditMode: true,
+                          isEditMode: !isDashboardReadonly(data?.dashboard),
                         }}
                       >
                         <div className="min-h-screen w-full bg-white p-6 text-black dark:bg-gray-900 dark:text-white">
                           <div className="flex items-center justify-between">
                             <div>
-                              <h1 className="mb-1 text-2xl font-bold">
-                                {data?.dashboard?.spec?.name}
-                              </h1>
+                              <div className="flex items-center">
+                                <h1 className="mb-1 text-2xl font-bold">
+                                  {data?.dashboard?.spec?.name}
+                                </h1>
+                                {isDashboardReadonly(data?.dashboard) && (
+                                  <Badge
+                                    variant="secondary"
+                                    className="ml-2 text-xs"
+                                  >
+                                    Read Only
+                                  </Badge>
+                                )}
+                              </div>
                               <p className="text-muted-foreground mb-6">
                                 {data?.dashboard?.spec?.description}
                               </p>
                             </div>
-                            <DashboardControls
-                              dashboardResource={decodedDashboard}
-                              dashboardId={dashboardId}
-                            />
+
+                            {!isDashboardReadonly(data?.dashboard) && (
+                              <DashboardControls
+                                dashboardResource={decodedDashboard}
+                                dashboardId={dashboardId}
+                              />
+                            )}
                           </div>
 
                           <Dashboard
