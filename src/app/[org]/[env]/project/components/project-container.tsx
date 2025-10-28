@@ -32,7 +32,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { logger } from "@/lib/utils/telemetry/logger";
 import { toast } from "sonner";
-import { createDefaultDashboardTemplate } from "@/lib/mocks/sampleDashboards";
+import { createDefaultDashboardTemplate } from "@/lib/datasources/dashboardDatasources";
 import { Badge } from "@/components/ui/badge";
 import {
   AccordionContent,

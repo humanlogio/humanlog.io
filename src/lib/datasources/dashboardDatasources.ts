@@ -11,32 +11,38 @@ import {
 import { DashboardSchema } from "api/js/types/v1/dashboard_pb";
 import { create } from "@bufbuild/protobuf";
 import { timestampFromDate } from "@bufbuild/protobuf/wkt";
-
-const directUrl = "http://localhost:32764";
+import {
+  HUMANLOG_DATASOURCE_KIND,
+  PROMETHEUS_DATASOURCE_KIND,
+  GLOBAL_DATASOURCE_KIND,
+  LOCALHOST_NAME,
+  PROMETHEUS_NAME,
+  LOCALHOST_URL,
+} from "@/lib/datasources/constants";
 
 export const localhostHumanlogDatasource: GlobalDatasourceResource = {
-  kind: "GlobalDatasource",
-  metadata: { name: "localhost" },
+  kind: GLOBAL_DATASOURCE_KIND,
+  metadata: { name: LOCALHOST_NAME },
   spec: {
     default: true,
     plugin: {
-      kind: "HumanlogDatasource",
+      kind: HUMANLOG_DATASOURCE_KIND,
       spec: {
-        directUrl: directUrl,
+        directUrl: LOCALHOST_URL,
       },
     },
   },
 };
 
 export const mockPrometheusDatasource: GlobalDatasourceResource = {
-  kind: "GlobalDatasource",
-  metadata: { name: "prometheus" },
+  kind: GLOBAL_DATASOURCE_KIND,
+  metadata: { name: PROMETHEUS_NAME },
   spec: {
     default: true,
     plugin: {
-      kind: "PrometheusDatasource",
+      kind: PROMETHEUS_DATASOURCE_KIND,
       spec: {
-        directUrl,
+        directUrl: LOCALHOST_URL,
       },
     },
   },
@@ -59,12 +65,12 @@ export function createDefaultDashboardTemplate(
         description: description,
       },
       datasources: {
-        prometheus: {
+        [PROMETHEUS_NAME]: {
           default: true,
           plugin: {
-            kind: "PrometheusDatasource",
+            kind: PROMETHEUS_DATASOURCE_KIND,
             spec: {
-              directUrl,
+              directUrl: LOCALHOST_URL,
             },
           },
         },
@@ -103,12 +109,12 @@ export const mockDashboard: DashboardResource = {
         "System monitoring dashboard with memory, status, and CPU metrics",
     },
     datasources: {
-      prometheus: {
+      [PROMETHEUS_NAME]: {
         default: true,
         plugin: {
-          kind: "PrometheusDatasource",
+          kind: PROMETHEUS_DATASOURCE_KIND,
           spec: {
-            directUrl,
+            directUrl: LOCALHOST_URL,
           },
         },
       },
@@ -146,8 +152,8 @@ export const mockDashboard: DashboardResource = {
                   spec: {
                     query: "go_memstats_alloc_bytes",
                     datasource: {
-                      kind: "PrometheusDatasource",
-                      name: "prometheus",
+                      kind: PROMETHEUS_DATASOURCE_KIND,
+                      name: PROMETHEUS_NAME,
                     },
                   },
                 },
@@ -185,8 +191,8 @@ export const mockDashboard: DashboardResource = {
                   spec: {
                     query: "up",
                     datasource: {
-                      kind: "PrometheusDatasource",
-                      name: "prometheus",
+                      kind: PROMETHEUS_DATASOURCE_KIND,
+                      name: PROMETHEUS_NAME,
                     },
                   },
                 },
@@ -224,8 +230,8 @@ export const mockDashboard: DashboardResource = {
                   spec: {
                     query: "rate(go_gc_duration_seconds_sum[5m])",
                     datasource: {
-                      kind: "PrometheusDatasource",
-                      name: "prometheus",
+                      kind: PROMETHEUS_DATASOURCE_KIND,
+                      name: PROMETHEUS_NAME,
                     },
                   },
                 },
@@ -368,8 +374,8 @@ export const createMockDashboards = (): ListDashboardResponse_ListItem[] => {
   );
 };
 
-// Mock Datasource API implementation
-class MockDatasourceApi implements DatasourceApi {
+// Localhost Datasource API implementation
+class LocalhostDatasourceApi implements DatasourceApi {
   getDatasource(): Promise<DatasourceResource | undefined> {
     return Promise.resolve(undefined);
   }
@@ -393,4 +399,4 @@ class MockDatasourceApi implements DatasourceApi {
   }
 }
 
-export const mockDatasourceApi = new MockDatasourceApi();
+export const localhostDatasourceApi = new LocalhostDatasourceApi();

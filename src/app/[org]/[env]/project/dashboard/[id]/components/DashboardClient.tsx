@@ -38,7 +38,14 @@ import { Suspense, useMemo } from "react";
 import { getDashboard } from "api/js/svc/dashboard/v1/service-DashboardService_connectquery";
 import { useQuery } from "@connectrpc/connect-query";
 import { DashboardResource } from "@perses-dev/core";
-import { mockDatasourceApi } from "@/lib/mocks/sampleDashboards";
+import { localhostDatasourceApi } from "@/lib/datasources/dashboardDatasources";
+import {
+  HUMANLOG_DATASOURCE_KIND,
+  HUMANLOG_LOCALHOST_NAME,
+  HUMANLOG_HOSTED_NAME,
+  HUMANLOG_LEGACY_NAME,
+  LOCALHOST_URL,
+} from "@/lib/datasources/constants";
 import { useSearchParams } from "next/navigation";
 import { BrowserRouter } from "react-router-dom";
 import { useActiveTransport } from "@/context/api-provider";
@@ -90,34 +97,24 @@ function DashboardClientContent({ dashboardId }: DashboardClientProps) {
         dashboard.spec.datasources = {};
       }
 
-      dashboard.spec.datasources["humanlog-localhost"] = {
-        default: true, // Default for local development
-        plugin: {
-          kind: "HumanlogDatasource",
-          spec: {
-            directUrl: "http://localhost:32764",
-          },
-        },
-      };
-
       // Add both local and hosted Humanlog datasources if they don't exist
-      if (!dashboard.spec.datasources["humanlog-localhost"]) {
-        dashboard.spec.datasources["humanlog-localhost"] = {
+      if (!dashboard.spec.datasources[HUMANLOG_LOCALHOST_NAME]) {
+        dashboard.spec.datasources[HUMANLOG_LOCALHOST_NAME] = {
           default: true, // Default for local development
           plugin: {
-            kind: "HumanlogDatasource",
+            kind: HUMANLOG_DATASOURCE_KIND,
             spec: {
-              directUrl: "http://localhost:32764",
+              directUrl: LOCALHOST_URL,
             },
           },
         };
       }
 
-      if (!dashboard.spec.datasources["humanlog-hosted"]) {
-        dashboard.spec.datasources["humanlog-hosted"] = {
+      if (!dashboard.spec.datasources[HUMANLOG_HOSTED_NAME]) {
+        dashboard.spec.datasources[HUMANLOG_HOSTED_NAME] = {
           default: false,
           plugin: {
-            kind: "HumanlogDatasource",
+            kind: HUMANLOG_DATASOURCE_KIND,
             spec: {
               directUrl:
                 process.env.NEXT_PUBLIC_HUMANLOG_API_URL ||
@@ -128,13 +125,13 @@ function DashboardClientContent({ dashboardId }: DashboardClientProps) {
       }
 
       // For backward compatibility with any existing "humanlog" datasource references
-      if (!dashboard.spec.datasources["humanlog"]) {
-        dashboard.spec.datasources["humanlog"] = {
+      if (!dashboard.spec.datasources[HUMANLOG_LEGACY_NAME]) {
+        dashboard.spec.datasources[HUMANLOG_LEGACY_NAME] = {
           default: false,
           plugin: {
-            kind: "HumanlogDatasource",
+            kind: HUMANLOG_DATASOURCE_KIND,
             spec: {
-              directUrl: "http://localhost:32764",
+              directUrl: LOCALHOST_URL,
             },
           },
         };
@@ -209,7 +206,7 @@ function DashboardClientContent({ dashboardId }: DashboardClientProps) {
             <PluginRegistry
               pluginLoader={pluginLoader}
               defaultPluginKinds={{
-                Datasource: "HumanlogDatasource",
+                Datasource: HUMANLOG_DATASOURCE_KIND,
                 TimeSeriesQuery: "HumanlogTimeSeriesQuery",
                 TraceQuery: "HumanlogTraceQuery",
                 Panel: "TimeSeriesChart",
@@ -217,7 +214,7 @@ function DashboardClientContent({ dashboardId }: DashboardClientProps) {
             >
               <DatasourceStoreProvider
                 dashboardResource={decodedDashboard}
-                datasourceApi={mockDatasourceApi}
+                datasourceApi={localhostDatasourceApi}
               >
                 <TimeRangeProvider
                   refreshInterval="30s"
