@@ -1,3 +1,4 @@
+// src/lib/hooks/useFeatureFlag.ts
 "use client";
 
 import { useEffect, useState } from "react";
@@ -17,9 +18,15 @@ export const useFeatureFlag = (
   const [flagEnabled, setFlagEnabled] = useState<boolean>(defaultValue);
 
   useEffect(() => {
-    if (posthog) {
+    if (!posthog) return;
+
+    const checkFlag = () => {
       const enabled = posthog.isFeatureEnabled(flagKey);
       setFlagEnabled(enabled === true);
+    };
+
+    if (posthog.onFeatureFlags) {
+      posthog.onFeatureFlags(checkFlag);
     }
   }, [posthog, flagKey]);
 
