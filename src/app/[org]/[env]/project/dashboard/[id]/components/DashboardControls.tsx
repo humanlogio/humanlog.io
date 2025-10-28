@@ -21,16 +21,17 @@ import { Loader2 } from "lucide-react";
 interface DashboardControlsProps {
   dashboardResource: DashboardResource;
   dashboardId: string;
+  projectName: string;
 }
 
 // Dashboard controls component
 export function DashboardControls({
   dashboardResource,
   dashboardId,
+  projectName,
 }: DashboardControlsProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const projectName = searchParams.get("projectName") as string;
 
   const { userData } = useUser();
   const { activeEnvironment } = useEnvironmentStore();

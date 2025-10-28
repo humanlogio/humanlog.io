@@ -69,12 +69,15 @@ function decodePersesJson(
 
 interface DashboardClientProps {
   dashboardId: string;
+  projectName: string;
 }
 
-function DashboardClientContent({ dashboardId }: DashboardClientProps) {
+function DashboardClientContent({
+  dashboardId,
+  projectName,
+}: DashboardClientProps) {
   const { theme } = useTheme();
-  const searchParams = useSearchParams();
-  const projectName = searchParams.get("projectName") || undefined;
+
   const { isLoading, data } = useQuery(
     getDashboard,
     {
@@ -253,6 +256,7 @@ function DashboardClientContent({ dashboardId }: DashboardClientProps) {
                               <DashboardControls
                                 dashboardResource={decodedDashboard}
                                 dashboardId={dashboardId}
+                                projectName={projectName}
                               />
                             )}
                           </div>
@@ -284,10 +288,16 @@ function DashboardClientContent({ dashboardId }: DashboardClientProps) {
   );
 }
 
-export function DashboardClient({ dashboardId }: DashboardClientProps) {
+export function DashboardClient({
+  dashboardId,
+  projectName,
+}: DashboardClientProps) {
   return (
     <Suspense fallback={<div>Loading dashboard...</div>}>
-      <DashboardClientContent dashboardId={dashboardId} />
+      <DashboardClientContent
+        dashboardId={dashboardId}
+        projectName={projectName}
+      />
     </Suspense>
   );
 }
