@@ -19,7 +19,10 @@ import { useActiveTransport } from "@/context/api-provider";
 import { logger } from "@/lib/utils/telemetry/logger";
 import { useMutation } from "@connectrpc/connect-query";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { createProject } from "api/js/svc/project/v1/service-ProjectService_connectquery";
+import {
+  createProject,
+  validateProject,
+} from "api/js/svc/project/v1/service-ProjectService_connectquery";
 import { CreateProjectRequestSchema } from "api/js/svc/project/v1/service_pb";
 import {
   ProjectPointer,
@@ -83,6 +86,10 @@ export const ProjectForm = ({
 }: ProjectFormProps) => {
   const { activeEnvironment } = useEnvironmentStore();
 
+  const { mutate: validateProjectMutation } = useMutation(validateProject, {
+    transport: useActiveTransport(),
+  });
+
   const { mutate: createProjectMutation, isPending: isCreatingProject } =
     useMutation(createProject, {
       transport: useActiveTransport(),
@@ -99,6 +106,32 @@ export const ProjectForm = ({
       readOnly: true,
     },
   });
+
+  const handleCreateProject = (
+    data: ProjectFormData,
+    pointer: ProjectPointer,
+  ) => {
+    const newProject = create(CreateProjectRequestSchema, {
+      environmentId: activeEnvironment?.environment?.id,
+      spec: {
+        name: data.name,
+        pointer,
+      },
+    });
+
+    createProjectMutation(newProject, {
+      onSuccess: (response) => {
+        toast.success("Project created successfully");
+        setIsProjectDialogOpen(false);
+        stackForm.reset();
+        refetchProjectList();
+      },
+      onError: (error) => {
+        toast.error(`Failed to create project: ${error.message}`);
+        logger.error(`Failed to create project: ${error.message}`);
+      },
+    });
+  };
 
   const onProjectSubmit = (data: ProjectFormData) => {
     const { name, pointerType } = data;
@@ -152,41 +185,39 @@ export const ProjectForm = ({
         throw new Error("Invalid pointer type");
     }
 
-    const newProject = create(CreateProjectRequestSchema, {
-      environmentId: activeEnvironment?.environment?.id,
-      spec: {
-        name,
-        pointer,
+    validateProjectMutation(
+      {
+        environmentId: activeEnvironment?.environment?.id,
+        spec: { name, pointer },
       },
-    });
+      {
+        onSuccess: (validationResponse) => {
+          if (
+            validationResponse.status?.warnings &&
+            validationResponse.status?.warnings.length > 0
+          ) {
+            const warningMessage =
+              validationResponse.status?.warnings.join("\n\n");
 
-    createProjectMutation(newProject, {
-      onSuccess: (response) => {
-        if (
-          response.project?.status?.warnings &&
-          response.project?.status?.warnings.length > 0
-        ) {
-          response.project.status.warnings.map((warning) => {
-            toast.warning(warning, {
-              action: {
-                label: "OK",
-                onClick: () => {},
-              },
-            });
-          });
-        }
-        logger.info("Project created successfully");
-        toast.info("Project created successfully");
-        setIsProjectDialogOpen(false);
-        stackForm.reset();
-        refetchProjectList();
+            if (
+              window.confirm(
+                `The following warnings were found:\n\n${warningMessage}\n\nDo you want to continue?`,
+              )
+            ) {
+              handleCreateProject(data, pointer);
+            }
+          } else {
+            handleCreateProject(data, pointer);
+          }
+        },
+        onError: (err) => {
+          toast.error(`Validation failed: ${err.message}`);
+          logger.error(`Validation failed: ${err.message}`);
+        },
       },
-      onError: (error) => {
-        toast.error(`Failed to create stack: ${error.message}`);
-        logger.error(`Failed to create stack: ${error.message}`);
-      },
-    });
+    );
   };
+
   return (
     <Form {...stackForm}>
       <form
