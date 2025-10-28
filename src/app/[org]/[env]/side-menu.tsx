@@ -28,7 +28,12 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
-export const SideMenu = () => {
+interface SideMenuProps {
+  isExpanded: boolean;
+  setIsExpanded: (isExpanded: boolean) => void;
+}
+
+export const SideMenu = ({ isExpanded, setIsExpanded }: SideMenuProps) => {
   // TODO: 함수 util로 분리하기
   const localhostVersion = (res: PingResponse) => {
     const v = res.clientVersion!;
@@ -42,8 +47,6 @@ export const SideMenu = () => {
   const currentEnvSlug = params?.env || "localhost";
   // PostHog feature flags
   const showProjectMenu = useFeatureFlag("release_project_menu_temp", true);
-
-  const [isExpanded, setIsExpanded] = useState(false);
 
   const navItems = [
     {
@@ -78,7 +81,7 @@ export const SideMenu = () => {
 
   return (
     <div
-      className={`h-full border-r bg-neutral-50 transition-all duration-300 ease-in-out dark:bg-neutral-950 ${isExpanded ? "w-35" : "w-13"} flex flex-col justify-between overflow-x-hidden`}
+      className={`border-r bg-neutral-50 transition-all duration-300 ease-in-out dark:bg-neutral-950 ${isExpanded ? "w-35" : "w-13"} fixed top-12 left-0 z-10 flex h-[calc(100vh-3rem)] flex-col justify-between overflow-x-hidden`}
     >
       <nav className="space-y-1 p-2">
         {navItems.map((item) =>
