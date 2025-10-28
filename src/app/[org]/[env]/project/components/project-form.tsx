@@ -359,7 +359,7 @@ const ProjectPointerField = ({
         className={`flex items-start gap-2 rounded-lg border p-3 ${config.colorScheme.bg}`}
       >
         <Info
-          className={`mt-0.5 h-4 w-4 flex-shrink-0 ${config.colorScheme.icon}`}
+          className={`mt-0.5 h-4 w-4 shrink-0 ${config.colorScheme.icon}`}
         />
         <div className={`text-sm ${config.colorScheme.text}`}>
           <strong>{config.title}:</strong> {config.description}

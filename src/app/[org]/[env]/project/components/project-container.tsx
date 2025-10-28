@@ -2,10 +2,13 @@
 
 import { useMutation, useQuery } from "@connectrpc/connect-query";
 import { createDashboard } from "api/js/svc/dashboard/v1/service-DashboardService_connectquery";
-import { getProject } from "api/js/svc/project/v1/service-ProjectService_connectquery";
+import {
+  deleteProject,
+  getProject,
+} from "api/js/svc/project/v1/service-ProjectService_connectquery";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Plus, Calendar } from "lucide-react";
+import { Plus, Calendar, Trash2, Loader2 } from "lucide-react";
 import { CreateDashboardRequestSchema } from "api/js/svc/dashboard/v1/service_pb";
 import { useState } from "react";
 import {
@@ -70,12 +73,14 @@ interface ProjectContainerProps {
   project: Project;
   expandedProjects: Set<string>;
   setExpandedProjects: (expandedProjects: Set<string>) => void;
+  refetchProjectList: () => void;
 }
 
 export const ProjectContainer = ({
   project,
   expandedProjects,
   setExpandedProjects,
+  refetchProjectList,
 }: ProjectContainerProps) => {
   const router = useRouter();
   const { activeEnvironment } = useEnvironmentStore();
@@ -120,6 +125,11 @@ export const ProjectContainer = ({
       transport: useActiveTransport(),
     });
 
+  const { mutate: deleteProjectMutation, isPending: isDeletingProject } =
+    useMutation(deleteProject, {
+      transport: useActiveTransport(),
+    });
+
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -153,6 +163,27 @@ export const ProjectContainer = ({
     });
 
     createDashboardMutation(newDashboard);
+  };
+
+  const handleDeleteProject = () => {
+    if (!window.confirm("Are you sure you want to delete this project?"))
+      return;
+
+    deleteProjectMutation(
+      {
+        environmentId: activeEnvironment?.environment?.id,
+        name: project.spec?.name,
+      },
+      {
+        onSuccess: (res) => {
+          toast.success("Project deleted successfully");
+          refetchProjectList();
+        },
+        onError: (error) => {
+          toast.error(`Failed to delete project: ${error.message}`);
+        },
+      },
+    );
   };
 
   const handleDashboardClick = (dashboardId?: string) => {
@@ -223,6 +254,18 @@ export const ProjectContainer = ({
               </Badge>
             )}
           </div>
+          {!isProjectReadonly(project) && (
+            <Button
+              variant="ghost"
+              type="button"
+              size="sm"
+              className="h-8 w-8 p-0 text-red-500 hover:text-red-600"
+              onClick={handleDeleteProject}
+              disabled={isDeletingProject}
+            >
+              <Trash2 />
+            </Button>
+          )}
         </div>
       </AccordionTrigger>
 
