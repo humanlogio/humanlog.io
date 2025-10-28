@@ -2,10 +2,13 @@
 
 import { useMutation, useQuery } from "@connectrpc/connect-query";
 import { createDashboard } from "api/js/svc/dashboard/v1/service-DashboardService_connectquery";
-import { getProject } from "api/js/svc/project/v1/service-ProjectService_connectquery";
+import {
+  deleteProject,
+  getProject,
+} from "api/js/svc/project/v1/service-ProjectService_connectquery";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Plus, Calendar } from "lucide-react";
+import { Plus, Calendar, Trash2, Loader2 } from "lucide-react";
 import { CreateDashboardRequestSchema } from "api/js/svc/dashboard/v1/service_pb";
 import { useState } from "react";
 import {
@@ -32,7 +35,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { logger } from "@/lib/utils/telemetry/logger";
 import { toast } from "sonner";
-import { createDefaultDashboardTemplate } from "@/lib/mocks/sampleDashboards";
+import { createDefaultDashboardTemplate } from "@/lib/datasources/dashboardDatasources";
 import { Badge } from "@/components/ui/badge";
 import {
   AccordionContent,
@@ -47,6 +50,10 @@ import { create } from "@bufbuild/protobuf";
 import { useEnvironmentStore } from "@/stores/environment-store";
 import { getOrgEnvUrl } from "@/lib/utils/navigation";
 import { useUser } from "@/hooks/useUser";
+import { formatTimestamp } from "@/lib/utils/formatTimeStamp";
+import { useActiveTransport } from "@/context/api-provider";
+import { isDashboardReadonly, isProjectReadonly } from "@/lib/utils/project";
+import { Dashboard } from "api/js/types/v1/dashboard_pb";
 
 const formSchema = z.object({
   name: z
@@ -66,12 +73,14 @@ interface ProjectContainerProps {
   project: Project;
   expandedProjects: Set<string>;
   setExpandedProjects: (expandedProjects: Set<string>) => void;
+  refetchProjectList: () => void;
 }
 
 export const ProjectContainer = ({
   project,
   expandedProjects,
   setExpandedProjects,
+  refetchProjectList,
 }: ProjectContainerProps) => {
   const router = useRouter();
   const { activeEnvironment } = useEnvironmentStore();
@@ -81,28 +90,15 @@ export const ProjectContainer = ({
     {},
   );
 
-  const isProjectReadonly = (project: Project): boolean => {
-    if (!project.spec?.pointer?.scheme) return false;
-
-    const { case: pointerType, value } = project.spec.pointer.scheme;
-
-    if (pointerType === "localhost") {
-      const localPointer = value as any;
-      return localPointer.readOnly === true;
-    }
-
-    if (pointerType === "remote") {
-      return true;
-    }
-
-    return false;
-  };
-
   const isExpanded = project.spec?.name
     ? expandedProjects.has(project.spec?.name)
     : false;
 
-  const { data: projectData, isLoading: isLoadingProject } = useQuery(
+  const {
+    data: projectData,
+    isLoading: isLoadingProject,
+    refetch: refetchProject,
+  } = useQuery(
     getProject,
     {
       environmentId: activeEnvironment?.environment?.id,
@@ -110,11 +106,29 @@ export const ProjectContainer = ({
     },
     {
       enabled: isExpanded,
+      transport: useActiveTransport(),
     },
   );
 
   const { mutate: createDashboardMutation, isPending: isCreatingDashboard } =
-    useMutation(createDashboard);
+    useMutation(createDashboard, {
+      onSuccess: (res) => {
+        logger.info(`Dashboard created successfully: ${res}`);
+        toast.success("Dashboard created successfully");
+        refetchProject();
+        setIsDialogOpen(false);
+      },
+      onError: (error) => {
+        toast.error(`Failed to create dashboard: ${error.message}`);
+        logger.error(`Failed to create dashboard: ${error.message}`);
+      },
+      transport: useActiveTransport(),
+    });
+
+  const { mutate: deleteProjectMutation, isPending: isDeletingProject } =
+    useMutation(deleteProject, {
+      transport: useActiveTransport(),
+    });
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -148,24 +162,36 @@ export const ProjectContainer = ({
       },
     });
 
-    createDashboardMutation(newDashboard, {
-      onSuccess: (response) => {
-        logger.info(`Dashboard created successfully: ${response}`);
-        toast.info("Dashboard created successfully");
-
-        setIsDialogOpen(false);
-        form.reset();
-      },
-      onError: (error) => {
-        toast.error(`Failed to create dashboard: ${error.message}`);
-        logger.error(`Failed to create dashboard: ${error.message}`);
-      },
-    });
+    createDashboardMutation(newDashboard);
   };
 
-  const handleDashboardClick = (dashboardId: string) => {
-    const url = getOrgEnvUrl(userData, activeEnvironment, "dashboard");
-    router.push(`${url}/${dashboardId}?projectName=${project?.spec?.name}`);
+  const handleDeleteProject = () => {
+    if (!window.confirm("Are you sure you want to delete this project?"))
+      return;
+
+    deleteProjectMutation(
+      {
+        environmentId: activeEnvironment?.environment?.id,
+        name: project.spec?.name,
+      },
+      {
+        onSuccess: (res) => {
+          toast.success("Project deleted successfully");
+          refetchProjectList();
+        },
+        onError: (error) => {
+          toast.error(`Failed to delete project: ${error.message}`);
+        },
+      },
+    );
+  };
+
+  const handleDashboardClick = (dashboardId?: string) => {
+    if (!dashboardId) return;
+    const url = getOrgEnvUrl(userData, activeEnvironment, "project");
+    router.push(
+      `${url}/dashboard/${dashboardId}?projectName=${project?.spec?.name}`,
+    );
   };
 
   const handleProjectExpand = (projectName: string) => {
@@ -223,11 +249,23 @@ export const ProjectContainer = ({
             })()}
 
             {isProjectReadonly(project) && (
-              <Badge variant="secondary" className="ml-2 text-xs">
+              <Badge variant="secondary" className="text-xs">
                 Read Only
               </Badge>
             )}
           </div>
+          {!isProjectReadonly(project) && (
+            <Button
+              variant="ghost"
+              type="button"
+              size="sm"
+              className="h-8 w-8 p-0 text-red-500 hover:text-red-600"
+              onClick={handleDeleteProject}
+              disabled={isDeletingProject}
+            >
+              <Trash2 />
+            </Button>
+          )}
         </div>
       </AccordionTrigger>
 
@@ -340,35 +378,31 @@ export const ProjectContainer = ({
               </div>
               {projectData?.dashboards && projectData?.dashboards.length > 0 ? (
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-                  {projectData?.dashboards.map((dashboard: any) => (
+                  {projectData?.dashboards.map((dashboard: Dashboard) => (
                     <div
-                      key={dashboard.id?.toString()}
-                      onClick={() => handleDashboardClick(dashboard.id)}
-                      className="border-muted cursor-pointer rounded-lg border p-4 transition-shadow duration-200 hover:border-gray-500"
+                      key={dashboard.meta?.id?.toString()}
+                      onClick={() => handleDashboardClick(dashboard.meta?.id)}
+                      className="border-muted cursor-pointer rounded-lg border p-4 transition-shadow duration-200 hover:border-gray-200 dark:hover:border-gray-700"
                     >
                       <div className="flex items-start justify-between">
                         <h5 className="truncate font-medium text-gray-900 dark:text-white">
-                          {dashboard.name || "Untitled Dashboard"}
+                          {dashboard.spec?.name || "Untitled Dashboard"}
                         </h5>
-                        {dashboard.isReadonly && (
+                        {isDashboardReadonly(dashboard) && (
                           <Badge variant="secondary" className="ml-2 text-xs">
                             Read Only
                           </Badge>
                         )}
                       </div>
-                      {dashboard.description && (
+                      {dashboard.spec?.description && (
                         <p className="text-muted-foreground mt-2 line-clamp-2 text-sm">
-                          {dashboard.description}
+                          {dashboard.spec?.description}
                         </p>
                       )}
                       <div className="text-muted-foreground mt-3 flex items-center text-xs">
                         <Calendar className="mr-1 h-3 w-3" />
                         <span>
-                          {dashboard.createdAt
-                            ? new Date(
-                                Number(dashboard.createdAt.seconds) * 1000,
-                              ).toLocaleDateString()
-                            : "Unknown"}
+                          {formatTimestamp(dashboard.status?.createdAt)}
                         </span>
                       </div>
                     </div>

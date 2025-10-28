@@ -1,9 +1,18 @@
-import { ActiveTransportProvider } from "@/context/api-provider";
+"use client";
+
+import { useEffect } from "react";
+import { usePage } from "@/stores/page-store";
 
 export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return <ActiveTransportProvider>{children}</ActiveTransportProvider>;
+  const { activePage, setActivePage } = usePage();
+
+  useEffect(() => {
+    setActivePage("project");
+  }, [activePage]);
+
+  return <>{children}</>;
 }

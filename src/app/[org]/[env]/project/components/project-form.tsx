@@ -15,7 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useApiClients } from "@/context/api-provider";
+import { useActiveTransport } from "@/context/api-provider";
 import { logger } from "@/lib/utils/telemetry/logger";
 import { useMutation } from "@connectrpc/connect-query";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -84,7 +84,9 @@ export const ProjectForm = ({
   const { activeEnvironment } = useEnvironmentStore();
 
   const { mutate: createProjectMutation, isPending: isCreatingProject } =
-    useMutation(createProject);
+    useMutation(createProject, {
+      transport: useActiveTransport(),
+    });
 
   const stackForm = useForm<ProjectFormData>({
     resolver: zodResolver(stackFormSchema),
@@ -160,6 +162,19 @@ export const ProjectForm = ({
 
     createProjectMutation(newProject, {
       onSuccess: (response) => {
+        if (
+          response.project?.status?.warnings &&
+          response.project?.status?.warnings.length > 0
+        ) {
+          response.project.status.warnings.map((warning) => {
+            toast.warning(warning, {
+              action: {
+                label: "OK",
+                onClick: () => {},
+              },
+            });
+          });
+        }
         logger.info("Project created successfully");
         toast.info("Project created successfully");
         setIsProjectDialogOpen(false);
@@ -344,7 +359,7 @@ const ProjectPointerField = ({
         className={`flex items-start gap-2 rounded-lg border p-3 ${config.colorScheme.bg}`}
       >
         <Info
-          className={`mt-0.5 h-4 w-4 flex-shrink-0 ${config.colorScheme.icon}`}
+          className={`mt-0.5 h-4 w-4 shrink-0 ${config.colorScheme.icon}`}
         />
         <div className={`text-sm ${config.colorScheme.text}`}>
           <strong>{config.title}:</strong> {config.description}

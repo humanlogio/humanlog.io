@@ -38,9 +38,19 @@ import { Suspense, useMemo } from "react";
 import { getDashboard } from "api/js/svc/dashboard/v1/service-DashboardService_connectquery";
 import { useQuery } from "@connectrpc/connect-query";
 import { DashboardResource } from "@perses-dev/core";
-import { mockDatasourceApi } from "@/lib/mocks/sampleDashboards";
+import { localhostDatasourceApi } from "@/lib/datasources/dashboardDatasources";
+import {
+  HUMANLOG_DATASOURCE_KIND,
+  HUMANLOG_LOCALHOST_NAME,
+  HUMANLOG_HOSTED_NAME,
+  HUMANLOG_LEGACY_NAME,
+  LOCALHOST_URL,
+} from "@/lib/datasources/constants";
 import { useSearchParams } from "next/navigation";
 import { BrowserRouter } from "react-router-dom";
+import { useActiveTransport } from "@/context/api-provider";
+import { Badge } from "@/components/ui/badge";
+import { isDashboardReadonly } from "@/lib/utils/project";
 
 // Helper function to decode persesJson bytes back to DashboardResource
 function decodePersesJson(
@@ -52,25 +62,36 @@ function decodePersesJson(
     const jsonString = new TextDecoder().decode(persesJsonBytes);
     return JSON.parse(jsonString) as DashboardResource;
   } catch (error) {
+    console.error("Error decoding persesJson bytes:", error);
     return null;
   }
 }
 
 interface DashboardClientProps {
   dashboardId: string;
+  projectName: string;
 }
 
-function DashboardClientContent({ dashboardId }: DashboardClientProps) {
+function DashboardClientContent({
+  dashboardId,
+  projectName,
+}: DashboardClientProps) {
   const { theme } = useTheme();
-  const searchParams = useSearchParams();
-  const projectName = searchParams.get("projectName") || undefined;
-  const { isLoading, data } = useQuery(getDashboard, {
-    id: dashboardId,
-    projectName,
-  });
+
+  const { isLoading, data } = useQuery(
+    getDashboard,
+    {
+      id: dashboardId,
+      projectName,
+    },
+    {
+      transport: useActiveTransport(),
+    },
+  );
 
   // Decode the persesJson bytes back to DashboardResource
   const decodedDashboard = useMemo(() => {
+    if (!data || isLoading) return;
     const dashboard = decodePersesJson(data?.dashboard?.spec?.persesJson);
 
     if (dashboard) {
@@ -80,23 +101,23 @@ function DashboardClientContent({ dashboardId }: DashboardClientProps) {
       }
 
       // Add both local and hosted Humanlog datasources if they don't exist
-      if (!dashboard.spec.datasources["humanlog-localhost"]) {
-        dashboard.spec.datasources["humanlog-localhost"] = {
+      if (!dashboard.spec.datasources[HUMANLOG_LOCALHOST_NAME]) {
+        dashboard.spec.datasources[HUMANLOG_LOCALHOST_NAME] = {
           default: true, // Default for local development
           plugin: {
-            kind: "HumanlogDatasource",
+            kind: HUMANLOG_DATASOURCE_KIND,
             spec: {
-              directUrl: "http://localhost:32764",
+              directUrl: LOCALHOST_URL,
             },
           },
         };
       }
 
-      if (!dashboard.spec.datasources["humanlog-hosted"]) {
-        dashboard.spec.datasources["humanlog-hosted"] = {
+      if (!dashboard.spec.datasources[HUMANLOG_HOSTED_NAME]) {
+        dashboard.spec.datasources[HUMANLOG_HOSTED_NAME] = {
           default: false,
           plugin: {
-            kind: "HumanlogDatasource",
+            kind: HUMANLOG_DATASOURCE_KIND,
             spec: {
               directUrl:
                 process.env.NEXT_PUBLIC_HUMANLOG_API_URL ||
@@ -107,13 +128,13 @@ function DashboardClientContent({ dashboardId }: DashboardClientProps) {
       }
 
       // For backward compatibility with any existing "humanlog" datasource references
-      if (!dashboard.spec.datasources["humanlog"]) {
-        dashboard.spec.datasources["humanlog"] = {
+      if (!dashboard.spec.datasources[HUMANLOG_LEGACY_NAME]) {
+        dashboard.spec.datasources[HUMANLOG_LEGACY_NAME] = {
           default: false,
           plugin: {
-            kind: "HumanlogDatasource",
+            kind: HUMANLOG_DATASOURCE_KIND,
             spec: {
-              directUrl: "http://localhost:32764",
+              directUrl: LOCALHOST_URL,
             },
           },
         };
@@ -121,7 +142,7 @@ function DashboardClientContent({ dashboardId }: DashboardClientProps) {
     }
 
     return dashboard;
-  }, [data?.dashboard?.spec?.persesJson]);
+  }, [data, isLoading]);
 
   const themeMode = useMemo(() => {
     switch (theme) {
@@ -188,7 +209,7 @@ function DashboardClientContent({ dashboardId }: DashboardClientProps) {
             <PluginRegistry
               pluginLoader={pluginLoader}
               defaultPluginKinds={{
-                Datasource: "HumanlogDatasource",
+                Datasource: HUMANLOG_DATASOURCE_KIND,
                 TimeSeriesQuery: "HumanlogTimeSeriesQuery",
                 TraceQuery: "HumanlogTraceQuery",
                 Panel: "TimeSeriesChart",
@@ -196,7 +217,7 @@ function DashboardClientContent({ dashboardId }: DashboardClientProps) {
             >
               <DatasourceStoreProvider
                 dashboardResource={decodedDashboard}
-                datasourceApi={mockDatasourceApi}
+                datasourceApi={localhostDatasourceApi}
               >
                 <TimeRangeProvider
                   refreshInterval="30s"
@@ -207,23 +228,37 @@ function DashboardClientContent({ dashboardId }: DashboardClientProps) {
                       <DashboardProvider
                         initialState={{
                           dashboardResource: decodedDashboard,
-                          isEditMode: true,
+                          isEditMode: !isDashboardReadonly(data?.dashboard),
                         }}
                       >
-                        <div className="min-h-screen bg-white p-6 text-black dark:bg-gray-900 dark:text-white">
+                        <div className="min-h-screen w-full bg-white p-6 text-black dark:bg-gray-900 dark:text-white">
                           <div className="flex items-center justify-between">
                             <div>
-                              <h1 className="mb-1 text-2xl font-bold">
-                                {data?.dashboard?.spec?.name}
-                              </h1>
+                              <div className="flex items-center">
+                                <h1 className="mb-1 text-2xl font-bold">
+                                  {data?.dashboard?.spec?.name}
+                                </h1>
+                                {isDashboardReadonly(data?.dashboard) && (
+                                  <Badge
+                                    variant="secondary"
+                                    className="ml-2 text-xs"
+                                  >
+                                    Read Only
+                                  </Badge>
+                                )}
+                              </div>
                               <p className="text-muted-foreground mb-6">
                                 {data?.dashboard?.spec?.description}
                               </p>
                             </div>
-                            <DashboardControls
-                              dashboardResource={decodedDashboard}
-                              dashboardId={dashboardId}
-                            />
+
+                            {!isDashboardReadonly(data?.dashboard) && (
+                              <DashboardControls
+                                dashboardResource={decodedDashboard}
+                                dashboardId={dashboardId}
+                                projectName={projectName}
+                              />
+                            )}
                           </div>
 
                           <Dashboard
@@ -253,10 +288,16 @@ function DashboardClientContent({ dashboardId }: DashboardClientProps) {
   );
 }
 
-export function DashboardClient({ dashboardId }: DashboardClientProps) {
+export function DashboardClient({
+  dashboardId,
+  projectName,
+}: DashboardClientProps) {
   return (
     <Suspense fallback={<div>Loading dashboard...</div>}>
-      <DashboardClientContent dashboardId={dashboardId} />
+      <DashboardClientContent
+        dashboardId={dashboardId}
+        projectName={projectName}
+      />
     </Suspense>
   );
 }
