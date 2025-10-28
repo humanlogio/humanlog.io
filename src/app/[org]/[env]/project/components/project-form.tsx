@@ -162,6 +162,19 @@ export const ProjectForm = ({
 
     createProjectMutation(newProject, {
       onSuccess: (response) => {
+        if (
+          response.project?.status?.warnings &&
+          response.project?.status?.warnings.length > 0
+        ) {
+          response.project.status.warnings.map((warning) => {
+            toast.warning(warning, {
+              action: {
+                label: "OK",
+                onClick: () => {},
+              },
+            });
+          });
+        }
         logger.info("Project created successfully");
         toast.info("Project created successfully");
         setIsProjectDialogOpen(false);
