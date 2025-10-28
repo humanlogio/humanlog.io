@@ -11,6 +11,10 @@
 @theme {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --breakpoint-xs: 481px;
+  --breakpoint-sm: 768px;
+  --breakpoint-md: 1024px;
+  --breakpoint-lg: 1280px;
 }
 
 @utility container {
