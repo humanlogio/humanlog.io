@@ -6,6 +6,11 @@ import {
 import { DatasourceApi } from "@perses-dev/dashboards";
 
 import { getAPIURL } from "@/lib/envs";
+import {
+  HUMANLOG_DATASOURCE_KIND,
+  LOCALHOST_URL,
+  HUMANLOG_LOCALHOST_NAME,
+} from "@/lib/datasources/constants";
 
 export interface LocalhostConfig {
   // URL for the localhost API (defaults to http://localhost:32764)
@@ -29,9 +34,6 @@ export interface DatasourceApiConfig {
   wrapped?: DatasourceApi;
 }
 
-const DATASOURCE_KIND = "HumanlogDatasource";
-const LOCAL_URL = "http://localhost:32764";
-
 // Create Humanlog datasource for localhost
 const createLocalhostDatasource = (
   config: {
@@ -40,13 +42,13 @@ const createLocalhostDatasource = (
   } = {},
 ): GlobalDatasourceResource => ({
   kind: "GlobalDatasource",
-  metadata: { name: "humanlog-localhost" },
+  metadata: { name: HUMANLOG_LOCALHOST_NAME },
   spec: {
     default: true,
     plugin: {
-      kind: DATASOURCE_KIND,
+      kind: HUMANLOG_DATASOURCE_KIND,
       spec: {
-        directUrl: config.url || LOCAL_URL,
+        directUrl: config.url || LOCALHOST_URL,
       },
     },
   },
@@ -61,7 +63,7 @@ const createHostedDatasource = (
   spec: {
     default: false,
     plugin: {
-      kind: DATASOURCE_KIND,
+      kind: HUMANLOG_DATASOURCE_KIND,
       spec: {
         directUrl: config.url || getAPIURL(),
       },
