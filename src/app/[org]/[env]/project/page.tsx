@@ -18,11 +18,11 @@ import LoadingIndicator from "@/components/loading-indicator";
 import { ProjectContainer } from "@/app/[org]/[env]/project/components/project-container";
 import { ProjectForm } from "@/app/[org]/[env]/project/components/project-form";
 import { useEnvironmentStore } from "@/stores/environment-store";
-import { usePage } from "@/stores/page-store";
+
+import { useActiveTransport } from "@/context/api-provider";
 
 export default function DashboardListPage() {
   const { activeEnvironment } = useEnvironmentStore();
-  const { activePage, setActivePage } = usePage();
 
   const [isProjectDialogOpen, setIsProjectDialogOpen] = useState(false);
   const [expandedProjects, setExpandedProjects] = useState<Set<string>>(
@@ -33,13 +33,15 @@ export default function DashboardListPage() {
     data: projectList,
     refetch: refetchProjectList,
     isLoading: isLoadingProjectList,
-  } = useQuery(listProject, {
-    environmentId: activeEnvironment?.environment?.id,
-  });
-
-  useEffect(() => {
-    setActivePage("project");
-  }, [activePage]);
+  } = useQuery(
+    listProject,
+    {
+      environmentId: activeEnvironment?.environment?.id,
+    },
+    {
+      transport: useActiveTransport(),
+    },
+  );
 
   if (isLoadingProjectList) {
     return <LoadingIndicator message="Loading projects..." />;
@@ -70,7 +72,7 @@ export default function DashboardListPage() {
             </Button>
           </DialogTrigger>
           <DialogContent className="flex max-h-[85vh] flex-col sm:max-w-[500px]">
-            <DialogHeader className="flex-shrink-0">
+            <DialogHeader className="shrink-0">
               <DialogTitle>Create New Project</DialogTitle>
               <DialogDescription>
                 Create a new project to organize your data visualizations.
@@ -105,6 +107,7 @@ export default function DashboardListPage() {
                   project={project}
                   expandedProjects={expandedProjects}
                   setExpandedProjects={setExpandedProjects}
+                  refetchProjectList={refetchProjectList}
                 />
               );
             })}
