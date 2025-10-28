@@ -7,14 +7,8 @@ import config from "@/features/config";
 import {
   Activity,
   Database,
-  Bell,
-  BarChart3,
-  HardDrive,
   Settings,
-  HexagonIcon,
-  UserIcon,
   PanelRightClose,
-  PanelRightOpen,
   PanelLeftClose,
   FolderKanban,
 } from "lucide-react";
@@ -81,7 +75,9 @@ export const SideMenu = ({ isExpanded, setIsExpanded }: SideMenuProps) => {
 
   return (
     <div
-      className={`border-r bg-neutral-50 transition-all duration-300 ease-in-out dark:bg-neutral-950 ${isExpanded ? "w-35" : "w-13"} fixed top-12 left-0 z-10 flex h-[calc(100vh-3rem)] flex-col justify-between overflow-x-hidden`}
+      className={`fixed top-12 left-0 z-10 flex h-[calc(100vh-3rem)] flex-col justify-between overflow-x-hidden border-r bg-neutral-50 transition-all duration-300 ease-in-out dark:bg-neutral-950 ${
+        isExpanded ? "w-35" : "w-13 md:w-35"
+      }`}
     >
       <nav className="space-y-1 p-2">
         {navItems.map((item) =>
@@ -118,7 +114,7 @@ export const SideMenu = ({ isExpanded, setIsExpanded }: SideMenuProps) => {
         )}
       </nav>
 
-      <div className="w-full justify-start">
+      <div className="w-full justify-start md:hidden">
         <Button
           variant="ghost"
           onClick={() => setIsExpanded(!isExpanded)}

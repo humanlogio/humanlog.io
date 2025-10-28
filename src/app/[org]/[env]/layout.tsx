@@ -31,7 +31,13 @@ export default function EnvLayout({ children }: { children: ReactNode }) {
     <div className="flex w-screen flex-1">
       <SideMenu isExpanded={isExpanded} setIsExpanded={setIsExpanded} />
 
-      <div className={`w-full ${isExpanded ? "ml-35" : "ml-13"}`}>
+      <div
+        className={` ${
+          isExpanded
+            ? "ml-35 w-[calc(100vw-8.75rem)]"
+            : "ml-13 w-[calc(100vw-3.25rem)] md:ml-35 md:w-[calc(100vw-8.75rem)]"
+        }`}
+      >
         {children}
       </div>
     </div>
