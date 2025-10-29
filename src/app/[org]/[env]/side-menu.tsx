@@ -15,7 +15,7 @@ import {
 import Link from "next/link";
 import { usePageStore } from "@/stores/page-store";
 import { Separator } from "@/components/ui/separator";
-import { useFeatureFlag } from "@/lib/hooks/useFeatureFlag";
+import { useFeatureFlag } from "@/hooks/useFeatureFlag";
 import {
   Tooltip,
   TooltipContent,
