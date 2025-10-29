@@ -9,7 +9,7 @@ interface PageStore {
   clearPage: () => void;
 }
 
-export const usePage = create<PageStore>()(
+export const usePageStore = create<PageStore>()(
   persist(
     (set) => ({
       activePage: "query",
