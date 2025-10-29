@@ -13,7 +13,7 @@ import {
   HexagonIcon,
   UserIcon,
 } from "lucide-react";
-import config from "@/features/config";
+import config from "@/lib/config";
 import {
   Tooltip,
   TooltipContent,

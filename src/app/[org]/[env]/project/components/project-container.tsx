@@ -50,7 +50,7 @@ import { create } from "@bufbuild/protobuf";
 import { useEnvironmentStore } from "@/stores/environment-store";
 import { getOrgEnvUrl } from "@/lib/utils/navigation";
 import { useUser } from "@/hooks/useUser";
-import { formatTimestamp } from "@/lib/utils/formatTimeStamp";
+import { formatTimestamp } from "@/lib/utils/format-timestamp";
 import { useActiveTransport } from "@/context/api-provider";
 import { isDashboardReadonly, isProjectReadonly } from "@/lib/utils/project";
 import { Dashboard } from "api/js/types/v1/dashboard_pb";

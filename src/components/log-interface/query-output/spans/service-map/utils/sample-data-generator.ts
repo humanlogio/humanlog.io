@@ -1,7 +1,7 @@
 import { Timestamp, TimestampSchema } from "@bufbuild/protobuf/wkt";
 import type { SampleDataScenario } from "@/components/log-interface/query-output/spans/service-map/types";
-import { makeSpan } from "@/lib/utils/spanFactories";
-import { makeStrKV } from "@/lib/utils/kvFactories";
+import { makeSpan } from "@/lib/utils/span-factories";
+import { makeStrKV } from "@/lib/utils/kv-factories";
 import { create } from "@bufbuild/protobuf";
 
 // Utility functions for creating spans

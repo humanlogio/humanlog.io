@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { createServerGrpcClient } from "@/lib/server-grpc";
+import { createServerGrpcClient } from "@/lib/utils/server-grpc";
 import { ImageResponse } from "next/og";
 
 export const runtime = "edge";

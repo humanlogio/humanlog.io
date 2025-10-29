@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 import Link from "next/link";
-import { scanDirectory } from "@/lib/contents";
+import { scanDirectory } from "@/lib/utils/contents";
 
 export interface NavItem {
   title: string;

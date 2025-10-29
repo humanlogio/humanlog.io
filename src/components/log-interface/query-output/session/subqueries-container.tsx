@@ -1,7 +1,7 @@
 import { Query } from "api/js/types/v1/query_pb";
 import { useEffect, useMemo, useState } from "react";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
-import { extractQueryIds } from "@/lib/utils/extractQueryIds";
+import { extractQueryIds } from "@/lib/utils/extract-query-ids";
 import {
   Select,
   SelectContent,

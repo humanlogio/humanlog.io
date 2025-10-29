@@ -1,4 +1,4 @@
-import { formatDuration, formatTimestamp } from "@/lib/utils/formatTimeStamp";
+import { formatDuration, formatTimestamp } from "@/lib/utils/format-timestamp";
 import {
   Loader,
   Loader2,
@@ -30,7 +30,7 @@ import { Data, LogsSchema } from "api/js/types/v1/data_pb";
 import { ShareQuery } from "@/components/log-interface/share-query";
 import { QueryHistoryEntry } from "api/js/types/v1/query_history_entry_pb";
 import { StreamResponse } from "api/js/svc/query/v1/service_pb";
-import { newLogsData } from "@/lib/utils/dataShapeFactories";
+import { newLogsData } from "@/lib/utils/data-shape-factories";
 import { Log } from "api/js/types/v1/otel_logging_pb";
 import { LogLine } from "@/components/log-interface/query-output/session/log-line";
 import { create } from "@bufbuild/protobuf";

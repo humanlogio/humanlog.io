@@ -13,8 +13,8 @@ import { Data } from "api/js/types/v1/data_pb";
 import TableContainer from "@/components/log-interface/query-output/freeform/table-container";
 import Histogram from "@/components/log-interface/query-output/freeform/histogram-container";
 import { StreamResponse } from "api/js/svc/query/v1/service_pb";
-import { extractFromStreamResponses } from "@/lib/utils/dataHelpers";
-import { newTable, newTableData } from "@/lib/utils/dataShapeFactories";
+import { extractFromStreamResponses } from "@/lib/utils/data-helpers";
+import { newTable, newTableData } from "@/lib/utils/data-shape-factories";
 import { EmptyDataView } from "@/components/log-interface/views/empty-data-view";
 
 interface FreeFormContainerProps {

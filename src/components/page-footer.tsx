@@ -6,7 +6,7 @@ import { GithubMark } from "@/components/icons/github-mark";
 import { DiscordMark } from "@/components/icons/discord-mark";
 import { usePathname } from "next/navigation";
 import { ThemeToggle } from "@/components/theme-toggle";
-import config from "@/features/config";
+import config from "@/lib/config";
 
 const iconSocialLinks = [
   {

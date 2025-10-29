@@ -12,11 +12,11 @@ import {
 import { TraceWaterfall } from "@/components/traces/trace-waterfall";
 import { SpanInfo } from "@/components/traces/span-info";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
-import { makeSpan } from "@/lib/utils/spanFactories";
+import { makeSpan } from "@/lib/utils/span-factories";
 import { SpansSchema } from "api/js/types/v1/data_pb";
 import { Timestamp, TimestampSchema } from "@bufbuild/protobuf/wkt";
-import { toBigInt } from "@/lib/utils/valueFactories";
-import { makeStrKV } from "@/lib/utils/kvFactories";
+import { toBigInt } from "@/lib/utils/value-factories";
+import { makeStrKV } from "@/lib/utils/kv-factories";
 import { getColorByIndex } from "@/lib/utils/colors";
 import { Span } from "api/js/types/v1/otel_tracing_pb";
 import { create } from "@bufbuild/protobuf";

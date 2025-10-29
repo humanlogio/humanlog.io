@@ -2,7 +2,7 @@
 
 import SessionPanel from "@/components/log-interface/query-output/session/session-panel";
 import { useApiClients } from "@/context/api-provider";
-import { formatTimestamp, getTimeSince } from "@/lib/utils/formatTimeStamp";
+import { formatTimestamp, getTimeSince } from "@/lib/utils/format-timestamp";
 import { getPublicSharedResult } from "@/services/shareService";
 import { QueryHistoryEntry } from "api/js/types/v1/query_history_entry_pb";
 import { Table } from "api/js/types/v1/types_pb";

@@ -20,8 +20,8 @@ import {
 import {
   newIdentifierExpr,
   newLiteralExpr,
-} from "@/lib/utils/queryExpressions";
-import config from "@/features/config";
+} from "@/lib/utils/query-expressions";
+import config from "@/lib/config";
 import { TableVirtuoso } from "react-virtuoso";
 import { spanIdToString, traceIdToString } from "@/lib/utils/id-factories";
 import { useSpanNavigation } from "@/hooks/useSpanNavigation";

@@ -23,7 +23,7 @@ import {
   Building,
   UserIcon,
 } from "lucide-react";
-import { formatTimestamp } from "@/lib/utils/formatTimeStamp";
+import { formatTimestamp } from "@/lib/utils/format-timestamp";
 import {
   inviteUser,
   listUser,

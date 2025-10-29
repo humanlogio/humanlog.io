@@ -23,7 +23,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { copyToClipboard } from "@/lib/utils/clipboard";
-import { getSelfURL } from "@/lib/envs";
+import { getSelfURL } from "@/lib/config/envs";
 import { Data } from "api/js/types/v1/data_pb";
 import { useMutation } from "@connectrpc/connect-query";
 import { updateUser } from "api/js/svc/user/v1/service_private-UserService_connectquery";
