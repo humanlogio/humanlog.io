@@ -6,7 +6,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@radix-ui/react-select";
-import { getTimeSince } from "@/lib/utils/formatTimeStamp";
+import { getTimeSince } from "@/lib/utils/format-timestamp";
 import { Loader } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { copyToClipboard } from "@/lib/utils/clipboard";

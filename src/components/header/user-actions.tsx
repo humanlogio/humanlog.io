@@ -1,7 +1,7 @@
 import { useUser } from "@/hooks/useUser";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
-import { getSelfURL } from "@/lib/envs";
+import { getSelfURL } from "@/lib/config/envs";
 import { ReactNode, useState } from "react";
 import { useMutation } from "@connectrpc/connect-query";
 import { getAuthURL } from "api/js/svc/auth/v1/service-AuthService_connectquery";
@@ -21,7 +21,7 @@ import { OrgSwitcher } from "@/components/header/org-switcher";
 import Link from "next/link";
 import { WhoamiResponse } from "api/js/svc/user/v1/service_private_pb";
 import { getLogoutURL } from "api/js/svc/user/v1/service_private-UserService_connectquery";
-import config from "@/features/config";
+import config from "@/lib/config";
 import { SetUserNameModal } from "@/components/header/set-user-name-modal";
 import { ThemeToggle } from "@/components/theme-toggle";
 

@@ -1,6 +1,6 @@
-import testConfig from "@/features/config.test";
-import devConfig from "@/features/config.development";
-import prodConfig from "@/features/config.production";
+import testConfig from "@/lib/config/config.test";
+import devConfig from "@/lib/config/config.development";
+import prodConfig from "@/lib/config/config.production";
 
 const environment: "test" | "development" | "production" =
   process.env.NODE_ENV || "development";

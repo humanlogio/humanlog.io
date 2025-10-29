@@ -4,7 +4,7 @@ import {
   formatDuration,
   getDurationInMilliseconds,
   getUnixTimestamp,
-} from "@/lib/utils/formatTimeStamp";
+} from "@/lib/utils/format-timestamp";
 import {
   Dispatch,
   ReactNode,

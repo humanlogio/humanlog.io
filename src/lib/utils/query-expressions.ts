@@ -13,7 +13,7 @@ import {
   newI64Val,
   newStrVal,
   newTimestampVal,
-} from "@/lib/utils/valueFactories";
+} from "@/lib/utils/value-factories";
 
 export const newBinaryExpr = (
   lhs: Expr,

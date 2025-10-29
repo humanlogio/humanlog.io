@@ -6,7 +6,7 @@ import {
 } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { formatDuration, formatTimestamp } from "@/lib/utils/formatTimeStamp";
+import { formatDuration, formatTimestamp } from "@/lib/utils/format-timestamp";
 import { Span } from "api/js/types/v1/otel_tracing_pb";
 import {
   Activity,
@@ -26,14 +26,14 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { FilterByKeyValue } from "@/components/log-interface/query-output/session/session-control";
-import { newLiteralExpr } from "@/lib/utils/queryExpressions";
-import { newIdentifierExpr } from "@/lib/utils/queryExpressions";
+import { newLiteralExpr } from "@/lib/utils/query-expressions";
+import { newIdentifierExpr } from "@/lib/utils/query-expressions";
 import { KeyValueRow } from "@/components/log-interface/query-output/session/session-control";
-import { newIndexorExpr } from "@/lib/utils/queryExpressions";
-import { newStrVal } from "@/lib/utils/valueFactories";
+import { newIndexorExpr } from "@/lib/utils/query-expressions";
+import { newStrVal } from "@/lib/utils/value-factories";
 import { memo, MouseEvent, useCallback, useEffect } from "react";
 
-import { usePage } from "@/stores/page-store";
+import { usePageStore } from "@/stores/page-store";
 import { spanIdToString, traceIdToString } from "@/lib/utils/id-factories";
 import { usePathname } from "next/navigation";
 import { useSpanNavigation } from "@/hooks/useSpanNavigation";
@@ -51,7 +51,7 @@ export const SpanCard = memo(({ index, span }: SpanCardProps) => {
 
   const { traceUrl, spanUrl } = useSpanNavigation(traceId, spanId);
 
-  const { activePage, setActivePage } = usePage();
+  const { activePage, setActivePage } = usePageStore();
 
   const handleCopy = useCallback(
     (e: MouseEvent, id: string) => {

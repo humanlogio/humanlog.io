@@ -1,6 +1,6 @@
 import { SpanTreeNode } from "@/components/traces/utils";
 import { AlertCircle, Hash } from "lucide-react";
-import { formatTimestamp, formatDuration } from "@/lib/utils/formatTimeStamp";
+import { formatTimestamp, formatDuration } from "@/lib/utils/format-timestamp";
 import { spanIdToString } from "@/lib/utils/id-factories";
 
 interface SpanInfo {

@@ -41,7 +41,7 @@ import { Dispatch, SetStateAction, useMemo, useState } from "react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { getOrgEnvUrl } from "@/lib/utils/navigation";
-import { usePage } from "@/stores/page-store";
+import { usePageStore } from "@/stores/page-store";
 import { useEnvironmentStore } from "@/stores/environment-store";
 import { useUser } from "@/hooks/useUser";
 
@@ -208,7 +208,7 @@ function CheckoutForm({
   const elements = useElements();
 
   const { activeEnvironment } = useEnvironmentStore();
-  const { activePage } = usePage();
+  const { activePage } = usePageStore();
   const { userData } = useUser();
 
   const [errorMessage, setErrorMessage] = useState<string>();

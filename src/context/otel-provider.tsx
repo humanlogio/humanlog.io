@@ -4,7 +4,7 @@ import {
   BatchSpanProcessor,
   WebTracerProvider,
 } from "@opentelemetry/sdk-trace-web";
-import config from "@/features/config";
+import config from "@/lib/config";
 import { ZoneContextManager } from "@opentelemetry/context-zone";
 import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-http";
 import { createContext, ReactNode } from "react";

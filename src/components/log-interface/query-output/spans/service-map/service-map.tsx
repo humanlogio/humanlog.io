@@ -1,6 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { useEffect, useState, useRef } from "react";
-import { formatDuration } from "@/lib/utils/formatTimeStamp";
+import { formatDuration } from "@/lib/utils/format-timestamp";
 import { DurationSchema } from "@bufbuild/protobuf/wkt";
 import * as d3 from "d3";
 import { generateServiceCallMap } from "@/components/log-interface/query-output/spans/service-map/utils/service-call-analyzer";

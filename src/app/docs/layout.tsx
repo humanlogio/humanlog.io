@@ -1,6 +1,6 @@
 import { DocsSidebar } from "@/components/docs/Sidebars";
 import { ReactNode } from "react";
-import { NavItem } from "@/lib/contents";
+import { NavItem } from "@/lib/utils/contents";
 import { reference } from "@/lib/utils/reference";
 
 export const navItems: NavItem[] = [

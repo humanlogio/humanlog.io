@@ -12,7 +12,7 @@ import {
 import { WhoamiResponse } from "api/js/svc/user/v1/service_private_pb";
 import { useEnvironmentStore } from "@/stores/environment-store";
 import { buildOrgEnvUrl } from "@/lib/utils/navigation";
-import { usePage } from "@/stores/page-store";
+import { usePageStore } from "@/stores/page-store";
 import { useQuery } from "@connectrpc/connect-query";
 import { CursorSchema } from "api/js/types/v1/cursor_pb";
 import { listEnvironment } from "api/js/svc/organization/v1/service-OrganizationService_connectquery";
@@ -37,7 +37,7 @@ interface EnvSwitcherProps {
 export const EnvSwitcher = ({ userData }: EnvSwitcherProps) => {
   const router = useRouter();
   const params = useParams();
-  const { activePage } = usePage();
+  const { activePage } = usePageStore();
   const { localhostData } = usePing();
 
   const { setActiveEnvironment, activeEnvironment } = useEnvironmentStore();

@@ -11,7 +11,7 @@ import { Data, SpansSchema } from "api/js/types/v1/data_pb";
 import { Input } from "@/components/ui/input";
 import { QueryHistoryEntry } from "api/js/types/v1/query_history_entry_pb";
 import { ShareQuery } from "@/components/log-interface/share-query";
-import { newSpansData } from "@/lib/utils/dataShapeFactories";
+import { newSpansData } from "@/lib/utils/data-shape-factories";
 import { SpanCard } from "@/components/log-interface/query-output/spans/span-list/span-card";
 import { create } from "@bufbuild/protobuf";
 import { Virtuoso } from "react-virtuoso";
