@@ -15,7 +15,6 @@ export * from "@/lib/utils/navigation";
 export * from "@/lib/utils/otel-browser";
 export * from "@/lib/utils/project";
 export * from "@/lib/utils/query-expressions";
-export * from "@/lib/utils/telemetry/logger";
 export * from "@/lib/utils/reference";
 export * from "@/lib/utils/server-grpc";
 export * from "@/lib/utils/styles";
