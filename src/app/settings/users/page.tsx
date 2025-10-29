@@ -21,7 +21,7 @@ import {
   Loader,
   UserIcon,
 } from "lucide-react";
-import { formatTimestamp } from "@/lib/utils/formatTimeStamp";
+import { formatTimestamp } from "@/lib/utils/format-timestamp";
 import { toast } from "sonner";
 import { useMutation } from "@connectrpc/connect-query";
 import { getStripeBillingPortal } from "api/js/svc/organization/v1/service-OrganizationService_connectquery";

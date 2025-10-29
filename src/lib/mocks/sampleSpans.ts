@@ -1,8 +1,8 @@
 import { Spans, SpansSchema } from "api/js/types/v1/data_pb";
 import { Timestamp, Duration, TimestampSchema } from "@bufbuild/protobuf/wkt";
-import { toBigInt } from "@/lib/utils/valueFactories";
-import { makeSpan } from "@/lib/utils/spanFactories";
-import { makeStrKV } from "@/lib/utils/kvFactories";
+import { toBigInt } from "@/lib/utils/value-factories";
+import { makeSpan } from "@/lib/utils/span-factories";
+import { makeStrKV } from "@/lib/utils/kv-factories";
 import { create } from "@bufbuild/protobuf";
 
 interface SampleSpan {

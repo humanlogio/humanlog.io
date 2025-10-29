@@ -5,7 +5,7 @@ import {
 } from "@perses-dev/core";
 import { DatasourceApi } from "@perses-dev/dashboards";
 
-import { getAPIURL } from "@/lib/envs";
+import { getAPIURL } from "@/lib/config/envs";
 import {
   HUMANLOG_DATASOURCE_KIND,
   LOCALHOST_URL,

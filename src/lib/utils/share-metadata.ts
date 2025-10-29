@@ -1,6 +1,6 @@
 import { Metadata } from "next";
-import { getSelfURL } from "@/lib/envs";
-import { createServerGrpcClient } from "@/lib/server-grpc";
+import { getSelfURL } from "@/lib/config/envs";
+import { createServerGrpcClient } from "@/lib/utils/server-grpc";
 import { unstable_cache } from "next/cache";
 
 export const getPublicSharedResultData = unstable_cache(

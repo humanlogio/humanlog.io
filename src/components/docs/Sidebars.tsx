@@ -11,8 +11,8 @@ import { ChevronDown, ChevronRight, LayoutList } from "lucide-react";
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import NextLink from "next/link";
-import { NavItem as NavItemType } from "@/lib/contents";
-import config from "@/features/config";
+import { NavItem as NavItemType } from "@/lib/utils/contents";
+import config from "@/lib/config";
 
 interface DocsSidebarProps {
   navItems: NavItemType[];

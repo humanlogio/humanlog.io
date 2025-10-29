@@ -8,7 +8,7 @@ import { ApiClientsProvider } from "@/context/api-provider";
 import { FullWidthProvider } from "@/context/full-width-provider";
 import { Toaster } from "@/components/ui/sonner";
 import PageFooter from "@/components/page-footer";
-import config from "@/features/config";
+import config from "@/lib/config";
 import { OTELProvider } from "@/context/otel-provider";
 import { PostHogProvider } from "@/context/posthog-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";

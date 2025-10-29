@@ -45,9 +45,9 @@ import {
   PublicShareService,
   UserShareService,
 } from "api/js/svc/share/v1/service_pb";
-import { getAPIURL, getSelfURL } from "@/lib/envs";
+import { getAPIURL, getSelfURL } from "@/lib/config/envs";
 import { useCookies } from "react-cookie";
-import config from "@/features/config";
+import config from "@/lib/config";
 import { v4 as uuidv4 } from "uuid";
 import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";

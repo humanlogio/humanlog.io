@@ -22,7 +22,7 @@ import {
   Share,
   Github,
 } from "lucide-react";
-import { getSelfURL } from "@/lib/envs";
+import { getSelfURL } from "@/lib/config/envs";
 import InstallCTA from "@/components/landing-page/shared/install-cta";
 import { SpansContainer } from "@/components/log-interface/query-output/spans/spans-container";
 import Terminal from "@/components/landing-page/shared/ui/terminal";

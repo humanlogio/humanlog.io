@@ -1,5 +1,5 @@
-import { renderInstallScript } from "@/lib/install_script";
-import { getAPIURL, getSelfURL, getReleaseChannel } from "@/lib/envs";
+import { renderInstallScript } from "@/lib/utils/install_script";
+import { getAPIURL, getSelfURL, getReleaseChannel } from "@/lib/config/envs";
 
 export async function GET(request: Request) {
   const project = "humanlog";

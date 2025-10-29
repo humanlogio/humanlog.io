@@ -1,6 +1,6 @@
 import { Arr, Table, TableType_Column } from "api/js/types/v1/types_pb";
 import { useEffect, useState, useMemo, useRef } from "react";
-import { formatTimestamp } from "@/lib/utils/formatTimeStamp";
+import { formatTimestamp } from "@/lib/utils/format-timestamp";
 import { Loader } from "lucide-react";
 import * as d3 from "d3";
 import { Data } from "api/js/types/v1/data_pb";

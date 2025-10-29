@@ -3,7 +3,7 @@ import {
   TimestampSchema,
   DurationSchema,
 } from "@bufbuild/protobuf/wkt";
-import { toBigInt } from "@/lib/utils/valueFactories";
+import { toBigInt } from "@/lib/utils/value-factories";
 import {
   makeDurationKV,
   makeF64KV,
@@ -11,9 +11,9 @@ import {
   makeNullKV,
   makeStrKV,
   makeTimestampKV,
-} from "@/lib/utils/kvFactories";
+} from "@/lib/utils/kv-factories";
 import { Log } from "api/js/types/v1/otel_logging_pb";
-import { makeLog } from "@/lib/utils/logEventFactories";
+import { makeLog } from "@/lib/utils/log-event-factories";
 import { create } from "@bufbuild/protobuf";
 
 interface SampleLog {

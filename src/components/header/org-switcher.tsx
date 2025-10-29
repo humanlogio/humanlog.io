@@ -12,7 +12,7 @@ import { WhoamiResponse } from "api/js/svc/user/v1/service_private_pb";
 import { useMutation, useQuery } from "@connectrpc/connect-query";
 import { getAuthURL } from "api/js/svc/auth/v1/service-AuthService_connectquery";
 import { toast } from "sonner";
-import { getSelfURL } from "@/lib/envs";
+import { getSelfURL } from "@/lib/config/envs";
 import { useEnvironmentStore } from "@/stores/environment-store";
 import { getOrgEnvUrl } from "@/lib/utils/navigation";
 import { usePageStore } from "@/stores/page-store";

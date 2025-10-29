@@ -3,7 +3,7 @@ import { useUser } from "@/hooks/useUser";
 import { PingResponse } from "api/js/svc/localhost/v1/service_pb";
 import { useParams, usePathname } from "next/navigation";
 import { useState } from "react";
-import config from "@/features/config";
+import config from "@/lib/config";
 import {
   Activity,
   Database,
