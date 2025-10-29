@@ -4,8 +4,8 @@ import {
   LoggerProvider,
   BatchLogRecordProcessor,
 } from "@opentelemetry/sdk-logs";
-import { getCurrentTraceContext } from "@/lib/otel-browser";
-import config from "@/features/config";
+import { getCurrentTraceContext } from "@/lib/utils/otel-browser";
+import config from "@/lib/config";
 
 export type LogLevel = "trace" | "debug" | "info" | "warn" | "error" | "fatal";
 

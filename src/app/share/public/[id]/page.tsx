@@ -1,10 +1,10 @@
 import { SharedQuery } from "@/components/share";
 import { Metadata } from "next";
-import { getSelfURL } from "@/lib/envs";
+import { getSelfURL } from "@/lib/config/envs";
 import {
   generateSharedQueryMetadata,
   getPublicSharedResultData,
-} from "@/lib/utils/shareMetadata";
+} from "@/lib/utils/share-metadata";
 
 export async function generateMetadata({
   params,

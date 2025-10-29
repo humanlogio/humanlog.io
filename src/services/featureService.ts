@@ -1,4 +1,4 @@
-import { CallbacksType, handleError } from "@/lib/utils/errorHandler";
+import { CallbacksType, handleError } from "@/lib/utils/error-handler";
 import { Client } from "@connectrpc/connect";
 import { FeatureService } from "api/js/svc/feature/v1/service_pb";
 

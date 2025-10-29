@@ -7,7 +7,7 @@ import { makeSpanID, makeTraceID, makeULID } from "@/lib/utils/id-factories";
 import { create } from "@bufbuild/protobuf";
 
 // Export KV helpers from the dedicated file
-export * from "@/lib/utils/kvFactories";
+export * from "@/lib/utils/kv-factories";
 
 // Create a basic Resource
 export const makeResource = (attributes: KV[] = []): Resource => {

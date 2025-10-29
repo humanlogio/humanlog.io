@@ -8,7 +8,7 @@ import {
   newNullVal,
   newStrVal,
   newTimestampVal,
-} from "@/lib/utils/valueFactories";
+} from "@/lib/utils/value-factories";
 
 // Helper functions for key-value pairs
 export const makeStrKV = (key: string, value: string): KV => {

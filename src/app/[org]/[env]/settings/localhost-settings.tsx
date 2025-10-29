@@ -41,7 +41,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
-import { TIME_FORMAT } from "@/lib/utils/formatTimeStamp";
+import { TIME_FORMAT } from "@/lib/utils/format-timestamp";
 import FieldTagsInput from "@/components/ui/field-text-input";
 import { toast } from "sonner";
 import { ThemeEditor } from "@/components/settings/ThemeEditor";

@@ -39,7 +39,7 @@ import {
 import { SaveQueryModal } from "@/components/log-interface/query-library/save-query-modal";
 import Graph from "@/components/ui/graph/graph";
 import dynamic from "next/dynamic";
-import { newBinaryExpr } from "@/lib/utils/queryExpressions";
+import { newBinaryExpr } from "@/lib/utils/query-expressions";
 import { ExecuteQuery } from "@/components/log-interface";
 import { listQueryHistory } from "api/js/svc/user/v1/service_private-UserService_connectquery";
 import { create } from "@bufbuild/protobuf";

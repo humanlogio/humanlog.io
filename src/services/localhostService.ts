@@ -1,4 +1,4 @@
-import { CallbacksType, handleError } from "@/lib/utils/errorHandler";
+import { CallbacksType, handleError } from "@/lib/utils/error-handler";
 import { Client } from "@connectrpc/connect";
 import { LocalhostService } from "api/js/svc/localhost/v1/service_pb";
 import { GetConfigResponse } from "api/js/svc/localhost/v1/service_pb";

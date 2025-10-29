@@ -12,7 +12,7 @@ import {
 import {
   newIdentifierExpr,
   newLiteralExpr,
-} from "@/lib/utils/queryExpressions";
+} from "@/lib/utils/query-expressions";
 import { valueToString } from "@/lib/utils/value-formatters";
 
 type ThemeType = "msg" | "time" | "key" | "value" | "levels";

@@ -4,7 +4,7 @@ import { ReactNode, useEffect, useMemo, useState } from "react";
 import { Query } from "api/js/types/v1/query_pb";
 import { EmptyDataView } from "@/components/log-interface/views/empty-data-view";
 import { SubQueriesContainer } from "@/components/log-interface/query-output/session/subqueries-container";
-import { extractQueryIds } from "@/lib/utils/extractQueryIds";
+import { extractQueryIds } from "@/lib/utils/extract-query-ids";
 import {
   ToggleShowPretty,
   ToggleSplit,

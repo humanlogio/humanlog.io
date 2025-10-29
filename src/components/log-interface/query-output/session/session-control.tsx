@@ -1,5 +1,8 @@
 import { TooltipContent } from "@/components/ui/tooltip";
-import { formatTimestamp, getUnixTimestamp } from "@/lib/utils/formatTimeStamp";
+import {
+  formatTimestamp,
+  getUnixTimestamp,
+} from "@/lib/utils/format-timestamp";
 import { Timestamp } from "@bufbuild/protobuf/wkt";
 import { BinaryOp_Operator, Expr } from "api/js/types/v1/query_pb";
 import {
@@ -7,7 +10,7 @@ import {
   newIdentifierExpr,
   newStrExpr,
   newTimestampExpr,
-} from "@/lib/utils/queryExpressions";
+} from "@/lib/utils/query-expressions";
 import { Log } from "api/js/types/v1/otel_logging_pb";
 import { useFilterBySymbolStore } from "@/stores/filter-by-symbol-store";
 

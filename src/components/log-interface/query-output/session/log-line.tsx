@@ -1,7 +1,7 @@
 import { useThemeColors } from "@/hooks/useThemeColors";
 import { copyToClipboard } from "@/lib/utils/clipboard";
 import { decodeUint8Array } from "@/lib/utils/decode";
-import { formatTimestamp } from "@/lib/utils/formatTimeStamp";
+import { formatTimestamp } from "@/lib/utils/format-timestamp";
 import { Timestamp } from "@bufbuild/protobuf/wkt";
 import { FormatConfig_Themes } from "api/js/types/v1/localhost_config_pb";
 import { Log } from "api/js/types/v1/otel_logging_pb";

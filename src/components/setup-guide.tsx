@@ -1,5 +1,5 @@
 import { Copy } from "lucide-react";
-import { getSelfURL } from "@/lib/envs";
+import { getSelfURL } from "@/lib/config/envs";
 import { copyToClipboard } from "@/lib/utils/clipboard";
 
 const SetupGuide: React.FC = () => {

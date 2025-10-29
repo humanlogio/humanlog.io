@@ -46,7 +46,7 @@ import { ConnectError } from "@connectrpc/connect";
 import { DurationSchema } from "@bufbuild/protobuf/wkt";
 import FeatureFlag from "@/components/posthog/feature-flag";
 import { logger } from "@/lib/utils/telemetry/logger";
-import { newIdentifierExpr } from "@/lib/utils/queryExpressions";
+import { newIdentifierExpr } from "@/lib/utils/query-expressions";
 import { Log } from "api/js/types/v1/otel_logging_pb";
 import { Span } from "api/js/types/v1/otel_tracing_pb";
 import { QueryTimer } from "@/components/log-interface/query-timer";

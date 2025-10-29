@@ -1,4 +1,4 @@
-import { useDashboardPersistence } from "@/lib/hooks/useDashboardPersistence";
+import { useDashboardPersistence } from "@/hooks/useDashboardPersistence";
 import { DashboardResource } from "@perses-dev/core";
 import { Button } from "@/components/ui/button";
 import {
