@@ -13,7 +13,7 @@ import {
   FolderKanban,
 } from "lucide-react";
 import Link from "next/link";
-import { usePage } from "@/stores/page-store";
+import { usePageStore } from "@/stores/page-store";
 import { Separator } from "@/components/ui/separator";
 import { useFeatureFlag } from "@/lib/hooks/useFeatureFlag";
 import {
@@ -36,7 +36,7 @@ export const SideMenu = ({ isExpanded, setIsExpanded }: SideMenuProps) => {
   const params = useParams();
   const isProd = config.NEXT_PUBLIC_IS_PROD;
   const { userData } = useUser();
-  const { activePage } = usePage();
+  const { activePage } = usePageStore();
   const currentOrg = userData?.currentOrganization?.name;
   const currentEnvSlug = params?.env || "localhost";
   // PostHog feature flags

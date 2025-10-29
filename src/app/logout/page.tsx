@@ -4,14 +4,14 @@ import LoadingIndicator from "@/components/loading-indicator";
 import { useEnvironmentStore } from "@/stores/environment-store";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-import { usePage } from "@/stores/page-store";
+import { usePageStore } from "@/stores/page-store";
 import { useUser } from "@/hooks/useUser";
 
 export default function Logout() {
   const router = useRouter();
   const { setActiveEnvironment } = useEnvironmentStore();
 
-  const { clearPage } = usePage();
+  const { clearPage } = usePageStore();
   const { refetchUser } = useUser();
 
   useEffect(() => {

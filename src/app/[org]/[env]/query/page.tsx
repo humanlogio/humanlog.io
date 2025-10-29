@@ -1,7 +1,7 @@
 "use client";
 
 import { Tutorial } from "@/components/onboarding/tutorial";
-import { usePage } from "@/stores/page-store";
+import { usePageStore } from "@/stores/page-store";
 import { Loader2 } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { lazy, Suspense, useEffect } from "react";
@@ -11,7 +11,7 @@ const LogInterface = lazy(() => import("@/components/log-interface"));
 export default function Query() {
   const searchParams = useSearchParams();
   const tutorialParam = searchParams.get("tutorial");
-  const { activePage, setActivePage } = usePage();
+  const { activePage, setActivePage } = usePageStore();
 
   useEffect(() => {
     setActivePage("query");

@@ -12,14 +12,14 @@ import { Product_Scope } from "api/js/types/v1/product_pb";
 import { ConnectError } from "@connectrpc/connect";
 import { getOrgEnvUrl } from "@/lib/utils/navigation";
 import { useEnvironmentStore } from "@/stores/environment-store";
-import { usePage } from "@/stores/page-store";
+import { usePageStore } from "@/stores/page-store";
 
 import { useUser } from "@/hooks/useUser";
 
 export default function OnboardingPricing() {
   const router = useRouter();
   const { activeEnvironment } = useEnvironmentStore();
-  const { activePage } = usePage();
+  const { activePage } = usePageStore();
   const { userData } = useUser();
 
   const { data: productData } = useQuery(listProduct, {

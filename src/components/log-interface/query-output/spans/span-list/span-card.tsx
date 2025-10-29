@@ -33,7 +33,7 @@ import { newIndexorExpr } from "@/lib/utils/queryExpressions";
 import { newStrVal } from "@/lib/utils/valueFactories";
 import { memo, MouseEvent, useCallback, useEffect } from "react";
 
-import { usePage } from "@/stores/page-store";
+import { usePageStore } from "@/stores/page-store";
 import { spanIdToString, traceIdToString } from "@/lib/utils/id-factories";
 import { usePathname } from "next/navigation";
 import { useSpanNavigation } from "@/hooks/useSpanNavigation";
@@ -51,7 +51,7 @@ export const SpanCard = memo(({ index, span }: SpanCardProps) => {
 
   const { traceUrl, spanUrl } = useSpanNavigation(traceId, spanId);
 
-  const { activePage, setActivePage } = usePage();
+  const { activePage, setActivePage } = usePageStore();
 
   const handleCopy = useCallback(
     (e: MouseEvent, id: string) => {

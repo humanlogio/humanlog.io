@@ -15,7 +15,7 @@ import { toast } from "sonner";
 import { getSelfURL } from "@/lib/envs";
 import { useEnvironmentStore } from "@/stores/environment-store";
 import { getOrgEnvUrl } from "@/lib/utils/navigation";
-import { usePage } from "@/stores/page-store";
+import { usePageStore } from "@/stores/page-store";
 import { listOrganization } from "api/js/svc/user/v1/service_private-UserService_connectquery";
 import { CursorSchema } from "api/js/types/v1/cursor_pb";
 import { create } from "@bufbuild/protobuf";
@@ -36,7 +36,7 @@ export const OrgSwitcher = ({ userData }: OrgSwitcherProps) => {
   const pathname = usePathname();
   const { activeEnvironment } = useEnvironmentStore();
 
-  const { activePage } = usePage();
+  const { activePage } = usePageStore();
 
   const [menuList, setMenuList] = useState<Source[]>([]);
 
