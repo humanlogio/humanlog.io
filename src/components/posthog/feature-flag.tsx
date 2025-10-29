@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { useFeatureFlag } from "@/lib/hooks/useFeatureFlag";
+import { useFeatureFlag } from "@/hooks/useFeatureFlag";
 
 type FeatureFlagProps = {
   flagKey: string;

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { ColorPicker, useColor } from "react-color-palette";
 import { Label } from "@/components/ui/label";
-import { useThemeColors } from "@/lib/hooks/useThemeColors";
+import { useThemeColors } from "@/hooks/useThemeColors";
 import { UseFormReturn } from "react-hook-form";
 import { FormValues } from "@/app/[org]/[env]/settings/localhost-settings";
 

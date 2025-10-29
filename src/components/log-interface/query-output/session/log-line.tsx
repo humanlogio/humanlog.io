@@ -1,4 +1,4 @@
-import { useThemeColors } from "@/lib/hooks/useThemeColors";
+import { useThemeColors } from "@/hooks/useThemeColors";
 import { copyToClipboard } from "@/lib/utils/clipboard";
 import { decodeUint8Array } from "@/lib/utils/decode";
 import { formatTimestamp } from "@/lib/utils/formatTimeStamp";
