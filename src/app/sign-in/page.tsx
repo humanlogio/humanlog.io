@@ -12,7 +12,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -46,7 +46,7 @@ export default function SignInPage() {
   });
 
   const { formState, setError, watch } = signInForm;
-  const { errors } = formState;
+  const { errors, isSubmitting } = formState;
 
   const { isEmailValid } = useEmailValidation({ watch });
 
@@ -164,8 +164,8 @@ export default function SignInPage() {
                 </FormItem>
               )}
             />
-            <Button type="submit" className="w-full">
-              Sign In
+            <Button type="submit" className="w-full" disabled={isSubmitting}>
+              {isSubmitting ? <Loader2 className="animate-spin" /> : "Sign In"}
             </Button>
           </form>
         </Form>

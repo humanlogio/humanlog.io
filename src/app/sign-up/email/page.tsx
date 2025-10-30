@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -45,7 +45,7 @@ export default function SignUpWithEmailPage() {
 
   const { formState, watch } = SignUpWithEmailForm;
 
-  const { errors } = formState;
+  const { errors, isSubmitting } = formState;
 
   const { isEmailValid } = useEmailValidation({ watch });
 
@@ -178,8 +178,12 @@ export default function SignUpWithEmailPage() {
                 </FormItem>
               )}
             />
-            <Button type="submit" className="mt-13 w-full">
-              Continue
+            <Button
+              type="submit"
+              className="mt-13 w-full"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? <Loader2 className="animate-spin" /> : "Continue"}
             </Button>
           </form>
         </Form>
