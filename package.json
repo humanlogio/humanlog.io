@@ -64,7 +64,7 @@
     "@stripe/stripe-js": "^4.10.0",
     "@tanstack/react-query-devtools": "^5.90.2",
     "@tanstack/react-table": "^8.21.2",
-    "api": "github:humanlogio/api#a3dc5f8",
+    "api": "github:humanlogio/api#9fc1939",
     "asciinema-player": "^3.8.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
