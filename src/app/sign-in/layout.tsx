@@ -4,7 +4,7 @@ import { useFeatureFlag } from "@/hooks/useFeatureFlag";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
-export default function SignUpLayout({
+export default function SignInLayout({
   children,
 }: {
   children: React.ReactNode;

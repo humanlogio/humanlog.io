@@ -75,115 +75,113 @@ export default function SignInPage() {
   };
 
   return (
-    <div className="flex h-full w-full flex-col items-center justify-center">
-      <div className="w-[320px]">
-        <div className="flex w-full flex-col items-center">
-          <h1 className="mb-12 text-xl font-semibold">Sign in to Humanlog</h1>
-          <SocialAuthButtons />
-          <div className="my-8 flex w-full items-center justify-center">
-            <Separator className="flex-1" />
-            <span className="text-muted-foreground mx-3 text-sm">or</span>
-            <Separator className="flex-1" />
-          </div>
+    <div className="w-[320px]">
+      <div className="flex w-full flex-col items-center">
+        <h1 className="mb-12 text-xl font-semibold">Sign in to Humanlog</h1>
+        <SocialAuthButtons />
+        <div className="my-8 flex w-full items-center justify-center">
+          <Separator className="flex-1" />
+          <span className="text-muted-foreground mx-3 text-sm">or</span>
+          <Separator className="flex-1" />
+        </div>
 
-          <Form {...signInForm}>
-            <form
-              onSubmit={signInForm.handleSubmit(onSubmit)}
-              className="flex w-full flex-col gap-8"
-            >
-              <FormField
-                control={signInForm.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email or username</FormLabel>
-                    <div className="relative">
-                      <FormControl>
-                        <Input
-                          type="email"
-                          placeholder="Enter your email or username"
-                          className="h-10"
-                          {...field}
-                        />
-                      </FormControl>
-                      {errors.email ? (
-                        <button
-                          type="button"
-                          className="absolute top-1/2 right-4 -translate-y-1/2"
-                          onClick={() => {
-                            signInForm.resetField("email");
-                          }}
-                        >
-                          <CloseIcon />
-                        </button>
-                      ) : (
-                        signInForm.getValues("email") && (
-                          <CheckIcon className="absolute top-1/2 right-4 -translate-y-1/2" />
-                        )
-                      )}
-                    </div>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={signInForm.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <div className="flex items-center justify-between">
-                      <FormLabel>Password</FormLabel>
-                      <Button
-                        variant="link"
-                        type="button"
-                        className="p-0 text-sm font-normal text-blue-500"
-                        onClick={handleForgotPassword}
-                      >
-                        Forget your password?
-                      </Button>
-                    </div>
-                    <div className="relative">
-                      <FormControl>
-                        <Input
-                          type={showPassword ? "text" : "password"}
-                          placeholder="Enter your password"
-                          className="h-10"
-                          {...field}
-                        />
-                      </FormControl>
+        <Form {...signInForm}>
+          <form
+            onSubmit={signInForm.handleSubmit(onSubmit)}
+            className="flex w-full flex-col gap-8"
+          >
+            <FormField
+              control={signInForm.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email or username</FormLabel>
+                  <div className="relative">
+                    <FormControl>
+                      <Input
+                        type="email"
+                        placeholder="Enter your email or username"
+                        className="h-10"
+                        {...field}
+                      />
+                    </FormControl>
+                    {errors.email ? (
                       <button
                         type="button"
                         className="absolute top-1/2 right-4 -translate-y-1/2"
-                        onClick={() => setShowPassword((prev) => !prev)}
+                        onClick={() => {
+                          signInForm.resetField("email");
+                        }}
                       >
-                        {showPassword ? (
-                          <Eye size={16} className="text-muted-foreground" />
-                        ) : (
-                          <EyeOff size={16} className="text-muted-foreground" />
-                        )}
+                        <CloseIcon />
                       </button>
-                    </div>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <Button type="submit" className="w-full">
-                Sign In
-              </Button>
-            </form>
-          </Form>
-          <div className="mt-15 flex items-center justify-center">
-            <span className="text-sm text-neutral-500">
-              Don&apos;t have an account?
-            </span>
-            <Button
-              variant="link"
-              className="text-sm font-normal text-blue-500"
-              onClick={() => router.push("/sign-up")}
-            >
-              Sign up
+                    ) : (
+                      signInForm.getValues("email") && (
+                        <CheckIcon className="absolute top-1/2 right-4 -translate-y-1/2" />
+                      )
+                    )}
+                  </div>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={signInForm.control}
+              name="password"
+              render={({ field }) => (
+                <FormItem>
+                  <div className="flex items-center justify-between">
+                    <FormLabel>Password</FormLabel>
+                    <Button
+                      variant="link"
+                      type="button"
+                      className="p-0 text-sm font-normal text-blue-500"
+                      onClick={handleForgotPassword}
+                    >
+                      Forget your password?
+                    </Button>
+                  </div>
+                  <div className="relative">
+                    <FormControl>
+                      <Input
+                        type={showPassword ? "text" : "password"}
+                        placeholder="Enter your password"
+                        className="h-10"
+                        {...field}
+                      />
+                    </FormControl>
+                    <button
+                      type="button"
+                      className="absolute top-1/2 right-4 -translate-y-1/2"
+                      onClick={() => setShowPassword((prev) => !prev)}
+                    >
+                      {showPassword ? (
+                        <Eye size={16} className="text-muted-foreground" />
+                      ) : (
+                        <EyeOff size={16} className="text-muted-foreground" />
+                      )}
+                    </button>
+                  </div>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <Button type="submit" className="w-full">
+              Sign In
             </Button>
-          </div>
+          </form>
+        </Form>
+        <div className="mt-15 flex items-center justify-center">
+          <span className="text-sm text-neutral-500">
+            Don&apos;t have an account?
+          </span>
+          <Button
+            variant="link"
+            className="text-sm font-normal text-blue-500"
+            onClick={() => router.push("/sign-up")}
+          >
+            Sign up
+          </Button>
         </div>
       </div>
     </div>
