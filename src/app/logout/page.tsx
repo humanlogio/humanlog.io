@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { usePageStore } from "@/stores/page-store";
 import { useUser } from "@/hooks/useUser";
+import posthog from "posthog-js";
 
 export default function Logout() {
   const router = useRouter();
@@ -18,6 +19,7 @@ export default function Logout() {
     setActiveEnvironment(undefined);
     refetchUser();
     clearPage();
+    posthog.reset();
     router.push("/");
   }, []);
 
