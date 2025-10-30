@@ -43,7 +43,12 @@ const footerLinks = [
 const PageFooter = () => {
   const pathname = usePathname();
 
-  if (pathname !== "/") return null;
+  const shouldShowFooter =
+    pathname === "/" ||
+    pathname.startsWith("/sign-in") ||
+    pathname.startsWith("/sign-up");
+
+  if (!shouldShowFooter) return null;
 
   return (
     <footer className="bg-neutral-50 px-5 py-10 dark:bg-neutral-950">
