@@ -1,9 +1,9 @@
 "use client";
 
+import { SocialAuthButtons } from "@/components/auth/social-auth-buttons";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { useRouter } from "next/navigation";
-import { GithubIcon, GoogleIcon } from "public/icons";
 
 export default function SignUpPage() {
   const router = useRouter();
@@ -11,17 +11,8 @@ export default function SignUpPage() {
   return (
     <div className="w-[320px]">
       <div className="flex w-full flex-col items-center">
-        <h1 className="text-xl font-semibold">Create your account</h1>
-        <div className="mt-12 flex w-full flex-col gap-5">
-          <Button variant="outline" className="h-10">
-            <GoogleIcon />
-            Continue with Gmail
-          </Button>
-          <Button variant="outline">
-            <GithubIcon />
-            Continue with Github
-          </Button>
-        </div>
+        <h1 className="mb-12 text-xl font-semibold">Create your account</h1>
+        <SocialAuthButtons />
         <div className="my-8 flex w-full items-center justify-center">
           <Separator className="flex-1" />
           <span className="text-muted-foreground mx-3 text-sm">or</span>
@@ -38,7 +29,11 @@ export default function SignUpPage() {
           <span className="text-sm text-neutral-500">
             Already have an account?
           </span>
-          <Button variant="link" className="text-sm font-normal text-blue-500">
+          <Button
+            variant="link"
+            className="text-sm font-normal text-blue-500"
+            onClick={() => router.push("/sign-in")}
+          >
             Sign in
           </Button>
         </div>
