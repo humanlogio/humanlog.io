@@ -21,6 +21,7 @@ import { CheckIcon, CloseIcon } from "public/icons";
 import { authClient } from "@/lib/auth-client";
 import { SocialAuthButtons } from "@/components/auth/social-auth-buttons";
 import { toast } from "sonner";
+import { useEmailValidation } from "@/hooks/useEmailValidation";
 
 const SignInFormSchema = z.object({
   email: z.string().email("Please enter a valid email."),
@@ -44,7 +45,10 @@ export default function SignInPage() {
     },
   });
 
-  const { errors } = signInForm.formState;
+  const { formState, setError, watch } = signInForm;
+  const { errors } = formState;
+
+  const { isEmailValid } = useEmailValidation({ watch });
 
   const handleForgotPassword = () => {
     toast.info("TODO: send email to reset password");
@@ -60,14 +64,9 @@ export default function SignInPage() {
         callbackURL: "/",
       },
       {
-        onRequest: (ctx) => {
-          console.log("ctx in signIn onRequest", ctx);
-        },
-        onSuccess: (ctx) => {
-          console.log("ctx in signIn onSuccess", ctx);
-        },
+        onRequest: (ctx) => {},
+        onSuccess: (ctx) => {},
         onError: (ctx) => {
-          console.log("ctx in signIn onError", ctx);
           toast.error(ctx.error.message);
         },
       },
@@ -99,7 +98,6 @@ export default function SignInPage() {
                   <div className="relative">
                     <FormControl>
                       <Input
-                        type="email"
                         placeholder="Enter your email or username"
                         className="h-10"
                         {...field}
@@ -116,7 +114,7 @@ export default function SignInPage() {
                         <CloseIcon />
                       </button>
                     ) : (
-                      signInForm.getValues("email") && (
+                      isEmailValid && (
                         <CheckIcon className="absolute top-1/2 right-4 -translate-y-1/2" />
                       )
                     )}

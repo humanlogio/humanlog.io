@@ -19,6 +19,7 @@ import { z } from "zod";
 import { CheckIcon, CloseIcon } from "public/icons";
 import { authClient } from "@/lib/auth-client";
 import { toast } from "sonner";
+import { useEmailValidation } from "@/hooks/useEmailValidation";
 
 const SignUpWithEmailFormSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters long"),
@@ -42,7 +43,11 @@ export default function SignUpWithEmailPage() {
     },
   });
 
-  const { errors } = SignUpWithEmailForm.formState;
+  const { formState, watch } = SignUpWithEmailForm;
+
+  const { errors } = formState;
+
+  const { isEmailValid } = useEmailValidation({ watch });
 
   const onSubmit = async (formData: SignUpWithEmailFormData) => {
     const { username, email, password } = formData;
@@ -132,7 +137,7 @@ export default function SignUpWithEmailPage() {
                         <CloseIcon />
                       </button>
                     ) : (
-                      SignUpWithEmailForm.getValues("email") && (
+                      isEmailValid && (
                         <CheckIcon className="absolute top-1/2 right-4 -translate-y-1/2" />
                       )
                     )}
