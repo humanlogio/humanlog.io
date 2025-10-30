@@ -15,7 +15,7 @@ export default function SignUpWithEmailVerifyPage() {
           Verify your email
         </h1>
         <div className="flex flex-col items-center">
-          <p>We've sent a verification link to</p>
+          <p>We&apos;ve sent a verification link to</p>
           {email && <p className="text-foreground">{email}</p>}
         </div>
         <p>Please verify to continue.</p>

@@ -17,6 +17,8 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { CheckIcon, CloseIcon } from "public/icons";
+import { authClient } from "@/lib/auth-client";
+import { toast } from "sonner";
 
 const SignUpWithEmailFormSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters long"),
@@ -28,8 +30,9 @@ type SignUpWithEmailFormData = z.infer<typeof SignUpWithEmailFormSchema>;
 
 export default function SignUpWithEmailPage() {
   const router = useRouter();
-  const [showPassword, setShowPassword] = useState(false);
+  const { signUp } = authClient;
 
+  const [showPassword, setShowPassword] = useState(false);
   const SignUpWithEmailForm = useForm<SignUpWithEmailFormData>({
     resolver: zodResolver(SignUpWithEmailFormSchema),
     defaultValues: {
@@ -41,10 +44,35 @@ export default function SignUpWithEmailPage() {
 
   const { errors } = SignUpWithEmailForm.formState;
 
-  const onSubmit = (data: SignUpWithEmailFormData) => {
-    // TODO: api fetch
-    console.log("data", data);
-    router.push(`/sign-up/email/verify?email=${data.email}`);
+  const onSubmit = async (formData: SignUpWithEmailFormData) => {
+    const { username, email, password } = formData;
+
+    const { data, error } = await signUp.email(
+      {
+        email,
+        password,
+        name: username,
+        callbackURL: "/sign-up/success", // A URL to redirect to after the user verifies their email
+      },
+      {
+        onRequest: (ctx) => {
+          console.log("ctx in signUp onRequest", ctx);
+        },
+        onSuccess: (ctx) => {
+          console.log("ctx in signUp onSuccess", ctx);
+          router.push(`/sign-up/email/verify?email=${email}`);
+        },
+        onError: (ctx) => {
+          // when email verification is required
+          if (ctx.error.status === 403) {
+            toast.error("Please verify your email address");
+          }
+          // display the error message
+          console.log("ctx in signUp onError", ctx);
+          toast.error(ctx.error.message);
+        },
+      },
+    );
   };
 
   return (
