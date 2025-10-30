@@ -1,6 +1,7 @@
 "use client";
 
 import { useFeatureFlag } from "@/hooks/useFeatureFlag";
+import { ChevronLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
@@ -23,7 +24,14 @@ export default function SignUpLayout({
   if (isLoading || !isAuthMigrationReady) return null;
 
   return (
-    <div className="flex h-full w-full flex-col items-center justify-center">
+    <div className="relative flex h-full w-full flex-col items-center justify-center">
+      <button
+        className="text-muted-foreground absolute top-5 left-6 flex items-center gap-1 text-xs"
+        onClick={() => router.back()}
+      >
+        <ChevronLeft size={15} />
+        Back
+      </button>
       {children}
     </div>
   );
