@@ -67,6 +67,8 @@ export default function SignInPage() {
         onRequest: (ctx) => {},
         onSuccess: (ctx) => {},
         onError: (ctx) => {
+          setError("email", { message: ctx.error.message });
+          setError("password", { message: ctx.error.message });
           toast.error(ctx.error.message);
         },
       },
@@ -103,7 +105,7 @@ export default function SignInPage() {
                         {...field}
                       />
                     </FormControl>
-                    {errors.email ? (
+                    {errors.email && field.value.length > 0 ? (
                       <button
                         type="button"
                         className="absolute top-1/2 right-4 -translate-y-1/2"

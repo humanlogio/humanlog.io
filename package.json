@@ -105,7 +105,8 @@
     "tailwind-scrollbar-hide": "^2.0.0",
     "uuid": "^11.0.5",
     "zod": "^3.24.2",
-    "zustand": "^5.0.8"
+    "zustand": "^5.0.8",
+    "zxcvbn": "^4.4.2"
   },
   "devDependencies": {
     "@mdx-js/loader": "^3.1.0",
@@ -122,6 +123,7 @@
     "@types/react-flatpickr": "^3.8.11",
     "@types/react-helmet": "^6.1.11",
     "@types/react-syntax-highlighter": "^15.5.13",
+    "@types/zxcvbn": "^4.4.5",
     "@vitejs/plugin-react": "^4.3.3",
     "eslint": "^9",
     "eslint-config-next": "15.0.3",
