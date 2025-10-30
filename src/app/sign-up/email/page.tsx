@@ -108,7 +108,7 @@ export default function SignUpWithEmailPage() {
         <Form {...SignUpWithEmailForm}>
           <form
             onSubmit={SignUpWithEmailForm.handleSubmit(onSubmit)}
-            className="mt-8 flex w-full flex-col gap-7"
+            className="mt-8 flex w-full flex-col"
           >
             <FormField
               control={SignUpWithEmailForm.control}
@@ -124,7 +124,9 @@ export default function SignUpWithEmailPage() {
                       {...field}
                     />
                   </FormControl>
-                  <FormMessage />
+                  <div className="h-7">
+                    <FormMessage />
+                  </div>
                 </FormItem>
               )}
             />
@@ -159,7 +161,9 @@ export default function SignUpWithEmailPage() {
                       )
                     )}
                   </div>
-                  <FormMessage />
+                  <div className="h-7">
+                    <FormMessage />
+                  </div>
                 </FormItem>
               )}
             />
@@ -191,12 +195,13 @@ export default function SignUpWithEmailPage() {
                       )}
                     </button>
                   </div>
-
-                  <PasswordStrengthIndicator
-                    strength={passwordStrength}
-                    password={passwordValue}
-                  />
-                  <FormMessage />
+                  <div className="h-7">
+                    <PasswordStrengthIndicator
+                      strength={passwordStrength}
+                      password={passwordValue}
+                    />
+                    <FormMessage />
+                  </div>
                 </FormItem>
               )}
             />
