@@ -20,11 +20,25 @@ import { CheckIcon, CloseIcon } from "public/icons";
 import { authClient } from "@/lib/auth-client";
 import { toast } from "sonner";
 import { useEmailValidation } from "@/hooks/useEmailValidation";
+import zxcvbn from "zxcvbn";
+import { PasswordStrengthIndicator } from "@/components/auth/password-strength";
+import { usePasswordStrength } from "@/hooks/usePasswordStrength";
 
 const SignUpWithEmailFormSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters long"),
   email: z.string().email("Please enter a valid email."),
-  password: z.string(),
+  password: z
+    .string()
+    .min(8, "Password must be at least 8 characters long")
+    .refine(
+      (password) => {
+        const result = zxcvbn(password);
+        return result.score >= 2; // minimum strength is Fair
+      },
+      {
+        message: "Password is too weak. Please choose a stronger password.",
+      },
+    ),
 });
 
 type SignUpWithEmailFormData = z.infer<typeof SignUpWithEmailFormSchema>;
@@ -44,10 +58,13 @@ export default function SignUpWithEmailPage() {
   });
 
   const { formState, watch } = SignUpWithEmailForm;
+  const passwordValue = watch("password");
 
   const { errors, isSubmitting } = formState;
 
   const { isEmailValid } = useEmailValidation({ watch });
+
+  const passwordStrength = usePasswordStrength(passwordValue);
 
   const onSubmit = async (formData: SignUpWithEmailFormData) => {
     const { username, email, password } = formData;
@@ -126,7 +143,7 @@ export default function SignUpWithEmailPage() {
                         {...field}
                       />
                     </FormControl>
-                    {errors.email ? (
+                    {errors.email && field.value.length > 0 ? (
                       <button
                         type="button"
                         className="absolute top-1/2 right-4 -translate-y-1/2"
@@ -174,6 +191,11 @@ export default function SignUpWithEmailPage() {
                       )}
                     </button>
                   </div>
+
+                  <PasswordStrengthIndicator
+                    strength={passwordStrength}
+                    password={passwordValue}
+                  />
                   <FormMessage />
                 </FormItem>
               )}
