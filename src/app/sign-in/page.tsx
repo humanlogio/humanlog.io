@@ -89,7 +89,7 @@ export default function SignInPage() {
         <Form {...signInForm}>
           <form
             onSubmit={signInForm.handleSubmit(onSubmit)}
-            className="flex w-full flex-col gap-8"
+            className="flex w-full flex-col"
           >
             <FormField
               control={signInForm.control}
@@ -121,7 +121,9 @@ export default function SignInPage() {
                       )
                     )}
                   </div>
-                  <FormMessage />
+                  <div className="h-7">
+                    <FormMessage />
+                  </div>
                 </FormItem>
               )}
             />
@@ -162,7 +164,9 @@ export default function SignInPage() {
                       )}
                     </button>
                   </div>
-                  <FormMessage />
+                  <div className="h-7">
+                    <FormMessage />
+                  </div>
                 </FormItem>
               )}
             />
