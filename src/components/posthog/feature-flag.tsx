@@ -20,9 +20,16 @@ export const FeatureFlag: React.FC<FeatureFlagProps> = ({
   children,
   defaultValue = false,
 }) => {
-  const flagEnabled = useFeatureFlag(flagKey, defaultValue);
+  const { flagEnabled: isAuthMigrationReady, isLoading } = useFeatureFlag(
+    flagKey,
+    defaultValue,
+  );
 
-  return <>{flagEnabled ? children : fallback}</>;
+  if (isLoading) {
+    return null;
+  }
+
+  return <>{isAuthMigrationReady ? children : fallback}</>;
 };
 
 export default FeatureFlag;

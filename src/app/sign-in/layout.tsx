@@ -11,17 +11,16 @@ export default function SignInLayout({
 }) {
   const router = useRouter();
 
-  const isAuthMirgrationReady = useFeatureFlag("release_auth_temp");
+  const { flagEnabled: isAuthMigrationReady, isLoading } =
+    useFeatureFlag("release_auth_temp");
 
   useEffect(() => {
-    if (!isAuthMirgrationReady) {
+    if (!isLoading && !isAuthMigrationReady) {
       router.replace("/");
     }
-  }, [isAuthMirgrationReady, router]);
+  }, [isLoading, isAuthMigrationReady, router]);
 
-  if (!isAuthMirgrationReady) {
-    return null;
-  }
+  if (isLoading || !isAuthMigrationReady) return null;
 
   return (
     <div className="flex h-full w-full flex-col items-center justify-center">
