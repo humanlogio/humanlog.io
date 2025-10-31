@@ -20,9 +20,10 @@ import zxcvbn from "zxcvbn";
 import { usePasswordStrength } from "@/hooks/usePasswordStrength";
 import { PasswordStrengthIndicator } from "@/components/auth/password-strength";
 import { toast } from "sonner";
+import { authClient } from "@/lib/auth-client";
 
 const ResetPasswordFormSchema = z.object({
-  password: z
+  newPassword: z
     .string()
     .min(8, "Password must be at least 8 characters long")
     .refine(
@@ -40,25 +41,39 @@ type ResetPasswordFormData = z.infer<typeof ResetPasswordFormSchema>;
 
 export default function ResetPasswordForm() {
   const router = useRouter();
+  const { resetPassword } = authClient;
 
   const [showPassword, setShowPassword] = useState(false);
 
   const resetPasswordForm = useForm<ResetPasswordFormData>({
     resolver: zodResolver(ResetPasswordFormSchema),
     defaultValues: {
-      password: "",
+      newPassword: "",
     },
   });
 
   const { formState, setError, watch } = resetPasswordForm;
   const { errors, isSubmitting } = formState;
-  const passwordValue = watch("password");
+  const passwordValue = watch("newPassword");
   const passwordStrength = usePasswordStrength(passwordValue);
 
   const onSubmit = async (formData: ResetPasswordFormData) => {
-    // TODO: call api to reset password
-    toast.success("Password reset successfully");
-    router.push("/sign-in/reset-password/success");
+    const { newPassword } = formData;
+    const { data, error } = await resetPassword(
+      {
+        newPassword,
+      },
+      {
+        onRequest: (ctx) => {},
+        onSuccess: (ctx) => {
+          toast.success("Password reset successfully");
+          router.push("/sign-in/reset-password/success");
+        },
+        onError: (ctx) => {
+          toast.error(ctx.error.message);
+        },
+      },
+    );
   };
 
   return (
@@ -77,7 +92,7 @@ export default function ResetPasswordForm() {
         >
           <FormField
             control={resetPasswordForm.control}
-            name="password"
+            name="newPassword"
             render={({ field }) => (
               <FormItem>
                 <div className="relative">

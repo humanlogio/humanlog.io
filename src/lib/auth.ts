@@ -4,20 +4,29 @@ import {
   createHMACInterceptor,
   createBetterAuthAdapter,
 } from "@humanlogio/auth-adapter/client/betterauth/adapter.js";
-import { getAPIURL } from "@/lib/config/envs";
+import { getAPIURL, getSelfURL } from "@/lib/config/envs";
 import { BetterAuthCallbacks } from "@humanlogio/auth-adapter/gen/svc/betterauth/v1/callbacks_pb.js";
 import { createConnectTransport } from "@connectrpc/connect-web";
 import { createClient } from "@connectrpc/connect";
 import { BetterAuthAdapter } from "@humanlogio/auth-adapter/gen/svc/betterauth/v1/service_pb.js";
+import { JSONKeystore } from "@humanlogio/auth-adapter/util/hmackeystore/json.js";
+import { username } from "better-auth/plugins";
 
-const keystore = {
-  getKey: async (keyId: string) => {
-    return new Uint8Array(0);
-  },
-  sign: async (keyId: string, message: string) => {
-    return "";
-  },
-};
+// const keystore = {
+//   getKey: async (keyId: string) => {
+//     return new Uint8Array(0);
+//   },
+//   sign: async (keyId: string, message: string) => {
+//     return "";
+//   },
+// };
+
+const keystoreJSON = process.env.INTERNAL_HMAC_KEYSTORE;
+
+const keystore = JSONKeystore.fromJSON(keystoreJSON || "");
+
+console.log("⭐️keystore⭐️", keystore);
+console.log("⭐️keystoreJSON⭐️", keystoreJSON);
 
 const apiTransport = createConnectTransport({
   baseUrl: getAPIURL(),
@@ -31,8 +40,12 @@ const betterAuthCallbacksClient = createClient(
 );
 const betterAuthAdapter = createBetterAuthAdapter(betterAuthAdapterClient);
 
-export const auth = betterAuth(
-  createSharedBetterAuthConfig({
+const config = {
+  database: betterAuthAdapter,
+  secret: process.env.BETTER_AUTH_SECRET || "",
+  baseURL: getSelfURL(),
+  // telemetry: { enabled: true, debug: true },
+  ...createSharedBetterAuthConfig({
     callbacksClient: betterAuthCallbacksClient,
     createInvitationUrl: (invitationId: string) => {
       return "";
@@ -46,4 +59,6 @@ export const auth = betterAuth(
       clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
     },
   }),
-);
+};
+
+export const auth = betterAuth(config);
