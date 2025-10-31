@@ -3,11 +3,13 @@ import { PasswordStrength } from "@/hooks/usePasswordStrength";
 interface PasswordStrengthIndicatorProps {
   strength: PasswordStrength;
   password: string;
+  showFeedback?: boolean;
 }
 
 export const PasswordStrengthIndicator = ({
   strength,
   password,
+  showFeedback = false,
 }: PasswordStrengthIndicatorProps) => {
   if (!password) return null;
 
@@ -32,7 +34,7 @@ export const PasswordStrengthIndicator = ({
   };
 
   return (
-    <div className="mt-2 space-y-2">
+    <div className="mt-2 space-y-1">
       {/* strength bar */}
       <div className="flex space-x-1">
         {[0, 1, 2, 3, 4].map((index) => (
@@ -53,17 +55,17 @@ export const PasswordStrengthIndicator = ({
       </div>
 
       {/* feedback */}
-      {/* {strength.feedback.warning && (
+      {strength.feedback.warning && showFeedback && (
         <p className="text-xs text-orange-600">{strength.feedback.warning}</p>
       )}
 
-      {strength.feedback.suggestions.length > 0 && (
+      {strength.feedback.suggestions.length > 0 && showFeedback && (
         <ul className="space-y-1 text-xs text-gray-600">
           {strength.feedback.suggestions.map((suggestion, index) => (
             <li key={index}>• {suggestion}</li>
           ))}
         </ul>
-      )} */}
+      )}
     </div>
   );
 };
