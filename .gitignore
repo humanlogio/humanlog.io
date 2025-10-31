@@ -43,3 +43,7 @@ certificates
 
 # cursor
 .cursor
+
+#env
+.env 
+.env.development
