@@ -43,10 +43,11 @@ const footerLinks = [
 const PageFooter = () => {
   const pathname = usePathname();
 
-  const shouldShowFooter = pathname === "/";
-  // ||
-  // pathname.startsWith("/sign-in") ||
-  // pathname.startsWith("/sign-up"); // TODO : not sure if we need this
+  const shouldShowFooter =
+    pathname === "/" ||
+    pathname.startsWith("/sign-in") ||
+    pathname.startsWith("/sign-up");
+  // // TODO : not sure if we need this
 
   if (!shouldShowFooter) return null;
 

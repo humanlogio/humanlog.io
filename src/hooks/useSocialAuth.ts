@@ -6,6 +6,7 @@ interface SocialAuthConfig {
   callbackURL?: string;
   errorCallbackURL?: string;
   newUserCallbackURL?: string;
+  // username?: string;
 }
 
 export const useSocialAuth = (config?: SocialAuthConfig) => {
@@ -19,6 +20,8 @@ export const useSocialAuth = (config?: SocialAuthConfig) => {
   };
 
   const handleSocialSignIn = async (provider: SocialProvider) => {
+    // const state = config?.username ? { username: config.username } : undefined;
+
     const { data, error } = await signIn.social(
       {
         provider,
