@@ -40,6 +40,7 @@ import { Info } from "lucide-react";
 import { ReadOnlyField } from "@/app/[org]/[env]/project/components/read-only-field";
 import { create } from "@bufbuild/protobuf";
 import { useEnvironmentStore } from "@/stores/environment-store";
+import FeatureFlag from "@/components/posthog/feature-flag";
 
 // Project pointer type schemas
 export const localhostProjectSchema = z.object({
@@ -259,8 +260,18 @@ export const ProjectForm = ({
                 </FormControl>
                 <SelectContent>
                   <SelectItem value="localhost">Localhost (GitOps)</SelectItem>
-                  <SelectItem value="remote">Remote Git (GitOps)</SelectItem>
-                  <SelectItem value="db">Database (UI Editable)</SelectItem>
+                  <FeatureFlag
+                    flagKey="release_remote_pointer_temp"
+                    fallback={null}
+                  >
+                    <SelectItem value="remote">Remote Git (GitOps)</SelectItem>
+                  </FeatureFlag>
+                  <FeatureFlag
+                    flagKey="release_db_pointer_temp"
+                    fallback={null}
+                  >
+                    <SelectItem value="db">Database (UI Editable)</SelectItem>
+                  </FeatureFlag>
                 </SelectContent>
               </Select>
               <FormMessage />
