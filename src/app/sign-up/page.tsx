@@ -159,7 +159,7 @@ export default function SignUpPage() {
         },
         onSuccess: (ctx) => {
           console.log("ctx in signUp onSuccess", ctx);
-          router.push(`/sign-up/email/verify?email=${email}`);
+          router.push(`/sign-up/email-verify?email=${email}`);
         },
         onError: (ctx) => {
           // when email verification is required
