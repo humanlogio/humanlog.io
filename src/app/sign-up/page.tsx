@@ -25,15 +25,11 @@ import { useEmailValidation } from "@/hooks/useEmailValidation";
 import zxcvbn from "zxcvbn";
 import { PasswordStrengthIndicator } from "@/components/auth/password-strength";
 import { usePasswordStrength } from "@/hooks/usePasswordStrength";
-
-type UsernameStatus =
-  | "idle"
-  | "checking"
-  | "available"
-  | "taken"
-  | "tooShort"
-  | "invalidFormat"
-  | "error";
+import {
+  UsernameStatusIcon,
+  UsernameStatusText,
+} from "@/components/auth/username-status";
+import { useUsernameValidation } from "@/hooks/useUsernameValidation";
 
 export default function SignUpPage() {
   const router = useRouter();
@@ -44,22 +40,7 @@ export default function SignUpPage() {
   const [showPassword, setShowPassword] = useState(false);
 
   const BaseSignUpSchema = z.object({
-    username: z
-      .string()
-      .min(3, "Username must be at least 3 characters long")
-      .regex(
-        /^[a-zA-Z0-9_.]+$/,
-        "Username can only contain letters, numbers, underscores, and dots",
-      )
-      .refine(
-        async (username) => {
-          const result = await checkUsernameAvailability(username);
-          return result || false;
-        },
-        {
-          message: "Username is not available",
-        },
-      ),
+    username: z.string().min(3, "Username must be at least 3 characters long"),
   });
 
   const SocialSignUpSchema = BaseSignUpSchema;
@@ -101,21 +82,8 @@ export default function SignUpPage() {
   });
 
   const currentForm = signUpMode === "email" ? emailForm : socialForm;
-  const { formState, watch, setError } = currentForm;
-  const { errors, isSubmitting } = formState;
-
-  const checkUsernameAvailability = async (username: string) => {
-    try {
-      const { data: response } = await authClient.isUsernameAvailable({
-        username,
-      });
-
-      return response?.available || false;
-    } catch (error) {
-      setError("username", { message: (error as Error).message });
-      return false;
-    }
-  };
+  const { formState, watch, setError, clearErrors, getValues } = currentForm;
+  const { isSubmitting } = formState;
 
   const socialSignUpConfig = {
     callbackURL: "/",
@@ -134,10 +102,9 @@ export default function SignUpPage() {
   const switchToEmailMode = () => {
     if (signUpMode === "social") {
       setSignUpMode("email");
-      // 소셜 폼의 username을 이메일 폼으로 복사
+
       const currentUsername = socialForm.getValues("username");
       emailForm.setValue("username", currentUsername);
-      // 이메일 폼의 username 필드도 검증
       emailForm.trigger("username");
     }
   };
@@ -145,13 +112,13 @@ export default function SignUpPage() {
   const onEmailSubmit = async (formData: EmailSignUpFormData) => {
     const { username, email, password } = formData;
 
-    const { data, error } = await signUp.email(
+    await signUp.email(
       {
         email,
         password,
-        name: "",
+        name: username,
         username,
-        callbackURL: "/sign-up/success", // A URL to redirect to after the user verifies their email
+        callbackURL: "/sign-up/success",
       },
       {
         onRequest: (ctx) => {
@@ -174,27 +141,14 @@ export default function SignUpPage() {
     );
   };
 
-  // useEffect(() => {
-  //   if (!currentUsername) {
-  //     setUsernameValidation({ status: "idle", message: "" });
-  //     return;
-  //   }
+  const socialUsername = socialForm.watch("username");
+  const emailUsername = emailForm.watch("username");
+  const currentUsername =
+    signUpMode === "email" ? emailUsername : socialUsername;
 
-  //   setUsernameValidation({
-  //     status: "checking",
-  //     message: "Checking availability...",
-  //   });
-
-  //   const timer = setTimeout(async () => {
-  //     const result = await validateUsername(currentUsername);
-  //     setUsernameValidation({
-  //       status: result.isValid ? "valid" : "invalid",
-  //       message: result.message,
-  //     });
-  //   }, 500);
-
-  //   return () => clearTimeout(timer);
-  // }, [currentUsername]);
+  const { status: usernameStatus } = useUsernameValidation({
+    username: currentUsername,
+  });
 
   return (
     <div className="w-[472px]">
@@ -209,22 +163,29 @@ export default function SignUpPage() {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Username</FormLabel>
-                <FormControl>
-                  <Input
-                    type="text"
-                    placeholder="Evil Rabbit"
-                    className="h-10"
-                    {...field}
-                    onChange={(e) => {
-                      field.onChange(e);
-                      if (signUpMode === "email") {
-                        emailForm.setValue("username", e.target.value);
-                      }
-                    }}
-                  />
-                </FormControl>
+                <div className="relative m-0">
+                  <FormControl>
+                    <Input
+                      type="text"
+                      placeholder="Evil Rabbit"
+                      className="h-10"
+                      {...field}
+                      onChange={(e) => {
+                        field.onChange(e);
+
+                        if (signUpMode === "email") {
+                          emailForm.setValue("username", e.target.value);
+                        }
+                      }}
+                    />
+                  </FormControl>
+                  <div className="absolute top-1/2 right-4 -translate-y-1/2">
+                    <UsernameStatusIcon status={usernameStatus} />
+                  </div>
+                </div>
+
                 <div className="h-7">
-                  <FormMessage />
+                  <UsernameStatusText status={usernameStatus} />
                 </div>
               </FormItem>
             )}
@@ -245,7 +206,6 @@ export default function SignUpPage() {
           <Separator className="flex-1" />
         </div>
 
-        {/* 이메일 가입 폼 */}
         <div className="flex w-[320px] flex-col">
           <Form {...emailForm}>
             <form onSubmit={emailForm.handleSubmit(onEmailSubmit)}>
@@ -255,7 +215,7 @@ export default function SignUpPage() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Email address</FormLabel>
-                    <div className="relative">
+                    <div className="relative m-0">
                       <FormControl>
                         <Input
                           type="email"
@@ -296,7 +256,7 @@ export default function SignUpPage() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Password</FormLabel>
-                    <div className="relative">
+                    <div className="relative m-0">
                       <FormControl>
                         <Input
                           type={showPassword ? "text" : "password"}
