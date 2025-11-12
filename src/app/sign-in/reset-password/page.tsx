@@ -1,26 +1,29 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { z } from "zod";
-import zxcvbn from "zxcvbn";
-import EmailVerificationForm from "./email-verification-form";
-import ResetPasswordForm from "./reset-password-form";
+import { useRouter, useSearchParams } from "next/navigation";
+import EmailVerificationForm from "@/app/sign-in/reset-password/email-verification-form";
+import ResetPasswordForm from "@/app/sign-in/reset-password/reset-password-form";
 
 export default function ResetPasswordPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const token = searchParams.get("token");
+  const error = searchParams.get("error");
 
-  const [isEmailVerified, setIsEmailVerified] = useState(false);
+  if (error) {
+    return <div>{error}</div>;
+  }
 
   return (
     <div className="w-[320px]">
       <div className="flex w-full flex-col items-center">
-        {isEmailVerified ? (
-          <ResetPasswordForm />
+        {token ? (
+          <ResetPasswordForm token={token} />
         ) : (
-          <EmailVerificationForm setIsEmailVerified={setIsEmailVerified} />
+          <EmailVerificationForm />
         )}
+
         <div className="mt-6 flex items-center justify-center">
           <span className="text-sm text-neutral-500">
             Remembered your password?

@@ -12,21 +12,9 @@ import { BetterAuthAdapter } from "@humanlogio/auth-adapter/gen/svc/betterauth/v
 import { JSONKeystore } from "@humanlogio/auth-adapter/util/hmackeystore/json.js";
 import { username } from "better-auth/plugins";
 
-// const keystore = {
-//   getKey: async (keyId: string) => {
-//     return new Uint8Array(0);
-//   },
-//   sign: async (keyId: string, message: string) => {
-//     return "";
-//   },
-// };
-
 const keystoreJSON = process.env.INTERNAL_HMAC_KEYSTORE;
 
 const keystore = JSONKeystore.fromJSON(keystoreJSON || "");
-
-console.log("⭐️keystore⭐️", keystore);
-console.log("⭐️keystoreJSON⭐️", keystoreJSON);
 
 const apiTransport = createConnectTransport({
   baseUrl: getAPIURL(),
@@ -44,12 +32,14 @@ const config = {
   database: betterAuthAdapter,
   secret: process.env.BETTER_AUTH_SECRET || "",
   baseURL: getSelfURL(),
+
   // telemetry: { enabled: true, debug: true },
   ...createSharedBetterAuthConfig({
     callbacksClient: betterAuthCallbacksClient,
     createInvitationUrl: (invitationId: string) => {
       return "";
     },
+
     github: {
       clientId: process.env.GITHUB_CLIENT_ID || "",
       clientSecret: process.env.GITHUB_CLIENT_SECRET || "",

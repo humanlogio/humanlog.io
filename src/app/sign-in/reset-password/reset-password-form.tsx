@@ -39,7 +39,11 @@ const ResetPasswordFormSchema = z.object({
 
 type ResetPasswordFormData = z.infer<typeof ResetPasswordFormSchema>;
 
-export default function ResetPasswordForm() {
+interface ResetPasswordFormProps {
+  token: string;
+}
+
+export default function ResetPasswordForm({ token }: ResetPasswordFormProps) {
   const router = useRouter();
   const { resetPassword } = authClient;
 
@@ -59,9 +63,10 @@ export default function ResetPasswordForm() {
 
   const onSubmit = async (formData: ResetPasswordFormData) => {
     const { newPassword } = formData;
-    const { data, error } = await resetPassword(
+    await resetPassword(
       {
         newPassword,
+        token,
       },
       {
         onRequest: (ctx) => {},
@@ -137,79 +142,5 @@ export default function ResetPasswordForm() {
         </form>
       </Form>
     </>
-    // <div className="w-[320px]">
-    //   <div className="flex w-full flex-col items-center">
-    //     <div className="mb-12 flex flex-col items-center">
-    //       <h1 className="text-xl font-semibold">Set a new password</h1>
-    //       <p className="text-muted-foreground text-sm">
-    //         Please enter a strong new password for your account.
-    //       </p>
-    //     </div>
-
-    //     <Form {...resetPasswordForm}>
-    //       <form
-    //         onSubmit={resetPasswordForm.handleSubmit(onSubmit)}
-    //         className="flex w-full flex-col"
-    //       >
-    //         <FormField
-    //           control={resetPasswordForm.control}
-    //           name="password"
-    //           render={({ field }) => (
-    //             <FormItem>
-    //               <div className="relative">
-    //                 <FormControl>
-    //                   <Input
-    //                     type={showPassword ? "text" : "password"}
-    //                     placeholder="Enter your password"
-    //                     className="h-10"
-    //                     {...field}
-    //                   />
-    //                 </FormControl>
-    //                 <button
-    //                   type="button"
-    //                   className="absolute top-1/2 right-4 -translate-y-1/2"
-    //                   onClick={() => setShowPassword((prev) => !prev)}
-    //                 >
-    //                   {showPassword ? (
-    //                     <Eye size={16} className="text-muted-foreground" />
-    //                   ) : (
-    //                     <EyeOff size={16} className="text-muted-foreground" />
-    //                   )}
-    //                 </button>
-    //               </div>
-    //               <div className="h-26">
-    //                 <PasswordStrengthIndicator
-    //                   strength={passwordStrength}
-    //                   password={passwordValue}
-    //                   showFeedback={true}
-    //                 />
-    //                 <FormMessage />
-    //               </div>
-    //             </FormItem>
-    //           )}
-    //         />
-    //         <Button type="submit" className="w-full" disabled={isSubmitting}>
-    //           {isSubmitting ? (
-    //             <Loader2 className="animate-spin" />
-    //           ) : (
-    //             "Reset Password"
-    //           )}
-    //         </Button>
-    //       </form>
-    //     </Form>
-    //     <div className="mt-6 flex items-center justify-center">
-    //       <span className="text-sm text-neutral-500">
-    //         Remembered your password?
-    //       </span>
-    //       <Button
-    //         variant="link"
-    //         className="text-sm font-normal text-blue-500"
-    //         onClick={() => router.push("/sign-in")}
-    //       >
-    //         Sign in
-    //       </Button>
-    //     </div>
-    //   </div>
-    // </div>
   );
 }
