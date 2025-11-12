@@ -7,6 +7,7 @@ export type UsernameStatus =
   | "available"
   | "taken"
   | "tooShort"
+  | "tooLong"
   | "invalidFormat"
   | "error";
 
@@ -32,6 +33,12 @@ export const UsernameStatusText = ({ status }: { status: UsernameStatus }) => {
     case "taken":
       return (
         <p className="text-destructive text-sm">Username is already taken</p>
+      );
+    case "tooLong":
+      return (
+        <p className="text-destructive text-xs">
+          Username must be less than 39 characters
+        </p>
       );
     case "tooShort":
       return (
