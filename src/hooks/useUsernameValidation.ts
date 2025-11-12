@@ -36,6 +36,10 @@ export function useUsernameValidation({
       setStatus("tooShort");
       return;
     }
+    if (username.length > 39) {
+      setStatus("tooLong");
+      return;
+    }
 
     const usernameRegex = /^[a-zA-Z0-9][a-zA-Z0-9-]+$/;
     if (!usernameRegex.test(username)) {
@@ -62,5 +66,5 @@ export function useUsernameValidation({
     return () => clearTimeout(timer);
   }, [username, debounceMs, skipIfEmpty, skipIfUnchanged]);
 
-  return { status };
+  return { status, setStatus };
 }
