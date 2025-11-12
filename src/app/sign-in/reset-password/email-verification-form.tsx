@@ -1,5 +1,6 @@
 "use client";
 
+import { EmailSentConfirmation } from "@/components/auth/email-sent-confirmation";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -10,10 +11,11 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useEmailValidation } from "@/hooks/useEmailValidation";
+import { authClient } from "@/lib/auth-client";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
 import { CheckIcon, CloseIcon } from "public/icons";
-import { Dispatch, SetStateAction } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -24,13 +26,11 @@ const emailVerificationFormSchema = z.object({
 
 type EmailVerificationFormData = z.infer<typeof emailVerificationFormSchema>;
 
-interface EmailVerificationFormProps {
-  setIsEmailVerified: Dispatch<SetStateAction<boolean>>;
-}
+export default function EmailVerificationForm() {
+  const { requestPasswordReset } = authClient;
+  const [emailSent, setEmailSent] = useState(false);
+  const [sentEmail, setSentEmail] = useState("");
 
-export default function EmailVerificationForm({
-  setIsEmailVerified,
-}: EmailVerificationFormProps) {
   const emailVerificationForm = useForm<EmailVerificationFormData>({
     resolver: zodResolver(emailVerificationFormSchema),
     defaultValues: {
@@ -38,7 +38,7 @@ export default function EmailVerificationForm({
     },
   });
 
-  const { formState, setError, watch } = emailVerificationForm;
+  const { formState } = emailVerificationForm;
   const { errors, isSubmitting } = formState;
 
   const { isEmailValid } = useEmailValidation({
@@ -46,10 +46,40 @@ export default function EmailVerificationForm({
   });
 
   const onSubmit = async (formData: EmailVerificationFormData) => {
-    // TODO: call api to verify email
-    setIsEmailVerified(true);
-    toast.success("Email verified successfully");
+    const { email } = formData;
+    await requestPasswordReset(
+      {
+        email,
+        redirectTo: "/sign-in/reset-password",
+      },
+      {
+        onSuccess: (ctx) => {
+          setEmailSent(true);
+          setSentEmail(email);
+          toast.success(
+            "Password reset email sent successfully",
+            ctx.data.message,
+          );
+        },
+        onError: (ctx) => {
+          toast.error(ctx.error.message);
+        },
+      },
+    );
   };
+  if (emailSent) {
+    return (
+      <EmailSentConfirmation
+        title="Check your email"
+        description="Please check your email to reset your password."
+        email={sentEmail}
+        onAction={() => {
+          setEmailSent(false);
+          emailVerificationForm.reset();
+        }}
+      />
+    );
+  }
 
   return (
     <>

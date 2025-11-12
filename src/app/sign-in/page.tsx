@@ -51,7 +51,7 @@ export default function SignInPage() {
   const { isEmailValid } = useEmailValidation({ watch });
 
   const handleForgotPassword = () => {
-    toast.info("TODO: send email to reset password");
+    router.push("/sign-in/reset-password");
   };
 
   const onSubmit = async (formData: SignInFormData) => {
