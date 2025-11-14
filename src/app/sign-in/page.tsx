@@ -22,7 +22,8 @@ import { authClient } from "@/lib/auth-client";
 import { SocialAuthButtons } from "@/components/auth/social-auth-buttons";
 import { toast } from "sonner";
 import { useEmailValidation } from "@/hooks/useEmailValidation";
-import { useUserStore } from "@/stores/user-store";
+import { useOrganizationStore, useUserStore } from "@/stores/user-store";
+import { createMockOrganization } from "@/lib/utils/mock-user-data";
 
 const SignInFormSchema = z.object({
   email: z.string().email("Please enter a valid email."),
@@ -36,6 +37,8 @@ export default function SignInPage() {
 
   const { signIn } = authClient;
   const { setUser } = useUserStore();
+  const { setCurrentOrganization, setDefaultOrganization } =
+    useOrganizationStore();
 
   const [showPassword, setShowPassword] = useState(false);
 
@@ -69,6 +72,9 @@ export default function SignInPage() {
         onRequest: (ctx) => {},
         onSuccess: (ctx) => {
           setUser(ctx.data.user);
+          // TODO: Remove this after real API is implemented
+          setCurrentOrganization(createMockOrganization().currentOrganization);
+          setDefaultOrganization(createMockOrganization().defaultOrganization);
         },
         onError: (ctx) => {
           setError("email", { message: ctx.error.message });

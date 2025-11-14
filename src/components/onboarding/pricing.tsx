@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -13,14 +12,13 @@ import { ConnectError } from "@connectrpc/connect";
 import { getOrgEnvUrl } from "@/lib/utils/navigation";
 import { useEnvironmentStore } from "@/stores/environment-store";
 import { usePageStore } from "@/stores/page-store";
-
-import { useUser } from "@/hooks/useUser";
+import { useOrganizationStore } from "@/stores/user-store";
 
 export default function OnboardingPricing() {
   const router = useRouter();
   const { activeEnvironment } = useEnvironmentStore();
   const { activePage } = usePageStore();
-  const { userData } = useUser();
+  const { currentOrganization } = useOrganizationStore();
 
   const { data: productData } = useQuery(listProduct, {
     category: "logging",
@@ -32,7 +30,11 @@ export default function OnboardingPricing() {
     {
       onSuccess: () => {
         toast.success("You're all set with the free plan.");
-        const url = getOrgEnvUrl(userData, activeEnvironment, activePage);
+        const url = getOrgEnvUrl(
+          currentOrganization,
+          activeEnvironment,
+          activePage,
+        );
         router.push(url);
       },
       onError: (error) => {

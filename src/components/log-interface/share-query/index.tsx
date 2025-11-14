@@ -28,6 +28,7 @@ import { Data } from "api/js/types/v1/data_pb";
 import { useMutation } from "@connectrpc/connect-query";
 import { updateUser } from "api/js/svc/user/v1/service_private-UserService_connectquery";
 import { useUser } from "@/hooks/useUser";
+import { useUserStore } from "@/stores/user-store";
 
 interface ShareQueryProps {
   queryHistoryEntry: QueryHistoryEntry;
@@ -43,7 +44,8 @@ export const ShareQuery = ({
   const selfURL = getSelfURL();
 
   const { apiClients } = useApiClients();
-  const { userData } = useUser();
+  const { user } = useUserStore();
+  // const { userData } = useUser();
 
   const [username, setUsername] = useState("");
   const [isValid, setIsValid] = useState(false);
@@ -62,8 +64,8 @@ export const ShareQuery = ({
 
   const handleUpdateUser = () => {
     updateUserMutation({
-      firstName: userData?.user?.firstName,
-      lastName: userData?.user?.lastName,
+      // firstName: userData?.user?.firstName,
+      // lastName: userData?.user?.lastName,
       username,
     });
   };
@@ -119,8 +121,8 @@ export const ShareQuery = ({
   };
 
   useEffect(() => {
-    setIsValid(!!userData?.user?.username);
-  }, [userData]);
+    setIsValid(!!user?.name);
+  }, [user]);
 
   return (
     <Dialog open={!!sharedData} onOpenChange={onOpenChange}>

@@ -4,22 +4,29 @@ import { NoLocalhostView } from "@/components/log-interface/views/no-localhost-v
 import { useParams, useRouter } from "next/navigation";
 import { ReactNode, useEffect, useState } from "react";
 import { usePing } from "@/hooks/usePing";
-import { useUser } from "@/hooks/useUser";
+
 import { SideMenu } from "@/app/[org]/[env]/side-menu";
+import { useUserStore } from "@/stores/user-store";
 
 export default function EnvLayout({ children }: { children: ReactNode }) {
   const params = useParams();
   const router = useRouter();
-  const { userData, isLoadingUser } = useUser();
+  const { user } = useUserStore();
+
   const { localhostData, isLoadingLocalhost } = usePing();
   const currentEnvSlug = params?.env as string;
 
   const [isExpanded, setIsExpanded] = useState(false);
 
   useEffect(() => {
-    if (isLoadingUser || userData) return;
+    if (user) return;
     router.replace("/");
-  }, [userData, isLoadingUser]);
+  }, [user]);
+
+  // useEffect(() => {
+  //   if (isLoadingUser || userData) return;
+  //   router.replace("/");
+  // }, [userData, isLoadingUser]);
 
   if (isLoadingLocalhost) return <></>;
 

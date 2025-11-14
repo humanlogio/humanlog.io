@@ -6,17 +6,23 @@ import { useEnvironmentStore } from "@/stores/environment-store";
 import { useRouter } from "next/navigation";
 import { getOrgEnvUrl } from "@/lib/utils/navigation";
 import { usePageStore } from "@/stores/page-store";
-
-import { useUser } from "@/hooks/useUser";
+import { useOrganizationStore, useUserStore } from "@/stores/user-store";
 
 export default function Home() {
   const router = useRouter();
   const { activeEnvironment } = useEnvironmentStore();
-  const { userData } = useUser();
+
+  const { user } = useUserStore();
+  const { currentOrganization } = useOrganizationStore();
   const { activePage } = usePageStore();
 
-  if (userData) {
-    const url = getOrgEnvUrl(userData, activeEnvironment, activePage);
+  if (user) {
+    const url = getOrgEnvUrl(
+      currentOrganization,
+      activeEnvironment,
+      activePage,
+    );
+
     router.replace(url);
     return null;
   }

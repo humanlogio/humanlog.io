@@ -26,6 +26,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { PingResponse } from "api/js/svc/localhost/v1/service_pb";
 import { useUser } from "@/hooks/useUser";
 import { BetaBadge } from "@/components/beta-badge";
+import { useUserStore } from "@/stores/user-store";
 
 export const localhostVersion = (res: PingResponse) => {
   const v = res.clientVersion!;
@@ -39,9 +40,10 @@ export const AppHeader = () => {
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  const { userData } = useUser();
+  const { user } = useUserStore();
 
-  const currentOrg = userData?.currentOrganization?.name;
+  const currentOrg = "dumibell";
+  // const currentOrg = userData?.currentOrganization?.name;
   const currentEnvSlug = params?.env || "localhost";
 
   const navItems = [
@@ -82,7 +84,7 @@ export const AppHeader = () => {
     setIsMenuOpen(false);
   }, [pathname]);
 
-  if (!userData) return;
+  if (!user) return;
 
   return (
     <div className={`flex justify-between px-10`}>
@@ -145,11 +147,9 @@ export const AppHeader = () => {
           <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
             <SheetTrigger asChild>
               <Avatar className="h-7 w-7">
-                <AvatarImage src={gravatarURL(userData.user?.email)} />
+                <AvatarImage src={gravatarURL(user?.email)} />
                 <AvatarFallback className="uppercase">
-                  {userData.user?.firstName?.slice(0, 2) || (
-                    <UserIcon size={14} />
-                  )}
+                  {user.name || <UserIcon size={14} />}
                 </AvatarFallback>
               </Avatar>
             </SheetTrigger>

@@ -9,7 +9,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { WhoamiResponse } from "api/js/svc/user/v1/service_private_pb";
 import { useEnvironmentStore } from "@/stores/environment-store";
 import { buildOrgEnvUrl } from "@/lib/utils/navigation";
 import { usePageStore } from "@/stores/page-store";
@@ -24,6 +23,8 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { HardDrive } from "lucide-react";
+import { User } from "better-auth";
+import { useOrganizationStore } from "@/stores/user-store";
 interface Source {
   name: string;
   path: string;
@@ -31,16 +32,17 @@ interface Source {
 }
 
 interface EnvSwitcherProps {
-  userData: WhoamiResponse;
+  user: User | undefined;
 }
 
-export const EnvSwitcher = ({ userData }: EnvSwitcherProps) => {
+export const EnvSwitcher = ({ user }: EnvSwitcherProps) => {
   const router = useRouter();
   const params = useParams();
   const { activePage } = usePageStore();
   const { localhostData } = usePing();
 
   const { setActiveEnvironment, activeEnvironment } = useEnvironmentStore();
+  const { currentOrganization } = useOrganizationStore();
 
   const [menuList, setMenuList] = useState<Source[]>([]);
 
@@ -87,7 +89,7 @@ export const EnvSwitcher = ({ userData }: EnvSwitcherProps) => {
       _menuList.push({
         name: `localhost ${localhostVersion(localhostData)}`,
         path: buildOrgEnvUrl(
-          userData?.currentOrganization?.name || "",
+          currentOrganization?.name || "",
           "localhost",
           activePage,
         ),
@@ -101,7 +103,7 @@ export const EnvSwitcher = ({ userData }: EnvSwitcherProps) => {
       _menuList.push({
         name: env.environment?.name || "",
         path: buildOrgEnvUrl(
-          userData?.currentOrganization?.name || "",
+          currentOrganization?.name || "",
           env.environment?.name || "",
           activePage,
         ),
@@ -110,12 +112,12 @@ export const EnvSwitcher = ({ userData }: EnvSwitcherProps) => {
     });
     _menuList.push({
       name: "+ Add new",
-      path: `/${userData?.currentOrganization?.name}/env/new`,
+      path: `/${currentOrganization?.name}/env/new`,
       value: "add-new",
     });
 
     setMenuList(_menuList);
-  }, [listEnvironmentData, userData, localhostData, activePage]);
+  }, [listEnvironmentData, currentOrganization, localhostData, activePage]);
 
   return (
     <div className="flex items-center gap-3">
