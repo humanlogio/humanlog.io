@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { getOrgEnvUrl } from "@/lib/utils/navigation";
 import { usePageStore } from "@/stores/page-store";
 import { useOrganizationStore, useUserStore } from "@/stores/user-store";
+import { useEffect } from "react";
 
 export default function Home() {
   const router = useRouter();
@@ -16,14 +17,19 @@ export default function Home() {
   const { currentOrganization } = useOrganizationStore();
   const { activePage } = usePageStore();
 
-  if (user) {
-    const url = getOrgEnvUrl(
-      currentOrganization,
-      activeEnvironment,
-      activePage,
-    );
+  useEffect(() => {
+    if (user) {
+      const url = getOrgEnvUrl(
+        currentOrganization,
+        activeEnvironment,
+        activePage,
+      );
 
-    router.replace(url);
+      router.replace(url);
+    }
+  }, [user, currentOrganization, activeEnvironment, activePage, router]);
+
+  if (user) {
     return null;
   }
 
