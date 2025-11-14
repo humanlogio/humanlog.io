@@ -53,10 +53,11 @@ import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
 import { useEnvironmentStore } from "@/stores/environment-store";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import { authClient } from "@/lib/auth-client";
+import { useUserStore } from "@/stores/user-store";
 
 type ApiProviderType = {
   apiClients: ApiClients | null;
-  authenticated: boolean;
 };
 
 type ApiClients = {
@@ -100,45 +101,38 @@ export function ApiClientsProvider({
   children: React.ReactNode;
 }) {
   const isProd = config.NEXT_PUBLIC_IS_PROD;
-  const router = useRouter();
-  const returnToURL = getSelfURL();
-  const [cookies, setCookie] = useCookies();
-  const [authenticated, setAuthenticated] = useState(false);
+
   const searchParams = useSearchParams();
   const localhostPort = searchParams.get("demo_port") ?? "32764";
   const localhostBaseUrl = `http://localhost:${localhostPort}`;
+  const { getSession } = authClient;
+  const { setUser, setSession } = useUserStore();
 
   const { activeEnvironment, setActiveEnvironment } = useEnvironmentStore();
 
   const transports = useMemo(() => {
     const auther = (): Interceptor => {
       return (next) => async (req) => {
-        const token =
-          cookies["hlog_session"] || localStorage.getItem("hlog_session");
+        const { data } = await getSession();
+        const token = data?.session.token;
 
         if (token && token != "") {
           localStorage.setItem("hlog_session", token);
           req.header.set("Browser-Authorization", token);
+          setUser(data?.user);
+          setSession(data?.session);
         }
         req.header.set("Request-Id", uuidv4());
 
         try {
           const res = await next(req);
-          const newToken =
-            res.header.get("UseAuthorization") ||
-            res.header.get("useauthorization");
-
-          if (newToken) {
-            console.log("Received new authorization token");
-            localStorage.setItem("hlog_session", newToken);
-          }
-          setAuthenticated(true);
 
           return res;
         } catch (error) {
           if (error instanceof ConnectError) {
             if (error.code === Code.Unauthenticated) {
-              setAuthenticated(false);
+              setUser(undefined);
+              setSession(undefined);
               setActiveEnvironment(undefined);
             }
           }
@@ -196,7 +190,6 @@ export function ApiClientsProvider({
       <ApiClientContext.Provider
         value={{
           apiClients,
-          authenticated,
         }}
       >
         <ActiveTransportContext.Provider value={activeTransport}>
