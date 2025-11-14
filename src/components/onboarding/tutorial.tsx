@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -18,7 +18,7 @@ import {
 import CodeBlock from "@/components/CodeBlock";
 import { useEnvironmentStore } from "@/stores/environment-store";
 import { getOrgEnvUrl } from "@/lib/utils/navigation";
-import { useUser } from "@/hooks/useUser";
+import { useOrganizationStore } from "@/stores/user-store";
 
 const tutorialSteps = [
   {
@@ -172,7 +172,7 @@ export const Tutorial = () => {
   const searchParams = useSearchParams();
 
   const { activeEnvironment } = useEnvironmentStore();
-  const { userData } = useUser();
+  const { currentOrganization } = useOrganizationStore();
 
   const [isCompleting, setIsCompleting] = useState(false);
 
@@ -182,13 +182,17 @@ export const Tutorial = () => {
       ? parseInt(tutorialParam.replace("step", "")) - 1
       : 0;
 
-  const redirectUrl = getOrgEnvUrl(userData, activeEnvironment, "query");
+  const redirectUrl = getOrgEnvUrl(
+    currentOrganization,
+    activeEnvironment,
+    "query",
+  );
 
   const handleNext = () => {
     setIsCompleting(true);
 
     const url = getOrgEnvUrl(
-      userData,
+      currentOrganization,
       activeEnvironment,
       `query?tutorial=step${currentStep + 2}`,
     );
@@ -204,7 +208,7 @@ export const Tutorial = () => {
   const handlePrevious = () => {
     if (currentStep > 0) {
       const url = getOrgEnvUrl(
-        userData,
+        currentOrganization,
         activeEnvironment,
         `query?tutorial=step${currentStep}`,
       );

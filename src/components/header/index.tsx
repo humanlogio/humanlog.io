@@ -12,6 +12,7 @@ import { useUser } from "@/hooks/useUser";
 import { EnvSwitcher } from "@/components/header/env-switcher";
 import { BetaBadge } from "@/components/beta-badge";
 import { Logo } from "@/components/header/logo";
+import { useUserStore } from "@/stores/user-store";
 
 const navItems = [
   {
@@ -30,21 +31,22 @@ const navItems = [
 ];
 
 export const Header = () => {
-  const { userData, isLoadingUser } = useUser();
+  // const { userData, isLoadingUser } = useUser();
+  const { user } = useUserStore();
 
   return (
     <NavigationMenu>
       <NavigationMenuList className="fixed top-0 z-20 flex h-12 w-full items-center justify-between border-b bg-neutral-50 px-5 dark:bg-neutral-950">
         <div
-          className={`flex items-center gap-12 ${userData && "w-full justify-between"}`}
+          className={`flex items-center gap-12 ${user && "w-full justify-between"}`}
         >
           <div className="flex items-center gap-12">
             <div className="flex items-center">
-              <Logo userData={userData} />
+              <Logo user={user} />
 
               <BetaBadge />
             </div>
-            {!isLoadingUser && userData && <EnvSwitcher userData={userData} />}
+            {user && <EnvSwitcher user={user} />}
           </div>
 
           <div className="mr-5 flex items-center gap-3">
@@ -62,7 +64,7 @@ export const Header = () => {
             })}
           </div>
         </div>
-        <UserActions userData={userData} />
+        <UserActions user={user} />
       </NavigationMenuList>
     </NavigationMenu>
   );

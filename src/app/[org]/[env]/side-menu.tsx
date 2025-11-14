@@ -21,6 +21,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useOrganizationStore } from "@/stores/user-store";
 
 interface SideMenuProps {
   isExpanded: boolean;
@@ -28,6 +29,7 @@ interface SideMenuProps {
 }
 
 export const SideMenu = ({ isExpanded, setIsExpanded }: SideMenuProps) => {
+  const { currentOrganization } = useOrganizationStore();
   // TODO: 함수 util로 분리하기
   const localhostVersion = (res: PingResponse) => {
     const v = res.clientVersion!;
@@ -35,9 +37,9 @@ export const SideMenu = ({ isExpanded, setIsExpanded }: SideMenuProps) => {
   };
   const params = useParams();
   const isProd = config.NEXT_PUBLIC_IS_PROD;
-  const { userData } = useUser();
+
   const { activePage } = usePageStore();
-  const currentOrg = userData?.currentOrganization?.name;
+
   const currentEnvSlug = params?.env || "localhost";
   // PostHog feature flags
   const showProjectMenu = useFeatureFlag("release_project_menu_temp", true);
@@ -46,28 +48,28 @@ export const SideMenu = ({ isExpanded, setIsExpanded }: SideMenuProps) => {
     {
       name: "Query",
       page: "query",
-      path: `/${currentOrg}/${currentEnvSlug}/query`,
+      path: `/${currentOrganization}/${currentEnvSlug}/query`,
       icon: <Database size={14} />,
       isReady: true,
     },
     {
       name: "Stream",
       page: "stream",
-      path: `/${currentOrg}/${currentEnvSlug}/stream`,
+      path: `/${currentOrganization}/${currentEnvSlug}/stream`,
       icon: <Activity size={14} />,
       isReady: true,
     },
     {
       name: "Project",
       page: "project",
-      path: `/${currentOrg}/${currentEnvSlug}/project`,
+      path: `/${currentOrganization}/${currentEnvSlug}/project`,
       icon: <FolderKanban size={14} />,
       isReady: showProjectMenu,
     },
     {
       name: "Settings",
       page: "settings",
-      path: `/${currentOrg}/${currentEnvSlug}/settings`,
+      path: `/${currentOrganization}/${currentEnvSlug}/settings`,
       icon: <Settings size={14} />,
       isReady: true,
     },

@@ -1,6 +1,6 @@
 import { ListEnvironmentResponse_ListItem } from "api/js/svc/organization/v1/service_pb";
-import { WhoamiResponse } from "api/js/svc/user/v1/service_private_pb";
 import { toast } from "sonner";
+import { MockOrganization } from "@/lib/utils/mock-user-data";
 
 // User
 export function getUserSettingsUrl() {
@@ -8,17 +8,18 @@ export function getUserSettingsUrl() {
 }
 
 export function getOrgEnvUrl(
-  userData: WhoamiResponse | undefined,
+  currentOrganization: MockOrganization | undefined,
   activeEnvironment?: ListEnvironmentResponse_ListItem,
   activePage?: string,
 ) {
-  if (!userData) {
+  if (!currentOrganization) {
     toast.error("You need to login to access this page");
     return "/";
   }
 
   const page = activePage || "query";
-  return `/${userData.currentOrganization?.name}/${activeEnvironment?.environment?.name ?? "localhost"}/${page}`;
+  // TODO: get org name from separate API or something...
+  return `/${currentOrganization.name}/${activeEnvironment?.environment?.name ?? "localhost"}/${page}`;
 }
 
 export function buildOrgEnvUrl(

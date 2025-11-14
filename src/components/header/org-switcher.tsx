@@ -19,6 +19,8 @@ import { usePageStore } from "@/stores/page-store";
 import { listOrganization } from "api/js/svc/user/v1/service_private-UserService_connectquery";
 import { CursorSchema } from "api/js/types/v1/cursor_pb";
 import { create } from "@bufbuild/protobuf";
+import { User } from "better-auth";
+import { useOrganizationStore } from "@/stores/user-store";
 
 interface Source {
   name: string;
@@ -27,16 +29,17 @@ interface Source {
 }
 
 interface OrgSwitcherProps {
-  userData: WhoamiResponse;
+  user: User;
 }
 
-export const OrgSwitcher = ({ userData }: OrgSwitcherProps) => {
+export const OrgSwitcher = ({ user }: OrgSwitcherProps) => {
   const router = useRouter();
   const params = useParams();
   const pathname = usePathname();
+  const { activePage } = usePageStore();
   const { activeEnvironment } = useEnvironmentStore();
 
-  const { activePage } = usePageStore();
+  const { currentOrganization } = useOrganizationStore();
 
   const [menuList, setMenuList] = useState<Source[]>([]);
 
@@ -56,7 +59,7 @@ export const OrgSwitcher = ({ userData }: OrgSwitcherProps) => {
   });
 
   const getCurrentSelectedValue = () => {
-    return userData.currentOrganization?.id.toString() || "";
+    return currentOrganization?.id.toString() || "";
   };
 
   const updateSelection = (value: string) => {
@@ -64,7 +67,7 @@ export const OrgSwitcher = ({ userData }: OrgSwitcherProps) => {
     if (!selected) return;
 
     getAuthURLMutation({
-      username: userData.user?.username,
+      username: user?.name,
       organization: {
         case: "byId",
         value: BigInt(value),
@@ -75,17 +78,15 @@ export const OrgSwitcher = ({ userData }: OrgSwitcherProps) => {
 
   useEffect(() => {
     const _menuList: Source[] = [];
-
     listOrganizations?.items.forEach((org) => {
       _menuList.push({
         name: org.organization?.name || "",
-        path: getOrgEnvUrl(userData, activeEnvironment, activePage),
+        path: getOrgEnvUrl(currentOrganization, activeEnvironment, activePage),
         value: org.organization?.id?.toString() || "",
       });
     });
-
     setMenuList(_menuList);
-  }, [listOrganizations, userData, activeEnvironment, pathname]);
+  }, [listOrganizations, user, activeEnvironment, pathname]);
 
   return (
     <Select value={getCurrentSelectedValue()} onValueChange={updateSelection}>

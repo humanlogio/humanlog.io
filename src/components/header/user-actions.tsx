@@ -24,12 +24,14 @@ import { getLogoutURL } from "api/js/svc/user/v1/service_private-UserService_con
 import config from "@/lib/config";
 import { SetUserNameModal } from "@/components/header/set-user-name-modal";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { User as BetterAuthUser } from "better-auth";
 
 interface UserActionsProps {
-  userData: WhoamiResponse | undefined;
+  user: BetterAuthUser | undefined;
+  // userData: WhoamiResponse | undefined;
 }
 
-export const UserActions = ({ userData }: UserActionsProps) => {
+export const UserActions = ({ user }: UserActionsProps) => {
   const router = useRouter();
   const returnToUrl = `${getSelfURL()}/login`;
 
@@ -74,7 +76,9 @@ export const UserActions = ({ userData }: UserActionsProps) => {
     logoutMutation({ returnTo });
   };
 
-  return !userData ? (
+  console.log("user in user-actions", user);
+
+  return !user ? (
     <>
       <SetUserNameModal
         isOpen={isModalOpen}
@@ -97,9 +101,9 @@ export const UserActions = ({ userData }: UserActionsProps) => {
       <DropdownMenuTrigger asChild>
         <button className="flex items-center rounded-md p-1 transition-colors">
           <Avatar className="h-8 w-8">
-            <AvatarImage src={gravatarURL(userData.user?.email)} />
+            <AvatarImage src={gravatarURL(user?.email)} />
             <AvatarFallback className="uppercase">
-              {userData.user?.firstName?.slice(0, 2) || <UserIcon size={16} />}
+              {user.name || <UserIcon size={16} />}
             </AvatarFallback>
           </Avatar>
         </button>
@@ -108,7 +112,7 @@ export const UserActions = ({ userData }: UserActionsProps) => {
         <div className="px-2 py-1.5">
           <SectionTitle>Current Organization</SectionTitle>
           <div className="mt-1">
-            <OrgSwitcher userData={userData} />
+            <OrgSwitcher user={user} />
           </div>
         </div>
 

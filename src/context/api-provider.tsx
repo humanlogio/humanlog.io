@@ -9,13 +9,7 @@ if (typeof BigInt !== "undefined") {
   };
 }
 
-import React, {
-  createContext,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import React, { createContext, useContext, useMemo } from "react";
 import {
   createClient,
   Client,
@@ -26,7 +20,7 @@ import {
 import { Interceptor } from "@connectrpc/connect";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createConnectTransport } from "@connectrpc/connect-web";
-import { TransportProvider, useQuery } from "@connectrpc/connect-query";
+import { TransportProvider } from "@connectrpc/connect-query";
 import { AuthService } from "api/js/svc/auth/v1/service_pb";
 import { EnvironmentService } from "api/js/svc/environment/v1/service_pb";
 import { OrganizationService } from "api/js/svc/organization/v1/service_pb";
@@ -45,16 +39,15 @@ import {
   PublicShareService,
   UserShareService,
 } from "api/js/svc/share/v1/service_pb";
-import { getAPIURL, getSelfURL } from "@/lib/config/envs";
-import { useCookies } from "react-cookie";
+import { getAPIURL } from "@/lib/config/envs";
 import config from "@/lib/config";
 import { v4 as uuidv4 } from "uuid";
 import { useSearchParams } from "next/navigation";
-import { useRouter } from "next/navigation";
 import { useEnvironmentStore } from "@/stores/environment-store";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { authClient } from "@/lib/auth-client";
-import { useUserStore } from "@/stores/user-store";
+import { useOrganizationStore, useUserStore } from "@/stores/user-store";
+import { createMockOrganization } from "@/lib/utils/mock-user-data";
 
 type ApiProviderType = {
   apiClients: ApiClients | null;
@@ -107,6 +100,8 @@ export function ApiClientsProvider({
   const localhostBaseUrl = `http://localhost:${localhostPort}`;
   const { getSession } = authClient;
   const { setUser, setSession } = useUserStore();
+  const { setCurrentOrganization, setDefaultOrganization } =
+    useOrganizationStore();
 
   const { activeEnvironment, setActiveEnvironment } = useEnvironmentStore();
 
@@ -121,6 +116,9 @@ export function ApiClientsProvider({
           req.header.set("Browser-Authorization", token);
           setUser(data?.user);
           setSession(data?.session);
+          // TODO: Remove this after real API is implemented
+          setCurrentOrganization(createMockOrganization().currentOrganization);
+          setDefaultOrganization(createMockOrganization().defaultOrganization);
         }
         req.header.set("Request-Id", uuidv4());
 
@@ -134,6 +132,9 @@ export function ApiClientsProvider({
               setUser(undefined);
               setSession(undefined);
               setActiveEnvironment(undefined);
+              // TODO: Remove this after real API is implemented
+              setCurrentOrganization(undefined);
+              setDefaultOrganization(undefined);
             }
           }
           throw error;

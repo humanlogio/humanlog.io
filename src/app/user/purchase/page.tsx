@@ -44,6 +44,7 @@ import { getOrgEnvUrl } from "@/lib/utils/navigation";
 import { usePageStore } from "@/stores/page-store";
 import { useEnvironmentStore } from "@/stores/environment-store";
 import { useUser } from "@/hooks/useUser";
+import { useOrganizationStore } from "@/stores/user-store";
 
 interface Product {
   product: APIProduct;
@@ -209,7 +210,7 @@ function CheckoutForm({
 
   const { activeEnvironment } = useEnvironmentStore();
   const { activePage } = usePageStore();
-  const { userData } = useUser();
+  const { currentOrganization } = useOrganizationStore();
 
   const [errorMessage, setErrorMessage] = useState<string>();
 
@@ -278,7 +279,11 @@ function CheckoutForm({
     }
     console.log("checkout completed!");
 
-    const url = getOrgEnvUrl(userData, activeEnvironment, activePage);
+    const url = getOrgEnvUrl(
+      currentOrganization,
+      activeEnvironment,
+      activePage,
+    );
     router.push(url);
   }
 

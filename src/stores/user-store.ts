@@ -22,3 +22,31 @@ export const useUserStore = create<UserStore>()(
     },
   ),
 );
+
+interface Organization {
+  id: bigint;
+  name: string;
+}
+
+interface OrganizationStore {
+  currentOrganization: Organization | undefined;
+  defaultOrganization: Organization | undefined;
+  setCurrentOrganization: (organization: Organization | undefined) => void;
+  setDefaultOrganization: (organization: Organization | undefined) => void;
+}
+
+export const useOrganizationStore = create<OrganizationStore>()(
+  persist(
+    (set) => ({
+      currentOrganization: undefined,
+      defaultOrganization: undefined,
+      setCurrentOrganization: (organization) =>
+        set({ currentOrganization: organization }),
+      setDefaultOrganization: (organization) =>
+        set({ defaultOrganization: organization }),
+    }),
+    {
+      name: "organization-storage",
+    },
+  ),
+);
