@@ -22,6 +22,7 @@ import { authClient } from "@/lib/auth-client";
 import { SocialAuthButtons } from "@/components/auth/social-auth-buttons";
 import { toast } from "sonner";
 import { useEmailValidation } from "@/hooks/useEmailValidation";
+import { useUserStore } from "@/stores/user-store";
 
 const SignInFormSchema = z.object({
   email: z.string().email("Please enter a valid email."),
@@ -34,6 +35,7 @@ export default function SignInPage() {
   const router = useRouter();
 
   const { signIn } = authClient;
+  const { setUser } = useUserStore();
 
   const [showPassword, setShowPassword] = useState(false);
 
@@ -57,7 +59,7 @@ export default function SignInPage() {
   const onSubmit = async (formData: SignInFormData) => {
     const { email, password } = formData;
 
-    const { data, error } = await signIn.email(
+    await signIn.email(
       {
         email,
         password,
@@ -65,7 +67,9 @@ export default function SignInPage() {
       },
       {
         onRequest: (ctx) => {},
-        onSuccess: (ctx) => {},
+        onSuccess: (ctx) => {
+          setUser(ctx.data.user);
+        },
         onError: (ctx) => {
           setError("email", { message: ctx.error.message });
           setError("password", { message: ctx.error.message });
