@@ -4,14 +4,15 @@ import { NoLocalhostView } from "@/components/log-interface/views/no-localhost-v
 import { useParams, useRouter } from "next/navigation";
 import { ReactNode, useEffect, useState } from "react";
 import { usePing } from "@/hooks/usePing";
-
 import { SideMenu } from "@/app/[org]/[env]/side-menu";
-import { useUserStore } from "@/stores/user-store";
+import { authClient } from "@/lib/auth-client";
 
 export default function EnvLayout({ children }: { children: ReactNode }) {
   const params = useParams();
   const router = useRouter();
-  const { user } = useUserStore();
+  const { useSession } = authClient;
+  const { data: session, isPending: isPendingSession } = useSession();
+  const user = session?.user;
 
   const { localhostData, isLoadingLocalhost } = usePing();
   const currentEnvSlug = params?.env as string;
@@ -23,10 +24,10 @@ export default function EnvLayout({ children }: { children: ReactNode }) {
     router.replace("/");
   }, [user]);
 
-  // useEffect(() => {
-  //   if (isLoadingUser || userData) return;
-  //   router.replace("/");
-  // }, [userData, isLoadingUser]);
+  useEffect(() => {
+    if (isPendingSession || user) return;
+    router.replace("/");
+  }, [user, isPendingSession]);
 
   if (isLoadingLocalhost) return <></>;
 

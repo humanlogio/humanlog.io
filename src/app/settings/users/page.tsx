@@ -28,20 +28,18 @@ import { toast } from "sonner";
 import { useMutation } from "@connectrpc/connect-query";
 import { getStripeBillingPortal } from "api/js/svc/organization/v1/service-OrganizationService_connectquery";
 import { gravatarURL } from "@/lib/utils/avatar";
-import { useUser } from "@/hooks/useUser";
+
 import { authClient } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
-import { useUserStore } from "@/stores/user-store";
 
 export default function UserSettingsPage() {
   const router = useRouter();
 
-  // const { user } = useUserStore();
   const { useSession, deleteUser } = authClient;
   const {
     data: session,
     refetch: refetchSession,
-    isPending: isLoadingUser,
+    isPending: isPendingSession,
   } = useSession();
   const user = session?.user;
 
@@ -79,7 +77,7 @@ export default function UserSettingsPage() {
     });
   };
 
-  if (isLoadingUser) return <LoadingIndicator />;
+  if (isPendingSession) return <LoadingIndicator />;
 
   if (!user) {
     return (
