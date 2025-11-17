@@ -22,7 +22,7 @@ import { authClient } from "@/lib/auth-client";
 import { SocialAuthButtons } from "@/components/auth/social-auth-buttons";
 import { toast } from "sonner";
 import { useEmailValidation } from "@/hooks/useEmailValidation";
-import { useOrganizationStore, useUserStore } from "@/stores/user-store";
+import { useOrganizationStore } from "@/stores/user-store";
 import { createMockOrganization } from "@/lib/utils/mock-user-data";
 
 const SignInFormSchema = z.object({
@@ -36,7 +36,6 @@ export default function SignInPage() {
   const router = useRouter();
 
   const { signIn } = authClient;
-  const { setUser } = useUserStore();
   const { setCurrentOrganization, setDefaultOrganization } =
     useOrganizationStore();
 
@@ -71,7 +70,6 @@ export default function SignInPage() {
       {
         onRequest: (ctx) => {},
         onSuccess: (ctx) => {
-          setUser(ctx.data.user);
           // TODO: Remove this after real API is implemented
           setCurrentOrganization(createMockOrganization().currentOrganization);
           setDefaultOrganization(createMockOrganization().defaultOrganization);

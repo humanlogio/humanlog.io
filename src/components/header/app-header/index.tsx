@@ -19,14 +19,12 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { WhoamiResponse } from "api/js/svc/user/v1/service_private_pb";
 import { gravatarURL } from "@/lib/utils/avatar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { PingResponse } from "api/js/svc/localhost/v1/service_pb";
-import { useUser } from "@/hooks/useUser";
 import { BetaBadge } from "@/components/beta-badge";
-import { useUserStore } from "@/stores/user-store";
+import { authClient } from "@/lib/auth-client";
 
 export const localhostVersion = (res: PingResponse) => {
   const v = res.clientVersion!;
@@ -40,7 +38,9 @@ export const AppHeader = () => {
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  const { user } = useUserStore();
+  const { useSession } = authClient;
+  const { data: session } = useSession();
+  const user = session?.user;
 
   const currentOrg = "dumibell";
   // const currentOrg = userData?.currentOrganization?.name;

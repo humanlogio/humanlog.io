@@ -46,7 +46,7 @@ import { useSearchParams } from "next/navigation";
 import { useEnvironmentStore } from "@/stores/environment-store";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { authClient } from "@/lib/auth-client";
-import { useOrganizationStore, useUserStore } from "@/stores/user-store";
+import { useOrganizationStore } from "@/stores/user-store";
 import { createMockOrganization } from "@/lib/utils/mock-user-data";
 
 type ApiProviderType = {
@@ -99,7 +99,6 @@ export function ApiClientsProvider({
   const localhostPort = searchParams.get("demo_port") ?? "32764";
   const localhostBaseUrl = `http://localhost:${localhostPort}`;
   const { getSession } = authClient;
-  const { setUser, setSession } = useUserStore();
   const { setCurrentOrganization, setDefaultOrganization } =
     useOrganizationStore();
 
@@ -114,8 +113,7 @@ export function ApiClientsProvider({
         if (token && token != "") {
           localStorage.setItem("hlog_session", token);
           req.header.set("Browser-Authorization", token);
-          setUser(data?.user);
-          setSession(data?.session);
+
           // TODO: Remove this after real API is implemented
           setCurrentOrganization(createMockOrganization().currentOrganization);
           setDefaultOrganization(createMockOrganization().defaultOrganization);
@@ -129,8 +127,6 @@ export function ApiClientsProvider({
         } catch (error) {
           if (error instanceof ConnectError) {
             if (error.code === Code.Unauthenticated) {
-              setUser(undefined);
-              setSession(undefined);
               setActiveEnvironment(undefined);
               // TODO: Remove this after real API is implemented
               setCurrentOrganization(undefined);

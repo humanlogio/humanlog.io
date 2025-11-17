@@ -76,8 +76,6 @@ export const UserActions = ({ user }: UserActionsProps) => {
     logoutMutation({ returnTo });
   };
 
-  console.log("user in user-actions", user);
-
   return !user ? (
     <>
       <SetUserNameModal

@@ -27,8 +27,7 @@ import { getSelfURL } from "@/lib/config/envs";
 import { Data } from "api/js/types/v1/data_pb";
 import { useMutation } from "@connectrpc/connect-query";
 import { updateUser } from "api/js/svc/user/v1/service_private-UserService_connectquery";
-import { useUser } from "@/hooks/useUser";
-import { useUserStore } from "@/stores/user-store";
+import { authClient } from "@/lib/auth-client";
 
 interface ShareQueryProps {
   queryHistoryEntry: QueryHistoryEntry;
@@ -44,8 +43,9 @@ export const ShareQuery = ({
   const selfURL = getSelfURL();
 
   const { apiClients } = useApiClients();
-  const { user } = useUserStore();
-  // const { userData } = useUser();
+  const { useSession } = authClient;
+  const { data: session } = useSession();
+  const user = session?.user;
 
   const [username, setUsername] = useState("");
   const [isValid, setIsValid] = useState(false);

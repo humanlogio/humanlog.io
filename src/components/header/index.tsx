@@ -8,11 +8,10 @@ import {
   NavigationMenuList,
   navigationMenuTriggerStyle,
 } from "@/components/ui/navigation-menu";
-import { useUser } from "@/hooks/useUser";
 import { EnvSwitcher } from "@/components/header/env-switcher";
 import { BetaBadge } from "@/components/beta-badge";
 import { Logo } from "@/components/header/logo";
-import { useUserStore } from "@/stores/user-store";
+import { authClient } from "@/lib/auth-client";
 
 const navItems = [
   {
@@ -31,8 +30,11 @@ const navItems = [
 ];
 
 export const Header = () => {
-  // const { userData, isLoadingUser } = useUser();
-  const { user } = useUserStore();
+  const { useSession } = authClient;
+  const { data: session, isPending: isPendingSession } = useSession();
+  const user = session?.user;
+
+  if (isPendingSession) return;
 
   return (
     <NavigationMenu>

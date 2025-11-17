@@ -21,6 +21,7 @@ import { CursorSchema } from "api/js/types/v1/cursor_pb";
 import { create } from "@bufbuild/protobuf";
 import { User } from "better-auth";
 import { useOrganizationStore } from "@/stores/user-store";
+import { authClient } from "@/lib/auth-client";
 
 interface Source {
   name: string;
@@ -38,15 +39,12 @@ export const OrgSwitcher = ({ user }: OrgSwitcherProps) => {
   const pathname = usePathname();
   const { activePage } = usePageStore();
   const { activeEnvironment } = useEnvironmentStore();
+  const { useListOrganizations } = authClient;
+  const { data: listOrganizations } = useListOrganizations();
 
   const { currentOrganization } = useOrganizationStore();
 
   const [menuList, setMenuList] = useState<Source[]>([]);
-
-  const { data: listOrganizations } = useQuery(listOrganization, {
-    cursor: create(CursorSchema),
-    limit: 100,
-  });
 
   const { mutate: getAuthURLMutation } = useMutation(getAuthURL, {
     onSuccess: (res) => {
@@ -78,13 +76,14 @@ export const OrgSwitcher = ({ user }: OrgSwitcherProps) => {
 
   useEffect(() => {
     const _menuList: Source[] = [];
-    listOrganizations?.items.forEach((org) => {
+    listOrganizations?.forEach((org) => {
       _menuList.push({
-        name: org.organization?.name || "",
+        name: org.name || "",
         path: getOrgEnvUrl(currentOrganization, activeEnvironment, activePage),
-        value: org.organization?.id?.toString() || "",
+        value: org.id.toString(),
       });
     });
+
     setMenuList(_menuList);
   }, [listOrganizations, user, activeEnvironment, pathname]);
 
