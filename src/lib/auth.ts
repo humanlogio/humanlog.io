@@ -32,7 +32,6 @@ const config = {
   database: betterAuthAdapter,
   secret: process.env.BETTER_AUTH_SECRET || "",
   baseURL: getSelfURL(),
-  plugins: [organization()],
 
   // telemetry: { enabled: true, debug: true },
   ...createSharedBetterAuthConfig({
