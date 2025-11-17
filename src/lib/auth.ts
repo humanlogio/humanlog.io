@@ -10,7 +10,7 @@ import { createConnectTransport } from "@connectrpc/connect-web";
 import { createClient } from "@connectrpc/connect";
 import { BetterAuthAdapter } from "@humanlogio/auth-adapter/gen/svc/betterauth/v1/service_pb.js";
 import { JSONKeystore } from "@humanlogio/auth-adapter/util/hmackeystore/json.js";
-import { organization } from "better-auth/plugins";
+import { customSession, organization } from "better-auth/plugins";
 
 const keystoreJSON = process.env.INTERNAL_HMAC_KEYSTORE;
 
@@ -32,6 +32,11 @@ const config = {
   database: betterAuthAdapter,
   secret: process.env.BETTER_AUTH_SECRET || "",
   baseURL: getSelfURL(),
+  user: {
+    deleteUser: {
+      enabled: true,
+    },
+  },
 
   // telemetry: { enabled: true, debug: true },
   ...createSharedBetterAuthConfig({

@@ -20,6 +20,8 @@ import {
   CreditCard,
   Loader,
   UserIcon,
+  Trash2,
+  AlertTriangle,
 } from "lucide-react";
 import { formatTimestamp } from "@/lib/utils/format-timestamp";
 import { toast } from "sonner";
@@ -27,9 +29,21 @@ import { useMutation } from "@connectrpc/connect-query";
 import { getStripeBillingPortal } from "api/js/svc/organization/v1/service-OrganizationService_connectquery";
 import { gravatarURL } from "@/lib/utils/avatar";
 import { useUser } from "@/hooks/useUser";
+import { authClient } from "@/lib/auth-client";
+import { useRouter } from "next/navigation";
+import { useUserStore } from "@/stores/user-store";
 
 export default function UserSettingsPage() {
-  const { userData, isLoadingUser, refetchUser } = useUser();
+  const router = useRouter();
+
+  // const { user } = useUserStore();
+  const { useSession, deleteUser } = authClient;
+  const {
+    data: session,
+    refetch: refetchSession,
+    isPending: isLoadingUser,
+  } = useSession();
+  const user = session?.user;
 
   const { mutate: billingPortalMutation, isPending: isBillingPending } =
     useMutation(getStripeBillingPortal, {
@@ -48,19 +62,36 @@ export default function UserSettingsPage() {
       returnToUrl: window.location.href,
     });
   };
+  const handleDeleteUser = async () => {
+    if (!window.confirm("Are you sure you want to delete your account?"))
+      return;
+    await deleteUser({
+      fetchOptions: {
+        onSuccess: () => {
+          toast.success("User deleted successfully");
+          router.push("/sign-in");
+        },
+        onError: (ctx) => {
+          console.error(ctx.error);
+          toast.error(ctx.error.message);
+        },
+      },
+    });
+  };
 
   if (isLoadingUser) return <LoadingIndicator />;
 
-  if (!userData) {
+  if (!user) {
     return (
-      <div className="container flex flex-grow flex-col items-center justify-center gap-8">
+      <div className="container flex grow flex-col items-center justify-center gap-8">
         You need to login to access this page.
       </div>
     );
   }
 
-  const isDefaultOrg =
-    userData?.currentOrganization?.id === userData?.defaultOrganization?.id;
+  // TODO: add default organization
+  // const isDefaultOrg =
+  //   userData?.currentOrganization?.id === userData?.defaultOrganization?.id;
 
   return (
     <div className="space-y-6">
@@ -85,32 +116,23 @@ export default function UserSettingsPage() {
         <CardContent className="space-y-4">
           <div className="flex items-center gap-4">
             <Avatar className="h-16 w-16">
-              <AvatarImage src={gravatarURL(userData.user?.email)} />
+              <AvatarImage src={gravatarURL(user?.email)} />
               <AvatarFallback className="text-lg">
-                {userData.user?.firstName?.slice(0, 2) || (
-                  <UserIcon size={14} />
-                )}
+                {user.name || <UserIcon size={14} />}
               </AvatarFallback>
             </Avatar>
             <div className="space-y-1">
               <div className="flex items-center gap-2">
-                <h3 className="text-xl font-semibold">
-                  {userData?.user?.firstName && userData?.user?.lastName
-                    ? `${userData.user.firstName} ${userData.user.lastName}`
-                    : userData?.user?.firstName || "No name set"}
-                </h3>
-                {userData?.user?.username && (
-                  <Badge variant="secondary">@{userData.user.username}</Badge>
-                )}
+                {user?.name && <Badge variant="secondary">@{user.name}</Badge>}
               </div>
               <div className="text-muted-foreground flex items-center gap-1">
                 <Mail className="h-4 w-4" />
-                <span>{userData?.user?.email}</span>
+                <span>{user?.email}</span>
               </div>
-              {userData?.user?.createdAt && (
+              {user?.createdAt && (
                 <div className="text-muted-foreground flex items-center gap-1 text-sm">
                   <Calendar className="h-4 w-4" />
-                  <span>Joined {formatTimestamp(userData.user.createdAt)}</span>
+                  <span>Joined {user.createdAt.toDateString()}</span>
                 </div>
               )}
             </div>
@@ -123,11 +145,11 @@ export default function UserSettingsPage() {
             <div className="mt-1 flex items-center gap-2">
               <Building className="text-muted-foreground h-4 w-4" />
               <span className="font-medium">
-                {userData?.currentOrganization?.name}
+                {/* {userData?.currentOrganization?.name} */}
               </span>
-              {isDefaultOrg && (
+              {/* {isDefaultOrg && (
                 <Badge className="bg-orange-100 text-orange-800">Default</Badge>
-              )}
+              )} */}
             </div>
           </div>
         </CardContent>
@@ -177,7 +199,45 @@ export default function UserSettingsPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <UserSettingsForm userData={userData} refetchUserData={refetchUser} />
+          <UserSettingsForm user={user} refetchSession={refetchSession} />
+        </CardContent>
+      </Card>
+
+      {/* Danger Zone */}
+      <Card className="border-destructive/50">
+        <CardHeader>
+          <CardTitle className="text-destructive flex items-center gap-2">
+            <AlertTriangle className="h-5 w-5" />
+            Danger Zone
+          </CardTitle>
+          <CardDescription>
+            Irreversible and destructive actions for your account
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="border-destructive/20 bg-destructive/5 rounded-lg border p-4">
+            <div className="items-center justify-between md:flex">
+              <div className="mb-4 md:mb-0">
+                <h4 className="text-destructive font-semibold">
+                  Delete Account
+                </h4>
+                <p className="text-muted-foreground mt-1 text-sm">
+                  Permanently delete your account and all associated data. This
+                  action cannot be undone.
+                </p>
+              </div>
+              <div className="flex justify-end">
+                <Button
+                  variant="destructive"
+                  onClick={handleDeleteUser}
+                  className="gap-2"
+                >
+                  <Trash2 className="h-4 w-4" />
+                  Delete Account
+                </Button>
+              </div>
+            </div>
+          </div>
         </CardContent>
       </Card>
     </div>
