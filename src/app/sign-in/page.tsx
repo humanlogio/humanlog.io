@@ -84,7 +84,7 @@ export default function SignInPage() {
   };
 
   return (
-    <div className="w-[320px]">
+    <div className="w-full">
       <div className="flex w-full flex-col items-center">
         <h1 className="mb-12 text-xl font-semibold">Sign in to Humanlog</h1>
         <SocialAuthButtons />
