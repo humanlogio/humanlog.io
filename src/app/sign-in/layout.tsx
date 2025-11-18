@@ -32,7 +32,7 @@ export default function SignInLayout({
         <ChevronLeft size={15} />
         Back
       </button>
-      {children}
+      <div className="w-[320px]">{children}</div>
     </div>
   );
 }
