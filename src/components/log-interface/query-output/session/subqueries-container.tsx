@@ -10,7 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { SquareCode, X } from "lucide-react";
+import { Loader2, SquareCode, X } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import {
   ToggleShowPretty,
@@ -172,6 +172,11 @@ const SubQueryPanel = ({
   deleteSession,
   queryHistoryEntry,
 }: SubQueryPanelProps) => {
+  const defaultSize =
+    selectedSessions.length > 0
+      ? Math.max(20, 100 / selectedSessions.length)
+      : 25;
+
   const { activeEnvironment } = useEnvironmentStore();
   const {
     data: rawData,
@@ -212,13 +217,11 @@ const SubQueryPanel = ({
     };
   }, [rawData]);
 
-  if (!data?.logs || data?.logs.length === 0) {
-    return <EmptyDataView dataType="logs" />;
-  }
+  const hasData = data?.logs && data.logs.length > 0;
 
   return (
     <>
-      <Panel minSize={20}>
+      <Panel minSize={20} defaultSize={defaultSize}>
         <div className="relative flex h-full flex-col pt-2 pr-2">
           {selectedSessions.length > 1 && (
             <button
@@ -229,14 +232,22 @@ const SubQueryPanel = ({
             </button>
           )}
           <div className="min-h-0 flex-1">
-            <SessionPanel
-              logs={data?.logs}
-              resourceFingerprint={extractQueryIds(list.query)}
-              queryHistoryEntry={queryHistoryEntry}
-              hasNextPage={hasNextPage}
-              isFetching={isFetching}
-              fetchNextPage={fetchNextPage}
-            />
+            {isFetching && !hasData ? (
+              <div className="flex h-full items-center justify-center">
+                <Loader2 className="animate-spin" />
+              </div>
+            ) : hasData ? (
+              <SessionPanel
+                logs={data.logs}
+                resourceFingerprint={extractQueryIds(list.query)}
+                queryHistoryEntry={queryHistoryEntry}
+                hasNextPage={hasNextPage}
+                isFetching={isFetching}
+                fetchNextPage={fetchNextPage}
+              />
+            ) : (
+              <EmptyDataView dataType="logs" />
+            )}
           </div>
         </div>
       </Panel>
