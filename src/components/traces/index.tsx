@@ -258,7 +258,7 @@ export const Traces = ({ traceId, spanId }: TracesProps) => {
     const tree = buildSpanTree(traceData.trace.spans);
     setSpanTree(tree);
     if (!spanId) return;
-    const span = findSpanNodeById(spanTree, spanId);
+    const span = findSpanNodeById(tree, spanId);
     if (!span) return;
     setSelectedSpan(span);
 
