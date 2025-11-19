@@ -185,14 +185,14 @@ export const TraceWaterfall = ({
             {Array(node.depth)
               .fill(0)
               .map((_, i) => (
-                <div key={i} className="w-5 flex-shrink-0" />
+                <div key={i} className="w-5 shrink-0" />
               ))}
             <div className={twMerge("relative flex items-center")}>
               {node.parent && (
                 <div className="absolute flex items-center">
                   {node.isLast ? (
                     <div
-                      className="absolute top-[-17px] left-[-8px] h-5 w-[1px]"
+                      className="absolute top-[-17px] left-[-8px] h-5 w-px"
                       style={{
                         backgroundColor:
                           serviceColors[node.parent.span.serviceName],
@@ -200,10 +200,10 @@ export const TraceWaterfall = ({
                     />
                   ) : (
                     <div
-                      className={twMerge("absolute left-[-8px] w-[1px]")}
+                      className={twMerge("absolute left-[-8px] w-px")}
                       style={{
                         height: `${(dynamicConnectorHeight + 1) * 33}px`,
-                        top: "-16px",
+                        top: "-15px",
                         backgroundColor:
                           serviceColors[node.parent.span.serviceName],
                       }}
@@ -211,7 +211,7 @@ export const TraceWaterfall = ({
                   )}
                   {node.children.length > 0 ? (
                     <div
-                      className="absolute left-[-8px] h-[1px] w-2"
+                      className="absolute left-[-8px] h-px w-2"
                       style={{
                         backgroundColor:
                           serviceColors[node.parent.span.serviceName],
@@ -219,7 +219,7 @@ export const TraceWaterfall = ({
                     />
                   ) : (
                     <div
-                      className="absolute left-[-8px] h-[1px] w-5"
+                      className="absolute left-[-8px] h-px w-5"
                       style={{
                         backgroundColor:
                           serviceColors[node.parent.span.serviceName],
@@ -228,7 +228,7 @@ export const TraceWaterfall = ({
                   )}
                 </div>
               )}
-              <div className="z-10 flex w-6 flex-shrink-0 items-center justify-center">
+              <div className="z-1 flex w-6 shrink-0 items-center justify-center">
                 {canToggle ? (
                   <button
                     onClick={onToggleVisibility}
@@ -256,14 +256,14 @@ export const TraceWaterfall = ({
 
               {node.children.length > 0 && !isFolded && (
                 <div
-                  className="absolute bottom-[-2px] left-[9.5px] h-3 w-[1px]"
+                  className="absolute bottom-[-2px] left-[9.5px] h-3 w-px"
                   style={{
                     backgroundColor: serviceColors[node.span.serviceName],
                   }}
                 />
               )}
 
-              <div className="w-64 flex-shrink-0 pr-2">
+              <div className="w-64 shrink-0 pr-2">
                 <div
                   className="truncate text-sm font-medium"
                   title={node.span.name}
@@ -279,7 +279,7 @@ export const TraceWaterfall = ({
               </div>
             </div>
             {/* Timeline bar */}
-            <div className="h-8 flex-grow">{renderTimeline(node.span)}</div>
+            <div className="h-8 grow">{renderTimeline(node.span)}</div>
           </div>
         </div>
       </>
