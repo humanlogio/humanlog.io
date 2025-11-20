@@ -25,6 +25,7 @@ import {
 import { HardDrive } from "lucide-react";
 import { User } from "better-auth";
 import { useOrganizationStore } from "@/stores/user-store";
+import { authClient } from "@/lib/auth-client";
 interface Source {
   name: string;
   path: string;
@@ -50,6 +51,8 @@ export const EnvSwitcher = ({ user }: EnvSwitcherProps) => {
     cursor: create(CursorSchema),
     limit: 100,
   });
+  const { data: organizations } = authClient.useListOrganizations();
+  console.log("organizations", organizations);
 
   const currentEnvSlug = params?.env as string;
 
