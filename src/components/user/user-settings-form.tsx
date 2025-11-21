@@ -16,10 +16,8 @@ import { Button } from "@/components/ui/button";
 import { Loader, Check, X } from "lucide-react";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
-import { WhoamiResponse } from "api/js/svc/user/v1/service_private_pb";
 import { useMutation } from "@connectrpc/connect-query";
 import { updateUser } from "api/js/svc/user/v1/service_private-UserService_connectquery";
-import { checkUsername } from "api/js/svc/auth/v1/service-AuthService_connectquery";
 import { useUsernameValidation } from "@/hooks/useUsernameValidation";
 import { User } from "better-auth";
 
