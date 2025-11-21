@@ -8,19 +8,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { WhoamiResponse } from "api/js/svc/user/v1/service_private_pb";
-import { useMutation, useQuery } from "@connectrpc/connect-query";
-import { getAuthURL } from "api/js/svc/auth/v1/service-AuthService_connectquery";
-import { toast } from "sonner";
-import { getSelfURL } from "@/lib/config/envs";
 import { useEnvironmentStore } from "@/stores/environment-store";
 import { getOrgEnvUrl } from "@/lib/utils/navigation";
 import { usePageStore } from "@/stores/page-store";
-import { listOrganization } from "api/js/svc/user/v1/service_private-UserService_connectquery";
-import { CursorSchema } from "api/js/types/v1/cursor_pb";
-import { create } from "@bufbuild/protobuf";
 import { User } from "better-auth";
-import { useOrganizationStore } from "@/stores/user-store";
 import { authClient } from "@/lib/auth-client";
 
 interface Source {
@@ -34,43 +25,22 @@ interface OrgSwitcherProps {
 }
 
 export const OrgSwitcher = ({ user }: OrgSwitcherProps) => {
-  const router = useRouter();
-  const params = useParams();
   const pathname = usePathname();
   const { activePage } = usePageStore();
   const { activeEnvironment } = useEnvironmentStore();
-  const { useListOrganizations } = authClient;
+  const { useListOrganizations, organization, useActiveOrganization } =
+    authClient;
   const { data: listOrganizations } = useListOrganizations();
-
-  const { currentOrganization } = useOrganizationStore();
+  const { data: activeOrganization } = useActiveOrganization();
 
   const [menuList, setMenuList] = useState<Source[]>([]);
-
-  const { mutate: getAuthURLMutation } = useMutation(getAuthURL, {
-    onSuccess: (res) => {
-      router.push(res.authUrl);
-    },
-    onError: (err) => {
-      toast.error(err.message);
-      router.push("/");
-    },
-  });
-
-  const getCurrentSelectedValue = () => {
-    return currentOrganization?.id.toString() || "";
-  };
 
   const updateSelection = (value: string) => {
     const selected = menuList.find((menu) => menu.value === value);
     if (!selected) return;
 
-    getAuthURLMutation({
-      username: user?.name,
-      organization: {
-        case: "byId",
-        value: BigInt(value),
-      },
-      returnToUrl: `${getSelfURL()}/login`,
+    organization.setActive({
+      organizationId: value,
     });
   };
 
@@ -79,7 +49,7 @@ export const OrgSwitcher = ({ user }: OrgSwitcherProps) => {
     listOrganizations?.forEach((org) => {
       _menuList.push({
         name: org.name || "",
-        path: getOrgEnvUrl(currentOrganization, activeEnvironment, activePage),
+        path: getOrgEnvUrl(org, activeEnvironment, activePage),
         value: org.id.toString(),
       });
     });
@@ -88,7 +58,10 @@ export const OrgSwitcher = ({ user }: OrgSwitcherProps) => {
   }, [listOrganizations, user, activeEnvironment, pathname]);
 
   return (
-    <Select value={getCurrentSelectedValue()} onValueChange={updateSelection}>
+    <Select
+      value={activeOrganization?.id || ""}
+      onValueChange={updateSelection}
+    >
       <SelectTrigger className="w-full">
         <div className="line-clamp-1 flex flex-row items-center overflow-hidden text-ellipsis whitespace-nowrap">
           <SelectValue placeholder="Select org" className="text-xs" />

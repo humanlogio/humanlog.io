@@ -11,8 +11,7 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { createOrganization } from "api/js/svc/user/v1/service_private-UserService_connectquery";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Trash2,
   Crown,
@@ -25,96 +24,170 @@ import {
 } from "lucide-react";
 import { formatTimestamp } from "@/lib/utils/format-timestamp";
 import {
-  inviteUser,
-  listUser,
   listUserInvitation,
   revokeUserInvitation,
 } from "api/js/svc/organization/v1/service-OrganizationService_connectquery";
 import { useMutation, useQuery } from "@connectrpc/connect-query";
 import { toast } from "sonner";
 import { gravatarURL } from "@/lib/utils/avatar";
-import { useUser } from "@/hooks/useUser";
+import { authClient } from "@/lib/auth-client";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+interface Role {
+  value: "owner" | "admin" | "member";
+  label: string;
+}
+
+const ROLES: Role[] = [
+  {
+    value: "owner",
+    label: "Owner",
+  },
+  {
+    value: "admin",
+    label: "Admin",
+  },
+  {
+    value: "member",
+    label: "Member",
+  },
+];
 
 export default function OrgSettingsPage() {
-  const { userData } = useUser();
+  const { organization, useSession, useActiveOrganization } = authClient;
+  const { data: session } = useSession();
+  const { data: activeOrganization } = useActiveOrganization();
 
   const [email, setEmail] = useState("");
   const [orgName, setOrgName] = useState("");
   const [newOrgName, setNewOrgName] = useState("");
+  const [role, setRole] = useState<Role>();
 
-  const { data: listUserData } = useQuery(listUser);
-
-  // TODO: use useInfiniteQuery
-  const { data: listUserInvitationData } = useQuery(listUserInvitation);
-
-  const { mutate: inviteUserMutation } = useMutation(inviteUser, {
-    onSuccess: () => {
-      toast.success("User invitation sent successfully");
-      setEmail("");
-    },
-    onError: (error) => {
-      toast.error("Failed to send invitation");
-      console.error(error);
-    },
-  });
-
-  const { mutate: createOrgMutation } = useMutation(createOrganization, {
-    onSuccess: () => {
-      toast.success("Organization created successfully");
-      setEmail("");
-    },
-    onError: (error) => {
-      toast.error("Failed to create organization");
-      console.error(error);
-    },
-  });
-
-  const { mutate: revokeInviteMutation } = useMutation(revokeUserInvitation, {
-    onSuccess: () => {
-      toast.success("Invitation cancelled successfully");
-    },
-    onError: (error) => {
-      toast.error("Failed to cancel invitation");
-      console.error(error);
-    },
-  });
-
-  const isDefaultOrg =
-    userData?.currentOrganization?.id === userData?.defaultOrganization?.id;
-
-  const handleInviteUser = () => {
-    inviteUserMutation({
-      userEmail: email,
-    });
-    setEmail("");
+  const handleSetRole = (value: string) => {
+    const role = ROLES.find((role) => role.value === value);
+    if (!role) return;
+    setRole(role);
   };
 
-  const handleCancelInvite = (inviteId?: bigint) => {
+  const handleInviteUser = async () => {
+    if (!activeOrganization) {
+      toast.error("No active organization found");
+      return;
+    }
+    if (!role) {
+      toast.error("Please select a role");
+      return;
+    }
+    await organization.inviteMember(
+      {
+        email,
+        role: role.value,
+        organizationId: activeOrganization.id || "",
+        resend: true,
+      },
+      {
+        onSuccess: () => {
+          toast.success("User invitation sent successfully");
+          setEmail("");
+        },
+        onError: (error) => {
+          toast.error("Failed to send invitation");
+          console.error(error);
+        },
+      },
+    );
+  };
+
+  const handleCancelInvite = async (inviteId?: string) => {
     if (!inviteId) return;
 
-    revokeInviteMutation({
-      inviteId: inviteId,
-    });
+    await organization.cancelInvitation(
+      {
+        invitationId: inviteId,
+      },
+      {
+        onSuccess: (ctx) => {
+          console.log("ctx", ctx);
+          toast.success(`${ctx.data.email} invitation cancelled successfully`);
+        },
+        onError: (error) => {
+          toast.error("Failed to cancel invitation");
+          console.error(error);
+        },
+      },
+    );
   };
 
-  const handleRemoveMember = (memberId?: string) => {
+  const handleRemoveMember = async (memberId?: string) => {
     if (!memberId) return;
-    // TODO: API Call to remove member
-    console.log("Removing member:", memberId);
+    await organization.removeMember(
+      {
+        memberIdOrEmail: memberId, // required
+        organizationId: activeOrganization?.id || "",
+      },
+      {
+        onSuccess: () => {
+          toast.success("Member removed successfully");
+        },
+        onError: (error) => {
+          toast.error("Failed to remove member");
+          console.error(error);
+        },
+      },
+    );
+
     toast.success("Member removed successfully");
   };
 
-  const handleCreateOrg = () => {
-    createOrgMutation({
-      name: orgName,
-    });
-    setOrgName("");
+  const handleCreateOrg = async () => {
+    await organization.create(
+      {
+        slug: orgName,
+        name: orgName,
+        userId: session?.user?.id?.toString(),
+        metadata: {
+          createdBy: session?.user?.id?.toString(),
+        },
+      },
+      {
+        onSuccess: () => {
+          toast.success("Organization created successfully");
+          setOrgName("");
+        },
+        onError: (error) => {
+          toast.error("Failed to create organization");
+          console.error(error);
+        },
+      },
+    );
   };
 
-  const handleUpdateOrgName = () => {
-    // TODO: Call API to update org name
-    console.log("Updating org name to:", newOrgName);
-    setNewOrgName("");
+  const handleUpdateOrgName = async () => {
+    await organization.update(
+      {
+        data: {
+          name: newOrgName,
+          slug: newOrgName,
+        },
+      },
+      {
+        onSuccess: () => {
+          toast.success("Organization name updated successfully");
+          setNewOrgName("");
+        },
+        onError: (error) => {
+          toast.error("Failed to update organization name");
+          console.error(error);
+        },
+      },
+    );
   };
 
   const handleChangeRole = (memberId: string, newRole: string) => {
@@ -124,11 +197,11 @@ export default function OrgSettingsPage() {
 
   const getRoleColor = (role: string) => {
     switch (role) {
-      case "Owner":
+      case "owner":
         return "bg-purple-100 text-purple-800";
-      case "Admin":
+      case "admin":
         return "bg-blue-100 text-blue-800";
-      case "Member":
+      case "member":
         return "bg-green-100 text-green-800";
       default:
         return "bg-gray-100 text-gray-800";
@@ -174,17 +247,17 @@ export default function OrgSettingsPage() {
               </label>
               <div className="flex items-center gap-2">
                 <p className="text-lg font-semibold">
-                  {userData?.currentOrganization?.name}
+                  {activeOrganization?.name}
                 </p>
-                {isDefaultOrg && (
+                {/* {isDefaultOrg && (
                   <Badge className="bg-orange-100 text-orange-800">
                     <Building className="h-3 w-3" />
                     Default
                   </Badge>
-                )}
+                )} */}
               </div>
             </div>
-            {!isDefaultOrg && (
+            {
               <>
                 {/* TODO: later....... */}
                 {/* <div>
@@ -203,7 +276,7 @@ export default function OrgSettingsPage() {
                     Members
                   </label>
                   <p className="text-lg font-semibold">
-                    {listUserData?.items?.length}
+                    {activeOrganization?.members?.length}
                   </p>
                 </div>
                 <div>
@@ -213,7 +286,7 @@ export default function OrgSettingsPage() {
                   <p className="text-lg font-semibold">Pro</p>
                 </div>
               </>
-            )}
+            }
           </div>
           <div>
             <label className="text-muted-foreground text-sm font-medium">
@@ -221,16 +294,14 @@ export default function OrgSettingsPage() {
             </label>
             <div className="mt-1 flex items-center gap-1">
               <Calendar className="text-muted-foreground h-4 w-4" />
-              <p>
-                {formatTimestamp(userData?.currentOrganization?.createdAt!)}
-              </p>
+              <p>{activeOrganization?.createdAt.toDateString()}</p>
             </div>
           </div>
         </CardContent>
       </Card>
 
       {/* Update Organization Name */}
-      {!isDefaultOrg && (
+      {
         <>
           <Card>
             <CardHeader>
@@ -242,7 +313,7 @@ export default function OrgSettingsPage() {
             <CardContent>
               <div className="flex gap-3">
                 <Input
-                  placeholder={`Current: ${userData?.currentOrganization?.name}`}
+                  placeholder={`Current: ${activeOrganization?.name}`}
                   value={newOrgName}
                   onChange={(e) => setNewOrgName(e.target.value)}
                 />
@@ -274,60 +345,73 @@ export default function OrgSettingsPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                 />
+                <Select value={role?.value} onValueChange={handleSetRole}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select role" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      {ROLES.map((role) => {
+                        return (
+                          <SelectItem key={role.value} value={role.value}>
+                            {role.label}
+                          </SelectItem>
+                        );
+                      })}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
                 <Button onClick={handleInviteUser} disabled={!email.trim()}>
                   Send Invite
                 </Button>
               </div>
             </CardContent>
-          </Card>
 
-          {/* Pending Invitations */}
-          {listUserInvitationData?.items &&
-            listUserInvitationData?.items.length > 0 && (
-              <Card>
+            {/* Pending Invitations */}
+            {activeOrganization?.invitations && (
+              <>
                 <CardHeader>
-                  <CardTitle>Pending Invitations</CardTitle>
+                  <CardTitle className="flex items-center gap-2">
+                    <Users className="h-5 w-5" />
+                    Pending Invitations
+                  </CardTitle>
                   <CardDescription>
                     Invitations that haven&apos;t been accepted yet
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    {listUserInvitationData?.items.map((invite) => (
+                    {activeOrganization?.invitations.map((invite) => (
                       <div
-                        key={invite.invitation?.id}
+                        key={invite.id}
                         className="flex items-center justify-between rounded-lg border p-3"
                       >
                         <div className="flex items-center gap-3">
                           <Avatar>
                             <AvatarFallback>
-                              {invite.invitation?.invitedUserEmail
-                                .charAt(0)
-                                .toUpperCase()}
+                              {invite.email.charAt(0).toUpperCase()}
                             </AvatarFallback>
                           </Avatar>
                           <div>
-                            <p className="font-medium">
-                              {invite.invitation?.invitedUserEmail}
+                            <p className="flex gap-1 font-medium">
+                              {invite.email}
+                              <Badge className={getRoleColor(invite.role)}>
+                                {getRoleIcon(invite.role)}
+                                {invite.role}
+                              </Badge>
                             </p>
                             <p className="text-muted-foreground text-sm">
-                              Invited by{" "}
-                              {invite.invitation?.invitedBy?.username} •{" "}
-                              {formatTimestamp(invite.invitation?.createdAt)}
+                              Invited by
+                              {/* TODO: add user name */}
+                              {/* {invite.inviterId} */}
                             </p>
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
-                          {/* <Badge className={getRoleColor(invite.role)}>
-                    {getRoleIcon(invite.role)}
-                    {invite.role}
-                  </Badge> */}
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() =>
-                              handleCancelInvite(invite.invitation?.id)
-                            }
+                            onClick={() => handleCancelInvite(invite.id)}
                           >
                             Cancel
                           </Button>
@@ -336,73 +420,8 @@ export default function OrgSettingsPage() {
                     ))}
                   </div>
                 </CardContent>
-              </Card>
+              </>
             )}
-
-          {/* Environment Members */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Users className="h-5 w-5" />
-                Environment Members
-              </CardTitle>
-              <CardDescription>
-                Users with access to this environment
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {listUserData?.items && listUserData?.items.length > 0 ? (
-                  listUserData.items.map((member) => (
-                    <div
-                      key={member.user?.id?.toString()}
-                      className="flex items-center justify-between rounded-lg border p-3"
-                    >
-                      <div className="flex items-center gap-3">
-                        <Avatar className="h-7 w-7">
-                          <AvatarImage src={gravatarURL(member.user?.email)} />
-                          <AvatarFallback className="uppercase">
-                            {member.user?.firstName?.slice(0, 2) || (
-                              <UserIcon size={14} />
-                            )}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <p className="font-medium">
-                            {member.user?.username || member.user?.firstName}
-                          </p>
-                          <p className="text-muted-foreground text-sm">
-                            {member.user?.email}
-                          </p>
-                          <p className="text-muted-foreground text-xs">
-                            Joined {formatTimestamp(member.user?.createdAt)}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Badge className={getRoleColor("Admin")}>
-                          {getRoleIcon("Admin")}
-                        </Badge>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() =>
-                            handleRemoveMember(member?.user?.id?.toString())
-                          }
-                          className="text-red-600 hover:text-red-700"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-muted-foreground text-sm">
-                    No members found
-                  </p>
-                )}
-              </div>
-            </CardContent>
           </Card>
 
           {/* Organization Members */}
@@ -418,47 +437,45 @@ export default function OrgSettingsPage() {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {listUserData?.items && listUserData?.items.length > 0 ? (
-                  listUserData.items.map((member) => (
+                {activeOrganization?.members ? (
+                  activeOrganization.members.map((member) => (
                     <div
-                      key={member.user?.id?.toString()}
+                      key={member.id}
                       className="flex items-center justify-between rounded-lg border p-3"
                     >
                       <div className="flex items-center gap-3">
                         <Avatar className="h-7 w-7">
                           <AvatarImage src={gravatarURL(member.user?.email)} />
                           <AvatarFallback className="uppercase">
-                            {member.user?.firstName?.slice(0, 2) || (
+                            {member.user?.name?.slice(0, 2) || (
                               <UserIcon size={14} />
                             )}
                           </AvatarFallback>
                         </Avatar>
                         <div>
-                          <p className="font-medium">
-                            {member.user?.username || member.user?.firstName}
-                          </p>
+                          <p className="font-medium">{member.user?.name}</p>
                           <p className="text-muted-foreground text-sm">
                             {member.user?.email}
-                          </p>
-                          <p className="text-muted-foreground text-xs">
-                            Joined {formatTimestamp(member.user?.createdAt)}
                           </p>
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
-                        <Badge className={getRoleColor("Admin")}>
-                          {getRoleIcon("Admin")}
+                        <Badge className={getRoleColor(member.role)}>
+                          {getRoleIcon(member.role)}
+                          {member.role}
                         </Badge>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() =>
-                            handleRemoveMember(member?.user?.id?.toString())
-                          }
-                          className="text-red-600 hover:text-red-700"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                        {member.role !== "owner" && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() =>
+                              handleRemoveMember(member?.user?.id?.toString())
+                            }
+                            className="text-red-600 hover:text-red-700"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        )}
                       </div>
                     </div>
                   ))
@@ -471,7 +488,7 @@ export default function OrgSettingsPage() {
             </CardContent>
           </Card>
         </>
-      )}
+      }
 
       {/* Create New Organization */}
       <Card>
@@ -496,7 +513,7 @@ export default function OrgSettingsPage() {
       </Card>
 
       {/* Danger Zone */}
-      {!isDefaultOrg && (
+      {
         <Card className="border-red-200">
           <CardHeader>
             <CardTitle className="text-red-600">Danger Zone</CardTitle>
@@ -523,7 +540,7 @@ export default function OrgSettingsPage() {
             }
           </CardContent>
         </Card>
-      )}
+      }
     </div>
   );
 }
