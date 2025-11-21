@@ -23,6 +23,10 @@ export default function CreateOrgPage() {
       name: orgName,
       slug: orgName,
       userId: session?.user.id,
+      keepCurrentActiveOrganization: true,
+      metadata: {
+        createdBy: session?.user.id,
+      },
     });
   };
 

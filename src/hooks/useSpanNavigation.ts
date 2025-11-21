@@ -1,29 +1,29 @@
 "use client";
 
-import { useUser } from "@/hooks/useUser";
 import { useEnvironmentStore } from "@/stores/environment-store";
 import { useMemo } from "react";
 import { getOrgEnvUrl } from "@/lib/utils/navigation";
-import { useOrganizationStore } from "@/stores/user-store";
+import { authClient } from "@/lib/auth-client";
 
 export const useSpanNavigation = (traceId?: string, spanId?: string) => {
   const { activeEnvironment } = useEnvironmentStore();
-  const { currentOrganization } = useOrganizationStore();
+  const { useActiveOrganization } = authClient;
+  const { data: activeOrganization } = useActiveOrganization();
 
   const traceUrl = useMemo(() => {
-    if (!traceId || !currentOrganization) return undefined;
+    if (!traceId || !activeOrganization) return undefined;
     return getOrgEnvUrl(
-      currentOrganization,
+      activeOrganization,
       activeEnvironment,
       `traces?traceId=${encodeURIComponent(traceId)}`,
     );
-  }, [currentOrganization, activeEnvironment, traceId, spanId]);
+  }, [activeOrganization, activeEnvironment, traceId, spanId]);
 
   const spanUrl = useMemo(() => {
-    if (!spanId || !currentOrganization) return undefined;
+    if (!spanId || !activeOrganization) return undefined;
 
     return getOrgEnvUrl(
-      currentOrganization,
+      activeOrganization,
       activeEnvironment,
       `traces?spanId=${encodeURIComponent(spanId)}`,
     );
