@@ -22,8 +22,7 @@ import { authClient } from "@/lib/auth-client";
 import { SocialAuthButtons } from "@/components/auth/social-auth-buttons";
 import { toast } from "sonner";
 import { useEmailValidation } from "@/hooks/useEmailValidation";
-import { useOrganizationStore } from "@/stores/user-store";
-import { createMockOrganization } from "@/lib/utils/mock-user-data";
+import posthog from "posthog-js";
 
 const SignInFormSchema = z.object({
   email: z.string().email("Please enter a valid email."),
@@ -36,8 +35,6 @@ export default function SignInPage() {
   const router = useRouter();
 
   const { signIn } = authClient;
-  const { setCurrentOrganization, setDefaultOrganization } =
-    useOrganizationStore();
 
   const [showPassword, setShowPassword] = useState(false);
 
@@ -70,9 +67,11 @@ export default function SignInPage() {
       {
         onRequest: (ctx) => {},
         onSuccess: (ctx) => {
-          // TODO: Remove this after real API is implemented
-          setCurrentOrganization(createMockOrganization().currentOrganization);
-          setDefaultOrganization(createMockOrganization().defaultOrganization);
+          if (!posthog) return;
+          posthog.identify(ctx.data.user.email, {
+            email: ctx.data.user.email,
+            name: ctx.data.user.name,
+          });
         },
         onError: (ctx) => {
           setError("email", { message: ctx.error.message });

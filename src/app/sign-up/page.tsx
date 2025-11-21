@@ -125,23 +125,6 @@ export default function SignUpPage() {
           console.log("ctx in signUp onRequest", ctx);
         },
         onSuccess: (ctx) => {
-          // test create organization
-          // organization.create(
-          //   {
-          //     name: username,
-          //     slug: username,
-          //   },
-          //   {
-          //     onSuccess: (ctx) => {
-          //       alert("organization created");
-          //       console.log("ctx in signUp onSuccess create organization", ctx);
-          //     },
-          //     onError: (ctx) => {
-          //       alert("organization creation failed");
-          //       console.log("ctx in signUp onError create organization", ctx);
-          //     },
-          //   },
-          // );
           router.push(`/sign-up/email-verify?email=${email}`);
         },
         onError: (ctx) => {
