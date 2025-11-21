@@ -48,12 +48,12 @@ import { PointerInfo } from "@/app/[org]/[env]/project/dashboard/[id]/components
 import { ReadOnlyField } from "@/app/[org]/[env]/project/components/read-only-field";
 import { create } from "@bufbuild/protobuf";
 import { useEnvironmentStore } from "@/stores/environment-store";
-import { getOrgEnvUrl } from "@/lib/utils/navigation";
 import { formatTimestamp } from "@/lib/utils/format-timestamp";
 import { useActiveTransport } from "@/context/api-provider";
 import { isDashboardReadonly, isProjectReadonly } from "@/lib/utils/project";
 import { Dashboard } from "api/js/types/v1/dashboard_pb";
-import { useOrganizationStore } from "@/stores/user-store";
+import { authClient } from "@/lib/auth-client";
+import { getOrgEnvUrl } from "@/lib/utils";
 
 const formSchema = z.object({
   name: z
@@ -84,7 +84,8 @@ export const ProjectContainer = ({
 }: ProjectContainerProps) => {
   const router = useRouter();
   const { activeEnvironment } = useEnvironmentStore();
-  const { currentOrganization } = useOrganizationStore();
+  const { useActiveOrganization } = authClient;
+  const { data: activeOrganization } = useActiveOrganization();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [projectContents, setProjectContents] = useState<Record<string, any>>(
     {},
@@ -187,8 +188,8 @@ export const ProjectContainer = ({
   };
 
   const handleDashboardClick = (dashboardId?: string) => {
-    if (!dashboardId) return;
-    const url = getOrgEnvUrl(currentOrganization, activeEnvironment, "project");
+    if (!dashboardId || !activeOrganization) return;
+    const url = getOrgEnvUrl(activeOrganization, activeEnvironment, "project");
     router.push(
       `${url}/dashboard/${dashboardId}?projectName=${project?.spec?.name}`,
     );

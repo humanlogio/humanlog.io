@@ -45,7 +45,7 @@ import { useQuery } from "@connectrpc/connect-query";
 import { getOrgEnvUrl } from "@/lib/utils/navigation";
 import { useEnvironmentStore } from "@/stores/environment-store";
 import { useFilterBySymbolStore } from "@/stores/filter-by-symbol-store";
-import { useOrganizationStore } from "@/stores/user-store";
+import { authClient } from "@/lib/auth-client";
 
 interface DefaultQueryExamples {
   query: string;
@@ -95,7 +95,8 @@ const QueryInput = ({
   const { apiClients } = useApiClients();
   const { filterBySymbol } = useFilterBySymbolStore();
   const { activeEnvironment } = useEnvironmentStore();
-  const { currentOrganization } = useOrganizationStore();
+  const { useActiveOrganization } = authClient;
+  const { data: activeOrganization } = useActiveOrganization();
 
   const [isSaveValid, setIsSaveValid] = useState(false);
   const [isSaveQueryModalOpen, setIsSaveQueryModalOpen] = useState(false);
@@ -120,7 +121,7 @@ const QueryInput = ({
 
   const executeQuery = (query: string, fromExternalPage?: boolean) => {
     if (fromExternalPage) {
-      const url = getOrgEnvUrl(currentOrganization, activeEnvironment, "query");
+      const url = getOrgEnvUrl(activeOrganization, activeEnvironment, "query");
       window.open(`${url}?query=${encodeURIComponent(query)}`, "_blank");
     } else {
       onExecuteQuery(query);

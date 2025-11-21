@@ -16,7 +16,7 @@ import { create } from "@bufbuild/protobuf";
 import { getOrgEnvUrl } from "@/lib/utils/navigation";
 import { useEnvironmentStore } from "@/stores/environment-store";
 import { Loader2 } from "lucide-react";
-import { useOrganizationStore } from "@/stores/user-store";
+import { authClient } from "@/lib/auth-client";
 
 interface DashboardControlsProps {
   dashboardResource: DashboardResource;
@@ -31,9 +31,9 @@ export function DashboardControls({
   projectName,
 }: DashboardControlsProps) {
   const router = useRouter();
-
+  const { useActiveOrganization } = authClient;
+  const { data: activeOrganization } = useActiveOrganization();
   const { activeEnvironment } = useEnvironmentStore();
-  const { currentOrganization } = useOrganizationStore();
 
   const { mutate: updateDashboardMutation, isPending: isUpdating } =
     useMutation(updateDashboard, {
@@ -125,7 +125,7 @@ export function DashboardControls({
       onSuccess: (res) => {
         toast.success(`Dashboard  deleted successfully`);
         router.replace(
-          getOrgEnvUrl(currentOrganization, activeEnvironment, "project"),
+          getOrgEnvUrl(activeOrganization, activeEnvironment, "project"),
         );
       },
       onError: (error) => {

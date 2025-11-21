@@ -1,10 +1,12 @@
 "use client";
 
-import { useUser } from "@/hooks/useUser";
+import { authClient } from "@/lib/auth-client";
 import Link from "next/link";
 
 export default function Page() {
-  const { userData } = useUser();
+  const { useSession } = authClient;
+  const { data: session } = useSession();
+  const user = session?.user;
   return (
     <div
       className="container-min-h-full container flex flex-col items-center justify-center"
@@ -25,7 +27,7 @@ export default function Page() {
           Community support on Discord
         </Link>
 
-        {userData && (
+        {user && (
           <>
             {" or "}
             <Link

@@ -1,5 +1,4 @@
 import { Button } from "@/components/ui/button";
-import { useUser } from "@/hooks/useUser";
 import { PingResponse } from "api/js/svc/localhost/v1/service_pb";
 import { useParams, usePathname } from "next/navigation";
 import { useState } from "react";
@@ -21,7 +20,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useOrganizationStore } from "@/stores/user-store";
+import { authClient } from "@/lib/auth-client";
 
 interface SideMenuProps {
   isExpanded: boolean;
@@ -29,7 +28,8 @@ interface SideMenuProps {
 }
 
 export const SideMenu = ({ isExpanded, setIsExpanded }: SideMenuProps) => {
-  const { currentOrganization } = useOrganizationStore();
+  const { useActiveOrganization } = authClient;
+  const { data: activeOrganization } = useActiveOrganization();
   // TODO: 함수 util로 분리하기
   const localhostVersion = (res: PingResponse) => {
     const v = res.clientVersion!;
@@ -48,28 +48,28 @@ export const SideMenu = ({ isExpanded, setIsExpanded }: SideMenuProps) => {
     {
       name: "Query",
       page: "query",
-      path: `/${currentOrganization?.name}/${currentEnvSlug}/query`,
+      path: `/${activeOrganization?.slug}/${currentEnvSlug}/query`,
       icon: <Database size={14} />,
       isReady: true,
     },
     {
       name: "Stream",
       page: "stream",
-      path: `/${currentOrganization?.name}/${currentEnvSlug}/stream`,
+      path: `/${activeOrganization?.slug}/${currentEnvSlug}/stream`,
       icon: <Activity size={14} />,
       isReady: true,
     },
     {
       name: "Project",
       page: "project",
-      path: `/${currentOrganization?.name}/${currentEnvSlug}/project`,
+      path: `/${activeOrganization?.slug}/${currentEnvSlug}/project`,
       icon: <FolderKanban size={14} />,
       isReady: showProjectMenu,
     },
     {
       name: "Settings",
       page: "settings",
-      path: `/${currentOrganization?.name}/${currentEnvSlug}/settings`,
+      path: `/${activeOrganization?.slug}/${currentEnvSlug}/settings`,
       icon: <Settings size={14} />,
       isReady: true,
     },

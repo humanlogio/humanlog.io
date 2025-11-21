@@ -1,8 +1,6 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-
-import { OnboardingUsername } from "@/components/onboarding/username";
 import OnboardingPricing from "@/components/onboarding/pricing";
 
 export default function OnboardingPage() {
@@ -14,7 +12,7 @@ export default function OnboardingPage() {
       <div className="absolute inset-0 bg-black/50 dark:bg-black/70" />
 
       <div className="relative w-full max-w-md space-y-8 rounded-xl bg-white p-8 shadow-2xl dark:border dark:border-gray-700 dark:bg-black">
-        {step === "pricing" ? <OnboardingPricing /> : <OnboardingUsername />}
+        <OnboardingPricing />
       </div>
     </div>
   );

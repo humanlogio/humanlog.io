@@ -18,7 +18,7 @@ import {
 import CodeBlock from "@/components/CodeBlock";
 import { useEnvironmentStore } from "@/stores/environment-store";
 import { getOrgEnvUrl } from "@/lib/utils/navigation";
-import { useOrganizationStore } from "@/stores/user-store";
+import { authClient } from "@/lib/auth-client";
 
 const tutorialSteps = [
   {
@@ -172,7 +172,9 @@ export const Tutorial = () => {
   const searchParams = useSearchParams();
 
   const { activeEnvironment } = useEnvironmentStore();
-  const { currentOrganization } = useOrganizationStore();
+
+  const { useActiveOrganization } = authClient;
+  const { data: activeOrganization } = useActiveOrganization();
 
   const [isCompleting, setIsCompleting] = useState(false);
 
@@ -183,7 +185,7 @@ export const Tutorial = () => {
       : 0;
 
   const redirectUrl = getOrgEnvUrl(
-    currentOrganization,
+    activeOrganization,
     activeEnvironment,
     "query",
   );
@@ -192,7 +194,7 @@ export const Tutorial = () => {
     setIsCompleting(true);
 
     const url = getOrgEnvUrl(
-      currentOrganization,
+      activeOrganization,
       activeEnvironment,
       `query?tutorial=step${currentStep + 2}`,
     );
@@ -208,7 +210,7 @@ export const Tutorial = () => {
   const handlePrevious = () => {
     if (currentStep > 0) {
       const url = getOrgEnvUrl(
-        currentOrganization,
+        activeOrganization,
         activeEnvironment,
         `query?tutorial=step${currentStep}`,
       );
