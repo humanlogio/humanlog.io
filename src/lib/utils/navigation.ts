@@ -1,6 +1,6 @@
 import { ListEnvironmentResponse_ListItem } from "api/js/svc/organization/v1/service_pb";
 import { toast } from "sonner";
-import { MockOrganization } from "@/lib/utils/mock-user-data";
+import { Organization } from "better-auth/plugins";
 
 // User
 export function getUserSettingsUrl() {
@@ -8,27 +8,26 @@ export function getUserSettingsUrl() {
 }
 
 export function getOrgEnvUrl(
-  currentOrganization: MockOrganization | undefined,
+  activeOrganization: Organization | null,
   activeEnvironment?: ListEnvironmentResponse_ListItem,
   activePage?: string,
 ) {
-  if (!currentOrganization) {
-    toast.error("You need to login to access this page");
-    return "/";
+  if (!activeOrganization) {
+    toast.error("No active organization found");
+    return "/create-org";
   }
 
   const page = activePage || "query";
-  // TODO: get org name from separate API or something...
-  return `/${currentOrganization.name}/${activeEnvironment?.environment?.name ?? "localhost"}/${page}`;
+  return `/${activeOrganization.slug}/${activeEnvironment?.environment?.name ?? "localhost"}/${page}`;
 }
 
 export function buildOrgEnvUrl(
-  orgName: string,
+  orgSlug: string,
   envName: string,
   activePage?: string,
 ): string {
   const page = activePage || "query";
-  return `/${orgName}/${envName}/${page}`;
+  return `/${orgSlug}/${envName}/${page}`;
 }
 
 export function getOrgSettingsUrl(orgName: string) {

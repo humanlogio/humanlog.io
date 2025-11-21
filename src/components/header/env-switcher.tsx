@@ -24,7 +24,6 @@ import {
 } from "@/components/ui/tooltip";
 import { HardDrive } from "lucide-react";
 import { User } from "better-auth";
-import { useOrganizationStore } from "@/stores/user-store";
 import { authClient } from "@/lib/auth-client";
 interface Source {
   name: string;
@@ -39,11 +38,11 @@ interface EnvSwitcherProps {
 export const EnvSwitcher = ({ user }: EnvSwitcherProps) => {
   const router = useRouter();
   const params = useParams();
+  const { useActiveOrganization } = authClient;
+  const { data: activeOrganization } = useActiveOrganization();
   const { activePage } = usePageStore();
   const { localhostData } = usePing();
-
   const { setActiveEnvironment, activeEnvironment } = useEnvironmentStore();
-  const { currentOrganization } = useOrganizationStore();
 
   const [menuList, setMenuList] = useState<Source[]>([]);
 
@@ -52,7 +51,6 @@ export const EnvSwitcher = ({ user }: EnvSwitcherProps) => {
     limit: 100,
   });
   const { data: organizations } = authClient.useListOrganizations();
-  console.log("organizations", organizations);
 
   const currentEnvSlug = params?.env as string;
 
@@ -91,11 +89,7 @@ export const EnvSwitcher = ({ user }: EnvSwitcherProps) => {
     if (localhostData) {
       _menuList.push({
         name: `localhost ${localhostVersion(localhostData)}`,
-        path: buildOrgEnvUrl(
-          currentOrganization?.name || "",
-          "localhost",
-          activePage,
-        ),
+        path: `/${activeOrganization?.slug}/localhost/${activePage}`,
         value: localhostVersion(localhostData),
       });
     }
@@ -106,7 +100,7 @@ export const EnvSwitcher = ({ user }: EnvSwitcherProps) => {
       _menuList.push({
         name: env.environment?.name || "",
         path: buildOrgEnvUrl(
-          currentOrganization?.name || "",
+          activeOrganization?.slug || "",
           env.environment?.name || "",
           activePage,
         ),
@@ -115,12 +109,12 @@ export const EnvSwitcher = ({ user }: EnvSwitcherProps) => {
     });
     _menuList.push({
       name: "+ Add new",
-      path: `/${currentOrganization?.name}/env/new`,
+      path: `/${activeOrganization?.slug}/env/new`,
       value: "add-new",
     });
 
     setMenuList(_menuList);
-  }, [listEnvironmentData, currentOrganization, localhostData, activePage]);
+  }, [listEnvironmentData, activeOrganization, localhostData, activePage]);
 
   return (
     <div className="flex items-center gap-3">
