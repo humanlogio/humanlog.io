@@ -1,4 +1,4 @@
-import { useParams, usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
   Select,
@@ -9,14 +9,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useEnvironmentStore } from "@/stores/environment-store";
-import { getOrgEnvUrl } from "@/lib/utils/navigation";
-import { usePageStore } from "@/stores/page-store";
 import { User } from "better-auth";
 import { authClient } from "@/lib/auth-client";
+import { Organization } from "better-auth/plugins";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface Source {
   name: string;
-  path: string;
   value: string;
 }
 
@@ -26,12 +25,13 @@ interface OrgSwitcherProps {
 
 export const OrgSwitcher = ({ user }: OrgSwitcherProps) => {
   const pathname = usePathname();
-  const { activePage } = usePageStore();
   const { activeEnvironment } = useEnvironmentStore();
   const { useListOrganizations, organization, useActiveOrganization } =
     authClient;
-  const { data: listOrganizations } = useListOrganizations();
-  const { data: activeOrganization } = useActiveOrganization();
+  const { data: listOrganizations, isPending: isListOrganizationsPending } =
+    useListOrganizations();
+  const { data: activeOrganization, isPending: isActiveOrganizationPending } =
+    useActiveOrganization();
 
   const [menuList, setMenuList] = useState<Source[]>([]);
 
@@ -46,10 +46,9 @@ export const OrgSwitcher = ({ user }: OrgSwitcherProps) => {
 
   useEffect(() => {
     const _menuList: Source[] = [];
-    listOrganizations?.forEach((org) => {
+    listOrganizations?.forEach((org: Organization) => {
       _menuList.push({
         name: org.name || "",
-        path: getOrgEnvUrl(org, activeEnvironment, activePage),
         value: org.id.toString(),
       });
     });
@@ -57,7 +56,9 @@ export const OrgSwitcher = ({ user }: OrgSwitcherProps) => {
     setMenuList(_menuList);
   }, [listOrganizations, user, activeEnvironment, pathname]);
 
-  return (
+  return isActiveOrganizationPending || isListOrganizationsPending ? (
+    <Skeleton className="h-8 w-full animate-pulse" />
+  ) : (
     <Select
       value={activeOrganization?.id || ""}
       onValueChange={updateSelection}
