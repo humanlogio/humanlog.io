@@ -87,7 +87,16 @@ export const EnvSwitcher = () => {
   };
 
   useEffect(() => {
-    if (!currentEnvSlug) setActiveEnvironment(undefined);
+    if (!activeEnvironment) return;
+
+    const isLocalhost =
+      activeEnvironment.type === "localhost" && currentEnvSlug === "localhost";
+    const isHosted =
+      activeEnvironment.type === "hosted" &&
+      currentEnvSlug === activeEnvironment.data.environment?.name;
+
+    if (isLocalhost || isHosted) return;
+    setActiveEnvironment(undefined);
   }, [currentEnvSlug]);
 
   useEffect(() => {
@@ -125,7 +134,7 @@ export const EnvSwitcher = () => {
       name: "+ Add new",
       path: activeOrganization
         ? `/${activeOrganization?.slug}/env/new`
-        : "/set-org",
+        : "/settings/org",
       value: "add-new",
     });
 

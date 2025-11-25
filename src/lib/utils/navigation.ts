@@ -14,7 +14,7 @@ export function getOrgEnvUrl(
   const page = activePage || "query";
 
   if (!activeOrganization) {
-    return "/set-org";
+    return "/settings/org";
   }
 
   if (activeEnvironment?.type === "localhost") {
