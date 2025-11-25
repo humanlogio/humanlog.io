@@ -13,10 +13,6 @@ import {
 
 import { Server, Calendar, Trash2, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
-import {
-  ActiveEnvironment,
-  useEnvironmentStore,
-} from "@/stores/environment-store";
 import { useMutation } from "@connectrpc/connect-query";
 import { getStripeBillingPortal } from "api/js/svc/organization/v1/service-OrganizationService_connectquery";
 import { ListEnvironmentResponse_ListItem } from "api/js/svc/organization/v1/service_pb";
