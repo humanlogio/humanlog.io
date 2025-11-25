@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   Trash2,
   Crown,
@@ -22,12 +22,6 @@ import {
   Building,
   UserIcon,
 } from "lucide-react";
-import { formatTimestamp } from "@/lib/utils/format-timestamp";
-import {
-  listUserInvitation,
-  revokeUserInvitation,
-} from "api/js/svc/organization/v1/service-OrganizationService_connectquery";
-import { useMutation, useQuery } from "@connectrpc/connect-query";
 import { toast } from "sonner";
 import { gravatarURL } from "@/lib/utils/avatar";
 import { authClient } from "@/lib/auth-client";

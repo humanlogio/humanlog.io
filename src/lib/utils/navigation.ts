@@ -1,6 +1,5 @@
-import { ListEnvironmentResponse_ListItem } from "api/js/svc/organization/v1/service_pb";
-import { toast } from "sonner";
 import { Organization } from "better-auth/plugins";
+import { ActiveEnvironment } from "@/stores/environment-store";
 
 // User
 export function getUserSettingsUrl() {
@@ -9,16 +8,20 @@ export function getUserSettingsUrl() {
 
 export function getOrgEnvUrl(
   activeOrganization: Organization | null,
-  activeEnvironment?: ListEnvironmentResponse_ListItem,
+  activeEnvironment: Exclude<ActiveEnvironment, undefined>,
   activePage?: string,
 ) {
+  const page = activePage || "query";
+
   if (!activeOrganization) {
-    toast.error("No active organization found");
-    return "/create-org";
+    return "/set-org";
   }
 
-  const page = activePage || "query";
-  return `/${activeOrganization.slug}/${activeEnvironment?.environment?.name ?? "localhost"}/${page}`;
+  if (activeEnvironment?.type === "localhost") {
+    return `/${activeOrganization.slug}/localhost/${page}`;
+  }
+
+  return `/${activeOrganization.slug}/${activeEnvironment.data.environment?.name ?? "localhost"}/${page}`;
 }
 
 export function buildOrgEnvUrl(

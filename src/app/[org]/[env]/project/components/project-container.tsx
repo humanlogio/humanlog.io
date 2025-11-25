@@ -95,6 +95,11 @@ export const ProjectContainer = ({
     ? expandedProjects.has(project.spec?.name)
     : false;
 
+  const environmentId =
+    activeEnvironment && activeEnvironment.type === "hosted"
+      ? activeEnvironment.data.environment?.id
+      : undefined;
+
   const {
     data: projectData,
     isLoading: isLoadingProject,
@@ -102,7 +107,7 @@ export const ProjectContainer = ({
   } = useQuery(
     getProject,
     {
-      environmentId: activeEnvironment?.environment?.id,
+      environmentId,
       name: project.spec?.name,
     },
     {
@@ -152,8 +157,7 @@ export const ProjectContainer = ({
     ) as Uint8Array<ArrayBuffer>;
 
     const newDashboard = create(CreateDashboardRequestSchema, {
-      environmentId: activeEnvironment?.environment?.id,
-
+      environmentId,
       projectName: project?.spec?.name,
       spec: {
         name: data.name,
@@ -172,7 +176,7 @@ export const ProjectContainer = ({
 
     deleteProjectMutation(
       {
-        environmentId: activeEnvironment?.environment?.id,
+        environmentId,
         name: project.spec?.name,
       },
       {
@@ -188,7 +192,7 @@ export const ProjectContainer = ({
   };
 
   const handleDashboardClick = (dashboardId?: string) => {
-    if (!dashboardId || !activeOrganization) return;
+    if (!dashboardId || !activeOrganization || !activeEnvironment) return;
     const url = getOrgEnvUrl(activeOrganization, activeEnvironment, "project");
     router.push(
       `${url}/dashboard/${dashboardId}?projectName=${project?.spec?.name}`,

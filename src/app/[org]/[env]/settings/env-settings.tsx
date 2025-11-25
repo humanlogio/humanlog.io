@@ -13,13 +13,19 @@ import {
 
 import { Server, Calendar, Trash2, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
-import { useEnvironmentStore } from "@/stores/environment-store";
+import {
+  ActiveEnvironment,
+  useEnvironmentStore,
+} from "@/stores/environment-store";
 import { useMutation } from "@connectrpc/connect-query";
 import { getStripeBillingPortal } from "api/js/svc/organization/v1/service-OrganizationService_connectquery";
+import { ListEnvironmentResponse_ListItem } from "api/js/svc/organization/v1/service_pb";
+interface EnvSettingsProps {
+  activeEnvironment: ListEnvironmentResponse_ListItem;
+}
 
-export const EnvSettings = () => {
+export const EnvSettings = ({ activeEnvironment }: EnvSettingsProps) => {
   const [newEnvName, setNewEnvName] = useState("");
-  const { activeEnvironment } = useEnvironmentStore();
 
   const { mutate: billingPortalMutation, isPending: isBillingPending } =
     useMutation(getStripeBillingPortal, {
@@ -88,7 +94,7 @@ export const EnvSettings = () => {
                 Environment Name
               </label>
               <p className="text-lg font-semibold">
-                {activeEnvironment?.environment?.name || "Loading..."}
+                {activeEnvironment.environment?.name || "Loading..."}
               </p>
             </div>
 
@@ -97,7 +103,7 @@ export const EnvSettings = () => {
                 Environment ID
               </label>
               <p className="text-lg font-semibold">
-                {activeEnvironment?.environment?.id?.toString() || "N/A"}
+                {activeEnvironment.environment?.id?.toString() || "N/A"}
               </p>
             </div>
           </div>
@@ -124,7 +130,7 @@ export const EnvSettings = () => {
         <CardContent>
           <div className="flex gap-3">
             <Input
-              placeholder={`Current: ${activeEnvironment?.environment?.name || "Loading..."}`}
+              placeholder={`Current: ${activeEnvironment.environment?.name || "Loading..."}`}
               value={newEnvName}
               onChange={(e) => setNewEnvName(e.target.value)}
             />

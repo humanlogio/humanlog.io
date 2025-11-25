@@ -184,14 +184,10 @@ export const Tutorial = () => {
       ? parseInt(tutorialParam.replace("step", "")) - 1
       : 0;
 
-  const redirectUrl = getOrgEnvUrl(
-    activeOrganization,
-    activeEnvironment,
-    "query",
-  );
-
   const handleNext = () => {
     setIsCompleting(true);
+
+    if (!activeEnvironment || !activeOrganization) return;
 
     const url = getOrgEnvUrl(
       activeOrganization,
@@ -209,6 +205,8 @@ export const Tutorial = () => {
 
   const handlePrevious = () => {
     if (currentStep > 0) {
+      if (!activeEnvironment || !activeOrganization) return;
+
       const url = getOrgEnvUrl(
         activeOrganization,
         activeEnvironment,
@@ -222,7 +220,10 @@ export const Tutorial = () => {
     setIsCompleting(true);
     try {
       toast.success("Welcome to Humanlog! You're ready to start exploring.");
-      router.replace(redirectUrl);
+      if (!activeEnvironment || !activeOrganization) return;
+      router.replace(
+        getOrgEnvUrl(activeOrganization, activeEnvironment, "query"),
+      );
     } catch (error) {
       toast.error("Something went wrong. Please try again.");
       setIsCompleting(false);
@@ -233,7 +234,10 @@ export const Tutorial = () => {
     setIsCompleting(true);
     try {
       toast.success("Welcome to Humanlog!");
-      router.replace(redirectUrl);
+      if (!activeEnvironment || !activeOrganization) return;
+      router.replace(
+        getOrgEnvUrl(activeOrganization, activeEnvironment, "query"),
+      );
     } catch (error) {
       toast.error("Something went wrong. Please try again.");
       setIsCompleting(false);

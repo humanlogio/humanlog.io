@@ -124,6 +124,7 @@ export function DashboardControls({
     deleteDashboardMutation(deleteRequest, {
       onSuccess: (res) => {
         toast.success(`Dashboard  deleted successfully`);
+        if (!activeOrganization || !activeEnvironment) return;
         router.replace(
           getOrgEnvUrl(activeOrganization, activeEnvironment, "project"),
         );
