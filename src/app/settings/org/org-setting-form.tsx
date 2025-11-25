@@ -21,6 +21,7 @@ import {
   Users,
   Building,
   UserIcon,
+  Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { gravatarURL } from "@/lib/utils/avatar";
@@ -83,6 +84,7 @@ export const OrgSettingForm = ({
   const [orgName, setOrgName] = useState("");
   const [newOrgName, setNewOrgName] = useState("");
   const [role, setRole] = useState<Role>();
+  const [isDeletingOrg, setIsDeletingOrg] = useState(false);
 
   const handleSetRole = (value: string) => {
     const role = ROLES.find((role) => role.value === value);
@@ -200,6 +202,26 @@ export const OrgSettingForm = ({
         onError: (error) => {
           toast.error("Failed to update organization name");
           console.error(error);
+        },
+      },
+    );
+  };
+
+  const handleDeleteOrg = async () => {
+    setIsDeletingOrg(true);
+    await organization.delete(
+      {
+        organizationId: activeOrganization?.id,
+      },
+      {
+        onSuccess: () => {
+          toast.success("Organization deleted successfully");
+          setIsDeletingOrg(false);
+        },
+        onError: (error) => {
+          toast.error(`Failed to delete organization: ${error.error.message}`);
+          console.error(error);
+          setIsDeletingOrg(false);
         },
       },
     );
@@ -537,7 +559,6 @@ export const OrgSettingForm = ({
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
-            {/* TODO: only when owner */}
             {
               <div className="flex items-center justify-between rounded-lg border border-red-200 p-3">
                 <div>
@@ -548,8 +569,18 @@ export const OrgSettingForm = ({
                     Permanently delete this organization and all its data
                   </p>
                 </div>
-                <Button variant="destructive" size="sm">
-                  Delete Org
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={handleDeleteOrg}
+                  disabled={isDeletingOrg}
+                  className="w-24"
+                >
+                  {isDeletingOrg ? (
+                    <Loader2 className="animate-spin" />
+                  ) : (
+                    "Delete Org"
+                  )}
                 </Button>
               </div>
             }
