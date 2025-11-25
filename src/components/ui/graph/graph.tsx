@@ -39,6 +39,11 @@ const Graph = () => {
   const { activeEnvironment } = useEnvironmentStore();
   const { apiClients } = useApiClients();
 
+  const environmentId =
+    activeEnvironment && activeEnvironment.type === "hosted"
+      ? activeEnvironment.data.environment?.id
+      : undefined;
+
   const [bucketCount, setBucketCount] = useState<number>(100);
   const [activeAnimations, setActiveAnimations] = useState(true);
   const [startDate, setStartDate] = useState<Date>(
@@ -65,7 +70,7 @@ const Graph = () => {
       (async () => {
         try {
           const events = await apiClients?.query.summarizeEvents({
-            environmentId: activeEnvironment?.environment?.id,
+            environmentId,
             from: convertToTimestamp(targetStart ?? startDate),
             to: convertToTimestamp(targetEnd ?? endDate),
             bucketCount,

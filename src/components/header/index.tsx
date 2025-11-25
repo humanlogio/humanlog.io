@@ -44,11 +44,10 @@ export const Header = () => {
         >
           <div className="flex items-center gap-12">
             <div className="flex items-center">
-              <Logo user={user} />
-
+              <Logo />
               <BetaBadge />
             </div>
-            {user && <EnvSwitcher user={user} />}
+            {user && <EnvSwitcher />}
           </div>
 
           <div className="mr-5 flex items-center gap-3">

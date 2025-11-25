@@ -86,6 +86,10 @@ export const ProjectForm = ({
   refetchProjectList,
 }: ProjectFormProps) => {
   const { activeEnvironment } = useEnvironmentStore();
+  const environmentId =
+    activeEnvironment && activeEnvironment.type === "hosted"
+      ? activeEnvironment.data.environment?.id
+      : undefined;
 
   const { mutate: validateProjectMutation } = useMutation(validateProject, {
     transport: useActiveTransport(),
@@ -113,7 +117,7 @@ export const ProjectForm = ({
     pointer: ProjectPointer,
   ) => {
     const newProject = create(CreateProjectRequestSchema, {
-      environmentId: activeEnvironment?.environment?.id,
+      environmentId,
       spec: {
         name: data.name,
         pointer,
@@ -188,7 +192,7 @@ export const ProjectForm = ({
 
     validateProjectMutation(
       {
-        environmentId: activeEnvironment?.environment?.id,
+        environmentId,
         spec: { name, pointer },
       },
       {

@@ -42,6 +42,12 @@ export const LogGraph = ({ getTimeRange }: LogGraphProps) => {
   const graphRef = useRef<HTMLDivElement>(null);
   const { activeEnvironment } = useEnvironmentStore();
   const { apiClients } = useApiClients();
+
+  const environmentId =
+    activeEnvironment && activeEnvironment.type === "hosted"
+      ? activeEnvironment.data.environment?.id
+      : undefined;
+
   const [eventsList, setEvents] = useState<DataPoint[] | null>(null);
   const [startDate, setStartDate] = useState<Date>(
     // starting from one week ago
@@ -67,7 +73,7 @@ export const LogGraph = ({ getTimeRange }: LogGraphProps) => {
     (async () => {
       try {
         const events = await apiClients?.query.summarizeEvents({
-          environmentId: activeEnvironment?.environment?.id,
+          environmentId,
           from: convertToTimestamp(startDate),
           to: convertToTimestamp(endDate),
           bucketCount,
@@ -81,12 +87,7 @@ export const LogGraph = ({ getTimeRange }: LogGraphProps) => {
         console.log("it crashed", e);
       }
     })();
-  }, [
-    apiClients?.query,
-    activeEnvironment?.environment?.id,
-    startDate,
-    endDate,
-  ]);
+  }, [apiClients?.query, environmentId, startDate, endDate]);
 
   // 날짜 범위에 따른 적절한 간격 유형과 버킷 수 자동 계산
   const calculateOptimalBucket = useCallback(() => {

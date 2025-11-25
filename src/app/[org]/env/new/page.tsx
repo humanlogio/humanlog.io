@@ -1,3 +1,5 @@
+"use client";
+
 import { EnvironmentCreationForm } from "@/components/env/env-creation-form";
 import { authClient } from "@/lib/auth-client";
 

@@ -9,8 +9,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useEnvironmentStore } from "@/stores/environment-store";
-import { buildOrgEnvUrl } from "@/lib/utils/navigation";
+import {
+  ActiveEnvironment,
+  useEnvironmentStore,
+} from "@/stores/environment-store";
+import { getOrgEnvUrl } from "@/lib/utils/navigation";
 import { usePageStore } from "@/stores/page-store";
 import { useQuery } from "@connectrpc/connect-query";
 import { CursorSchema } from "api/js/types/v1/cursor_pb";
@@ -23,7 +26,6 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { HardDrive } from "lucide-react";
-import { User } from "better-auth";
 import { authClient } from "@/lib/auth-client";
 interface Source {
   name: string;
@@ -31,13 +33,11 @@ interface Source {
   value: string;
 }
 
-interface EnvSwitcherProps {
-  user: User | undefined;
-}
-
-export const EnvSwitcher = ({ user }: EnvSwitcherProps) => {
+export const EnvSwitcher = () => {
   const router = useRouter();
   const params = useParams();
+  const currentEnvSlug = params?.env as string;
+
   const { useActiveOrganization } = authClient;
   const { data: activeOrganization } = useActiveOrganization();
   const { activePage } = usePageStore();
@@ -50,38 +50,45 @@ export const EnvSwitcher = ({ user }: EnvSwitcherProps) => {
     cursor: create(CursorSchema),
     limit: 100,
   });
-  const { data: organizations } = authClient.useListOrganizations();
-
-  const currentEnvSlug = params?.env as string;
 
   const getCurrentSelectedValue = () => {
-    if (currentEnvSlug === "localhost" || !activeEnvironment) {
-      if (!localhostData) return;
-      return localhostVersion(localhostData);
+    if (!activeEnvironment) return undefined;
+    if (activeEnvironment.type === "localhost") {
+      return localhostVersion(activeEnvironment.data);
     }
 
-    if (!listEnvironmentData) return;
-
-    const currentEnv = listEnvironmentData.items.find(
-      (env) =>
-        env.environment?.id === activeEnvironment?.environment?.id ||
-        env.environment?.name === currentEnvSlug,
-    );
-
-    return currentEnv?.environment?.id?.toString() || "";
+    return activeEnvironment.data.environment?.id?.toString();
   };
 
   const updateSelection = (value: string) => {
+    let activeEnv: ActiveEnvironment;
     const selected = menuList.find((menu) => menu.value === value);
 
-    if (!selected || !listEnvironmentData) return;
+    if (!selected) {
+      setActiveEnvironment(undefined);
+      return;
+    }
 
-    const activeEnv = listEnvironmentData.items.find(
-      (env) => env.environment?.id.toString() === selected.value,
-    );
-    setActiveEnvironment(activeEnv ?? undefined);
-    router.push(selected.path);
+    if (localhostData && value === localhostVersion(localhostData)) {
+      activeEnv = { type: "localhost", data: localhostData };
+    }
+
+    if (listEnvironmentData) {
+      const _activeEnv = listEnvironmentData.items.find(
+        (env) => env.environment?.id.toString() === selected.value,
+      );
+      if (_activeEnv) {
+        activeEnv = { type: "hosted", data: _activeEnv };
+      }
+
+      setActiveEnvironment(activeEnv);
+      router.push(selected.path);
+    }
   };
+
+  useEffect(() => {
+    if (!currentEnvSlug) setActiveEnvironment(undefined);
+  }, [currentEnvSlug]);
 
   useEffect(() => {
     const _menuList: Source[] = [];
@@ -89,7 +96,11 @@ export const EnvSwitcher = ({ user }: EnvSwitcherProps) => {
     if (localhostData) {
       _menuList.push({
         name: `localhost ${localhostVersion(localhostData)}`,
-        path: `/${activeOrganization?.slug}/localhost/${activePage}`,
+        path: getOrgEnvUrl(
+          activeOrganization,
+          { type: "localhost", data: localhostData },
+          activePage,
+        ),
         value: localhostVersion(localhostData),
       });
     }
@@ -99,9 +110,12 @@ export const EnvSwitcher = ({ user }: EnvSwitcherProps) => {
     listEnvironmentData.items.forEach((env) => {
       _menuList.push({
         name: env.environment?.name || "",
-        path: buildOrgEnvUrl(
-          activeOrganization?.slug || "",
-          env.environment?.name || "",
+        path: getOrgEnvUrl(
+          activeOrganization,
+          {
+            type: "hosted",
+            data: env,
+          },
           activePage,
         ),
         value: env.environment?.id?.toString() || "",
@@ -109,7 +123,9 @@ export const EnvSwitcher = ({ user }: EnvSwitcherProps) => {
     });
     _menuList.push({
       name: "+ Add new",
-      path: `/${activeOrganization?.slug}/env/new`,
+      path: activeOrganization
+        ? `/${activeOrganization?.slug}/env/new`
+        : "/set-org",
       value: "add-new",
     });
 

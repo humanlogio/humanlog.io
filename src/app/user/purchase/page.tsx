@@ -280,6 +280,8 @@ function CheckoutForm({
     }
     console.log("checkout completed!");
 
+    if (!activeOrganization || !activeEnvironment) return;
+
     const url = getOrgEnvUrl(activeOrganization, activeEnvironment, activePage);
     router.push(url);
   }

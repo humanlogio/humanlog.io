@@ -11,7 +11,7 @@ export const useSpanNavigation = (traceId?: string, spanId?: string) => {
   const { data: activeOrganization } = useActiveOrganization();
 
   const traceUrl = useMemo(() => {
-    if (!traceId || !activeOrganization) return undefined;
+    if (!traceId || !activeOrganization || !activeEnvironment) return undefined;
     return getOrgEnvUrl(
       activeOrganization,
       activeEnvironment,
@@ -20,7 +20,7 @@ export const useSpanNavigation = (traceId?: string, spanId?: string) => {
   }, [activeOrganization, activeEnvironment, traceId, spanId]);
 
   const spanUrl = useMemo(() => {
-    if (!spanId || !activeOrganization) return undefined;
+    if (!spanId || !activeOrganization || !activeEnvironment) return undefined;
 
     return getOrgEnvUrl(
       activeOrganization,

@@ -121,6 +121,7 @@ const QueryInput = ({
 
   const executeQuery = (query: string, fromExternalPage?: boolean) => {
     if (fromExternalPage) {
+      if (!activeOrganization || !activeEnvironment) return;
       const url = getOrgEnvUrl(activeOrganization, activeEnvironment, "query");
       window.open(`${url}?query=${encodeURIComponent(query)}`, "_blank");
     } else {

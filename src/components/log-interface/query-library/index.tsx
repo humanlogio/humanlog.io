@@ -45,13 +45,17 @@ export const QueryLibrary = ({
 }: QueryLibraryProps) => {
   const { apiClients } = useApiClients();
   const { activeEnvironment } = useEnvironmentStore();
+  const environmentId =
+    activeEnvironment && activeEnvironment.type === "hosted"
+      ? activeEnvironment.data.environment?.id
+      : undefined;
 
   const [activeTab, setActiveTab] = useState<tabsType>("symbols");
 
   const fetchSymbolList = useCallback(
     async ({ cursor, limit }: { cursor: Cursor | null; limit: number }) => {
       const res = await apiClients?.query.listSymbols({
-        environmentId: activeEnvironment?.environment?.id,
+        environmentId,
         ...(cursor && { cursor }),
         limit,
       });
