@@ -23,7 +23,6 @@ import {
   Trash2,
   AlertTriangle,
 } from "lucide-react";
-import { formatTimestamp } from "@/lib/utils/format-timestamp";
 import { toast } from "sonner";
 import { useMutation } from "@connectrpc/connect-query";
 import { getStripeBillingPortal } from "api/js/svc/organization/v1/service-OrganizationService_connectquery";
@@ -35,12 +34,14 @@ import { useRouter } from "next/navigation";
 export default function UserSettingsPage() {
   const router = useRouter();
 
-  const { useSession, deleteUser } = authClient;
+  const { useSession, deleteUser, useActiveOrganization } = authClient;
   const {
     data: session,
     refetch: refetchSession,
     isPending: isPendingSession,
   } = useSession();
+  const { data: activeOrganization } = useActiveOrganization();
+
   const user = session?.user;
 
   const { mutate: billingPortalMutation, isPending: isBillingPending } =
@@ -142,9 +143,9 @@ export default function UserSettingsPage() {
             </label>
             <div className="mt-1 flex items-center gap-2">
               <Building className="text-muted-foreground h-4 w-4" />
-              <span className="font-medium">
-                {/* {userData?.currentOrganization?.name} */}
-              </span>
+              {activeOrganization && (
+                <span className="font-medium">{activeOrganization?.name}</span>
+              )}
               {/* {isDefaultOrg && (
                 <Badge className="bg-orange-100 text-orange-800">Default</Badge>
               )} */}
