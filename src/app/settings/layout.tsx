@@ -55,7 +55,7 @@ export default function SettingsLayout({ children }: SettingsLayoutProps) {
   const currentSection = getSectionDetails(pathname);
 
   return (
-    <div className="">
+    <div className="flex min-h-0 flex-1 flex-col">
       {/* Breadcrumb Navigation */}
       <div className="border-b py-3">
         <div className="px-10">
@@ -85,7 +85,7 @@ export default function SettingsLayout({ children }: SettingsLayoutProps) {
       </div>
 
       {/* Main Content */}
-      <main className="px-10 py-5">{children}</main>
+      <main className="flex flex-1 flex-col px-10 py-5">{children}</main>
     </div>
   );
 }
