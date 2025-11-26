@@ -19,6 +19,7 @@ import { Button } from "@/components/ui/button";
 import { NavigationMenuItem } from "@/components/ui/navigation-menu";
 import { useEnvironmentStore } from "@/stores/environment-store";
 import { usePageStore } from "@/stores/page-store";
+import { toast } from "sonner";
 
 interface UserActionsProps {
   user: BetterAuthUser | undefined;
@@ -31,12 +32,17 @@ export const UserActions = ({ user }: UserActionsProps) => {
   const { clearPage } = usePageStore();
 
   const handleLogout = async () => {
+    if (!window.confirm("Are you sure you want to log out?")) return;
     await signOut({
       fetchOptions: {
         onSuccess: () => {
           setActiveEnvironment(undefined);
           clearPage();
           router.push("/");
+        },
+        onError: (error) => {
+          toast.error(`Failed to log out: ${error.error.message}`);
+          console.error(error);
         },
       },
     });
