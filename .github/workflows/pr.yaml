@@ -11,9 +11,8 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.PRIVATE_REPO_ACCESS_TOKEN }}
     steps:
       - uses: actions/checkout@v4
-
-      - name: Configure git for private repos
-      run: git config --global url."https://${GITHUB_TOKEN}@github.com/".insteadOf "ssh://git@github.com/"
+        with:
+          persist-credentials: false
 
       - name: Cache Node Modules
         uses: actions/cache@v3
@@ -24,7 +23,59 @@ jobs:
             ${{ runner.os }}-node-
 
       - name: Configure Git for Private Repo Access
-        run: git config --global url."https://${{ secrets.PRIVATE_REPO_ACCESS_TOKEN }}@github.com/".insteadOf "ssh://git@github.com/"
+        run: |
+          # Verify token is available
+          if [ -z "${{ secrets.PRIVATE_REPO_ACCESS_TOKEN }}" ]; then
+            echo "::error::PRIVATE_REPO_ACCESS_TOKEN secret is not set or empty!"
+            exit 1
+          fi
+          echo "Token is set (length: ${#PRIVATE_REPO_ACCESS_TOKEN} chars)"
+
+          # Test token access using gh CLI
+          echo "Testing token access to humanlogio/api-internal..."
+          HTTP_STATUS=$(curl -s -o /tmp/api-response.json -w "%{http_code}" \
+            -H "Authorization: token ${{ secrets.PRIVATE_REPO_ACCESS_TOKEN }}" \
+            -H "Accept: application/vnd.github+json" \
+            https://api.github.com/repos/humanlogio/api-internal)
+
+          echo "API Response status: $HTTP_STATUS"
+          if [ "$HTTP_STATUS" = "200" ]; then
+            echo "✓ Token has access to humanlogio/api-internal"
+          else
+            echo "::error::Token does NOT have access to humanlogio/api-internal"
+            echo ""
+            echo "Debugging - checking what repos the token CAN access:"
+            gh repo list humanlogio --limit 5 2>&1 || echo "Cannot list repos in humanlogio org"
+            echo ""
+            echo "Token scopes/permissions:"
+            gh api user 2>&1 | head -20 || echo "Cannot access user info"
+            exit 1
+          fi
+
+          # Configure git credential helper with .netrc
+          echo "machine github.com login x-access-token password ${{ secrets.PRIVATE_REPO_ACCESS_TOKEN }}" > ~/.netrc
+          chmod 600 ~/.netrc
+
+          # URL rewriting - use --add for multiple insteadOf values on same target URL
+          git config --global url."https://x-access-token:${{ secrets.PRIVATE_REPO_ACCESS_TOKEN }}@github.com/".insteadOf "ssh://git@github.com/"
+          git config --global --add url."https://x-access-token:${{ secrets.PRIVATE_REPO_ACCESS_TOKEN }}@github.com/".insteadOf "git@github.com:"
+          git config --global --add url."https://x-access-token:${{ secrets.PRIVATE_REPO_ACCESS_TOKEN }}@github.com/".insteadOf "https://github.com/"
+
+          # Debug: show all URL rewrites (keys will be masked but we can see structure)
+          echo "All git URL insteadOf configs:"
+          git config --global --list | grep -i insteadof || echo "No insteadOf configs found"
+
+          # Test git access directly before npm
+          echo ""
+          echo "Testing git ls-remote directly..."
+          GIT_CURL_VERBOSE=1 git ls-remote https://x-access-token:${{ secrets.PRIVATE_REPO_ACCESS_TOKEN }}@github.com/humanlogio/api-internal.git HEAD 2>&1 | head -20
+
+          echo ""
+          echo "Testing git ls-remote with URL rewrite..."
+          GIT_TRACE=1 git ls-remote ssh://git@github.com/humanlogio/api-internal.git HEAD 2>&1 | head -30 || echo "Git ls-remote failed"
+        env:
+          PRIVATE_REPO_ACCESS_TOKEN: ${{ secrets.PRIVATE_REPO_ACCESS_TOKEN }}
+          GH_TOKEN: ${{ secrets.PRIVATE_REPO_ACCESS_TOKEN }}
 
       - name: Install Dependencies
         run: npm ci
