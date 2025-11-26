@@ -17,6 +17,9 @@ jobs:
         with:
           ref: ${{ github.head_ref }}
 
+      - name: Configure git for private repos
+        run: git config --global url."https://${GITHUB_TOKEN}@github.com/".insteadOf "ssh://git@github.com/"
+
       - name: Cache Node Modules
         uses: actions/cache@v3
         with:
