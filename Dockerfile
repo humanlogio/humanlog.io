@@ -5,12 +5,13 @@ FROM base AS deps
 WORKDIR /usr/src/app
 RUN apk add --no-cache libc6-compat git
 ARG GITHUB_TOKEN
-RUN if [ -n "$GITHUB_TOKEN" ]; then \
-      git config --global url."https://${GITHUB_TOKEN}@github.com/".insteadOf "ssh://git@github.com/"; \
-    fi
+
+RUN echo "GITHUB_TOKEN is set: $(if [ -n "$GITHUB_TOKEN" ]; then echo 'YES'; else echo 'NO'; fi)"
+RUN git config --global url."https://${GITHUB_TOKEN}@github.com/".insteadOf "ssh://git@github.com/"
+RUN git config --global --list | grep url || echo "No git url config found"
 COPY package.json package-lock.json* ./
 RUN npm ci
-RUN git config --global --remove-section url."https://${GITHUB_TOKEN}@github.com/" || true
+RUN git config --global --unset-all url."https://${GITHUB_TOKEN}@github.com/".insteadOf || true
 
 # builder
 FROM base AS builder
