@@ -22,7 +22,7 @@
     "@connectrpc/connect-web": "^2.1.0",
     "@dnd-kit/sortable": "^8.0.0",
     "@hookform/resolvers": "^3.10.0",
-    "@humanlogio/auth-adapter": "git+https://github.com/humanlogio/api-internal.git#2d454d1821e3d2a353361ec909e553da7a2c9dc4",
+    "@humanlogio/auth-adapter": "github:humanlogio/api-internal#2d454d1821e3d2a353361ec909e553da7a2c9dc4",
     "@humanlogio/perses-plugin": "git+https://github.com/humanlogio/perses-plugin.git#v0.2.0",
     "@mdx-js/react": "^3.1.0",
     "@monaco-editor/react": "^4.6.0",
