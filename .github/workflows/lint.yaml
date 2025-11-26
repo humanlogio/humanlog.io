@@ -10,6 +10,8 @@ jobs:
     permissions:
       contents: write
     if: github.event.pull_request.draft == false
+    env:
+      GITHUB_TOKEN: ${{ secrets.PRIVATE_REPO_ACCESS_TOKEN }}
     steps:
       - uses: actions/checkout@v4
         with:
