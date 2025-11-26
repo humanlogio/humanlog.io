@@ -5,10 +5,16 @@ FROM base AS deps
 WORKDIR /usr/src/app
 RUN apk add --no-cache libc6-compat git
 ARG GITHUB_TOKEN
+<<<<<<< HEAD
 
 RUN echo "GITHUB_TOKEN is set: $(if [ -n "$GITHUB_TOKEN" ]; then echo 'YES'; else echo 'NO'; fi)"
 RUN git config --global url."https://${GITHUB_TOKEN}@github.com/".insteadOf "ssh://git@github.com/"
 RUN git config --global --list | grep url || echo "No git url config found"
+=======
+RUN if [ -n "$GITHUB_TOKEN" ]; then \
+      git config --global url."https://${GITHUB_TOKEN}@github.com/".insteadOf "ssh://git@github.com/"; \
+    fi
+>>>>>>> 135d7d1 (pass private repo access token to all required CI steps)
 COPY package.json package-lock.json* ./
 RUN npm ci
 RUN git config --global --unset-all url."https://${GITHUB_TOKEN}@github.com/".insteadOf || true
