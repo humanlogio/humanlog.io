@@ -14,69 +14,15 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.head_ref }}
-          # Keep persist-credentials: true (default) for git-auto-commit-action to push
 
-      - name: Configure git for private repos
+      - name: Configure Git for Private Repo Access
         run: |
-          # Verify token is available
-          if [ -z "${{ secrets.PRIVATE_REPO_ACCESS_TOKEN }}" ]; then
-            echo "::error::PRIVATE_REPO_ACCESS_TOKEN secret is not set or empty!"
-            exit 1
-          fi
-          echo "Token is set (length: ${#PRIVATE_REPO_ACCESS_TOKEN} chars)"
-
-          # Remove the extraheader that checkout set (it interferes with our token for api-internal)
-          # But we'll restore it later for pushing
+          # Remove checkout's extraheader (interferes with our token for api-internal)
           git config --local --unset-all http.https://github.com/.extraheader || true
 
-          # Test token access to private repo
-          echo "Testing token access to humanlogio/api-internal..."
-          HTTP_STATUS=$(curl -s -o /tmp/api-response.json -w "%{http_code}" \
-            -H "Authorization: token ${{ secrets.PRIVATE_REPO_ACCESS_TOKEN }}" \
-            -H "Accept: application/vnd.github+json" \
-            https://api.github.com/repos/humanlogio/api-internal)
-
-          echo "API Response status: $HTTP_STATUS"
-          if [ "$HTTP_STATUS" = "200" ]; then
-            echo "✓ Token has access to humanlogio/api-internal"
-            jq -r '"  Repo: \(.full_name)\n  Private: \(.private)\n  Permissions: \(.permissions)"' /tmp/api-response.json 2>/dev/null || cat /tmp/api-response.json
-          elif [ "$HTTP_STATUS" = "404" ]; then
-            echo "::error::Token does NOT have access to humanlogio/api-internal (404 Not Found)"
-            cat /tmp/api-response.json
-            exit 1
-          elif [ "$HTTP_STATUS" = "401" ]; then
-            echo "::error::Token is invalid or expired (401 Unauthorized)"
-            cat /tmp/api-response.json
-            exit 1
-          else
-            echo "::warning::Unexpected API response: $HTTP_STATUS"
-            cat /tmp/api-response.json
-          fi
-
-          # Configure git credential helper with .netrc
-          echo "machine github.com login x-access-token password ${{ secrets.PRIVATE_REPO_ACCESS_TOKEN }}" > ~/.netrc
-          chmod 600 ~/.netrc
-
-          # URL rewriting - use --add for multiple insteadOf values on same target URL
+          # Configure git to use our token for private repos
           git config --global url."https://x-access-token:${{ secrets.PRIVATE_REPO_ACCESS_TOKEN }}@github.com/".insteadOf "ssh://git@github.com/"
           git config --global --add url."https://x-access-token:${{ secrets.PRIVATE_REPO_ACCESS_TOKEN }}@github.com/".insteadOf "git@github.com:"
-          git config --global --add url."https://x-access-token:${{ secrets.PRIVATE_REPO_ACCESS_TOKEN }}@github.com/".insteadOf "https://github.com/"
-
-          # Debug: show all URL rewrites (keys will be masked but we can see structure)
-          echo "All git URL insteadOf configs:"
-          git config --global --list | grep -i insteadof || echo "No insteadOf configs found"
-
-          # Test git access directly before npm
-          echo ""
-          echo "Testing git ls-remote directly..."
-          GIT_CURL_VERBOSE=1 git ls-remote https://x-access-token:${{ secrets.PRIVATE_REPO_ACCESS_TOKEN }}@github.com/humanlogio/api-internal.git HEAD 2>&1 | head -20
-
-          echo ""
-          echo "Testing git ls-remote with URL rewrite..."
-          GIT_TRACE=1 git ls-remote ssh://git@github.com/humanlogio/api-internal.git HEAD 2>&1 | head -30 || echo "Git ls-remote failed"
-        env:
-          PRIVATE_REPO_ACCESS_TOKEN: ${{ secrets.PRIVATE_REPO_ACCESS_TOKEN }}
-          GH_TOKEN: ${{ secrets.PRIVATE_REPO_ACCESS_TOKEN }}
 
       - name: Cache Node Modules
         uses: actions/cache@v3
@@ -94,7 +40,6 @@ jobs:
 
       - name: Restore git credentials for push
         run: |
-          # Restore extraheader for pushing to humanlog.io (using default GITHUB_TOKEN)
           git config --local http.https://github.com/.extraheader "AUTHORIZATION: basic $(echo -n 'x-access-token:${{ github.token }}' | base64 -w0)"
 
       - name: Commit changes
