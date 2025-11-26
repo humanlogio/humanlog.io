@@ -14,7 +14,7 @@ import { customSession, organization } from "better-auth/plugins";
 
 const keystoreJSON = process.env.INTERNAL_HMAC_KEYSTORE;
 
-const keystore = JSONKeystore.fromJSON(keystoreJSON || "");
+const keystore = JSONKeystore.fromJSON(keystoreJSON || "{}");
 
 const apiTransport = createConnectTransport({
   baseUrl: getAPIURL(),
