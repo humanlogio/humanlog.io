@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Trash2,
   Crown,
@@ -43,10 +43,6 @@ interface Role {
 }
 
 const ROLES: Role[] = [
-  {
-    value: "owner",
-    label: "Owner",
-  },
   {
     value: "admin",
     label: "Admin",
@@ -85,6 +81,11 @@ export const OrgSettingForm = ({
   const [newOrgName, setNewOrgName] = useState("");
   const [role, setRole] = useState<Role>();
   const [isDeletingOrg, setIsDeletingOrg] = useState(false);
+  const [pendingInvitations, setPendingInvitations] = useState<Invitation[]>(
+    [],
+  );
+  const metadata = JSON.parse(activeOrganization?.metadata);
+  const isOwner = user.id === metadata?.createdBy;
 
   const handleSetRole = (value: string) => {
     const role = ROLES.find((role) => role.value === value);
@@ -158,8 +159,6 @@ export const OrgSettingForm = ({
         },
       },
     );
-
-    toast.success("Member removed successfully");
   };
 
   const handleCreateOrg = async () => {
@@ -255,6 +254,15 @@ export const OrgSettingForm = ({
         return <Users className="h-3 w-3" />;
     }
   };
+
+  useEffect(() => {
+    if (!activeOrganization?.invitations) return;
+    setPendingInvitations(
+      activeOrganization.invitations.filter(
+        (invite) => invite.status === "pending",
+      ),
+    );
+  }, [activeOrganization]);
 
   return (
     <div className="space-y-6">
@@ -405,7 +413,7 @@ export const OrgSettingForm = ({
             </CardContent>
 
             {/* Pending Invitations */}
-            {activeOrganization?.invitations && (
+            {pendingInvitations.length > 0 && (
               <>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -418,7 +426,7 @@ export const OrgSettingForm = ({
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    {activeOrganization?.invitations.map((invite) => (
+                    {pendingInvitations.map((invite) => (
                       <div
                         key={invite.id}
                         className="flex items-center justify-between rounded-lg border p-3"
@@ -437,11 +445,11 @@ export const OrgSettingForm = ({
                                 {invite.role}
                               </Badge>
                             </p>
-                            <p className="text-muted-foreground text-sm">
+                            {/* TODO: add user name */}
+                            {/* <p className="text-muted-foreground text-sm">
                               Invited by
-                              {/* TODO: add user name */}
-                              {/* {invite.inviterId} */}
-                            </p>
+                              {invite.inviterId}
+                            </p> */}
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
@@ -496,19 +504,19 @@ export const OrgSettingForm = ({
                           </p>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center">
                         <Badge className={getRoleColor(member.role)}>
                           {getRoleIcon(member.role)}
                           {member.role}
                         </Badge>
-                        {member.role !== "owner" && (
+                        {isOwner && member.role !== "owner" && (
                           <Button
-                            variant="outline"
+                            variant="ghost"
                             size="sm"
                             onClick={() =>
                               handleRemoveMember(member?.user?.id?.toString())
                             }
-                            className="text-red-600 hover:text-red-700"
+                            className="e text-red-600 hover:text-red-700"
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
