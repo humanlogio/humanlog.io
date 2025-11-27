@@ -89,6 +89,11 @@ const LogInterface = ({ nav }: LogInterfaceProps) => {
   const queryString = searchParams.get("query");
   const splitByDefault = searchParams.get("splitByDefault") !== "false";
 
+  const environmentId =
+    activeEnvironment && activeEnvironment.type === "hosted"
+      ? activeEnvironment.data.environment?.id
+      : undefined;
+
   const [queryParseErrMsg, setQueryParseErrMsg] = useState("");
   const [queryRes, setQueryRes] = useState<QueryResponse | null>(null);
   const [streamRes, setStreamRes] = useState<StreamResponse[]>([]);
@@ -181,7 +186,7 @@ const LogInterface = ({ nav }: LogInterfaceProps) => {
     if (!apiClients?.query) return;
 
     const streamReq = create(StreamRequestSchema, {
-      environmentId: activeEnvironment?.environment?.id,
+      environmentId,
       query,
       maxBatchSize: BigInt(batchSize),
       maxBatchingFor: create(DurationSchema, {
@@ -239,7 +244,7 @@ const LogInterface = ({ nav }: LogInterfaceProps) => {
     queryMethod,
     // @ts-ignore
     {
-      environmentId: activeEnvironment?.environment?.id,
+      environmentId,
       query: query,
       limit,
     },

@@ -33,22 +33,19 @@ import { formatQuery, parseQuery } from "@/services/queryService";
 import {
   Tooltip,
   TooltipContent,
-  TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { SaveQueryModal } from "@/components/log-interface/query-library/save-query-modal";
-import Graph from "@/components/ui/graph/graph";
 import dynamic from "next/dynamic";
 import { newBinaryExpr } from "@/lib/utils/query-expressions";
 import { ExecuteQuery } from "@/components/log-interface";
 import { listQueryHistory } from "api/js/svc/user/v1/service_private-UserService_connectquery";
 import { create } from "@bufbuild/protobuf";
 import { useQuery } from "@connectrpc/connect-query";
-import { whoami } from "api/js/svc/user/v1/service_private-UserService_connectquery";
 import { getOrgEnvUrl } from "@/lib/utils/navigation";
 import { useEnvironmentStore } from "@/stores/environment-store";
 import { useFilterBySymbolStore } from "@/stores/filter-by-symbol-store";
-import { useUser } from "@/hooks/useUser";
+import { authClient } from "@/lib/auth-client";
 
 interface DefaultQueryExamples {
   query: string;
@@ -98,7 +95,8 @@ const QueryInput = ({
   const { apiClients } = useApiClients();
   const { filterBySymbol } = useFilterBySymbolStore();
   const { activeEnvironment } = useEnvironmentStore();
-  const { userData } = useUser();
+  const { useActiveOrganization } = authClient;
+  const { data: activeOrganization } = useActiveOrganization();
 
   const [isSaveValid, setIsSaveValid] = useState(false);
   const [isSaveQueryModalOpen, setIsSaveQueryModalOpen] = useState(false);
@@ -123,7 +121,8 @@ const QueryInput = ({
 
   const executeQuery = (query: string, fromExternalPage?: boolean) => {
     if (fromExternalPage) {
-      const url = getOrgEnvUrl(userData, activeEnvironment, "query");
+      if (!activeOrganization || !activeEnvironment) return;
+      const url = getOrgEnvUrl(activeOrganization, activeEnvironment, "query");
       window.open(`${url}?query=${encodeURIComponent(query)}`, "_blank");
     } else {
       onExecuteQuery(query);

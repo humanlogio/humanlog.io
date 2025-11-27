@@ -178,6 +178,11 @@ const SubQueryPanel = ({
       : 25;
 
   const { activeEnvironment } = useEnvironmentStore();
+
+  const environmentId =
+    activeEnvironment && activeEnvironment.type === "hosted"
+      ? activeEnvironment.data.environment?.id
+      : undefined;
   const {
     data: rawData,
     refetch,
@@ -188,7 +193,7 @@ const SubQueryPanel = ({
     queryMethod,
     // @ts-ignore
     {
-      environmentId: activeEnvironment?.environment?.id ?? BigInt(0),
+      environmentId,
       query: list.query,
       limit: 1000,
     },

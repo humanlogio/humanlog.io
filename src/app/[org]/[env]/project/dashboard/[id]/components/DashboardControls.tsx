@@ -14,9 +14,9 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { DeleteDashboardRequestSchema } from "api/js/svc/dashboard/v1/service_pb";
 import { create } from "@bufbuild/protobuf";
 import { getOrgEnvUrl } from "@/lib/utils/navigation";
-import { useUser } from "@/hooks/useUser";
 import { useEnvironmentStore } from "@/stores/environment-store";
 import { Loader2 } from "lucide-react";
+import { authClient } from "@/lib/auth-client";
 
 interface DashboardControlsProps {
   dashboardResource: DashboardResource;
@@ -31,9 +31,8 @@ export function DashboardControls({
   projectName,
 }: DashboardControlsProps) {
   const router = useRouter();
-  const searchParams = useSearchParams();
-
-  const { userData } = useUser();
+  const { useActiveOrganization } = authClient;
+  const { data: activeOrganization } = useActiveOrganization();
   const { activeEnvironment } = useEnvironmentStore();
 
   const { mutate: updateDashboardMutation, isPending: isUpdating } =
@@ -125,7 +124,10 @@ export function DashboardControls({
     deleteDashboardMutation(deleteRequest, {
       onSuccess: (res) => {
         toast.success(`Dashboard  deleted successfully`);
-        router.replace(getOrgEnvUrl(userData, activeEnvironment, "project"));
+        if (!activeOrganization || !activeEnvironment) return;
+        router.replace(
+          getOrgEnvUrl(activeOrganization, activeEnvironment, "project"),
+        );
       },
       onError: (error) => {
         toast.error(`Failed to delete dashboard: ${error.message}`);

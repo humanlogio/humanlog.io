@@ -9,9 +9,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { WhoamiResponse } from "api/js/svc/user/v1/service_private_pb";
-import { useEnvironmentStore } from "@/stores/environment-store";
-import { buildOrgEnvUrl } from "@/lib/utils/navigation";
+import {
+  ActiveEnvironment,
+  useEnvironmentStore,
+} from "@/stores/environment-store";
+import { getOrgEnvUrl } from "@/lib/utils/navigation";
 import { usePageStore } from "@/stores/page-store";
 import { useQuery } from "@connectrpc/connect-query";
 import { CursorSchema } from "api/js/types/v1/cursor_pb";
@@ -24,22 +26,22 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { HardDrive } from "lucide-react";
+import { authClient } from "@/lib/auth-client";
 interface Source {
   name: string;
   path: string;
   value: string;
 }
 
-interface EnvSwitcherProps {
-  userData: WhoamiResponse;
-}
-
-export const EnvSwitcher = ({ userData }: EnvSwitcherProps) => {
+export const EnvSwitcher = () => {
   const router = useRouter();
   const params = useParams();
+  const currentEnvSlug = params?.env as string;
+
+  const { useActiveOrganization } = authClient;
+  const { data: activeOrganization } = useActiveOrganization();
   const { activePage } = usePageStore();
   const { localhostData } = usePing();
-
   const { setActiveEnvironment, activeEnvironment } = useEnvironmentStore();
 
   const [menuList, setMenuList] = useState<Source[]>([]);
@@ -49,36 +51,53 @@ export const EnvSwitcher = ({ userData }: EnvSwitcherProps) => {
     limit: 100,
   });
 
-  const currentEnvSlug = params?.env as string;
-
   const getCurrentSelectedValue = () => {
-    if (currentEnvSlug === "localhost" || !activeEnvironment) {
-      if (!localhostData) return;
-      return localhostVersion(localhostData);
+    if (!activeEnvironment) return undefined;
+    if (activeEnvironment.type === "localhost") {
+      return localhostVersion(activeEnvironment.data);
     }
 
-    if (!listEnvironmentData) return;
-
-    const currentEnv = listEnvironmentData.items.find(
-      (env) =>
-        env.environment?.id === activeEnvironment?.environment?.id ||
-        env.environment?.name === currentEnvSlug,
-    );
-
-    return currentEnv?.environment?.id?.toString() || "";
+    return activeEnvironment.data.environment?.id?.toString();
   };
 
   const updateSelection = (value: string) => {
+    let activeEnv: ActiveEnvironment;
     const selected = menuList.find((menu) => menu.value === value);
 
-    if (!selected || !listEnvironmentData) return;
+    if (!selected) {
+      setActiveEnvironment(undefined);
+      return;
+    }
 
-    const activeEnv = listEnvironmentData.items.find(
-      (env) => env.environment?.id.toString() === selected.value,
-    );
-    setActiveEnvironment(activeEnv ?? undefined);
-    router.push(selected.path);
+    if (localhostData && value === localhostVersion(localhostData)) {
+      activeEnv = { type: "localhost", data: localhostData };
+    }
+
+    if (listEnvironmentData) {
+      const _activeEnv = listEnvironmentData.items.find(
+        (env) => env.environment?.id.toString() === selected.value,
+      );
+      if (_activeEnv) {
+        activeEnv = { type: "hosted", data: _activeEnv };
+      }
+
+      setActiveEnvironment(activeEnv);
+      router.push(selected.path);
+    }
   };
+
+  useEffect(() => {
+    if (!activeEnvironment) return;
+
+    const isLocalhost =
+      activeEnvironment.type === "localhost" && currentEnvSlug === "localhost";
+    const isHosted =
+      activeEnvironment.type === "hosted" &&
+      currentEnvSlug === activeEnvironment.data.environment?.name;
+
+    if (isLocalhost || isHosted) return;
+    setActiveEnvironment(undefined);
+  }, [currentEnvSlug]);
 
   useEffect(() => {
     const _menuList: Source[] = [];
@@ -86,9 +105,9 @@ export const EnvSwitcher = ({ userData }: EnvSwitcherProps) => {
     if (localhostData) {
       _menuList.push({
         name: `localhost ${localhostVersion(localhostData)}`,
-        path: buildOrgEnvUrl(
-          userData?.currentOrganization?.name || "",
-          "localhost",
+        path: getOrgEnvUrl(
+          activeOrganization,
+          { type: "localhost", data: localhostData },
           activePage,
         ),
         value: localhostVersion(localhostData),
@@ -100,9 +119,12 @@ export const EnvSwitcher = ({ userData }: EnvSwitcherProps) => {
     listEnvironmentData.items.forEach((env) => {
       _menuList.push({
         name: env.environment?.name || "",
-        path: buildOrgEnvUrl(
-          userData?.currentOrganization?.name || "",
-          env.environment?.name || "",
+        path: getOrgEnvUrl(
+          activeOrganization,
+          {
+            type: "hosted",
+            data: env,
+          },
           activePage,
         ),
         value: env.environment?.id?.toString() || "",
@@ -110,12 +132,14 @@ export const EnvSwitcher = ({ userData }: EnvSwitcherProps) => {
     });
     _menuList.push({
       name: "+ Add new",
-      path: `/${userData?.currentOrganization?.name}/env/new`,
+      path: activeOrganization
+        ? `/${activeOrganization?.slug}/env/new`
+        : "/settings/org",
       value: "add-new",
     });
 
     setMenuList(_menuList);
-  }, [listEnvironmentData, userData, localhostData, activePage]);
+  }, [listEnvironmentData, activeOrganization, localhostData, activePage]);
 
   return (
     <div className="flex items-center gap-3">

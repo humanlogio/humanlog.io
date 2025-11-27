@@ -29,6 +29,11 @@ export default function DashboardListPage() {
     new Set(),
   );
 
+  const environmentId =
+    activeEnvironment && activeEnvironment.type === "hosted"
+      ? activeEnvironment.data.environment?.id
+      : undefined;
+
   const {
     data: projectList,
     refetch: refetchProjectList,
@@ -36,7 +41,7 @@ export default function DashboardListPage() {
   } = useQuery(
     listProject,
     {
-      environmentId: activeEnvironment?.environment?.id,
+      environmentId,
     },
     {
       transport: useActiveTransport(),

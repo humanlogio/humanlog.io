@@ -44,7 +44,7 @@ import { Organization } from "api/js/types/v1/organization_pb";
 import { createEnvironment } from "api/js/svc/organization/v1/service-OrganizationService_connectquery";
 import { CreateEnvironmentResponse } from "api/js/svc/organization/v1/service_pb";
 import { ConnectError } from "@connectrpc/connect";
-import { useUser } from "@/hooks/useUser";
+import { authClient } from "@/lib/auth-client";
 
 const formSchema = z.object({
   environmentName: z
@@ -59,7 +59,7 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 interface EnvironmentCreationFormProps {
-  orgId: string | null;
+  orgId?: string;
 }
 
 interface Product {
@@ -189,6 +189,7 @@ export function EnvironmentCreationForm({
     >
       <Form {...form}>
         <CheckoutForm
+          orgId={orgId}
           form={form}
           isBilledYearly={isBilledYearly}
           setIsBilledYearly={setIsBilledYearly}
@@ -303,6 +304,7 @@ export function TotalPriceSummary({
 }
 
 function CheckoutForm({
+  orgId,
   form,
   isBilledYearly,
   setIsBilledYearly,
@@ -312,6 +314,7 @@ function CheckoutForm({
   price,
   setPrice,
 }: {
+  orgId?: string | null;
   form: UseFormReturn<FormValues>;
   isBilledYearly: boolean;
   setIsBilledYearly: Dispatch<SetStateAction<boolean>>;
@@ -324,7 +327,8 @@ function CheckoutForm({
   const router = useRouter();
   const stripe = useStripe();
   const elements = useElements();
-  const { userData } = useUser();
+  const { useActiveOrganization } = authClient;
+  const { data: activeOrganization } = useActiveOrganization();
 
   const [errorMessage, setErrorMessage] = useState<string>();
   const [loading, setLoading] = useState(false);
@@ -391,7 +395,7 @@ function CheckoutForm({
     const envName = res.environment?.name;
 
     // Redirect after successful creation
-    const redirectPath = `/${userData?.currentOrganization?.name}/${envName}/query`;
+    const redirectPath = `/${activeOrganization?.slug}/${envName}/query`;
 
     router.push(redirectPath);
   }
