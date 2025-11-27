@@ -42,7 +42,7 @@ const config = {
   ...createSharedBetterAuthConfig({
     callbacksClient: betterAuthCallbacksClient,
     createInvitationUrl: (invitationId: string) => {
-      return "";
+      return `${getSelfURL()}/invitation-callback?invitationId=${invitationId}`;
     },
 
     github: {
