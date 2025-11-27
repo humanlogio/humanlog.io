@@ -1,5 +1,4 @@
 import { Button } from "@/components/ui/button";
-import { useUser } from "@/hooks/useUser";
 import { PingResponse } from "api/js/svc/localhost/v1/service_pb";
 import { useParams, usePathname } from "next/navigation";
 import { useState } from "react";
@@ -21,6 +20,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { authClient } from "@/lib/auth-client";
 
 interface SideMenuProps {
   isExpanded: boolean;
@@ -28,6 +28,8 @@ interface SideMenuProps {
 }
 
 export const SideMenu = ({ isExpanded, setIsExpanded }: SideMenuProps) => {
+  const { useActiveOrganization } = authClient;
+  const { data: activeOrganization } = useActiveOrganization();
   // TODO: 함수 util로 분리하기
   const localhostVersion = (res: PingResponse) => {
     const v = res.clientVersion!;
@@ -35,9 +37,9 @@ export const SideMenu = ({ isExpanded, setIsExpanded }: SideMenuProps) => {
   };
   const params = useParams();
   const isProd = config.NEXT_PUBLIC_IS_PROD;
-  const { userData } = useUser();
+
   const { activePage } = usePageStore();
-  const currentOrg = userData?.currentOrganization?.name;
+
   const currentEnvSlug = params?.env || "localhost";
   // PostHog feature flags
   const showProjectMenu = useFeatureFlag("release_project_menu_temp", true);
@@ -46,28 +48,28 @@ export const SideMenu = ({ isExpanded, setIsExpanded }: SideMenuProps) => {
     {
       name: "Query",
       page: "query",
-      path: `/${currentOrg}/${currentEnvSlug}/query`,
+      path: `/${activeOrganization?.slug}/${currentEnvSlug}/query`,
       icon: <Database size={14} />,
       isReady: true,
     },
     {
       name: "Stream",
       page: "stream",
-      path: `/${currentOrg}/${currentEnvSlug}/stream`,
+      path: `/${activeOrganization?.slug}/${currentEnvSlug}/stream`,
       icon: <Activity size={14} />,
       isReady: true,
     },
     {
       name: "Project",
       page: "project",
-      path: `/${currentOrg}/${currentEnvSlug}/project`,
+      path: `/${activeOrganization?.slug}/${currentEnvSlug}/project`,
       icon: <FolderKanban size={14} />,
       isReady: showProjectMenu,
     },
     {
       name: "Settings",
       page: "settings",
-      path: `/${currentOrg}/${currentEnvSlug}/settings`,
+      path: `/${activeOrganization?.slug}/${currentEnvSlug}/settings`,
       icon: <Settings size={14} />,
       isReady: true,
     },

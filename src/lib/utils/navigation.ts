@@ -1,6 +1,5 @@
-import { ListEnvironmentResponse_ListItem } from "api/js/svc/organization/v1/service_pb";
-import { WhoamiResponse } from "api/js/svc/user/v1/service_private_pb";
-import { toast } from "sonner";
+import { Organization } from "better-auth/plugins";
+import { ActiveEnvironment } from "@/stores/environment-store";
 
 // User
 export function getUserSettingsUrl() {
@@ -8,26 +7,30 @@ export function getUserSettingsUrl() {
 }
 
 export function getOrgEnvUrl(
-  userData: WhoamiResponse | undefined,
-  activeEnvironment?: ListEnvironmentResponse_ListItem,
+  activeOrganization: Organization | null,
+  activeEnvironment: Exclude<ActiveEnvironment, undefined>,
   activePage?: string,
 ) {
-  if (!userData) {
-    toast.error("You need to login to access this page");
-    return "/";
+  const page = activePage || "query";
+
+  if (!activeOrganization) {
+    return "/settings/org";
   }
 
-  const page = activePage || "query";
-  return `/${userData.currentOrganization?.name}/${activeEnvironment?.environment?.name ?? "localhost"}/${page}`;
+  if (activeEnvironment?.type === "localhost") {
+    return `/${activeOrganization.slug}/localhost/${page}`;
+  }
+
+  return `/${activeOrganization.slug}/${activeEnvironment.data.environment?.name ?? "localhost"}/${page}`;
 }
 
 export function buildOrgEnvUrl(
-  orgName: string,
+  orgSlug: string,
   envName: string,
   activePage?: string,
 ): string {
   const page = activePage || "query";
-  return `/${orgName}/${envName}/${page}`;
+  return `/${orgSlug}/${envName}/${page}`;
 }
 
 export function getOrgSettingsUrl(orgName: string) {

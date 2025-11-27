@@ -22,6 +22,7 @@
     "@connectrpc/connect-web": "^2.1.0",
     "@dnd-kit/sortable": "^8.0.0",
     "@hookform/resolvers": "^3.10.0",
+    "@humanlogio/auth-adapter": "github:humanlogio/api-internal#2d454d1821e3d2a353361ec909e553da7a2c9dc4",
     "@humanlogio/perses-plugin": "git+https://github.com/humanlogio/perses-plugin.git#v0.2.0",
     "@mdx-js/react": "^3.1.0",
     "@monaco-editor/react": "^4.6.0",
@@ -66,6 +67,7 @@
     "@tanstack/react-table": "^8.21.2",
     "api": "github:humanlogio/api#a3dc5f8",
     "asciinema-player": "^3.8.1",
+    "better-auth": "^1.3.33",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "contentlayer2": "^0.5.4",
@@ -103,7 +105,8 @@
     "tailwind-scrollbar-hide": "^2.0.0",
     "uuid": "^11.0.5",
     "zod": "^3.24.2",
-    "zustand": "^5.0.8"
+    "zustand": "^5.0.8",
+    "zxcvbn": "^4.4.2"
   },
   "devDependencies": {
     "@mdx-js/loader": "^3.1.0",
@@ -120,6 +123,7 @@
     "@types/react-flatpickr": "^3.8.11",
     "@types/react-helmet": "^6.1.11",
     "@types/react-syntax-highlighter": "^15.5.13",
+    "@types/zxcvbn": "^4.4.5",
     "@vitejs/plugin-react": "^4.3.3",
     "eslint": "^9",
     "eslint-config-next": "15.0.3",

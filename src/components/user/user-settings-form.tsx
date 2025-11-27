@@ -16,51 +16,32 @@ import { Button } from "@/components/ui/button";
 import { Loader, Check, X } from "lucide-react";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
-import { WhoamiResponse } from "api/js/svc/user/v1/service_private_pb";
 import { useMutation } from "@connectrpc/connect-query";
 import { updateUser } from "api/js/svc/user/v1/service_private-UserService_connectquery";
-import { checkUsername } from "api/js/svc/auth/v1/service-AuthService_connectquery";
+import { useUsernameValidation } from "@/hooks/useUsernameValidation";
+import { User } from "better-auth";
 
 interface UserSettingsFormProps {
-  userData: WhoamiResponse;
-  refetchUserData: () => void;
+  user: User;
+  refetchSession: () => void;
 }
 
-type UsernameStatus =
-  | "idle"
-  | "checking"
-  | "available"
-  | "taken"
-  | "tooShort"
-  | "invalidFormat"
-  | "error";
-
 const formSchema = z.object({
-  firstName: z.string().min(1, "First Name is required"),
-  lastName: z.string().optional(),
+  // firstName: z.string().min(1, "First Name is required"),
+  // lastName: z.string().optional(),
   username: z.string().optional(),
 });
 
 export function UserSettingsForm({
-  userData,
-  refetchUserData,
+  user,
+  refetchSession,
 }: UserSettingsFormProps) {
   const [formChanged, setFormChanged] = useState(false);
-  const [usernameStatus, setUsernameStatus] = useState<UsernameStatus>("idle");
-
-  const { mutate: checkUsernameMutation } = useMutation(checkUsername, {
-    onSuccess: (res) => {
-      setUsernameStatus(res.available ? "available" : "taken");
-    },
-    onError: () => {
-      setUsernameStatus("error");
-    },
-  });
 
   const { mutate: updateUserMutation, isPending: isUpdatingUserPending } =
     useMutation(updateUser, {
       onSuccess: (res) => {
-        refetchUserData();
+        refetchSession();
         toast.success("Settings updated", {
           description:
             "Your profile information has been updated successfully.",
@@ -75,65 +56,38 @@ export function UserSettingsForm({
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      firstName: userData?.user ? userData.user.firstName || "" : "",
-      lastName: userData?.user ? userData.user.lastName || "" : "",
-      username: userData?.user ? userData.user.username || "" : "",
+      // firstName: userData?.user ? userData.user.firstName || "" : "",
+      // lastName: userData?.user ? userData.user.lastName || "" : "",
+      username: user.name,
     },
   });
 
   // Watch form values to detect changes
   const watchedValues = form.watch();
 
-  // Username availability check with debounce
-  useEffect(() => {
-    const currentUsername = watchedValues.username;
-    const originalUsername = userData?.user?.username || "";
-
-    // Don't check if username is empty or unchanged
-    if (!currentUsername || currentUsername === originalUsername) {
-      setUsernameStatus("idle");
-      return;
-    }
-
-    // Check length first
-    if (currentUsername.length < 3) {
-      setUsernameStatus("tooShort");
-      return;
-    }
-
-    // Check format with backend regex
-    const usernameRegex = /^[a-zA-Z0-9][a-zA-Z0-9-]+$/;
-    if (!usernameRegex.test(currentUsername)) {
-      setUsernameStatus("invalidFormat");
-      return;
-    }
-
-    setUsernameStatus("checking");
-
-    const timer = setTimeout(() => {
-      checkUsernameMutation({ username: currentUsername });
-    }, 500);
-
-    return () => clearTimeout(timer);
-  }, [watchedValues.username, userData?.user?.username, checkUsernameMutation]);
+  const { status: usernameStatus, setStatus: setUsernameStatus } =
+    useUsernameValidation({
+      username: watchedValues.username || "",
+      skipIfUnchanged: user?.name || "",
+    });
 
   // Check if form values have changed from initial values
   useEffect(() => {
-    if (!userData?.user) return;
+    if (!user) return;
 
     const initialValues = {
-      firstName: userData.user.firstName || "",
-      lastName: userData.user.lastName || "",
-      username: userData.user.username || "",
+      // firstName: userData.user.firstName || "",
+      // lastName: userData.user.lastName || "",
+      username: user.name || "",
     };
 
     const hasChanged =
-      watchedValues.firstName !== initialValues.firstName ||
-      watchedValues.lastName !== initialValues.lastName ||
+      // watchedValues.firstName !== initialValues.firstName ||
+      // watchedValues.lastName !== initialValues.lastName ||
       watchedValues.username !== initialValues.username;
 
     setFormChanged(hasChanged);
-  }, [watchedValues, userData]);
+  }, [watchedValues, user]);
 
   // Add navigation warning for unsaved changes
   useEffect(() => {
@@ -155,11 +109,11 @@ export function UserSettingsForm({
 
   // Reset form to initial values
   const handleReset = () => {
-    if (userData?.user) {
+    if (user) {
       form.reset({
-        firstName: userData.user.firstName || "",
-        lastName: userData.user.lastName || "",
-        username: userData.user.username || "",
+        // firstName: userData.user.firstName || "",
+        // lastName: userData.user.lastName || "",
+        username: user.name || "",
       });
       setUsernameStatus("idle");
     }
@@ -168,7 +122,7 @@ export function UserSettingsForm({
   // Update form values when user data changes
   useEffect(() => {
     handleReset();
-  }, [userData, form]);
+  }, [user, form]);
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     // Check if username is taken before submitting
@@ -177,11 +131,11 @@ export function UserSettingsForm({
       return;
     }
 
-    const { firstName, lastName, username } = values;
+    const { username } = values;
 
     updateUserMutation({
-      firstName,
-      lastName,
+      // firstName,
+      // lastName,
       username,
     });
   };
@@ -262,7 +216,7 @@ export function UserSettingsForm({
       >
         <div className="flex w-full flex-col gap-6 md:flex-row md:gap-3">
           {/* Name Field */}
-          <FormField
+          {/* <FormField
             control={form.control}
             name="firstName"
             render={({ field }) => (
@@ -279,10 +233,10 @@ export function UserSettingsForm({
                 <FormMessage />
               </FormItem>
             )}
-          />
+          /> */}
 
           {/* Last Name Field */}
-          <FormField
+          {/* <FormField
             control={form.control}
             name="lastName"
             render={({ field }) => (
@@ -298,7 +252,7 @@ export function UserSettingsForm({
                 <FormMessage />
               </FormItem>
             )}
-          />
+          /> */}
         </div>
 
         {/* User  Name Field */}

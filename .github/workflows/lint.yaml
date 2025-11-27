@@ -15,6 +15,15 @@ jobs:
         with:
           ref: ${{ github.head_ref }}
 
+      - name: Configure Git for Private Repo Access
+        run: |
+          # Remove checkout's extraheader (interferes with our token for api-internal)
+          git config --local --unset-all http.https://github.com/.extraheader || true
+
+          # Configure git to use our token for private repos
+          git config --global url."https://x-access-token:${{ secrets.PRIVATE_REPO_ACCESS_TOKEN }}@github.com/".insteadOf "ssh://git@github.com/"
+          git config --global --add url."https://x-access-token:${{ secrets.PRIVATE_REPO_ACCESS_TOKEN }}@github.com/".insteadOf "git@github.com:"
+
       - name: Cache Node Modules
         uses: actions/cache@v3
         with:
@@ -28,6 +37,10 @@ jobs:
 
       - name: Run Formatter
         run: npm run fmt
+
+      - name: Restore git credentials for push
+        run: |
+          git config --local http.https://github.com/.extraheader "AUTHORIZATION: basic $(echo -n 'x-access-token:${{ github.token }}' | base64 -w0)"
 
       - name: Commit changes
         uses: stefanzweifel/git-auto-commit-action@v4

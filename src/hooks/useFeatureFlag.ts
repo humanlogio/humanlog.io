@@ -4,6 +4,11 @@
 import { useEffect, useState } from "react";
 import { usePostHog } from "posthog-js/react";
 
+interface UseFeatureFlagResult {
+  flagEnabled: boolean;
+  isLoading: boolean;
+}
+
 /**
  * Hook that returns the state of a PostHog feature flag
  * @param flagKey - The feature flag key to check
@@ -13,8 +18,9 @@ import { usePostHog } from "posthog-js/react";
 export const useFeatureFlag = (
   flagKey: string,
   defaultValue: boolean = false,
-): boolean => {
+): UseFeatureFlagResult => {
   const posthog = usePostHog();
+  const [isLoading, setIsLoading] = useState(true);
   const [flagEnabled, setFlagEnabled] = useState<boolean>(defaultValue);
 
   useEffect(() => {
@@ -23,6 +29,7 @@ export const useFeatureFlag = (
     const checkFlag = () => {
       const enabled = posthog.isFeatureEnabled(flagKey);
       setFlagEnabled(enabled === true);
+      setIsLoading(false);
     };
 
     if (posthog.onFeatureFlags) {
@@ -30,5 +37,5 @@ export const useFeatureFlag = (
     }
   }, [posthog, flagKey]);
 
-  return flagEnabled;
+  return { flagEnabled, isLoading };
 };

@@ -9,7 +9,11 @@ const { withContentlayer } = require("next-contentlayer2");
 const nextConfig = {
   // swcMinify: false,
   output: "standalone",
-  transpilePackages: ["api", "@humanlogio/perses-plugin"],
+  transpilePackages: [
+    "api",
+    "@humanlogio/perses-plugin",
+    "@humanlogio/auth-adapter",
+  ],
   pageExtensions: ["js", "jsx", "mdx", "ts", "tsx"],
   reactStrictMode: false,
   experimental: {

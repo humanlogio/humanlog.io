@@ -19,13 +19,12 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { WhoamiResponse } from "api/js/svc/user/v1/service_private_pb";
 import { gravatarURL } from "@/lib/utils/avatar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { PingResponse } from "api/js/svc/localhost/v1/service_pb";
-import { useUser } from "@/hooks/useUser";
 import { BetaBadge } from "@/components/beta-badge";
+import { authClient } from "@/lib/auth-client";
 
 export const localhostVersion = (res: PingResponse) => {
   const v = res.clientVersion!;
@@ -39,9 +38,12 @@ export const AppHeader = () => {
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  const { userData } = useUser();
+  const { useSession } = authClient;
+  const { data: session } = useSession();
+  const user = session?.user;
 
-  const currentOrg = userData?.currentOrganization?.name;
+  const currentOrg = "dumibell";
+  // const currentOrg = userData?.currentOrganization?.name;
   const currentEnvSlug = params?.env || "localhost";
 
   const navItems = [
@@ -82,7 +84,7 @@ export const AppHeader = () => {
     setIsMenuOpen(false);
   }, [pathname]);
 
-  if (!userData) return;
+  if (!user) return;
 
   return (
     <div className={`flex justify-between px-10`}>
@@ -145,11 +147,9 @@ export const AppHeader = () => {
           <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
             <SheetTrigger asChild>
               <Avatar className="h-7 w-7">
-                <AvatarImage src={gravatarURL(userData.user?.email)} />
+                <AvatarImage src={gravatarURL(user?.email)} />
                 <AvatarFallback className="uppercase">
-                  {userData.user?.firstName?.slice(0, 2) || (
-                    <UserIcon size={14} />
-                  )}
+                  {user.name || <UserIcon size={14} />}
                 </AvatarFallback>
               </Avatar>
             </SheetTrigger>

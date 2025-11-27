@@ -9,6 +9,13 @@ jobs:
     if: github.event.pull_request.draft == false
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Configure Git for Private Repo Access
+        run: |
+          git config --global url."https://x-access-token:${{ secrets.PRIVATE_REPO_ACCESS_TOKEN }}@github.com/".insteadOf "ssh://git@github.com/"
+          git config --global --add url."https://x-access-token:${{ secrets.PRIVATE_REPO_ACCESS_TOKEN }}@github.com/".insteadOf "git@github.com:"
 
       - name: Cache Node Modules
         uses: actions/cache@v3
@@ -30,6 +37,8 @@ jobs:
 
       - name: Build Container Image
         run: script/build
+        env:
+          GITHUB_TOKEN: ${{ secrets.PRIVATE_REPO_ACCESS_TOKEN }}
 
       # TODO: disabled for now as we're breaking them all the time when trying new stuff
       # and they take too long to run in CI

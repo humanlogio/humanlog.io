@@ -9,13 +9,7 @@ if (typeof BigInt !== "undefined") {
   };
 }
 
-import React, {
-  createContext,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import React, { createContext, useContext, useMemo } from "react";
 import {
   createClient,
   Client,
@@ -26,7 +20,7 @@ import {
 import { Interceptor } from "@connectrpc/connect";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createConnectTransport } from "@connectrpc/connect-web";
-import { TransportProvider, useQuery } from "@connectrpc/connect-query";
+import { TransportProvider } from "@connectrpc/connect-query";
 import { AuthService } from "api/js/svc/auth/v1/service_pb";
 import { EnvironmentService } from "api/js/svc/environment/v1/service_pb";
 import { OrganizationService } from "api/js/svc/organization/v1/service_pb";
@@ -45,18 +39,16 @@ import {
   PublicShareService,
   UserShareService,
 } from "api/js/svc/share/v1/service_pb";
-import { getAPIURL, getSelfURL } from "@/lib/config/envs";
-import { useCookies } from "react-cookie";
+import { getAPIURL } from "@/lib/config/envs";
 import config from "@/lib/config";
 import { v4 as uuidv4 } from "uuid";
 import { useSearchParams } from "next/navigation";
-import { useRouter } from "next/navigation";
 import { useEnvironmentStore } from "@/stores/environment-store";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import { authClient } from "@/lib/auth-client";
 
 type ApiProviderType = {
   apiClients: ApiClients | null;
-  authenticated: boolean;
 };
 
 type ApiClients = {
@@ -100,21 +92,19 @@ export function ApiClientsProvider({
   children: React.ReactNode;
 }) {
   const isProd = config.NEXT_PUBLIC_IS_PROD;
-  const router = useRouter();
-  const returnToURL = getSelfURL();
-  const [cookies, setCookie] = useCookies();
-  const [authenticated, setAuthenticated] = useState(false);
+
   const searchParams = useSearchParams();
   const localhostPort = searchParams.get("demo_port") ?? "32764";
   const localhostBaseUrl = `http://localhost:${localhostPort}`;
+  const { getSession } = authClient;
 
   const { activeEnvironment, setActiveEnvironment } = useEnvironmentStore();
 
   const transports = useMemo(() => {
     const auther = (): Interceptor => {
       return (next) => async (req) => {
-        const token =
-          cookies["hlog_session"] || localStorage.getItem("hlog_session");
+        const { data } = await getSession();
+        const token = data?.session.token;
 
         if (token && token != "") {
           localStorage.setItem("hlog_session", token);
@@ -124,21 +114,11 @@ export function ApiClientsProvider({
 
         try {
           const res = await next(req);
-          const newToken =
-            res.header.get("UseAuthorization") ||
-            res.header.get("useauthorization");
-
-          if (newToken) {
-            console.log("Received new authorization token");
-            localStorage.setItem("hlog_session", newToken);
-          }
-          setAuthenticated(true);
 
           return res;
         } catch (error) {
           if (error instanceof ConnectError) {
             if (error.code === Code.Unauthenticated) {
-              setAuthenticated(false);
               setActiveEnvironment(undefined);
             }
           }
@@ -196,7 +176,6 @@ export function ApiClientsProvider({
       <ApiClientContext.Provider
         value={{
           apiClients,
-          authenticated,
         }}
       >
         <ActiveTransportContext.Provider value={activeTransport}>

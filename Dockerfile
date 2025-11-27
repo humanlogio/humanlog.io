@@ -3,9 +3,12 @@ FROM node:22-alpine AS base
 # deps
 FROM base AS deps
 WORKDIR /usr/src/app
-RUN apk add --no-cache libc6-compat
+RUN apk add --no-cache libc6-compat git
+ARG GITHUB_TOKEN
+RUN git config --global url."https://${GITHUB_TOKEN}@github.com/".insteadOf "ssh://git@github.com/"
 COPY package.json package-lock.json* ./
 RUN npm ci
+RUN git config --global --unset-all url."https://${GITHUB_TOKEN}@github.com/".insteadOf || true
 
 # builder
 FROM base AS builder

@@ -1,11 +1,5 @@
-import { useUser } from "@/hooks/useUser";
-import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
-import { getSelfURL } from "@/lib/config/envs";
-import { ReactNode, useState } from "react";
-import { useMutation } from "@connectrpc/connect-query";
-import { getAuthURL } from "api/js/svc/auth/v1/service-AuthService_connectquery";
-import { toast } from "sonner";
+import { ReactNode } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { gravatarURL } from "@/lib/utils/avatar";
 import { Building, ChevronRight, LogOut, User, UserIcon } from "lucide-react";
@@ -16,76 +10,51 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import { NavigationMenuItem } from "@/components/ui/navigation-menu";
 import { OrgSwitcher } from "@/components/header/org-switcher";
 import Link from "next/link";
-import { WhoamiResponse } from "api/js/svc/user/v1/service_private_pb";
-import { getLogoutURL } from "api/js/svc/user/v1/service_private-UserService_connectquery";
-import config from "@/lib/config";
-import { SetUserNameModal } from "@/components/header/set-user-name-modal";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { User as BetterAuthUser } from "better-auth";
+import { authClient } from "@/lib/auth-client";
+import { Button } from "@/components/ui/button";
+import { NavigationMenuItem } from "@/components/ui/navigation-menu";
+import { useEnvironmentStore } from "@/stores/environment-store";
+import { usePageStore } from "@/stores/page-store";
+import { toast } from "sonner";
 
 interface UserActionsProps {
-  userData: WhoamiResponse | undefined;
+  user: BetterAuthUser | undefined;
 }
 
-export const UserActions = ({ userData }: UserActionsProps) => {
+export const UserActions = ({ user }: UserActionsProps) => {
   const router = useRouter();
-  const returnToUrl = `${getSelfURL()}/login`;
+  const { signOut } = authClient;
+  const { setActiveEnvironment } = useEnvironmentStore();
+  const { clearPage } = usePageStore();
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
-
-  const { mutate: getAuthURLMutation } = useMutation(getAuthURL, {
-    onSuccess: (res) => {
-      router.push(res.authUrl);
-    },
-    onError: (err) => {
-      toast.error(err.message);
-    },
-  });
-
-  const { mutate: logoutMutation } = useMutation(getLogoutURL, {
-    onSuccess: (res) => {
-      document.cookie = `hlog_session=; path=/; domain=.humanlog${config.TLD}; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
-      localStorage.removeItem("hlog_session");
-      router.push(res.logoutUrl);
-    },
-    onError: (error) => {
-      toast.error(error.message);
-    },
-  });
-
-  const handleSignIn = () => {
-    const username = localStorage.getItem("username");
-
-    if (username) {
-      getAuthURLMutation({ returnToUrl, username });
-    } else {
-      setIsModalOpen(true);
-    }
+  const handleLogout = async () => {
+    if (!window.confirm("Are you sure you want to log out?")) return;
+    await signOut({
+      fetchOptions: {
+        onSuccess: () => {
+          setActiveEnvironment(undefined);
+          clearPage();
+          router.push("/");
+        },
+        onError: (error) => {
+          toast.error(`Failed to log out: ${error.error.message}`);
+          console.error(error);
+        },
+      },
+    });
   };
 
-  const handleModalSubmit = (username: string) => {
-    getAuthURLMutation({ returnToUrl, username });
-  };
-
-  const handleLogout = () => {
-    const returnTo = `${getSelfURL()}/logout`;
-    logoutMutation({ returnTo });
-  };
-
-  return !userData ? (
+  return !user ? (
     <>
-      <SetUserNameModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onSubmit={handleModalSubmit}
-      />
       <NavigationMenuItem>
         <Button
           variant="link"
           size="sm"
-          onClick={handleSignIn}
+          onClick={() => router.push("/sign-in")}
           className="font-normal"
         >
           Sign In
@@ -97,9 +66,9 @@ export const UserActions = ({ userData }: UserActionsProps) => {
       <DropdownMenuTrigger asChild>
         <button className="flex items-center rounded-md p-1 transition-colors">
           <Avatar className="h-8 w-8">
-            <AvatarImage src={gravatarURL(userData.user?.email)} />
+            <AvatarImage src={gravatarURL(user?.email)} />
             <AvatarFallback className="uppercase">
-              {userData.user?.firstName?.slice(0, 2) || <UserIcon size={16} />}
+              {user.name || <UserIcon size={16} />}
             </AvatarFallback>
           </Avatar>
         </button>
@@ -108,7 +77,7 @@ export const UserActions = ({ userData }: UserActionsProps) => {
         <div className="px-2 py-1.5">
           <SectionTitle>Current Organization</SectionTitle>
           <div className="mt-1">
-            <OrgSwitcher userData={userData} />
+            <OrgSwitcher user={user} />
           </div>
         </div>
 
