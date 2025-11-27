@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -33,7 +33,8 @@ type SignInFormData = z.infer<typeof SignInFormSchema>;
 
 export default function SignInPage() {
   const router = useRouter();
-
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get("callbackUrl");
   const { signIn } = authClient;
 
   const [showPassword, setShowPassword] = useState(false);
@@ -62,7 +63,7 @@ export default function SignInPage() {
       {
         email,
         password,
-        callbackURL: "/",
+        callbackURL: callbackUrl || "/",
       },
       {
         onRequest: (ctx) => {},
