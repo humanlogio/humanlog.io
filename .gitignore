@@ -45,5 +45,4 @@ certificates
 .cursor
 
 #env
-.env 
 .env.development
