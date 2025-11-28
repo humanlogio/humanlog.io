@@ -26,15 +26,15 @@ const nextConfig = {
   async rewrites() {
     return [
       {
-        source: "/ingest/static/:path*",
+        source: "/hlg-telemetry/static/:path*",
         destination: "https://us-assets.i.posthog.com/static/:path*",
       },
       {
-        source: "/ingest/:path*",
+        source: "/hlg-telemetry/:path*",
         destination: "https://us.i.posthog.com/:path*",
       },
       {
-        source: "/ingest/decide",
+        source: "/hlg-telemetry/decide",
         destination: "https://us.i.posthog.com/decide",
       },
     ];
