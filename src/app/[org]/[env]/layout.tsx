@@ -20,11 +20,6 @@ export default function EnvLayout({ children }: { children: ReactNode }) {
   const [isExpanded, setIsExpanded] = useState(false);
 
   useEffect(() => {
-    if (user) return;
-    router.replace("/");
-  }, [user]);
-
-  useEffect(() => {
     if (isPendingSession || user) return;
     router.replace("/");
   }, [user, isPendingSession]);
