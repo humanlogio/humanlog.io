@@ -143,6 +143,7 @@ export const OrgSettingForm = ({
   };
 
   const handleRemoveMember = async (memberId?: string) => {
+    if (window.confirm("Are you sure you want to remove this member?")) return;
     if (!memberId) return;
     await organization.removeMember(
       {
