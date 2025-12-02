@@ -513,9 +513,7 @@ export const OrgSettingForm = ({
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() =>
-                              handleRemoveMember(member?.user?.id?.toString())
-                            }
+                            onClick={() => handleRemoveMember(member?.id)}
                             className="e text-red-600 hover:text-red-700"
                           >
                             <Trash2 className="h-4 w-4" />
