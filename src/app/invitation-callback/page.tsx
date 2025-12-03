@@ -1,7 +1,7 @@
 "use client";
-import { Button } from "@/components/ui/button";
+import LoadingIndicator from "@/components/loading-indicator";
 import { authClient } from "@/lib/auth-client";
-import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect } from "react";
 import { toast } from "sonner";
 
@@ -11,7 +11,7 @@ export default function InvitationCallbackPage() {
   const searchParams = useSearchParams();
   const invitationId = searchParams.get("invitationId");
 
-  const { useSession } = authClient;
+  const { useSession, signOut } = authClient;
   const { data: session, isPending: isPendingSession } = useSession();
 
   const handleAcceptInvitation = async () => {
@@ -26,7 +26,14 @@ export default function InvitationCallbackPage() {
           });
           router.push("/settings/org");
         },
-        onError: (ctx) => {
+        onError: async (ctx) => {
+          if (ctx.error.status === 403) {
+            await signOut();
+            router.push(
+              `/sign-in?callbackUrl=/invitation-callback?invitationId=${invitationId}`,
+            );
+            return;
+          }
           toast.error(`Failed to accept invitation: ${ctx.error.message}`);
         },
       },
@@ -34,15 +41,16 @@ export default function InvitationCallbackPage() {
   };
 
   useEffect(() => {
-    if (session || isPendingSession) return;
-    router.push(
-      `/sign-in?callbackUrl=/invitation-callback?invitationId=${invitationId}`,
-    );
-  }, [session, invitationId]);
+    if (isPendingSession) return;
+    if (!session) {
+      toast.error("You need to log in to accept this invitation");
+      router.push(
+        `/sign-in?callbackUrl=/invitation-callback?invitationId=${invitationId}`,
+      );
+      return;
+    }
+    handleAcceptInvitation();
+  }, [session, invitationId, isPendingSession]);
 
-  return (
-    <div className="flex h-full w-full items-center justify-center">
-      <Button onClick={handleAcceptInvitation}>Accept Invitation</Button>
-    </div>
-  );
+  return <LoadingIndicator />;
 }
