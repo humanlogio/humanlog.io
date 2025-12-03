@@ -1,4 +1,4 @@
-import { useParams, useRouter, usePathname } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { localhostVersion } from "@/components/header/app-header";
 import {
@@ -97,7 +97,7 @@ export const EnvSwitcher = () => {
 
     if (isLocalhost || isHosted) return;
     setActiveEnvironment(undefined);
-  }, [currentEnvSlug]);
+  }, [router]);
 
   useEffect(() => {
     const _menuList: Source[] = [];
