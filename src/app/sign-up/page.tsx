@@ -3,7 +3,7 @@
 import { SocialAuthButtons } from "@/components/auth/social-auth-buttons";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   Form,
   FormLabel,
@@ -33,6 +33,8 @@ import { useUsernameValidation } from "@/hooks/useUsernameValidation";
 
 export default function SignUpPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get("callbackUrl");
 
   const { signUp, organization } = authClient;
 
@@ -86,9 +88,9 @@ export default function SignUpPage() {
   const { isSubmitting } = formState;
 
   const socialSignUpConfig = {
-    callbackURL: "/",
+    callbackURL: callbackUrl || "/",
     errorCallbackURL: "/sign-up/fail",
-    newUserCallbackURL: `/sign-up/social?username=${socialForm.getValues("username")}`,
+    newUserCallbackURL: callbackUrl || `/sign-up/success`,
   };
 
   const passwordValue =
