@@ -140,7 +140,7 @@ export function ApiClientsProvider({
 
   const activeTransport = useMemo(
     () =>
-      !activeEnvironment
+      !activeEnvironment || activeEnvironment.type === "localhost"
         ? transports.localhostTransport
         : transports.apiTransport,
     [activeEnvironment, transports],
@@ -196,6 +196,7 @@ export function useApiClients(): ApiProviderType {
 
 export function useActiveTransport(): Transport {
   const transport = useContext(ActiveTransportContext);
+
   if (!transport)
     throw new Error(
       "useActiveTransport must be used within ApiClientsProvider",
