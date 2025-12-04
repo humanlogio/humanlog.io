@@ -6,11 +6,18 @@ import { ReactNode, useEffect, useState } from "react";
 import { usePing } from "@/hooks/usePing";
 import { SideMenu } from "@/app/[org]/[env]/side-menu";
 import { authClient } from "@/lib/auth-client";
+import { useEnvironmentStore } from "@/stores/environment-store";
+import { usePageStore } from "@/stores/page-store";
+import { getOrgEnvUrl } from "@/lib/utils";
 
 export default function EnvLayout({ children }: { children: ReactNode }) {
   const params = useParams();
   const router = useRouter();
   const { useSession } = authClient;
+  const { useActiveOrganization } = authClient;
+  const { data: activeOrganization } = useActiveOrganization();
+  const { activeEnvironment } = useEnvironmentStore();
+  const { activePage } = usePageStore();
   const { data: session, isPending: isPendingSession } = useSession();
   const user = session?.user;
 
@@ -23,6 +30,12 @@ export default function EnvLayout({ children }: { children: ReactNode }) {
     if (isPendingSession || user) return;
     router.replace("/");
   }, [user, isPendingSession]);
+
+  useEffect(() => {
+    if (!activeEnvironment) return;
+    const url = getOrgEnvUrl(activeOrganization, activeEnvironment, activePage);
+    router.replace(url);
+  }, [activeOrganization]);
 
   if (isLoadingLocalhost) return <></>;
 
