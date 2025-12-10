@@ -138,7 +138,7 @@ const AboveFoldHero: React.FC = () => {
 
           {/* UI Screenshot - use real SessionPanel component with Logs/Traces toggle and share button */}
           <div className="order-2 mt-2 flex w-full lg:order-2 lg:mt-0 lg:max-h-[450px] lg:w-1/2">
-            <Card className="flex flex-1 flex-col overflow-hidden rounded-lg border border-zinc-200 shadow-md dark:border-zinc-800">
+            <Card className="flex h-[300px] flex-1 flex-col overflow-hidden rounded-lg border border-zinc-200 shadow-md lg:h-auto dark:border-zinc-800">
               {/* Logs | Traces toggle */}
               <div className="flex items-center justify-between border-b border-zinc-200 bg-zinc-50 px-3 py-1.5 dark:border-zinc-800 dark:bg-zinc-900">
                 <div className="flex gap-2">
