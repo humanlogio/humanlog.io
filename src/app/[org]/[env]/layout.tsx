@@ -25,7 +25,7 @@ export default function EnvLayout({ children }: { children: ReactNode }) {
   const { data: session, isPending: isPendingSession } = useSession();
   const user = session?.user;
 
-  const { localhostData, isLoadingLocalhost } = usePing();
+  const { localhostData, isLoadingLocalhost, isErrorLocalhost } = usePing();
   const currentEnvSlug = params?.env as string;
 
   const [isExpanded, setIsExpanded] = useState(false);
@@ -74,7 +74,7 @@ export default function EnvLayout({ children }: { children: ReactNode }) {
 
   if (isLoadingLocalhost) return <></>;
 
-  return !localhostData && currentEnvSlug === "localhost" ? (
+  return isErrorLocalhost && currentEnvSlug === "localhost" ? (
     <div className="mt-32 flex justify-center">
       <NoLocalhostView />
     </div>
