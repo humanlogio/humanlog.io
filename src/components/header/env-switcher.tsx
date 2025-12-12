@@ -26,30 +26,38 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { HardDrive } from "lucide-react";
-import { authClient } from "@/lib/auth-client";
+import { Organization } from "better-auth/plugins";
+
 interface Source {
   name: string;
   path: string;
   value: string;
 }
 
-export const EnvSwitcher = () => {
+interface EnvSwitcherProps {
+  activeOrganization: Organization;
+}
+
+export const EnvSwitcher = ({ activeOrganization }: EnvSwitcherProps) => {
   const router = useRouter();
   const params = useParams();
   const currentEnvSlug = params?.env as string;
-
-  const { useActiveOrganization } = authClient;
-  const { data: activeOrganization } = useActiveOrganization();
   const { activePage } = usePageStore();
   const { localhostData } = usePing();
   const { setActiveEnvironment, activeEnvironment } = useEnvironmentStore();
 
   const [menuList, setMenuList] = useState<Source[]>([]);
 
-  const { data: listEnvironmentData } = useQuery(listEnvironment, {
-    cursor: create(CursorSchema),
-    limit: 100,
-  });
+  const { data: listEnvironmentData, refetch: refetchListEnvironment } =
+    useQuery(listEnvironment, {
+      cursor: create(CursorSchema),
+      limit: 100,
+    });
+
+  // Refetch environments when activeOrganization changes
+  useEffect(() => {
+    refetchListEnvironment();
+  }, [activeOrganization]);
 
   const getCurrentSelectedValue = () => {
     if (!activeEnvironment) return undefined;
@@ -132,9 +140,7 @@ export const EnvSwitcher = () => {
     });
     _menuList.push({
       name: "+ Add new",
-      path: activeOrganization
-        ? `/${activeOrganization?.slug}/env/new`
-        : "/settings/org",
+      path: `/${activeOrganization?.slug}/env/new`,
       value: "add-new",
     });
 

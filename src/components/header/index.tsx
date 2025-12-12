@@ -30,8 +30,9 @@ const navItems = [
 ];
 
 export const Header = () => {
-  const { useSession } = authClient;
+  const { useSession, useActiveOrganization } = authClient;
   const { data: session, isPending: isPendingSession } = useSession();
+  const { data: activeOrganization } = useActiveOrganization();
   const user = session?.user;
 
   return (
@@ -46,7 +47,9 @@ export const Header = () => {
                 <Logo />
                 <BetaBadge />
               </div>
-              {user && <EnvSwitcher />}
+              {user && activeOrganization && (
+                <EnvSwitcher activeOrganization={activeOrganization} />
+              )}
             </div>
 
             <div className="mr-5 flex items-center gap-3">
