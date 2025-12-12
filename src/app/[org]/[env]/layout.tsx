@@ -9,6 +9,10 @@ import { authClient } from "@/lib/auth-client";
 import { useEnvironmentStore } from "@/stores/environment-store";
 import { usePageStore } from "@/stores/page-store";
 import { getOrgEnvUrl } from "@/lib/utils";
+import { CursorSchema } from "api/js/types/v1/cursor_pb";
+import { create } from "@bufbuild/protobuf";
+import { useQuery } from "@connectrpc/connect-query";
+import { listEnvironment } from "api/js/svc/organization/v1/service-OrganizationService_connectquery";
 
 export default function EnvLayout({ children }: { children: ReactNode }) {
   const params = useParams();
@@ -16,7 +20,7 @@ export default function EnvLayout({ children }: { children: ReactNode }) {
   const { useSession } = authClient;
   const { useActiveOrganization } = authClient;
   const { data: activeOrganization } = useActiveOrganization();
-  const { activeEnvironment } = useEnvironmentStore();
+  const { setActiveEnvironment } = useEnvironmentStore();
   const { activePage } = usePageStore();
   const { data: session, isPending: isPendingSession } = useSession();
   const user = session?.user;
@@ -26,15 +30,46 @@ export default function EnvLayout({ children }: { children: ReactNode }) {
 
   const [isExpanded, setIsExpanded] = useState(false);
 
+  const { data: listEnvironmentData, isPending: isPendingListEnvironment } =
+    useQuery(listEnvironment, {
+      cursor: create(CursorSchema),
+      limit: 100,
+    });
+
   useEffect(() => {
     if (isPendingSession || user) return;
     router.replace("/");
   }, [user, isPendingSession]);
 
   useEffect(() => {
-    if (!activeEnvironment) return;
-    const url = getOrgEnvUrl(activeOrganization, activeEnvironment, activePage);
-    router.replace(url);
+    if (!activeOrganization || isPendingListEnvironment) return;
+
+    if (localhostData && currentEnvSlug === "localhost") {
+      setActiveEnvironment({ type: "localhost", data: localhostData });
+      const url = getOrgEnvUrl(
+        activeOrganization,
+        { type: "localhost", data: localhostData },
+        activePage,
+      );
+      router.replace(url);
+      return;
+    }
+
+    const activeEnv = listEnvironmentData?.items[0];
+    if (activeEnv) {
+      setActiveEnvironment({ type: "hosted", data: activeEnv });
+      const url = getOrgEnvUrl(
+        activeOrganization,
+        { type: "hosted", data: activeEnv },
+        activePage,
+      );
+      router.replace(url);
+      return;
+    }
+    setActiveEnvironment(undefined);
+    router.replace(
+      `/${activeOrganization.slug}/localhost/${activePage || "query"}`,
+    );
   }, [activeOrganization]);
 
   if (isLoadingLocalhost) return <></>;
