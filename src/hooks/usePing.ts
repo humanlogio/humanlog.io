@@ -14,6 +14,7 @@ export const usePing = () => {
     {},
     {
       refetchInterval: 5000,
+      placeholderData: (prev) => prev,
       transport: apiClients?.localhostTransport,
     },
   );
