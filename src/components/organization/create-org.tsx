@@ -44,6 +44,8 @@ export const CreateOrg = ({ title, onSuccess }: CreateOrgProps) => {
     },
   });
 
+  const { setError } = form;
+
   const onSubmit = async (data: FormData) => {
     setIsCreatingOrg(true);
     const { name } = data;
@@ -63,7 +65,9 @@ export const CreateOrg = ({ title, onSuccess }: CreateOrgProps) => {
           setIsCreatingOrg(false);
         },
         onError: (error) => {
-          toast.error(`Failed to create organization: ${error.error.message}`);
+          const { message } = error.error;
+          setError("name", { message });
+          toast.error(`Failed to create organization: ${message}`);
           setIsCreatingOrg(false);
         },
       },
