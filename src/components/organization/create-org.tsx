@@ -116,9 +116,7 @@ export const CreateOrg = ({ title, onSuccess }: CreateOrgProps) => {
         <Separator className="flex-1" />
       </div>
       <div className="flex w-full flex-col items-center rounded-lg bg-neutral-100 px-8 py-7 dark:bg-neutral-900">
-        <p className="font-medium" text-base>
-          Join existing organization
-        </p>
+        <p className="text-base font-medium">Join existing organization</p>
         <p className="text-muted-foreground mt-2 text-center text-sm font-normal">
           Please contact an administrator of the existing <br />
           organization and request an invitation.
