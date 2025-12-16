@@ -12,6 +12,8 @@ import { EnvSwitcher } from "@/components/header/env-switcher";
 import { BetaBadge } from "@/components/beta-badge";
 import { Logo } from "@/components/header/logo";
 import { authClient } from "@/lib/auth-client";
+import { useOrganizationStore } from "@/stores/organization-store";
+import { useEffect } from "react";
 
 const navItems = [
   {
@@ -30,10 +32,26 @@ const navItems = [
 ];
 
 export const Header = () => {
-  const { useSession, useActiveOrganization } = authClient;
+  const { useSession, useActiveOrganization, organization } = authClient;
   const { data: session, isPending: isPendingSession } = useSession();
   const { data: activeOrganization } = useActiveOrganization();
   const user = session?.user;
+
+  const { lastActiveOrgId, setLastActiveOrgId } = useOrganizationStore();
+
+  useEffect(() => {
+    if (lastActiveOrgId) {
+      organization.setActive({
+        organizationId: lastActiveOrgId,
+      });
+    }
+  }, [lastActiveOrgId]);
+
+  useEffect(() => {
+    if (activeOrganization) {
+      setLastActiveOrgId(activeOrganization.id);
+    }
+  }, [activeOrganization]);
 
   return (
     <NavigationMenu>

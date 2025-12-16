@@ -13,6 +13,7 @@ import { User } from "better-auth";
 import { authClient } from "@/lib/auth-client";
 import { Organization } from "better-auth/plugins";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useOrganizationStore } from "@/stores/organization-store";
 
 interface Source {
   name: string;
@@ -33,6 +34,8 @@ export const OrgSwitcher = ({ user }: OrgSwitcherProps) => {
   const { data: activeOrganization, isPending: isActiveOrganizationPending } =
     useActiveOrganization();
 
+  const { setLastActiveOrgId } = useOrganizationStore();
+
   const [menuList, setMenuList] = useState<Source[]>([]);
 
   const updateSelection = (value: string) => {
@@ -42,6 +45,8 @@ export const OrgSwitcher = ({ user }: OrgSwitcherProps) => {
     organization.setActive({
       organizationId: value,
     });
+
+    setLastActiveOrgId(value);
   };
 
   useEffect(() => {
