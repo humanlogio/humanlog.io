@@ -140,7 +140,7 @@ export const EnvSwitcher = ({ activeOrganization }: EnvSwitcherProps) => {
     });
     _menuList.push({
       name: "+ Add new",
-      path: `/${activeOrganization?.slug}/env/new`,
+      path: `/${activeOrganization?.slug}/env-new`,
       value: "add-new",
     });
 
