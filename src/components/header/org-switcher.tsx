@@ -1,4 +1,4 @@
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
   Select,
@@ -25,6 +25,7 @@ interface OrgSwitcherProps {
 }
 
 export const OrgSwitcher = ({ user }: OrgSwitcherProps) => {
+  const router = useRouter();
   const pathname = usePathname();
   const { activeEnvironment } = useEnvironmentStore();
   const { useListOrganizations, organization, useActiveOrganization } =
@@ -42,6 +43,11 @@ export const OrgSwitcher = ({ user }: OrgSwitcherProps) => {
     const selected = menuList.find((menu) => menu.value === value);
     if (!selected) return;
 
+    if (value === "add-new") {
+      router.push("/create-org");
+      return;
+    }
+
     organization.setActive({
       organizationId: value,
     });
@@ -56,6 +62,11 @@ export const OrgSwitcher = ({ user }: OrgSwitcherProps) => {
         name: org.name || "",
         value: org.id.toString(),
       });
+    });
+
+    _menuList.push({
+      name: "+ Add new",
+      value: "add-new",
     });
 
     setMenuList(_menuList);
