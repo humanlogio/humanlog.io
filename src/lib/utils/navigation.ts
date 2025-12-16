@@ -7,15 +7,11 @@ export function getUserSettingsUrl() {
 }
 
 export function getOrgEnvUrl(
-  activeOrganization: Organization | null,
+  activeOrganization: Organization,
   activeEnvironment: Exclude<ActiveEnvironment, undefined>,
   activePage?: string,
 ) {
   const page = activePage || "query";
-
-  if (!activeOrganization) {
-    return "/settings/org";
-  }
 
   if (activeEnvironment?.type === "localhost") {
     return `/${activeOrganization.slug}/localhost/${page}`;
