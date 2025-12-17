@@ -20,13 +20,15 @@ export default function EnvLayout({ children }: { children: ReactNode }) {
   const { useSession } = authClient;
   const { useActiveOrganization } = authClient;
   const { data: activeOrganization } = useActiveOrganization();
-  const { setActiveEnvironment } = useEnvironmentStore();
+  const { setActiveEnvironment, activeEnvironment } = useEnvironmentStore();
   const { activePage } = usePageStore();
   const { data: session, isPending: isPendingSession } = useSession();
   const user = session?.user;
+  const currentEnvSlug = params?.env as string;
+  const checkPing =
+    activeEnvironment?.type === "localhost" || currentEnvSlug === "localhost";
 
   const { localhostData, isLoadingLocalhost, isErrorLocalhost } = usePing();
-  const currentEnvSlug = params?.env as string;
 
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -72,7 +74,7 @@ export default function EnvLayout({ children }: { children: ReactNode }) {
     );
   }, [activeOrganization]);
 
-  if (isLoadingLocalhost) return <></>;
+  if (checkPing && isLoadingLocalhost) return <></>;
 
   return isErrorLocalhost && currentEnvSlug === "localhost" ? (
     <div className="mt-32 flex justify-center">
