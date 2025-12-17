@@ -120,7 +120,7 @@ export default function SignUpPage() {
         password,
         name: username,
         username,
-        callbackURL: "/sign-up/success",
+        callbackURL: "/onboarding/create-org",
       },
       {
         onRequest: (ctx) => {

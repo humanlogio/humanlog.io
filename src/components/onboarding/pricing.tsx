@@ -32,11 +32,7 @@ export default function OnboardingPricing() {
       onSuccess: () => {
         toast.success("You're all set with the free plan.");
         if (!activeOrganization || !activeEnvironment) return;
-        const url = getOrgEnvUrl(
-          activeOrganization,
-          activeEnvironment,
-          activePage,
-        );
+        const url = `${activeOrganization?.slug}/localhost/query`;
         router.push(url);
       },
       onError: (error) => {

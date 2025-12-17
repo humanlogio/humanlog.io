@@ -1,4 +1,4 @@
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
   Select,
@@ -13,6 +13,7 @@ import { User } from "better-auth";
 import { authClient } from "@/lib/auth-client";
 import { Organization } from "better-auth/plugins";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useOrganizationStore } from "@/stores/organization-store";
 
 interface Source {
   name: string;
@@ -24,6 +25,7 @@ interface OrgSwitcherProps {
 }
 
 export const OrgSwitcher = ({ user }: OrgSwitcherProps) => {
+  const router = useRouter();
   const pathname = usePathname();
   const { activeEnvironment } = useEnvironmentStore();
   const { useListOrganizations, organization, useActiveOrganization } =
@@ -33,15 +35,24 @@ export const OrgSwitcher = ({ user }: OrgSwitcherProps) => {
   const { data: activeOrganization, isPending: isActiveOrganizationPending } =
     useActiveOrganization();
 
+  const { setLastActiveOrgId } = useOrganizationStore();
+
   const [menuList, setMenuList] = useState<Source[]>([]);
 
   const updateSelection = (value: string) => {
     const selected = menuList.find((menu) => menu.value === value);
     if (!selected) return;
 
+    if (value === "add-new") {
+      router.push("/create-org");
+      return;
+    }
+
     organization.setActive({
       organizationId: value,
     });
+
+    setLastActiveOrgId(value);
   };
 
   useEffect(() => {
@@ -51,6 +62,11 @@ export const OrgSwitcher = ({ user }: OrgSwitcherProps) => {
         name: org.name || "",
         value: org.id.toString(),
       });
+    });
+
+    _menuList.push({
+      name: "+ Add new",
+      value: "add-new",
     });
 
     setMenuList(_menuList);
