@@ -1,8 +1,9 @@
 import { useApiClients } from "@/context/api-provider";
+
 import { useQuery } from "@connectrpc/connect-query";
 import { ping } from "api/js/svc/localhost/v1/service-LocalhostService_connectquery";
 
-export const usePing = () => {
+export const usePing = (enabled: boolean = true) => {
   const { apiClients } = useApiClients();
 
   const {
@@ -16,6 +17,7 @@ export const usePing = () => {
       refetchInterval: 5000,
       placeholderData: (prev) => prev,
       transport: apiClients?.localhostTransport,
+      enabled,
     },
   );
 
