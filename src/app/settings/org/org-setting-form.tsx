@@ -36,6 +36,7 @@ import {
 } from "@/components/ui/select";
 import { Member, Invitation, Organization } from "better-auth/plugins";
 import { User } from "better-auth";
+import { useRouter } from "next/navigation";
 
 interface Role {
   value: "owner" | "admin" | "member";
@@ -74,7 +75,13 @@ export const OrgSettingForm = ({
   activeOrganization,
   user,
 }: OrgSettingFormProps) => {
-  const { organization } = authClient;
+  const router = useRouter();
+  const { organization, useListOrganizations } = authClient;
+  const { data: allOrganizations } = useListOrganizations();
+
+  const isLastOrganization = !!(
+    allOrganizations && allOrganizations.length <= 1
+  );
 
   const [email, setEmail] = useState("");
   const [orgName, setOrgName] = useState("");
@@ -208,14 +215,33 @@ export const OrgSettingForm = ({
   };
 
   const handleDeleteOrg = async () => {
+    if (isLastOrganization) {
+      toast.error(
+        "Cannot delete your last organization. Create a new organization before deleting this one.",
+      );
+      return;
+    }
     setIsDeletingOrg(true);
     await organization.delete(
       {
         organizationId: activeOrganization?.id,
       },
       {
-        onSuccess: () => {
+        onSuccess: async () => {
           toast.success("Organization deleted successfully");
+
+          const remainingOrgs = allOrganizations?.filter(
+            (org) => org.id !== activeOrganization?.id,
+          );
+
+          if (!remainingOrgs || remainingOrgs.length === 0) return;
+
+          await organization.setActive({
+            organizationId: remainingOrgs[0].id,
+          });
+          toast.info(`Switched to ${remainingOrgs[0].name}`);
+          router.refresh();
+
           setIsDeletingOrg(false);
         },
         onError: (error) => {
@@ -534,28 +560,6 @@ export const OrgSettingForm = ({
         </>
       }
 
-      {/* Create New Organization */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Create New Organization</CardTitle>
-          <CardDescription>
-            Create a new organization and become its owner
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex gap-3">
-            <Input
-              placeholder="New organization name"
-              value={orgName}
-              onChange={(e) => setOrgName(e.target.value)}
-            />
-            <Button onClick={handleCreateOrg} disabled={!orgName.trim()}>
-              Create Organization
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
       {/* Danger Zone */}
       {
         <Card className="border-red-200">
@@ -573,14 +577,16 @@ export const OrgSettingForm = ({
                     Delete Organization
                   </p>
                   <p className="text-muted-foreground text-sm">
-                    Permanently delete this organization and all its data
+                    {isLastOrganization
+                      ? "You must have at least one organization. Create another organization before deleting this one."
+                      : "Permanently delete this organization and all its data"}
                   </p>
                 </div>
                 <Button
                   variant="destructive"
                   size="sm"
                   onClick={handleDeleteOrg}
-                  disabled={isDeletingOrg}
+                  disabled={isDeletingOrg || isLastOrganization}
                   className="w-24"
                 >
                   {isDeletingOrg ? (
