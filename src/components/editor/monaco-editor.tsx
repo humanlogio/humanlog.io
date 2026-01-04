@@ -7,9 +7,9 @@ import type {
   editor,
   IRange,
   Position,
-  languages,
 } from "monaco-editor";
 import { useRef, useEffect, useCallback, useState } from "react";
+import { languages } from "monaco-editor/esm/vs/editor/editor.api";
 import { LANGUAGE_ID } from "@/components/editor/globals";
 import LanguageConfiguration = languages.LanguageConfiguration;
 import { humanlogqlLanguageDefinition } from "@/components/editor/monarch";
