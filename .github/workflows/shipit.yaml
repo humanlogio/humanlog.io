@@ -26,7 +26,7 @@ jobs:
           token: ${{ secrets.DOCN_REGISTRY_TOKEN }}
 
       - name: Build container image
-        run: docker build --build-arg build_heap_size=4096 --build-arg git_hash=${{steps.vars.outputs.sha_short}} --build-arg api_url="https://api.humanlog.io" --build-arg self_url="https://humanlog.io" --build-arg default_release_channel="main"  --build-arg posthog_key="phc_8l5z2zbVXCLaW98ZNRuiBeu78wshQdbobBQ2ZYvGraT" --build-arg posthog_host="https://us.i.posthog.com" --build-arg is_prod="true"  -t registry.digitalocean.com/humanlog/humanlogio:prod-${{steps.vars.outputs.sha_short}} .
+        run: docker build --build-arg GITHUB_TOKEN=${{ secrets.PRIVATE_REPO_ACCESS_TOKEN }} --build-arg build_heap_size=4096 --build-arg git_hash=${{steps.vars.outputs.sha_short}} --build-arg api_url="https://api.humanlog.io" --build-arg self_url="https://humanlog.io" --build-arg default_release_channel="main"  --build-arg posthog_key="phc_8l5z2zbVXCLaW98ZNRuiBeu78wshQdbobBQ2ZYvGraT" --build-arg posthog_host="https://us.i.posthog.com" --build-arg is_prod="true"  -t registry.digitalocean.com/humanlog/humanlogio:prod-${{steps.vars.outputs.sha_short}} .
 
       - name: Log in to DigitalOcean Container Registry with short-lived credentials
         run: doctl registry login --expiry-seconds 1200
