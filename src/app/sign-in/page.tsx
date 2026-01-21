@@ -75,9 +75,12 @@ export default function SignInPage() {
           });
         },
         onError: (ctx) => {
-          setError("email", { message: ctx.error.message });
-          setError("password", { message: ctx.error.message });
-          toast.error(ctx.error.message);
+          const errorMessage =
+            ctx.error.message ||
+            "Something went wrong. Please try again later.";
+          setError("email", { message: errorMessage });
+          setError("password", { message: errorMessage });
+          toast.error(errorMessage);
         },
       },
     );
