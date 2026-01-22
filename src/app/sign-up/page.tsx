@@ -133,10 +133,14 @@ export default function SignUpPage() {
           // when email verification is required
           if (ctx.error.status === 403) {
             toast.error("Please verify your email address");
+            return;
           }
           // display the error message
           console.log("ctx in signUp onError", ctx);
-          toast.error(ctx.error.message);
+          const errorMessage =
+            ctx.error.message ||
+            "Something went wrong. Please try again later.";
+          toast.error(errorMessage);
         },
       },
     );
