@@ -1,25 +1,14 @@
-"use client";
+import { TakingABreak } from "@/components/taking-a-break";
 
-import { EnvironmentCreationForm } from "@/components/env/env-creation-form";
-import { authClient } from "@/lib/auth-client";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
-
+/**
+ * humanlog.io is taking a break, so no new environments — creating one used to
+ * open a Stripe subscription (OrganizationService.CreateEnvironment). The
+ * backend refuses that RPC independently; this is the front door only.
+ *
+ * See https://www.webscale.lol/blog/humanlog-retro
+ */
 export default function NewEnvironmentPage() {
-  const router = useRouter();
-  const { useActiveOrganization } = authClient;
-  const { data: activeOrganization } = useActiveOrganization();
-
-  useEffect(() => {
-    if (!activeOrganization) return;
-    const url = `/${activeOrganization.slug}/env-new`;
-    router.replace(url);
-  }, [activeOrganization]);
-
   return (
-    <div className="container py-6">
-      <h1 className="mb-6 text-3xl font-bold">Create a new environment</h1>
-      <EnvironmentCreationForm orgId={activeOrganization?.id} />
-    </div>
+    <TakingABreak description="The hosted app is closed, so there are no new environments to create. The free subscriptions created at signup are being cancelled and there is nothing owed." />
   );
 }

@@ -1,38 +1,16 @@
-"use client";
+import { TakingABreak } from "@/components/taking-a-break";
 
-import { useFeatureFlag } from "@/hooks/useFeatureFlag";
-import { ChevronLeft } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
-
-export default function SignUpLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  const router = useRouter();
-
-  const { flagEnabled: isAuthMigrationReady, isLoading } =
-    useFeatureFlag("release_auth_temp");
-
-  useEffect(() => {
-    if (!isLoading && !isAuthMigrationReady) {
-      router.replace("/");
-    }
-  }, [isLoading, isAuthMigrationReady, router]);
-
-  if (isLoading || !isAuthMigrationReady) return null;
-
+/**
+ * humanlog.io is taking a break, so we're not accepting new signups.
+ *
+ * The notice replaces `children` entirely rather than gating it, so every route
+ * under /sign-up lands on it. The underlying pages are left in place for
+ * whenever the lights come back on.
+ *
+ * See https://www.webscale.lol/blog/humanlog-retro
+ */
+export default function SignUpLayout() {
   return (
-    <div className="relative flex h-full w-full flex-col items-center justify-center">
-      <button
-        className="text-muted-foreground absolute top-5 left-6 flex items-center gap-1 text-xs"
-        onClick={() => router.back()}
-      >
-        <ChevronLeft size={15} />
-        Back
-      </button>
-      {children}
-    </div>
+    <TakingABreak description="We're not accepting new signups — the hosted app is winding down. The log parser is being open-sourced, and the observability tool is moving to a new project called minitape." />
   );
 }

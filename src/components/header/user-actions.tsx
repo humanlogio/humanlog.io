@@ -15,7 +15,6 @@ import Link from "next/link";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { User as BetterAuthUser } from "better-auth";
 import { authClient } from "@/lib/auth-client";
-import { Button } from "@/components/ui/button";
 import { NavigationMenuItem } from "@/components/ui/navigation-menu";
 import { useEnvironmentStore } from "@/stores/environment-store";
 import { usePageStore } from "@/stores/page-store";
@@ -48,19 +47,14 @@ export const UserActions = ({ user }: UserActionsProps) => {
     });
   };
 
+  // humanlog.io is taking a break, so there's nothing to sign in to and the
+  // "Sign In" button is gone. Signed-out visitors keep the theme toggle, which
+  // otherwise only exists inside the signed-in menu below.
+  // See https://www.webscale.lol/blog/humanlog-retro
   return !user ? (
-    <>
-      <NavigationMenuItem>
-        <Button
-          variant="link"
-          size="sm"
-          onClick={() => router.push("/sign-in")}
-          className="font-normal"
-        >
-          Sign In
-        </Button>
-      </NavigationMenuItem>
-    </>
+    <NavigationMenuItem>
+      <ThemeToggle />
+    </NavigationMenuItem>
   ) : (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>

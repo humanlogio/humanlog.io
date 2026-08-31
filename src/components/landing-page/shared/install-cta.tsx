@@ -35,7 +35,7 @@ interface InstallCTAProps {
 }
 
 const InstallCTA: React.FC<InstallCTAProps> = ({
-  buttonText = "Install & Sign Up",
+  buttonText = "Install humanlog",
   buttonSize = "lg",
   buttonVariant = "default",
   className = "h-11",

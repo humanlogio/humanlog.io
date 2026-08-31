@@ -13,6 +13,7 @@ import { OTELProvider } from "@/context/otel-provider";
 import { PostHogProvider } from "@/context/posthog-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Header } from "@/components/header";
+import { BreakBanner } from "@/components/break-banner";
 import { Suspense } from "react";
 
 export const metadata: Metadata = {
@@ -51,9 +52,10 @@ export default function RootLayout({
                         <div className="flex-none">
                           <Header />
                         </div>
-                        <div className="mt-12 flex flex-1 flex-col">
-                          {children}
+                        <div className="mt-12 flex-none">
+                          <BreakBanner />
                         </div>
+                        <div className="flex flex-1 flex-col">{children}</div>
                         <PageFooter />
                       </div>
                     </Suspense>

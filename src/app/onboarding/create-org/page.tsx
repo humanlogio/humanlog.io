@@ -1,25 +1,12 @@
-"use client";
+import { TakingABreak } from "@/components/taking-a-break";
 
-import { toast } from "sonner";
-import { useRouter } from "next/navigation";
-import { CreateOrg } from "@/components/organization/create-org";
-import { authClient } from "@/lib/auth-client";
-
+/**
+ * humanlog.io is taking a break, so onboarding is closed.
+ *
+ * See https://www.webscale.lol/blog/humanlog-retro
+ */
 export default function OnboardingCreateOrgPage() {
-  const { useActiveOrganization } = authClient;
-  const { data: activeOrganization } = useActiveOrganization();
-  const router = useRouter();
-
-  const onSuccess = () => {
-    toast.success("Organization created successfully");
-    router.push(`/${activeOrganization?.slug}/localhost/query`);
-
-    // TODO
-    // router.push("/onboarding/pricing");
-  };
   return (
-    <div className="flex h-full w-full items-center justify-center">
-      <CreateOrg title="Create your first organization" onSuccess={onSuccess} />
-    </div>
+    <TakingABreak description="The hosted app is closed, so there’s no onboarding to finish. The log parser is being open-sourced, and the observability tool is moving to a new project called minitape." />
   );
 }
