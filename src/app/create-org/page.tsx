@@ -1,23 +1,12 @@
-"use client";
+import { TakingABreak } from "@/components/taking-a-break";
 
-import { CreateOrg } from "@/components/organization/create-org";
-import { toast } from "sonner";
-import { useRouter } from "next/navigation";
-import { authClient } from "@/lib/auth-client";
-
+/**
+ * humanlog.io is taking a break, so organization creation is closed.
+ *
+ * See https://www.webscale.lol/blog/humanlog-retro
+ */
 export default function CreateOrgPage() {
-  const router = useRouter();
-  const { useActiveOrganization } = authClient;
-  const { data: activeOrganization } = useActiveOrganization();
-
-  const onSuccess = () => {
-    toast.success("Organization created successfully");
-    router.push(`/${activeOrganization?.slug}/localhost/query`);
-  };
-
   return (
-    <div className="flex h-full w-full items-center justify-center">
-      <CreateOrg title="Create your organization" onSuccess={onSuccess} />
-    </div>
+    <TakingABreak description="The hosted app is closed, so there are no new organizations to create. The log parser is being open-sourced, and the observability tool is moving to a new project called minitape." />
   );
 }

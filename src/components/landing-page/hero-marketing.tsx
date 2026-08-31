@@ -281,7 +281,7 @@ const AboveFoldHero: React.FC = () => {
 
         {/* CTA Buttons */}
         <div className="mx-auto mb-4 grid max-w-lg grid-cols-1 gap-3 sm:grid-cols-2">
-          <InstallCTA buttonText="Install & Sign Up" className="w-full" />
+          <InstallCTA buttonText="Install humanlog" className="w-full" />
           <a
             href="/link/github"
             target="_blank"

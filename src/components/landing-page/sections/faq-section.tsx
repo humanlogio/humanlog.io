@@ -158,14 +158,11 @@ const faqItems: FAQItem[] = [
     answer: (
       <>
         <p>
-          Yes! We{"'"}re working on a hosted solution for teams that need
-          managed infrastructure.
+          Not right now. humanlog.io is taking a break — the hosted tool is
+          moving to a new project called minitape, with no timeline promised.
         </p>
         <div className="mt-4">
-          <CloudBetaSignup
-            heading="Join the Humanlog Cloud waitlist for our managed service."
-            className="mt-2"
-          />
+          <CloudBetaSignup className="mt-2" />
         </div>
       </>
     ),

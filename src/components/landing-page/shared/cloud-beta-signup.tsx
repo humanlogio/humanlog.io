@@ -18,7 +18,7 @@ interface CloudBetaSignupProps {
 }
 
 const CloudBetaSignup: React.FC<CloudBetaSignupProps> = ({
-  heading = "Signup for our private beta of Humanlog Cloud. Reuse everything you learn locally, skills transfer 1:1, spots limited to 50 engineers.",
+  heading = "humanlog.io is taking a break. The hosted tool is moving to a new project called minitape — leave your email to hear when it launches.",
   className = "",
   variant = "default",
 }) => {

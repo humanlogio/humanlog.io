@@ -30,6 +30,22 @@ const betterAuthCallbacksClient = createClient(
 );
 const betterAuthAdapter = createBetterAuthAdapter(betterAuthAdapterClient);
 
+const shared = createSharedBetterAuthConfig({
+  callbacksClient: betterAuthCallbacksClient,
+  createInvitationUrl: (invitationId: string) => {
+    return `${getSelfURL()}/invitation-callback?invitationId=${invitationId}`;
+  },
+
+  github: {
+    clientId: process.env.GITHUB_CLIENT_ID || "",
+    clientSecret: process.env.GITHUB_CLIENT_SECRET || "",
+  },
+  google: {
+    clientId: process.env.GOOGLE_CLIENT_ID || "",
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
+  },
+});
+
 const config = {
   database: betterAuthAdapter,
   secret: process.env.BETTER_AUTH_SECRET || "",
@@ -41,21 +57,21 @@ const config = {
   },
 
   // telemetry: { enabled: true, debug: true },
-  ...createSharedBetterAuthConfig({
-    callbacksClient: betterAuthCallbacksClient,
-    createInvitationUrl: (invitationId: string) => {
-      return `${getSelfURL()}/invitation-callback?invitationId=${invitationId}`;
-    },
+  ...shared,
 
-    github: {
-      clientId: process.env.GITHUB_CLIENT_ID || "",
-      clientSecret: process.env.GITHUB_CLIENT_SECRET || "",
-    },
-    google: {
-      clientId: process.env.GOOGLE_CLIENT_ID || "",
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
-    },
-  }),
+  // humanlog.io is taking a break: https://www.webscale.lol/blog/humanlog-retro
+  //
+  // These overrides must stay *after* the spread above, and must merge into the
+  // shared config rather than replace it, or the callbacks it carries go with
+  // them. Disabling email/password closes /api/auth/sign-in/email and
+  // /api/auth/sign-up/email; emptying socialProviders removes the GitHub and
+  // Google routes, which otherwise auto-create an account for any unknown
+  // identity that hits `signIn.social`.
+  //
+  // The backend refuses account and session creation independently — see the
+  // closed-for-break interceptor in apisvc. This is the front door only.
+  emailAndPassword: { ...shared.emailAndPassword, enabled: false },
+  socialProviders: {},
 };
 
 export const auth = betterAuth(config);
