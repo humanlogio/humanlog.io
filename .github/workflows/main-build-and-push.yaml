@@ -54,6 +54,6 @@ jobs:
         uses: peter-evans/repository-dispatch@v3
         with:
           token: ${{ secrets.TRIGGER_EVENT_GITHUB_PAT }}
-          repository: humanlogio/deploy
+          repository: hcorpinc/deploy
           event-type: set_humanlogio_tag
           client-payload: '{"deploy_tag": "${{github.event.inputs.sha || steps.vars.outputs.sha_short}}", "env": "dev"}'
